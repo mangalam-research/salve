@@ -1,0 +1,36 @@
+enterStartTag, http://www.tei-c.org/ns/1.0, TEI
+leaveStartTag
+enterStartTag, http://www.tei-c.org/ns/1.0, teiHeader
+leaveStartTag
+enterStartTag, http://www.tei-c.org/ns/1.0, fileDesc
+leaveStartTag
+enterStartTag, http://www.tei-c.org/ns/1.0, titleStmt
+leaveStartTag
+enterStartTag, http://www.tei-c.org/ns/1.0, title
+leaveStartTag
+endTag, http://www.tei-c.org/ns/1.0, title
+endTag, http://www.tei-c.org/ns/1.0, titleStmt
+enterStartTag, http://www.tei-c.org/ns/1.0, publicationStmt
+leaveStartTag
+enterStartTag, http://www.tei-c.org/ns/1.0, p
+leaveStartTag
+endTag, http://www.tei-c.org/ns/1.0, p
+endTag, http://www.tei-c.org/ns/1.0, publicationStmt
+enterStartTag, http://www.tei-c.org/ns/1.0, sourceDesc
+leaveStartTag
+enterStartTag, http://www.tei-c.org/ns/1.0, p
+leaveStartTag
+endTag, http://www.tei-c.org/ns/1.0, p
+endTag, http://www.tei-c.org/ns/1.0, sourceDesc
+endTag, http://www.tei-c.org/ns/1.0, fileDesc
+endTag, http://www.tei-c.org/ns/1.0, teiHeader
+enterStartTag, http://www.tei-c.org/ns/1.0, text
+leaveStartTag
+enterStartTag, http://www.tei-c.org/ns/1.0, body
+leaveStartTag
+enterStartTag, http://www.tei-c.org/ns/1.0, p
+leaveStartTag
+endTag, http://www.tei-c.org/ns/1.0, p
+endTag, http://www.tei-c.org/ns/1.0, body
+endTag, http://www.tei-c.org/ns/1.0, text
+endTag, http://www.tei-c.org/ns/1.0, TEI

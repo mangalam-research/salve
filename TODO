@@ -1,0 +1,97 @@
+* Support for context-invariant validations, which should reduce
+   memory usage, help editors be more user friendly and possibly be
+   faster generally.
+
+Context Invariance
+==================
+
+An element is context-invariant if the schema does not allow its
+structure to vary depending on where it appears in the document being
+validated. 
+
+An element E is context-invariant relative to another element C which
+is its parent or preceding sibling if, given that E is a child of C or
+a sibling of C makes it so that E can only have one structure.
+
+Shallow validation: A shallow validation of element E is one which
+walks the children nodes of E to ascertain that the structure of E is
+correct but assumes that the children of E are internally valid.
+
+A document which contains only context-invariant elements can be
+validated by shallowly validating all its elements in any order.
+
+A document which contains a mixture of context-invariant elements can
+be validated as follows:
+
+While there are elements not validated:
+  For each not-validated element E:
+    If E is context-invariant OR E has a definition associated with it:
+      For each child node C:
+        Check that C fits E's structure but do not descend into C. (Shallow validation of E.)
+        If C is not context-invariant:
+          If C is relatively context-invariant:
+            Associate C with the definition required by context.
+          Else: 
+            # Is this possible??? It seems to me that E would 
+            # also have to be variant or have no definition associated with it
+            # for this to happen. 
+      Remove E from the set of non-validated elements
+    # Else we skip it   
+      
+The algorithm above, if correct should empty the set of non-validated
+elements. If not, there's an error in the algorithm.
+
+Fake Variance
+=============
+
+<choice>
+ <element name="person">
+  <attribute name="first-name"/>
+  <attribute name="last-name"/>
+ </element>
+ <element name="person">
+  <element name="first-name"><text/></element>
+  <element name="last-name"><text/></element>
+ </element>
+</choice>
+
+I call the pattern above fake variance because it is equivalent to:
+
+<element name="person">
+ <choice>
+  <group>
+   <attribute name="first-name"/>
+   <attribute name="last-name"/>
+  </group>
+  <group>
+   <element name="first-name"><text/></element>
+   <element name="last-name"><text/></element>
+  </group>
+ </choice>
+</element>
+
+The choice is not really between two differently structured "person"
+elements but between two contents for "person".
+
+
+
+* Support for events that are more appropriate in a DOM
+   environment. For instance, have a whole start tag be treated as a
+   single event, with attributes and all, rather than a series of
+   "enterStartTag", "attributeName", "attributeValue", "leaveStartTag"
+   events.
+
+* Dump xml_path as variable.
+  * Add a Start class to validate deriving from Pattern which will
+   hold the start pattern. (Instead of the current system in which
+   there is no Pattern corresponding to <start>.
+  * Make xml_path be computed dynamically by joining the path
+   information of a given element with the path information of its
+   parent. (Cache it for performance.)
+  * Since this is a variable used for debugging, then the cost of
+   computing these will be born during debugging but not otherwise.
+
+* Handle the util.inspect replacement better in rng_parse.js
+
+* Manage to have ace be able to integrate with rng_parse intelligently
+   instead of having a bindfs.

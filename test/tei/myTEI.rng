@@ -1,0 +1,5258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar ns="http://www.tei-c.org/ns/1.0" xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns:teix="http://www.tei-c.org/ns/Examples" xmlns:rng="http://relaxng.org/ns/structure/1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sch="http://purl.oclc.org/dsdl/schematron" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <!--
+    Schema generated from ODD source 2010-07-22T15:45:17-04:00. 
+    Edition: 1.7.0. Last updated on July 6th 2010.
+    
+  -->
+  <!---->
+  <define name="tei_macro.paraContent">
+    <zeroOrMore>
+      <choice>
+        <text/>
+        <ref name="tei_model.gLike"/>
+        <ref name="tei_model.phrase"/>
+        <ref name="tei_model.inter"/>
+        <ref name="tei_model.global"/>
+      </choice>
+    </zeroOrMore>
+  </define>
+  <define name="tei_macro.limitedContent">
+    <zeroOrMore>
+      <choice>
+        <text/>
+        <ref name="tei_model.limitedPhrase"/>
+        <ref name="tei_model.inter"/>
+      </choice>
+    </zeroOrMore>
+  </define>
+  <define name="tei_macro.phraseSeq">
+    <zeroOrMore>
+      <choice>
+        <text/>
+        <ref name="tei_model.gLike"/>
+        <ref name="tei_model.phrase"/>
+        <ref name="tei_model.global"/>
+      </choice>
+    </zeroOrMore>
+  </define>
+  <define name="tei_macro.phraseSeq.limited">
+    <zeroOrMore>
+      <choice>
+        <text/>
+        <ref name="tei_model.limitedPhrase"/>
+        <ref name="tei_model.global"/>
+      </choice>
+    </zeroOrMore>
+  </define>
+  <define name="tei_macro.specialPara">
+    <zeroOrMore>
+      <choice>
+        <text/>
+        <ref name="tei_model.gLike"/>
+        <ref name="tei_model.phrase"/>
+        <ref name="tei_model.inter"/>
+        <ref name="tei_model.divPart"/>
+        <ref name="tei_model.global"/>
+      </choice>
+    </zeroOrMore>
+  </define>
+  <define name="att.ascribed.attributes">
+    <ref name="att.ascribed.attribute.who"/>
+    <empty/>
+  </define>
+  <define name="att.ascribed.attribute.who">
+    <optional>
+      <attribute name="who">
+        <a:documentation>indicates the person, or group of people, to whom the element content is ascribed.</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="anyURI"/>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.canonical.attributes">
+    <ref name="att.canonical.attribute.key"/>
+    <ref name="att.canonical.attribute.ref"/>
+    <empty/>
+  </define>
+  <define name="att.canonical.attribute.key">
+    <optional>
+      <attribute name="key">
+        <a:documentation>provides an externally-defined means of identifying the entity (or entities) being
+        named, using a coded value of some kind.</a:documentation>
+        <data type="string"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.canonical.attribute.ref">
+    <optional>
+      <attribute name="ref">
+        <a:documentation>(reference) provides an explicit means of locating a full definition for the entity being named by
+        means of one or more URIs.</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="anyURI"/>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.ranging.attributes">
+    <ref name="att.ranging.attribute.atLeast"/>
+    <ref name="att.ranging.attribute.atMost"/>
+    <ref name="att.ranging.attribute.min"/>
+    <ref name="att.ranging.attribute.max"/>
+    <empty/>
+  </define>
+  <define name="att.ranging.attribute.atLeast">
+    <optional>
+      <attribute name="atLeast">
+        <a:documentation>gives a minimum estimated value for the approximate measurement.</a:documentation>
+        <choice>
+          <data type="double"/>
+          <data type="token">
+            <param name="pattern">(\-?[\d]+/\-?[\d]+)</param>
+          </data>
+          <data type="decimal"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.ranging.attribute.atMost">
+    <optional>
+      <attribute name="atMost">
+        <a:documentation>gives a maximum estimated value for the approximate measurement.</a:documentation>
+        <choice>
+          <data type="double"/>
+          <data type="token">
+            <param name="pattern">(\-?[\d]+/\-?[\d]+)</param>
+          </data>
+          <data type="decimal"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.ranging.attribute.min">
+    <optional>
+      <attribute name="min">
+        <a:documentation>where the measurement summarizes more than one observation
+      or a range, supplies the minimum value
+        observed.</a:documentation>
+        <choice>
+          <data type="double"/>
+          <data type="token">
+            <param name="pattern">(\-?[\d]+/\-?[\d]+)</param>
+          </data>
+          <data type="decimal"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.ranging.attribute.max">
+    <optional>
+      <attribute name="max">
+        <a:documentation>where the measurement summarizes more than one observation
+      or a range, supplies the maximum value
+      observed.</a:documentation>
+        <choice>
+          <data type="double"/>
+          <data type="token">
+            <param name="pattern">(\-?[\d]+/\-?[\d]+)</param>
+          </data>
+          <data type="decimal"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.dimensions.attributes">
+    <ref name="att.ranging.attributes"/>
+    <ref name="att.dimensions.attribute.unit"/>
+    <ref name="att.dimensions.attribute.quantity"/>
+    <ref name="att.dimensions.attribute.extent"/>
+    <ref name="att.dimensions.attribute.precision"/>
+    <ref name="att.dimensions.attribute.scope"/>
+    <empty/>
+  </define>
+  <define name="att.dimensions.attribute.unit">
+    <optional>
+      <attribute name="unit">
+        <a:documentation>names the unit used for the measurement
+Suggested values include: 1] cm (centimetrescentimètrescentímetroscentimetri); 2] mm (millimetresmillimètresmilímetrosmillimetri); 3] in (inchespoucespulgadaspollici); 4] lines; 5] chars (characters문자caracterescaratteri)</a:documentation>
+        <choice>
+          <value>cm</value>
+          <a:documentation>(centimetres) </a:documentation>
+          <value>mm</value>
+          <a:documentation>(millimetres) </a:documentation>
+          <value>in</value>
+          <a:documentation>(inches) </a:documentation>
+          <value>lines</value>
+          <a:documentation>lines of text</a:documentation>
+          <value>chars</value>
+          <a:documentation>(characters) characters of text</a:documentation>
+          <data type="Name"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.dimensions.attribute.quantity">
+    <optional>
+      <attribute name="quantity">
+        <a:documentation>specifies the length in the units specified</a:documentation>
+        <choice>
+          <data type="double"/>
+          <data type="token">
+            <param name="pattern">(\-?[\d]+/\-?[\d]+)</param>
+          </data>
+          <data type="decimal"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.dimensions.attribute.extent">
+    <optional>
+      <attribute name="extent">
+        <a:documentation>indicates the size of the object concerned using a project-specific vocabulary combining
+        quantity and units in a single string of words. </a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="token">
+              <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+            </data>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.dimensions.attribute.precision">
+    <optional>
+      <attribute name="precision">
+        <a:documentation>characterizes the precision of the values specified by the other attributes.</a:documentation>
+        <choice>
+          <value>high</value>
+          <value>medium</value>
+          <value>low</value>
+          <value>unknown</value>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.dimensions.attribute.scope">
+    <optional>
+      <attribute name="scope">
+        <a:documentation>where the measurement summarizes more than one observation, specifies the applicability
+        of this measurement.
+Sample values include: 1] all; 2] most; 3] range</a:documentation>
+        <data type="Name"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.datable.w3c.attributes">
+    <ref name="att.datable.w3c.attribute.period"/>
+    <ref name="att.datable.w3c.attribute.when"/>
+    <ref name="att.datable.w3c.attribute.notBefore"/>
+    <ref name="att.datable.w3c.attribute.notAfter"/>
+    <ref name="att.datable.w3c.attribute.from"/>
+    <ref name="att.datable.w3c.attribute.to"/>
+    <empty/>
+  </define>
+  <define name="att.datable.w3c.attribute.period">
+    <optional>
+      <attribute name="period">
+        <a:documentation>supplies a pointer to some location defining a named
+      period of time within which the datable item is understood to
+      have occurred.</a:documentation>
+        <data type="anyURI"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.datable.w3c.attribute.when">
+    <optional>
+      <attribute name="when">
+        <a:documentation>supplies the value of the date or time in a standard form,
+      e.g. yyyy-mm-dd.</a:documentation>
+        <choice>
+          <data type="date"/>
+          <data type="gYear"/>
+          <data type="gMonth"/>
+          <data type="gDay"/>
+          <data type="gYearMonth"/>
+          <data type="gMonthDay"/>
+          <data type="time"/>
+          <data type="dateTime"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.datable.w3c.attribute.notBefore">
+    <optional>
+      <attribute name="notBefore">
+        <a:documentation>specifies the earliest possible date for the event in
+	  standard form, e.g. yyyy-mm-dd.</a:documentation>
+        <choice>
+          <data type="date"/>
+          <data type="gYear"/>
+          <data type="gMonth"/>
+          <data type="gDay"/>
+          <data type="gYearMonth"/>
+          <data type="gMonthDay"/>
+          <data type="time"/>
+          <data type="dateTime"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.datable.w3c.attribute.notAfter">
+    <optional>
+      <attribute name="notAfter">
+        <a:documentation>specifies the latest possible date for the event in
+	  standard form, e.g. yyyy-mm-dd.</a:documentation>
+        <choice>
+          <data type="date"/>
+          <data type="gYear"/>
+          <data type="gMonth"/>
+          <data type="gDay"/>
+          <data type="gYearMonth"/>
+          <data type="gMonthDay"/>
+          <data type="time"/>
+          <data type="dateTime"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.datable.w3c.attribute.from">
+    <optional>
+      <attribute name="from">
+        <a:documentation>indicates the starting point of the period in standard form, e.g. yyyy-mm-dd.</a:documentation>
+        <choice>
+          <data type="date"/>
+          <data type="gYear"/>
+          <data type="gMonth"/>
+          <data type="gDay"/>
+          <data type="gYearMonth"/>
+          <data type="gMonthDay"/>
+          <data type="time"/>
+          <data type="dateTime"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.datable.w3c.attribute.to">
+    <optional>
+      <attribute name="to">
+        <a:documentation>indicates the ending point of the period in standard
+	  form, e.g. yyyy-mm-dd.</a:documentation>
+        <choice>
+          <data type="date"/>
+          <data type="gYear"/>
+          <data type="gMonth"/>
+          <data type="gDay"/>
+          <data type="gYearMonth"/>
+          <data type="gMonthDay"/>
+          <data type="time"/>
+          <data type="dateTime"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.datable.attributes">
+    <ref name="att.datable.w3c.attributes"/>
+    <empty/>
+  </define>
+  <define name="att.declarable.attributes">
+    <ref name="att.declarable.attribute.default"/>
+    <empty/>
+  </define>
+  <define name="att.declarable.attribute.default">
+    <optional>
+      <attribute name="default" a:defaultValue="false">
+        <a:documentation>indicates whether or not this element is selected by default when
+its parent is selected.</a:documentation>
+        <choice>
+          <value>true</value>
+          <a:documentation>This element is selected if its parent is selected</a:documentation>
+          <value>false</value>
+          <a:documentation>This element can only be selected explicitly, unless it is the
+only one of its kind, in which case it is selected if its parent is selected.</a:documentation>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.declaring.attributes">
+    <ref name="att.declaring.attribute.decls"/>
+    <empty/>
+  </define>
+  <define name="att.declaring.attribute.decls">
+    <optional>
+      <attribute name="decls">
+        <a:documentation>identifies one or more declarable elements within the
+header, which are understood to apply to the element bearing this
+attribute and its content.</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="anyURI"/>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.divLike.attributes">
+    <ref name="att.divLike.attribute.org"/>
+    <ref name="att.divLike.attribute.sample"/>
+    <ref name="att.divLike.attribute.part"/>
+    <empty/>
+  </define>
+  <define name="att.divLike.attribute.org">
+    <optional>
+      <attribute name="org" a:defaultValue="uniform">
+        <a:documentation>(organization) specifies how the content of the division is organized.</a:documentation>
+        <choice>
+          <value>composite</value>
+          <a:documentation>composite content: i.e. no claim is made about the
+		  sequence in which the immediate contents of this division
+		  are to be processed, or their inter-relationships.</a:documentation>
+          <value>uniform</value>
+          <a:documentation>uniform content: i.e. the immediate contents of this
+		  element are regarded as forming a logical unit, to be
+		  processed in sequence.</a:documentation>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.divLike.attribute.sample">
+    <optional>
+      <attribute name="sample" a:defaultValue="complete">
+        <a:documentation>indicates whether this division is a sample of the
+		original source and if so, from which part.</a:documentation>
+        <choice>
+          <value>initial</value>
+          <a:documentation>division lacks material present at end in source.</a:documentation>
+          <value>medial</value>
+          <a:documentation>division lacks material at start and end.</a:documentation>
+          <value>final</value>
+          <a:documentation>division lacks material at start.</a:documentation>
+          <value>unknown</value>
+          <a:documentation>position of sampled material within original unknown.</a:documentation>
+          <value>complete</value>
+          <a:documentation>division is not a sample.</a:documentation>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.divLike.attribute.part">
+    <optional>
+      <attribute name="part" a:defaultValue="N">
+        <a:documentation>specifies whether or not the division is fragmented by
+		some other structural element, for example a speech which is
+		divided between two or more verse stanzas.</a:documentation>
+        <choice>
+          <value>Y</value>
+          <a:documentation>(yes) the division is incomplete in some respect</a:documentation>
+          <value>N</value>
+          <a:documentation>(no) either the division is complete, or no claim is made as to its completeness.</a:documentation>
+          <value>I</value>
+          <a:documentation>(initial) the initial part of an incomplete division</a:documentation>
+          <value>M</value>
+          <a:documentation>(medial) a medial part of an incomplete division</a:documentation>
+          <value>F</value>
+          <a:documentation>(final) the final part of an incomplete division</a:documentation>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.docStatus.attributes">
+    <ref name="att.docStatus.attribute.status"/>
+    <empty/>
+  </define>
+  <define name="att.docStatus.attribute.status">
+    <optional>
+      <attribute name="status" a:defaultValue="draft">
+        <a:documentation>describes the status of a document either currently or, when
+associated with a dated element, at the time indicated.
+Sample values include: 1] candidate; 2] recommendation; 3] submitted; 4] approved; 5] deprecated; 6] proposed; 7] cleared; 8] embargoed; 9] draft; 10] frozen; 11] expired; 12] unfinished; 13] draft; 14] galley; 15] published; 16] withdrawn; 17] expired </a:documentation>
+        <data type="Name"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.responsibility.attributes">
+    <ref name="att.responsibility.attribute.cert"/>
+    <ref name="att.responsibility.attribute.resp"/>
+    <empty/>
+  </define>
+  <define name="att.responsibility.attribute.cert">
+    <optional>
+      <attribute name="cert">
+        <a:documentation>(certainty) signifies the degree of certainty associated with the intervention or interpretation.</a:documentation>
+        <choice>
+          <value>high</value>
+          <value>medium</value>
+          <value>low</value>
+          <value>unknown</value>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.responsibility.attribute.resp">
+    <optional>
+      <attribute name="resp">
+        <a:documentation>(responsible party) indicates the agency responsible for the intervention or interpretation, for example an
+        editor or transcriber.</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="anyURI"/>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.editLike.attributes">
+    <ref name="att.dimensions.attributes"/>
+    <ref name="att.responsibility.attributes"/>
+    <ref name="att.editLike.attribute.evidence"/>
+    <ref name="att.editLike.attribute.source"/>
+    <empty/>
+  </define>
+  <define name="att.editLike.attribute.evidence">
+    <optional>
+      <attribute name="evidence">
+        <a:documentation>indicates the nature of the evidence supporting the reliability or accuracy of the
+        intervention or interpretation.
+Suggested values include: 1] internal; 2] external; 3] conjecture</a:documentation>
+        <choice>
+          <value>internal</value>
+          <a:documentation>there is internal evidence to support the intervention.</a:documentation>
+          <value>external</value>
+          <a:documentation>there is external evidence to support the intervention.</a:documentation>
+          <value>conjecture</value>
+          <a:documentation>the intervention or interpretation has been made by the editor, cataloguer, or
+            scholar on the basis of their expertise.</a:documentation>
+          <data type="Name"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.editLike.attribute.source">
+    <optional>
+      <attribute name="source">
+        <a:documentation>contains a list of one or more pointers indicating the sources which support the given
+        reading.</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="anyURI"/>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.global.attributes">
+    <ref name="att.global.attribute.xmlid"/>
+    <ref name="att.global.attribute.n"/>
+    <ref name="att.global.attribute.xmllang"/>
+    <ref name="att.global.attribute.rend"/>
+    <ref name="att.global.attribute.rendition"/>
+    <ref name="att.global.attribute.xmlbase"/>
+    <ref name="att.global.attribute.xmlspace"/>
+    <empty/>
+  </define>
+  <define name="att.global.attribute.xmlid">
+    <optional>
+      <attribute name="xml:id">
+        <a:documentation>(identifier) provides a unique identifier for the element bearing the attribute.</a:documentation>
+        <data type="ID"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.global.attribute.n">
+    <optional>
+      <attribute name="n">
+        <a:documentation>(number) gives a number (or other label) for an element, which is not necessarily unique within
+        the document.</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="token">
+              <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+            </data>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.global.attribute.xmllang">
+    <optional>
+      <attribute name="xml:lang">
+        <a:documentation>(language) indicates the language of the element content using a tag generated
+        according to BCP 47</a:documentation>
+        <data type="language"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.global.attribute.rend">
+    <optional>
+      <attribute name="rend">
+        <a:documentation>(rendition) indicates how the element in question was rendered or presented in the source text.</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="token">
+              <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+            </data>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.global.attribute.rendition">
+    <optional>
+      <attribute name="rendition">
+        <a:documentation>points to a description of the rendering or presentation used for this element in the
+        source text.</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="anyURI"/>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.global.attribute.xmlbase">
+    <optional>
+      <attribute name="xml:base">
+        <a:documentation>provides a base URI reference with which applications can resolve relative URI
+        references into absolute URI references.</a:documentation>
+        <data type="anyURI"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.global.attribute.xmlspace">
+    <optional>
+      <attribute name="xml:space">
+        <a:documentation>signals an intention about how white space should be 
+      managed by  applications. </a:documentation>
+        <choice>
+          <value>default</value>
+          <a:documentation>the processor should treat white space according to the
+	default XML white space handling rules</a:documentation>
+          <value>preserve</value>
+          <a:documentation>the processor should preserve unchanged any and all
+	white space in the source</a:documentation>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.handFeatures.attributes">
+    <ref name="att.handFeatures.attribute.scribe"/>
+    <ref name="att.handFeatures.attribute.script"/>
+    <ref name="att.handFeatures.attribute.medium"/>
+    <ref name="att.handFeatures.attribute.scope"/>
+    <empty/>
+  </define>
+  <define name="att.handFeatures.attribute.scribe">
+    <optional>
+      <attribute name="scribe">
+        <a:documentation>gives a standard name or other identifier for the scribe
+believed to be responsible for this hand.</a:documentation>
+        <data type="Name"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.handFeatures.attribute.script">
+    <optional>
+      <attribute name="script">
+        <a:documentation>characterizes the particular script or writing style used by
+this hand, for example secretary, copperplate, Chancery, Italian, etc.</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="Name"/>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.handFeatures.attribute.medium">
+    <optional>
+      <attribute name="medium">
+        <a:documentation>describes the tint or type of ink, e.g. brown, or other
+writing medium, e.g. pencil</a:documentation>
+        <data type="Name"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.handFeatures.attribute.scope">
+    <optional>
+      <attribute name="scope">
+        <a:documentation>specifies how widely this  hand is used in the manuscript.</a:documentation>
+        <choice>
+          <value>sole</value>
+          <a:documentation>only this hand is used throughout the manuscript</a:documentation>
+          <value>major</value>
+          <a:documentation>this hand is used through most of the manuscript</a:documentation>
+          <value>minor</value>
+          <a:documentation>this hand is used occasionally in the manuscript</a:documentation>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.internetMedia.attributes">
+    <ref name="att.internetMedia.attribute.mimeType"/>
+    <empty/>
+  </define>
+  <define name="att.internetMedia.attribute.mimeType">
+    <optional>
+      <attribute name="mimeType">
+        <a:documentation>(MIME media type) specifies the applicable multimedia internet mail extension (MIME) media type</a:documentation>
+        <data type="token">
+          <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+        </data>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.measurement.attributes">
+    <ref name="att.measurement.attribute.unit"/>
+    <ref name="att.measurement.attribute.quantity"/>
+    <ref name="att.measurement.attribute.commodity"/>
+    <empty/>
+  </define>
+  <define name="att.measurement.attribute.unit">
+    <optional>
+      <attribute name="unit">
+        <a:documentation>indicates the units used for the measurement, usually
+      using the standard symbol for the desired units.
+Suggested values include: 1] m (metre미터公尺mètremetrometro); 2] kg (kilogram킬로그램公斤kilogrammechilogrammokilogramo); 3] s (second초秒secondesecondosegundo); 4] Hz (hertz헤르츠赫茲hérzio); 5] Pa (pascal파스칼PascalPASCAL); 6] Ω (ohm옴歐姆ohmio); 7] L (litre리터公升litrolitro); 8] t (tonne톤公噸tonnellatatonelada); 9] ha (hectare헥타르公頃ettarohectárea); 10] Å (ångström옹스트롱埃格斯特朗 (單位)angstrom); 11] mL (millilitremillilitromililitro); 12] cm (centimetrecentimètrecentimetrocentímetro); 13] dB (decibel데시벨décibeldecibelio); 14] kbit (kilobit킬로비트); 15] Kibit (kibibit킬로바이비트); 16] kB (kilobytekilo-octet킬로바이트); 17] KiB (kibibytekibioctet킬로바이바이트); 18] MB (megabytemégaoctet메가바이트); 19] MiB (mebibyte메가바이바이트mébioctet)</a:documentation>
+        <choice>
+          <value>m</value>
+          <a:documentation>(metre) SI base unit of length</a:documentation>
+          <value>kg</value>
+          <a:documentation>(kilogram) SI base unit of mass</a:documentation>
+          <value>s</value>
+          <a:documentation>(second) SI base unit of time</a:documentation>
+          <value>Hz</value>
+          <a:documentation>(hertz) SI unit of frequency</a:documentation>
+          <value>Pa</value>
+          <a:documentation>(pascal) SI unit of pressure or stress</a:documentation>
+          <value>Ω</value>
+          <a:documentation>(ohm) SI unit of electric resistance</a:documentation>
+          <value>L</value>
+          <a:documentation>(litre) 1 dm³</a:documentation>
+          <value>t</value>
+          <a:documentation>(tonne) 10³ kg</a:documentation>
+          <value>ha</value>
+          <a:documentation>(hectare) 1 hm²</a:documentation>
+          <value>Å</value>
+          <a:documentation>(ångström) 10⁻¹⁰ m</a:documentation>
+          <value>mL</value>
+          <a:documentation>(millilitre) </a:documentation>
+          <value>cm</value>
+          <a:documentation>(centimetre) </a:documentation>
+          <value>dB</value>
+          <a:documentation>(decibel) see remarks, below</a:documentation>
+          <value>kbit</value>
+          <a:documentation>(kilobit) 10³ or 1000 bits</a:documentation>
+          <value>Kibit</value>
+          <a:documentation>(kibibit) 2¹⁰ or 1024 bits</a:documentation>
+          <value>kB</value>
+          <a:documentation>(kilobyte) 10³ or 1000 bytes</a:documentation>
+          <value>KiB</value>
+          <a:documentation>(kibibyte) 2¹⁰ or 1024 bytes</a:documentation>
+          <value>MB</value>
+          <a:documentation>(megabyte) 10⁶ or 1 000 000 bytes</a:documentation>
+          <value>MiB</value>
+          <a:documentation>(mebibyte) 2²⁰ or 1 048 576 bytes</a:documentation>
+          <data type="Name"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.measurement.attribute.quantity">
+    <optional>
+      <attribute name="quantity">
+        <a:documentation>specifies the number of the specified units that
+      comprise the measurement</a:documentation>
+        <choice>
+          <data type="double"/>
+          <data type="token">
+            <param name="pattern">(\-?[\d]+/\-?[\d]+)</param>
+          </data>
+          <data type="decimal"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.measurement.attribute.commodity">
+    <optional>
+      <attribute name="commodity">
+        <a:documentation>indicates the substance that is being measured</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="token">
+              <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+            </data>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.naming.attributes">
+    <ref name="att.canonical.attributes"/>
+    <ref name="att.naming.attribute.role"/>
+    <ref name="att.naming.attribute.nymRef"/>
+    <empty/>
+  </define>
+  <define name="att.naming.attribute.role">
+    <optional>
+      <attribute name="role">
+        <a:documentation>may be used to specify further information about the entity referenced by
+this name, for example the occupation of a person, or the status of a place. </a:documentation>
+        <data type="Name"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.naming.attribute.nymRef">
+    <optional>
+      <attribute name="nymRef">
+        <a:documentation>(reference to the canonical name) provides a means of locating the canonical form
+      (nym) of the names associated with the object
+       named by
+      the element bearing it.</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="anyURI"/>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.placement.attributes">
+    <ref name="att.placement.attribute.place"/>
+    <empty/>
+  </define>
+  <define name="att.placement.attribute.place">
+    <optional>
+      <attribute name="place">
+        <a:documentation>
+Suggested values include: 1] below; 2] bottom; 3] margin; 4] top; 5] opposite; 6] overleaf; 7] above; 8] end; 9] inline; 10] inspace</a:documentation>
+        <list>
+          <oneOrMore>
+            <choice>
+              <value>below</value>
+              <a:documentation>below the line</a:documentation>
+              <value>bottom</value>
+              <a:documentation>at the foot of the page</a:documentation>
+              <value>margin</value>
+              <a:documentation>in the margin (left, right, or both)</a:documentation>
+              <value>top</value>
+              <a:documentation>at the top of the page</a:documentation>
+              <value>opposite</value>
+              <a:documentation>on the opposite, i.e. facing, page</a:documentation>
+              <value>overleaf</value>
+              <a:documentation>on the other side of the leaf</a:documentation>
+              <value>above</value>
+              <a:documentation>above the line</a:documentation>
+              <value>end</value>
+              <a:documentation>at the end of e.g. chapter or volume.</a:documentation>
+              <value>inline</value>
+              <a:documentation>within the body of the text.</a:documentation>
+              <value>inspace</value>
+              <a:documentation> in a predefined space, for example left by an earlier scribe.</a:documentation>
+              <data type="Name"/>
+            </choice>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.typed.attributes">
+    <ref name="att.typed.attribute.type"/>
+    <ref name="att.typed.attribute.subtype"/>
+    <empty/>
+  </define>
+  <define name="att.typed.attribute.type">
+    <optional>
+      <attribute name="type">
+        <a:documentation>characterizes the element in some sense, using any convenient
+ classification scheme or typology.</a:documentation>
+        <data type="Name"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.typed.attribute.subtype">
+    <optional>
+      <attribute name="subtype">
+        <a:documentation>provides a sub-categorization of the element, if needed</a:documentation>
+        <data type="Name"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.pointing.attributes">
+    <ref name="att.pointing.attribute.target"/>
+    <ref name="att.pointing.attribute.evaluate"/>
+    <empty/>
+  </define>
+  <define name="att.pointing.attribute.target">
+    <optional>
+      <attribute name="target">
+        <a:documentation>specifies the destination of the reference by supplying one or more URI References</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="anyURI"/>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.pointing.attribute.evaluate">
+    <optional>
+      <attribute name="evaluate">
+        <a:documentation>specifies the intended meaning when the target of a
+      pointer is itself a pointer.</a:documentation>
+        <choice>
+          <value>all</value>
+          <a:documentation>if the element pointed to is itself a pointer, then
+	  the target of that pointer will be taken, and so on, until
+	  an element is found which is not a pointer.</a:documentation>
+          <value>one</value>
+          <a:documentation>if the element pointed to is itself a pointer, then
+	  its target (whether a pointer or not) is taken as the target
+	  of this pointer.</a:documentation>
+          <value>none</value>
+          <a:documentation>no further evaluation of targets is carried out
+	  beyond that needed to find the element specified in the
+	  pointer's target.</a:documentation>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.sourced.attributes">
+    <ref name="att.sourced.attribute.ed"/>
+    <empty/>
+  </define>
+  <define name="att.sourced.attribute.ed">
+    <optional>
+      <attribute name="ed">
+        <a:documentation>(edition) supplies an arbitrary identifier for the source edition in which
+      the associated feature (for example, a  page, column, or line
+      break) occurs at this point in the text.</a:documentation>
+        <list>
+          <oneOrMore>
+            <data type="anyURI"/>
+          </oneOrMore>
+        </list>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.spanning.attributes">
+    <ref name="att.spanning.attribute.spanTo"/>
+    <empty/>
+  </define>
+  <define name="att.spanning.attribute.spanTo">
+    <optional>
+      <attribute name="spanTo">
+        <a:documentation>indicates the end of a span initiated by the element
+	bearing this attribute.</a:documentation>
+        <data type="anyURI"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.tableDecoration.attributes">
+    <ref name="att.tableDecoration.attribute.role"/>
+    <ref name="att.tableDecoration.attribute.rows"/>
+    <ref name="att.tableDecoration.attribute.cols"/>
+    <empty/>
+  </define>
+  <define name="att.tableDecoration.attribute.role">
+    <optional>
+      <attribute name="role" a:defaultValue="data">
+        <a:documentation>indicates the kind of information held in this cell or
+in each cell of this row.
+Suggested values include: 1] label; 2] data</a:documentation>
+        <choice>
+          <value>label</value>
+          <a:documentation>labelling or descriptive information only.</a:documentation>
+          <value>data</value>
+          <a:documentation>data values.</a:documentation>
+          <data type="Name"/>
+        </choice>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.tableDecoration.attribute.rows">
+    <optional>
+      <attribute name="rows" a:defaultValue="1">
+        <a:documentation>indicates the number of rows occupied by this cell or row.</a:documentation>
+        <data type="nonNegativeInteger"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.tableDecoration.attribute.cols">
+    <optional>
+      <attribute name="cols" a:defaultValue="1">
+        <a:documentation>(columns) indicates the number of columns occupied by this cell or
+	row.</a:documentation>
+        <data type="nonNegativeInteger"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.transcriptional.attributes">
+    <ref name="att.editLike.attributes"/>
+    <ref name="att.transcriptional.attribute.hand"/>
+    <ref name="att.transcriptional.attribute.status"/>
+    <ref name="att.transcriptional.attribute.seq"/>
+    <empty/>
+  </define>
+  <define name="att.transcriptional.attribute.hand">
+    <optional>
+      <attribute name="hand">
+        <a:documentation>signifies the hand of the agent which made the intervention.</a:documentation>
+        <data type="anyURI"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.transcriptional.attribute.status">
+    <optional>
+      <attribute name="status" a:defaultValue="unremarkable">
+        <a:documentation>indicates the effect of the intervention, for example in
+      the case of a deletion, strikeouts
+      which include too much or too little text, or in the case of an
+      addition, an insertion which duplicates some of the text
+      already present.
+Sample values include: 1] duplicate; 2] duplicate-partial; 3] excessStart; 4] excessEnd; 5] shortStart; 6] shortEnd; 7] partial; 8] unremarkable</a:documentation>
+        <data type="Name"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.transcriptional.attribute.seq">
+    <optional>
+      <attribute name="seq">
+        <a:documentation>(sequence) assigns a sequence number related to the order in which
+      the encoded features carrying this attribute are believed to have occurred.</a:documentation>
+        <data type="nonNegativeInteger"/>
+      </attribute>
+    </optional>
+  </define>
+  <define name="att.translatable.attributes">
+    <ref name="att.translatable.attribute.version"/>
+    <empty/>
+  </define>
+  <define name="att.translatable.attribute.version">
+    <optional>
+      <attribute name="version">
+        <a:documentation>specifies the version name or number of the source from
+	which the translated version was derived</a:documentation>
+        <data type="token">
+          <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+        </data>
+      </attribute>
+    </optional>
+  </define>
+  <define name="tei_model.nameLike.agent">
+    <ref name="tei_name"/>
+  </define>
+  <define name="tei_model.segLike">
+    <notAllowed/>
+  </define>
+  <define name="tei_model.hiLike">
+    <ref name="tei_hi"/>
+  </define>
+  <define name="tei_model.emphLike">
+    <choice>
+      <ref name="tei_foreign"/>
+      <ref name="tei_emph"/>
+      <ref name="tei_distinct"/>
+      <ref name="tei_mentioned"/>
+      <ref name="tei_soCalled"/>
+      <ref name="tei_gloss"/>
+      <ref name="tei_term"/>
+      <ref name="tei_title"/>
+    </choice>
+  </define>
+  <define name="tei_model.highlighted">
+    <choice>
+      <ref name="tei_model.hiLike"/>
+      <ref name="tei_model.emphLike"/>
+    </choice>
+  </define>
+  <define name="tei_model.dateLike">
+    <choice>
+      <ref name="tei_date"/>
+      <ref name="tei_time"/>
+    </choice>
+  </define>
+  <define name="tei_model.measureLike">
+    <choice>
+      <ref name="tei_num"/>
+      <ref name="tei_measure"/>
+      <ref name="tei_measureGrp"/>
+    </choice>
+  </define>
+  <define name="tei_model.egLike">
+    <notAllowed/>
+  </define>
+  <define name="tei_model.graphicLike">
+    <choice>
+      <ref name="tei_graphic"/>
+      <ref name="tei_binaryObject"/>
+      <ref name="tei_formula"/>
+    </choice>
+  </define>
+  <define name="tei_model.pPart.editorial">
+    <choice>
+      <ref name="tei_choice"/>
+      <ref name="tei_abbr"/>
+      <ref name="tei_expan"/>
+    </choice>
+  </define>
+  <define name="tei_model.pPart.transcriptional">
+    <choice>
+      <ref name="tei_sic"/>
+      <ref name="tei_corr"/>
+      <ref name="tei_reg"/>
+      <ref name="tei_orig"/>
+      <ref name="tei_add"/>
+      <ref name="tei_del"/>
+      <ref name="tei_unclear"/>
+    </choice>
+  </define>
+  <define name="tei_model.pPart.edit">
+    <choice>
+      <ref name="tei_model.pPart.editorial"/>
+      <ref name="tei_model.pPart.transcriptional"/>
+    </choice>
+  </define>
+  <define name="tei_model.ptrLike">
+    <choice>
+      <ref name="tei_ptr"/>
+      <ref name="tei_ref"/>
+    </choice>
+  </define>
+  <define name="tei_model.global.meta">
+    <ref name="tei_index"/>
+  </define>
+  <define name="tei_model.milestoneLike">
+    <choice>
+      <ref name="tei_milestone"/>
+      <ref name="tei_pb"/>
+      <ref name="tei_lb"/>
+      <ref name="tei_cb"/>
+    </choice>
+  </define>
+  <define name="tei_model.gLike">
+    <notAllowed/>
+  </define>
+  <define name="tei_model.biblLike">
+    <choice>
+      <ref name="tei_bibl"/>
+      <ref name="tei_biblStruct"/>
+      <ref name="tei_biblFull"/>
+    </choice>
+  </define>
+  <define name="tei_model.headLike">
+    <ref name="tei_head"/>
+  </define>
+  <define name="tei_model.labelLike">
+    <choice>
+      <ref name="tei_desc"/>
+      <ref name="tei_label"/>
+    </choice>
+  </define>
+  <define name="tei_model.listLike">
+    <choice>
+      <ref name="tei_list"/>
+      <ref name="tei_listBibl"/>
+    </choice>
+  </define>
+  <define name="tei_model.noteLike">
+    <ref name="tei_note"/>
+  </define>
+  <define name="tei_model.lLike">
+    <ref name="tei_l"/>
+  </define>
+  <define name="tei_model.pLike">
+    <ref name="tei_p"/>
+  </define>
+  <define name="tei_model.stageLike">
+    <ref name="tei_stage"/>
+  </define>
+  <define name="tei_model.entryPart">
+    <notAllowed/>
+  </define>
+  <define name="tei_model.global.edit">
+    <ref name="tei_gap"/>
+  </define>
+  <define name="tei_model.divPart">
+    <choice>
+      <ref name="tei_model.lLike"/>
+      <ref name="tei_model.pLike"/>
+      <ref name="tei_lg"/>
+      <ref name="tei_sp"/>
+      <ref name="tei_floatingText"/>
+    </choice>
+  </define>
+  <define name="tei_model.publicationStmtPart">
+    <choice>
+      <ref name="tei_address"/>
+      <ref name="tei_date"/>
+      <ref name="tei_publisher"/>
+      <ref name="tei_pubPlace"/>
+      <ref name="tei_distributor"/>
+      <ref name="tei_authority"/>
+      <ref name="tei_idno"/>
+      <ref name="tei_availability"/>
+    </choice>
+  </define>
+  <define name="tei_model.glossLike">
+    <choice>
+      <ref name="tei_desc"/>
+      <ref name="tei_gloss"/>
+    </choice>
+  </define>
+  <define name="tei_model.quoteLike">
+    <choice>
+      <ref name="tei_quote"/>
+      <ref name="tei_cit"/>
+    </choice>
+  </define>
+  <define name="tei_model.qLike">
+    <choice>
+      <ref name="tei_model.quoteLike"/>
+      <ref name="tei_said"/>
+      <ref name="tei_q"/>
+    </choice>
+  </define>
+  <define name="tei_model.respLike">
+    <choice>
+      <ref name="tei_author"/>
+      <ref name="tei_editor"/>
+      <ref name="tei_respStmt"/>
+      <ref name="tei_meeting"/>
+      <ref name="tei_sponsor"/>
+      <ref name="tei_funder"/>
+      <ref name="tei_principal"/>
+    </choice>
+  </define>
+  <define name="tei_model.divWrapper">
+    <choice>
+      <ref name="tei_meeting"/>
+      <ref name="tei_byline"/>
+      <ref name="tei_dateline"/>
+      <ref name="tei_argument"/>
+      <ref name="tei_epigraph"/>
+      <ref name="tei_salute"/>
+      <ref name="tei_docAuthor"/>
+      <ref name="tei_docDate"/>
+    </choice>
+  </define>
+  <define name="tei_model.divTopPart">
+    <choice>
+      <ref name="tei_model.headLike"/>
+      <ref name="tei_opener"/>
+    </choice>
+  </define>
+  <define name="tei_model.divTop">
+    <choice>
+      <ref name="tei_model.divWrapper"/>
+      <ref name="tei_model.divTopPart"/>
+    </choice>
+  </define>
+  <define name="tei_model.pLike.front">
+    <choice>
+      <ref name="tei_head"/>
+      <ref name="tei_byline"/>
+      <ref name="tei_argument"/>
+      <ref name="tei_epigraph"/>
+      <ref name="tei_docTitle"/>
+      <ref name="tei_titlePart"/>
+      <ref name="tei_docAuthor"/>
+      <ref name="tei_docEdition"/>
+      <ref name="tei_docImprint"/>
+      <ref name="tei_docDate"/>
+    </choice>
+  </define>
+  <define name="tei_model.divBottomPart">
+    <choice>
+      <ref name="tei_trailer"/>
+      <ref name="tei_closer"/>
+      <ref name="tei_signed"/>
+      <ref name="tei_postscript"/>
+    </choice>
+  </define>
+  <define name="tei_model.divBottom">
+    <choice>
+      <ref name="tei_model.divWrapper"/>
+      <ref name="tei_model.divBottomPart"/>
+    </choice>
+  </define>
+  <define name="tei_model.titlepagePart">
+    <choice>
+      <ref name="tei_graphic"/>
+      <ref name="tei_binaryObject"/>
+      <ref name="tei_byline"/>
+      <ref name="tei_epigraph"/>
+      <ref name="tei_docTitle"/>
+      <ref name="tei_titlePart"/>
+      <ref name="tei_docAuthor"/>
+      <ref name="tei_imprimatur"/>
+      <ref name="tei_docEdition"/>
+      <ref name="tei_docImprint"/>
+      <ref name="tei_docDate"/>
+    </choice>
+  </define>
+  <define name="tei_model.choicePart">
+    <choice>
+      <ref name="tei_sic"/>
+      <ref name="tei_corr"/>
+      <ref name="tei_reg"/>
+      <ref name="tei_orig"/>
+      <ref name="tei_unclear"/>
+      <ref name="tei_abbr"/>
+      <ref name="tei_expan"/>
+    </choice>
+  </define>
+  <define name="tei_model.imprintPart">
+    <choice>
+      <ref name="tei_publisher"/>
+      <ref name="tei_biblScope"/>
+      <ref name="tei_pubPlace"/>
+      <ref name="tei_distributor"/>
+    </choice>
+  </define>
+  <define name="tei_model.catDescPart">
+    <notAllowed/>
+  </define>
+  <define name="tei_model.addressLike">
+    <choice>
+      <ref name="tei_email"/>
+      <ref name="tei_address"/>
+    </choice>
+  </define>
+  <define name="tei_model.nameLike">
+    <choice>
+      <ref name="tei_model.nameLike.agent"/>
+      <ref name="tei_rs"/>
+      <ref name="tei_idno"/>
+    </choice>
+  </define>
+  <define name="tei_model.global">
+    <choice>
+      <ref name="tei_model.global.meta"/>
+      <ref name="tei_model.milestoneLike"/>
+      <ref name="tei_model.noteLike"/>
+      <ref name="tei_model.global.edit"/>
+      <ref name="tei_figure"/>
+    </choice>
+  </define>
+  <define name="tei_model.biblPart">
+    <choice>
+      <ref name="tei_model.respLike"/>
+      <ref name="tei_model.imprintPart"/>
+      <ref name="tei_series"/>
+      <ref name="tei_relatedItem"/>
+      <ref name="tei_edition"/>
+      <ref name="tei_extent"/>
+    </choice>
+  </define>
+  <define name="tei_model.frontPart">
+    <choice>
+      <ref name="tei_divGen"/>
+      <ref name="tei_titlePage"/>
+    </choice>
+  </define>
+  <define name="tei_model.addrPart">
+    <choice>
+      <ref name="tei_model.nameLike"/>
+      <ref name="tei_addrLine"/>
+      <ref name="tei_street"/>
+      <ref name="tei_postCode"/>
+      <ref name="tei_postBox"/>
+    </choice>
+  </define>
+  <define name="tei_model.pPart.data">
+    <choice>
+      <ref name="tei_model.dateLike"/>
+      <ref name="tei_model.measureLike"/>
+      <ref name="tei_model.addressLike"/>
+      <ref name="tei_model.nameLike"/>
+    </choice>
+  </define>
+  <define name="tei_model.inter">
+    <choice>
+      <ref name="tei_model.egLike"/>
+      <ref name="tei_model.biblLike"/>
+      <ref name="tei_model.labelLike"/>
+      <ref name="tei_model.listLike"/>
+      <ref name="tei_model.stageLike"/>
+      <ref name="tei_model.qLike"/>
+      <ref name="tei_table"/>
+    </choice>
+  </define>
+  <define name="tei_model.common">
+    <choice>
+      <ref name="tei_model.divPart"/>
+      <ref name="tei_model.inter"/>
+    </choice>
+  </define>
+  <define name="tei_model.phrase">
+    <choice>
+      <ref name="tei_model.segLike"/>
+      <ref name="tei_model.highlighted"/>
+      <ref name="tei_model.graphicLike"/>
+      <ref name="tei_model.pPart.edit"/>
+      <ref name="tei_model.ptrLike"/>
+      <ref name="tei_model.pPart.data"/>
+    </choice>
+  </define>
+  <define name="tei_model.limitedPhrase">
+    <choice>
+      <ref name="tei_model.emphLike"/>
+      <ref name="tei_model.pPart.editorial"/>
+      <ref name="tei_model.ptrLike"/>
+      <ref name="tei_model.pPart.data"/>
+    </choice>
+  </define>
+  <define name="tei_model.divLike">
+    <ref name="tei_div"/>
+  </define>
+  <define name="tei_model.divGenLike">
+    <ref name="tei_divGen"/>
+  </define>
+  <define name="tei_model.div1Like">
+    <ref name="tei_div1"/>
+  </define>
+  <define name="tei_model.div2Like">
+    <ref name="tei_div2"/>
+  </define>
+  <define name="tei_model.div3Like">
+    <ref name="tei_div3"/>
+  </define>
+  <define name="tei_model.div4Like">
+    <ref name="tei_div4"/>
+  </define>
+  <define name="tei_model.div5Like">
+    <ref name="tei_div5"/>
+  </define>
+  <define name="tei_model.div6Like">
+    <ref name="tei_div6"/>
+  </define>
+  <define name="tei_model.div7Like">
+    <ref name="tei_div7"/>
+  </define>
+  <define name="tei_model.applicationLike">
+    <ref name="tei_application"/>
+  </define>
+  <define name="tei_model.teiHeaderPart">
+    <choice>
+      <ref name="tei_encodingDesc"/>
+      <ref name="tei_profileDesc"/>
+    </choice>
+  </define>
+  <define name="tei_model.sourceDescPart">
+    <notAllowed/>
+  </define>
+  <define name="tei_model.encodingDescPart">
+    <choice>
+      <ref name="tei_projectDesc"/>
+      <ref name="tei_samplingDecl"/>
+      <ref name="tei_editorialDecl"/>
+      <ref name="tei_tagsDecl"/>
+      <ref name="tei_refsDecl"/>
+      <ref name="tei_classDecl"/>
+      <ref name="tei_appInfo"/>
+      <ref name="tei_geoDecl"/>
+    </choice>
+  </define>
+  <define name="tei_model.editorialDeclPart">
+    <choice>
+      <ref name="tei_correction"/>
+      <ref name="tei_normalization"/>
+      <ref name="tei_quotation"/>
+      <ref name="tei_hyphenation"/>
+      <ref name="tei_segmentation"/>
+      <ref name="tei_stdVals"/>
+      <ref name="tei_interpretation"/>
+    </choice>
+  </define>
+  <define name="tei_model.profileDescPart">
+    <choice>
+      <ref name="tei_creation"/>
+      <ref name="tei_langUsage"/>
+      <ref name="tei_textClass"/>
+    </choice>
+  </define>
+  <define name="tei_model.resourceLike">
+    <notAllowed/>
+  </define>
+  <define name="tei_p">
+    <element name="p">
+      <a:documentation>(paragraph) marks paragraphs in prose.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_foreign">
+    <element name="foreign">
+      <a:documentation>(foreign) identifies a word or phrase as belonging to some language other than that of the
+                surrounding text. </a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_emph">
+    <element name="emph">
+      <a:documentation>(emphasized) marks words or phrases which are stressed or emphasized for
+        linguistic or rhetorical effect.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_hi">
+    <element name="hi">
+      <a:documentation>(highlighted) marks a word or phrase as graphically distinct from the
+        surrounding text, for reasons concerning which no claim is
+        made. </a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_distinct">
+    <element name="distinct">
+      <a:documentation>identifies any word or phrase which is regarded as linguistically distinct, for example as
+        archaic, technical, dialectal, non-preferred, etc., or as forming part of a sublanguage. </a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="type">
+          <a:documentation>specifies the sublanguage or register to which the word or phrase is being
+                assigned</a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="time">
+          <a:documentation>specifies how the phrase is distinct diachronically</a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="space">
+          <a:documentation>specifies how the phrase is distinct diatopically</a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="social">
+          <a:documentation>specifies how the phrase is distinct diastatically</a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_said">
+    <element name="said">
+      <a:documentation>(speech or thought) indicates passages thought or spoken aloud, whether explicitly indicated in the source or
+    not, whether directly or indirectly reported, whether by real people or fictional characters.</a:documentation>
+      <ref name="tei_macro.specialPara"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.ascribed.attributes"/>
+      <optional>
+        <attribute name="aloud" a:defaultValue="unknown">
+          <a:documentation>may be used to indicate whether the quoted matter is regarded as having been vocalized
+        or signed.</a:documentation>
+          <choice>
+            <data type="boolean"/>
+            <value>unknown</value>
+            <value>inapplicable</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="direct" a:defaultValue="true">
+          <a:documentation>may be used to indicate whether the quoted matter is regarded as direct or indirect
+        speech.</a:documentation>
+          <choice>
+            <data type="boolean"/>
+            <value>unknown</value>
+            <value>inapplicable</value>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_quote">
+    <element name="quote">
+      <a:documentation>(quotation) contains a phrase or passage attributed by the narrator or author to some agency external
+        to the text.</a:documentation>
+      <ref name="tei_macro.specialPara"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_q">
+    <element name="q">
+      <a:documentation>(separated from the surrounding text with quotation marks) contains material which is marked as (ostensibly) being somehow different than the
+    surrounding text, for any one of a variety of reasons including, but not limited to: direct
+    speech or thought, technical terms or jargon, authorial distance, quotations from elsewhere, and
+    passages that are mentioned but not used.</a:documentation>
+      <ref name="tei_macro.specialPara"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.ascribed.attributes"/>
+      <optional>
+        <attribute name="type">
+          <a:documentation>may be used to indicate whether the offset passage is spoken or thought, or to
+        characterize it more finely.
+Suggested values include: 1] spoken; 2] thought; 3] written; 4] soCalled; 5] foreign (foreign wordspalabras extranjerasmots étrangersparole straniere); 6] distinct (linguistically distinctlingüisticamente distintolinguistiquement distinctlinguisticamente distinto); 7] term (technical termtérmino técnicoterme techniquetermine tecnico); 8] emph (rhetorically emphasizedénfasis retóricomis en valeur par un procédé rhétorique.retoricamente marcato); 9] mentioned</a:documentation>
+          <choice>
+            <value>spoken</value>
+            <a:documentation>representation of speech</a:documentation>
+            <value>thought</value>
+            <a:documentation>representation of thought, e.g. internal monologue</a:documentation>
+            <value>written</value>
+            <a:documentation>quotation from a written source</a:documentation>
+            <value>soCalled</value>
+            <a:documentation>authorial distance</a:documentation>
+            <value>foreign</value>
+            <a:documentation>(foreign words) </a:documentation>
+            <value>distinct</value>
+            <a:documentation>(linguistically distinct) </a:documentation>
+            <value>term</value>
+            <a:documentation>(technical term) </a:documentation>
+            <value>emph</value>
+            <a:documentation>(rhetorically emphasized) </a:documentation>
+            <value>mentioned</value>
+            <a:documentation>refering to itself, not its normal referant</a:documentation>
+            <data type="Name"/>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_cit">
+    <element name="cit">
+      <a:documentation>(cited quotation) contains a quotation from some other document, together with a bibliographic reference to
+    its source. In a dictionary it may contain an example text with at least one occurrence of the
+    word form, used in the sense being described, or a translation of the headword, or an example. </a:documentation>
+      <oneOrMore>
+        <choice>
+          <ref name="tei_model.qLike"/>
+          <ref name="tei_model.biblLike"/>
+          <ref name="tei_model.ptrLike"/>
+          <ref name="tei_model.global"/>
+          <ref name="tei_model.entryPart"/>
+        </choice>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_mentioned">
+    <element name="mentioned">
+      <a:documentation>marks words or phrases mentioned, not used.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_soCalled">
+    <element name="soCalled">
+      <a:documentation>contains a word or phrase for which the author or narrator indicates a disclaiming of
+    responsibility, for example by the use of scare quotes or italics.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_desc">
+    <element name="desc">
+      <a:documentation>(description) contains a brief description of the object documented by its parent element, including its
+    intended usage, purpose, or application where this is appropriate.</a:documentation>
+      <ref name="tei_macro.limitedContent"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.translatable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_gloss">
+    <element name="gloss">
+      <a:documentation>identifies a phrase or word used to provide a gloss or definition for some other word or
+    phrase.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <ref name="att.translatable.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.pointing.attributes"/>
+      <optional>
+        <attribute name="cRef">
+          <a:documentation>(canonical reference) identifies the associated term element using a canonical reference from a
+        scheme defined in a refsDecl element in the TEI header</a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_term">
+    <element name="term">
+      <a:documentation>contains a single-word, multi-word, or symbolic designation which is regarded as a technical
+    term.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <ref name="att.pointing.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.canonical.attributes"/>
+      <optional>
+        <attribute name="cRef">
+          <a:documentation>identifies the associated gloss element using a canonical reference from a
+          scheme defined in a refsDecl element in the TEI header</a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="sortKey">
+          <a:documentation>supplies the sort key for this term in an index.</a:documentation>
+          <data type="token">
+            <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+          </data>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_sic">
+    <element name="sic">
+      <a:documentation>(latin for thus or so) contains text reproduced although apparently incorrect or inaccurate.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.responsibility.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_corr">
+    <element name="corr">
+      <a:documentation>(correction) contains the correct form of a passage apparently erroneous in the copy text.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.editLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_choice">
+    <element name="choice">
+      <a:documentation>groups a number of alternative encodings for the same point in
+        a text.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <ref name="tei_model.choicePart"/>
+          <ref name="tei_choice"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_reg">
+    <element name="reg">
+      <a:documentation>(regularization) contains a reading which has been regularized or normalized in some sense.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.editLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_orig">
+    <element name="orig">
+      <a:documentation>(original form) contains a reading which is marked as following the original, rather than being normalized
+        or corrected.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.responsibility.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_gap">
+    <element name="gap">
+      <a:documentation>(gap) indicates a point where material has been omitted in a transcription, whether for editorial
+    reasons described in the TEI header, as part of sampling practice, or because the material is
+    illegible, invisible, or inaudible.</a:documentation>
+      <zeroOrMore>
+        <ref name="tei_model.glossLike"/>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.editLike.attributes"/>
+      <optional>
+        <attribute name="reason">
+          <a:documentation>gives the reason for omission. Sample values include sampling,
+        inaudible, irrelevant, cancelled.</a:documentation>
+          <list>
+            <oneOrMore>
+              <data type="token">
+                <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+              </data>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="hand">
+          <a:documentation>in the case of text omitted from the transcription because of deliberate deletion by an
+        identifiable hand, signifies the hand which made the deletion.</a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="agent">
+          <a:documentation>In the case of text omitted because of damage, categorizes the cause of the damage, if
+        it can be identified.
+Sample values include: 1] rubbing; 2] mildew; 3] smoke</a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_add">
+    <element name="add">
+      <a:documentation>(addition) contains letters, words, or phrases inserted in the text by an
+        author, scribe, annotator, or corrector.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.transcriptional.attributes"/>
+      <ref name="att.placement.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_del">
+    <element name="del">
+      <a:documentation>(deletion) contains a letter, word, or passage deleted, marked as deleted, or otherwise indicated as
+    superfluous or spurious in the copy text by an author, scribe, annotator, or corrector.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.transcriptional.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_unclear">
+    <element name="unclear">
+      <a:documentation>contains a word, phrase, or passage which cannot be transcribed with certainty because it
+        is illegible or inaudible in the source.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.editLike.attributes"/>
+      <optional>
+        <attribute name="reason">
+          <a:documentation>indicates why the material is hard to transcribe.</a:documentation>
+          <list>
+            <oneOrMore>
+              <data type="token">
+                <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+              </data>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="hand">
+          <a:documentation>Where the difficulty in transcription arises from action (partial deletion, etc.)
+                assignable to an identifiable hand, signifies the hand responsible for the action.</a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="agent">
+          <a:documentation>Where the difficulty in transcription arises from damage, categorizes the cause of
+                the damage, if it can be identified.
+Sample values include: 1] rubbing; 2] mildew; 3] smoke</a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_name">
+    <element name="name">
+      <a:documentation>(name, proper noun) contains a proper noun or noun phrase.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.naming.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_rs">
+    <element name="rs">
+      <a:documentation>(referencing string) contains a general purpose name or referring string.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.naming.attributes"/>
+      <optional>
+        <attribute name="type">
+          <a:documentation>indicates more specifically the object referred to by the referencing string.
+                Values might include person, place, ship,
+                    element etc.</a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_email">
+    <element name="email">
+      <a:documentation>(electronic mail address) contains an e-mail address identifying a location to which
+        e-mail messages can be delivered.
+    </a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_address">
+    <element name="address">
+      <a:documentation>contains a postal  address, for example of a
+        publisher, an organization, or an individual.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <ref name="tei_model.global"/>
+        </zeroOrMore>
+        <oneOrMore>
+          <ref name="tei_model.addrPart"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </oneOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_addrLine">
+    <element name="addrLine">
+      <a:documentation>(address line) contains one line of a postal address.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_street">
+    <element name="street">
+      <a:documentation>a full street address including any name or number identifying a
+        building as well as the name of the street or route on which it is
+        located.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_postCode">
+    <element name="postCode">
+      <a:documentation>(postal code) contains a numerical or alphanumeric code used as part of a postal address to simplify
+        sorting or delivery of mail. </a:documentation>
+      <text/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_postBox">
+    <element name="postBox">
+      <a:documentation>(postal box or post office box) contains a number or other identifier for some postal delivery point other than a street
+    address. </a:documentation>
+      <text/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_num">
+    <element name="num">
+      <a:documentation>(number) contains a number, written in any form.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.ranging.attributes"/>
+      <optional>
+        <attribute name="type">
+          <a:documentation>indicates the type of numeric value.
+Suggested values include: 1] cardinal; 2] ordinal; 3] fraction; 4] percentage</a:documentation>
+          <choice>
+            <value>cardinal</value>
+            <a:documentation>absolute number, e.g. 21, 21.5</a:documentation>
+            <value>ordinal</value>
+            <a:documentation>ordinal number, e.g. 21st</a:documentation>
+            <value>fraction</value>
+            <a:documentation>fraction, e.g. one half or three-quarters</a:documentation>
+            <value>percentage</value>
+            <a:documentation>a percentage</a:documentation>
+            <data type="Name"/>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="value">
+          <a:documentation>supplies the value of the number in standard form.</a:documentation>
+          <choice>
+            <data type="double"/>
+            <data type="token">
+              <param name="pattern">(\-?[\d]+/\-?[\d]+)</param>
+            </data>
+            <data type="decimal"/>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_measure">
+    <element name="measure">
+      <a:documentation>contains a word or phrase referring to some quantity of an object or commodity, usually
+        comprising a number, a unit, and a commodity name.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.measurement.attributes"/>
+      <optional>
+        <attribute name="type">
+          <a:documentation>specifies the type of measurement in any convenient typology.</a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_measureGrp">
+    <element name="measureGrp">
+      <a:documentation>(measure group) contains a group of dimensional specifications which relate to the same object, for example
+    the height and width of a manuscript page.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.gLike"/>
+          <ref name="tei_model.measureLike"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.measurement.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_date">
+    <element name="date">
+      <a:documentation>contains a date in any format.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.gLike"/>
+          <ref name="tei_model.phrase"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.datable.attributes"/>
+      <ref name="att.editLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <optional>
+        <attribute name="calendar">
+          <a:documentation>indicates the system or calendar to which the date represented by the content of this
+        element belongs.
+Suggested values include: 1] Gregorian; 2] Julian; 3] Islamic; 4] Hebrew; 5] Revolutionary; 6] Iranian; 7] Coptic; 8] Chinese</a:documentation>
+          <choice>
+            <value>Gregorian</value>
+            <a:documentation>Gregorian calendar</a:documentation>
+            <value>Julian</value>
+            <a:documentation>Julian calendar</a:documentation>
+            <value>Islamic</value>
+            <a:documentation>Islamic or Muslim (hijri) lunar calendar</a:documentation>
+            <value>Hebrew</value>
+            <a:documentation>Hebrew or Jewish lunisolar calendar</a:documentation>
+            <value>Revolutionary</value>
+            <a:documentation>French Revolutionary calendar</a:documentation>
+            <value>Iranian</value>
+            <a:documentation>Iranian or Persian (Jalaali) solar calendar</a:documentation>
+            <value>Coptic</value>
+            <a:documentation>Coptic or Alexandrian calendar</a:documentation>
+            <value>Chinese</value>
+            <a:documentation>Chinese lunisolar calendar</a:documentation>
+            <data type="Name"/>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_time">
+    <element name="time">
+      <a:documentation>contains a phrase defining a time of day in any format.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.gLike"/>
+          <ref name="tei_model.phrase"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.datable.attributes"/>
+      <ref name="att.editLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_abbr">
+    <element name="abbr">
+      <a:documentation>(abbreviation) contains an abbreviation of any sort.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.responsibility.attributes"/>
+      <optional>
+        <attribute name="type">
+          <a:documentation>allows the encoder to classify the abbreviation according to some convenient
+                typology.
+Sample values include: 1] suspension; 2] contraction; 3] brevigraph; 4] superscription; 5] acronym; 6] title; 7] organization; 8] geographic</a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_expan">
+    <element name="expan">
+      <a:documentation>(expansion) contains the expansion of an abbreviation.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.editLike.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_ptr">
+    <element name="ptr">
+      <a:documentation>(pointer) defines a pointer to another location.</a:documentation>
+      <empty/>
+      <sch:pattern id="ptr-constraint-ptrAtts">
+        <sch:rule context="tei:ptr">
+          <sch:report test="@target and @cRef">Only one of the
+	attributes 'target' and 'cRef' may be supplied.</sch:report>
+        </sch:rule>
+      </sch:pattern>
+      <ref name="att.global.attributes"/>
+      <ref name="att.pointing.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <optional>
+        <attribute name="cRef">
+          <a:documentation>(canonical reference) specifies the destination of the pointer by supplying a canonical reference from a
+        scheme defined in a refsDecl element in the TEI header</a:documentation>
+          <list>
+            <oneOrMore>
+              <data type="token">
+                <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+              </data>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_ref">
+    <element name="ref">
+      <a:documentation>(reference) defines a reference to another location, possibly modified by additional text or comment.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <sch:pattern id="ref-constraint-refAtts">
+        <sch:rule context="tei:ref">
+          <sch:report test="@target and @cRef">Only one of the
+	attributes 'target' and 'cRef' may be supplied.</sch:report>
+        </sch:rule>
+      </sch:pattern>
+      <ref name="att.global.attributes"/>
+      <ref name="att.pointing.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <optional>
+        <attribute name="cRef">
+          <a:documentation>(canonical reference) specifies the destination of the reference by supplying a canonical reference from a
+        scheme defined in a refsDecl element in the TEI header</a:documentation>
+          <list>
+            <oneOrMore>
+              <data type="token">
+                <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+              </data>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_list">
+    <element name="list">
+      <a:documentation>(list) contains any sequence of items organized as a list.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.divTop"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <choice>
+          <oneOrMore>
+            <ref name="tei_item"/>
+            <zeroOrMore>
+              <ref name="tei_model.global"/>
+            </zeroOrMore>
+          </oneOrMore>
+          <group>
+            <optional>
+              <ref name="tei_headLabel"/>
+            </optional>
+            <optional>
+              <ref name="tei_headItem"/>
+            </optional>
+            <oneOrMore>
+              <ref name="tei_label"/>
+              <zeroOrMore>
+                <ref name="tei_model.global"/>
+              </zeroOrMore>
+              <ref name="tei_item"/>
+              <zeroOrMore>
+                <ref name="tei_model.global"/>
+              </zeroOrMore>
+            </oneOrMore>
+          </group>
+        </choice>
+        <zeroOrMore>
+          <ref name="tei_model.divBottom"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </zeroOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="type" a:defaultValue="simple">
+          <a:documentation>describes the form of the list.
+Suggested values include: 1] ordered; 2] bulleted; 3] simple; 4] gloss</a:documentation>
+          <choice>
+            <value>ordered</value>
+            <a:documentation>list items are numbered or lettered. </a:documentation>
+            <value>bulleted</value>
+            <a:documentation>list items are marked with a bullet or other typographic device. </a:documentation>
+            <value>simple</value>
+            <a:documentation>list items are not numbered or bulleted. </a:documentation>
+            <value>gloss</value>
+            <a:documentation>each list item glosses some term or concept, which is given by a label element
+            preceding the list item.</a:documentation>
+            <data type="Name"/>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_item">
+    <element name="item">
+      <a:documentation>contains one component of a list.</a:documentation>
+      <ref name="tei_macro.specialPara"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_label">
+    <element name="label">
+      <a:documentation>contains the label associated with an item in a list; in glossaries, marks the term being
+    defined.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_head">
+    <element name="head">
+      <a:documentation>(heading) contains any type of heading, for example the title of a section, or the heading of a list,
+    glossary, manuscript description, etc.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_headLabel">
+    <element name="headLabel">
+      <a:documentation>(heading for list labels) contains the heading for the label or term column in a glossary list or similar structured
+        list.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_headItem">
+    <element name="headItem">
+      <a:documentation>(heading for list items) contains the heading for the item or gloss column in a glossary list or similar structured
+        list.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_note">
+    <element name="note">
+      <a:documentation>contains a note or annotation.</a:documentation>
+      <ref name="tei_macro.specialPara"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.placement.attributes"/>
+      <ref name="att.pointing.attributes"/>
+      <ref name="att.responsibility.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <optional>
+        <attribute name="anchored" a:defaultValue="true">
+          <a:documentation>indicates whether the copy text shows the exact place of reference for the note.</a:documentation>
+          <data type="boolean"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="targetEnd">
+          <a:documentation>points to the end of the span to which the note is attached, if the note is not embedded
+        in the text at that point.</a:documentation>
+          <list>
+            <oneOrMore>
+              <data type="anyURI"/>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_index">
+    <element name="index">
+      <a:documentation>(index entry) marks a location to be indexed for whatever purpose.</a:documentation>
+      <zeroOrMore>
+        <ref name="tei_term"/>
+        <optional>
+          <ref name="tei_index"/>
+        </optional>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.spanning.attributes"/>
+      <optional>
+        <attribute name="indexName">
+          <a:documentation>supplies a name to specify which index (of several) the index entry belongs to.</a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_graphic">
+    <element name="graphic">
+      <a:documentation>indicates the location of an inline graphic, illustration, or figure.</a:documentation>
+      <zeroOrMore>
+        <ref name="tei_model.glossLike"/>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.internetMedia.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <optional>
+        <attribute name="width">
+          <a:documentation>The display width of the image</a:documentation>
+          <data type="token">
+            <param name="pattern">[\-+]?\d+(\.\d+)?(%|cm|mm|in|pt|pc|px|em|ex|gd|rem|vw|vh|vm)</param>
+          </data>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="height">
+          <a:documentation>The display height of the image</a:documentation>
+          <data type="token">
+            <param name="pattern">[\-+]?\d+(\.\d+)?(%|cm|mm|in|pt|pc|px|em|ex|gd|rem|vw|vh|vm)</param>
+          </data>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="scale">
+          <a:documentation>A scale factor to be applied to the image to make it the desired display size</a:documentation>
+          <choice>
+            <data type="double"/>
+            <data type="token">
+              <param name="pattern">(\-?[\d]+/\-?[\d]+)</param>
+            </data>
+            <data type="decimal"/>
+          </choice>
+        </attribute>
+      </optional>
+      <attribute name="url">
+        <a:documentation>(uniform resource locator) A URL which refers to the image itself.</a:documentation>
+        <data type="anyURI"/>
+      </attribute>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_binaryObject">
+    <element name="binaryObject">
+      <a:documentation>provides encoded binary data representing an inline graphic or other object.</a:documentation>
+      <text/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.internetMedia.attributes"/>
+      <optional>
+        <attribute name="width">
+          <a:documentation>The display width of the object</a:documentation>
+          <data type="token">
+            <param name="pattern">[\-+]?\d+(\.\d+)?(%|cm|mm|in|pt|pc|px|em|ex|gd|rem|vw|vh|vm)</param>
+          </data>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="height">
+          <a:documentation>The display height of the object</a:documentation>
+          <data type="token">
+            <param name="pattern">[\-+]?\d+(\.\d+)?(%|cm|mm|in|pt|pc|px|em|ex|gd|rem|vw|vh|vm)</param>
+          </data>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="scale">
+          <a:documentation>A scale factor to be applied to the object to make it the desired display size</a:documentation>
+          <choice>
+            <data type="double"/>
+            <data type="token">
+              <param name="pattern">(\-?[\d]+/\-?[\d]+)</param>
+            </data>
+            <data type="decimal"/>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="encoding">
+          <a:documentation>The encoding used to encode the binary data. If not specified, this is assumed to be
+          Base64.</a:documentation>
+          <list>
+            <oneOrMore>
+              <data type="token">
+                <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+              </data>
+            </oneOrMore>
+          </list>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_milestone">
+    <element name="milestone">
+      <a:documentation>marks a boundary point separating any kind of section of a text, typically but not
+    necessarily indicating a point at which some part of a standard reference system changes, where
+    the change is not represented by a structural element.</a:documentation>
+      <empty/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.sourced.attributes"/>
+      <attribute name="unit">
+        <a:documentation>provides a conventional name for the kind of section changing at this milestone.
+Suggested values include: 1] page; 2] column; 3] line; 4] book; 5] poem; 6] canto; 7] speaker; 8] stanza; 9] act; 10] scene; 11] section; 12] absent; 13] unnumbered</a:documentation>
+        <choice>
+          <value>page</value>
+          <a:documentation>physical page breaks (synonymous with the pb element).</a:documentation>
+          <value>column</value>
+          <a:documentation>column breaks.</a:documentation>
+          <value>line</value>
+          <a:documentation>line breaks (synonymous with the lb element).</a:documentation>
+          <value>book</value>
+          <a:documentation>any units termed book, liber, etc.</a:documentation>
+          <value>poem</value>
+          <a:documentation>individual poems in a collection.</a:documentation>
+          <value>canto</value>
+          <a:documentation>cantos or other major sections of a poem.</a:documentation>
+          <value>speaker</value>
+          <a:documentation>changes of speaker or narrator.</a:documentation>
+          <value>stanza</value>
+          <a:documentation>stanzas within a poem, book, or canto.</a:documentation>
+          <value>act</value>
+          <a:documentation>acts within a play.</a:documentation>
+          <value>scene</value>
+          <a:documentation>scenes within a play or act.</a:documentation>
+          <value>section</value>
+          <a:documentation>sections of any kind.</a:documentation>
+          <value>absent</value>
+          <a:documentation>passages not present in the reference edition.</a:documentation>
+          <value>unnumbered</value>
+          <a:documentation>passages present in the text, but not to be included as part of the reference.</a:documentation>
+          <data type="Name"/>
+        </choice>
+      </attribute>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_pb">
+    <element name="pb">
+      <a:documentation>(page break) marks the boundary between one page of a text and the next in a standard reference system.</a:documentation>
+      <empty/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.sourced.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_lb">
+    <element name="lb">
+      <a:documentation>(line break) marks the start of a new (typographic) line in some edition or version of a text.</a:documentation>
+      <empty/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.sourced.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_cb">
+    <element name="cb">
+      <a:documentation>(column break) marks the boundary between one column of a text and the next
+        in a standard reference system.</a:documentation>
+      <empty/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.sourced.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_analytic">
+    <element name="analytic">
+      <a:documentation>(analytic level) contains bibliographic elements describing an item (e.g. an article or poem) published
+    within a monograph or journal and not as an independent publication.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <ref name="tei_author"/>
+          <ref name="tei_editor"/>
+          <ref name="tei_respStmt"/>
+          <ref name="tei_title"/>
+          <ref name="tei_ref"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_monogr">
+    <element name="monogr">
+      <a:documentation>(monographic level) contains bibliographic elements describing an item (e.g. a book or journal) published as an
+    independent item (i.e. as a separate physical object).</a:documentation>
+      <group>
+        <optional>
+          <choice>
+            <group>
+              <choice>
+                <ref name="tei_author"/>
+                <ref name="tei_editor"/>
+                <ref name="tei_respStmt"/>
+              </choice>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_author"/>
+                  <ref name="tei_editor"/>
+                  <ref name="tei_respStmt"/>
+                </choice>
+              </zeroOrMore>
+              <oneOrMore>
+                <ref name="tei_title"/>
+              </oneOrMore>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_idno"/>
+                  <ref name="tei_editor"/>
+                  <ref name="tei_respStmt"/>
+                </choice>
+              </zeroOrMore>
+            </group>
+            <group>
+              <oneOrMore>
+                <choice>
+                  <ref name="tei_title"/>
+                  <ref name="tei_ref"/>
+                </choice>
+              </oneOrMore>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_idno"/>
+                  <ref name="tei_author"/>
+                  <ref name="tei_editor"/>
+                  <ref name="tei_respStmt"/>
+                </choice>
+              </zeroOrMore>
+            </group>
+          </choice>
+        </optional>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.noteLike"/>
+            <ref name="tei_meeting"/>
+          </choice>
+        </zeroOrMore>
+        <zeroOrMore>
+          <ref name="tei_edition"/>
+          <zeroOrMore>
+            <choice>
+              <ref name="tei_idno"/>
+              <ref name="tei_editor"/>
+              <ref name="tei_respStmt"/>
+            </choice>
+          </zeroOrMore>
+        </zeroOrMore>
+        <ref name="tei_imprint"/>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_imprint"/>
+            <ref name="tei_extent"/>
+            <ref name="tei_biblScope"/>
+          </choice>
+        </zeroOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_series">
+    <element name="series">
+      <a:documentation>(series information) contains information about the series in which a book or other bibliographic item has
+    appeared.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.gLike"/>
+          <ref name="tei_title"/>
+          <ref name="tei_ref"/>
+          <ref name="tei_editor"/>
+          <ref name="tei_respStmt"/>
+          <ref name="tei_biblScope"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_author">
+    <element name="author">
+      <a:documentation>in a bibliographic reference, contains the name(s) of the
+  author(s), personal or corporate, of a work; for example in the same
+  form as that provided by a recognized bibliographic name authority. </a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.naming.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_editor">
+    <element name="editor">
+      <a:documentation>secondary statement of responsibility for a bibliographic item, for example the name of an
+    individual, institution or organization, (or of several such) acting as editor, compiler,
+    translator, etc. </a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.naming.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_respStmt">
+    <element name="respStmt">
+      <a:documentation>(statement of responsibility) supplies a statement of responsibility for the intellectual content of a text, edition,
+    recording, or series, where the specialized elements for authors, editors, etc. do not suffice
+    or do not apply.</a:documentation>
+      <choice>
+        <group>
+          <oneOrMore>
+            <ref name="tei_resp"/>
+          </oneOrMore>
+          <oneOrMore>
+            <ref name="tei_model.nameLike.agent"/>
+          </oneOrMore>
+        </group>
+        <group>
+          <oneOrMore>
+            <ref name="tei_model.nameLike.agent"/>
+          </oneOrMore>
+          <oneOrMore>
+            <ref name="tei_resp"/>
+          </oneOrMore>
+        </group>
+      </choice>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_resp">
+    <element name="resp">
+      <a:documentation>(responsibility) contains a phrase describing the nature of a person's intellectual responsibility.</a:documentation>
+      <ref name="tei_macro.phraseSeq.limited"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.canonical.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_title">
+    <element name="title">
+      <a:documentation>contains a title for any kind of work.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.canonical.attributes"/>
+      <optional>
+        <attribute name="level">
+          <a:documentation>indicates the bibliographic level for a title, that is, whether
+                                        it identifies an article, book, journal, series, or
+                                        unpublished material.</a:documentation>
+          <choice>
+            <value>a</value>
+            <a:documentation>(analytic) analytic title (article, poem, or other item
+                                                  published as part of a larger item) </a:documentation>
+            <value>m</value>
+            <a:documentation>(monographic) monographic title (book, collection, or
+                                                  other item published as a distinct item,
+                                                  including single volumes of multi-volume
+                                                  works) </a:documentation>
+            <value>j</value>
+            <a:documentation>(journal) journal title </a:documentation>
+            <value>s</value>
+            <a:documentation>(series) series title </a:documentation>
+            <value>u</value>
+            <a:documentation>(unpublished) title of unpublished material (including
+                                                  theses and dissertations unless
+                                                  published by a commercial press)</a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="type">
+          <a:documentation>classifies the title according to some convenient typology.
+Sample values include: 1] main; 2] sub (subordinate부titre de
+niveau inférieur, titre de partiesubordinatosubtítulo, título de una parte); 3] alt (alternate이명titre
+alternatif, souvent dans une autre
+langue, par lequel l'oeuvre est
+également connualternativotítulo
+alternativo, a menudo en otra lengua por
+la cual la obra es también conocida.); 4] short; 5] desc (descriptive기술적paraphrase descriptive de l'oeuvre
+ayant les fonctions d'un titredescrittivoparáfrasis descriptiva que funciona
+como el título de una obra.)</a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_meeting">
+    <element name="meeting">
+      <a:documentation>contains the formalized descriptive title for a meeting or conference, for use in a
+    bibliographic description for an item derived from such a meeting, or as a heading or preamble
+    to publications emanating from it.</a:documentation>
+      <ref name="tei_macro.limitedContent"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_imprint">
+    <element name="imprint">
+      <a:documentation>groups information relating to the publication or distribution
+        of a bibliographic item.</a:documentation>
+      <oneOrMore>
+        <choice>
+          <ref name="tei_model.imprintPart"/>
+          <ref name="tei_model.dateLike"/>
+        </choice>
+        <zeroOrMore>
+          <ref name="tei_model.global"/>
+        </zeroOrMore>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_publisher">
+    <element name="publisher">
+      <a:documentation>provides the name of the organization responsible for the publication or distribution of a
+        bibliographic item.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_biblScope">
+    <element name="biblScope">
+      <a:documentation>(scope of citation) defines the scope of a bibliographic reference, for example as a
+        list of page numbers, or a named subdivision of a larger work.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="type">
+          <a:documentation>identifies the type of information conveyed by the element, e.g.
+                columns, pages, volume.
+Suggested values include: 1] vol (volume권el elemento contiene el número de un volumen.); 2] issue; 3] pp (pages페이지pagineel elemento contiene un número de página o el intervalo de páginas.); 4] ll (lines); 5] chap (chapter장capítulo(chapitre) l'élément
+                        contient une indication de chapitre (numéro et/ou
+                        titre)capitolo); 6] part</a:documentation>
+          <choice>
+            <value>vol</value>
+            <a:documentation>(volume) the element contains a volume number.</a:documentation>
+            <value>issue</value>
+            <a:documentation>the element contains an issue number, or volume and
+                        issue numbers.</a:documentation>
+            <value>pp</value>
+            <a:documentation>(pages) the element contains a page number or page range.</a:documentation>
+            <value>ll</value>
+            <a:documentation> (lines) the element contains a line number or line range.</a:documentation>
+            <value>chap</value>
+            <a:documentation>(chapter) the element contains a chapter indication (number
+                        and/or title)</a:documentation>
+            <value>part</value>
+            <a:documentation>the element identifies a part of a book or collection.</a:documentation>
+            <data type="Name"/>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="from">
+          <a:documentation>specifies the starting point of the range of units indicated by the type attribute.</a:documentation>
+          <data type="token">
+            <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+          </data>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="to">
+          <a:documentation>specifies the end-point of the range of units indicated by the type attribute.</a:documentation>
+          <data type="token">
+            <param name="pattern">(\p{L}|\p{N}|\p{P}|\p{S})+</param>
+          </data>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_pubPlace">
+    <element name="pubPlace">
+      <a:documentation>(publication place) contains the name of the place where a bibliographic item was published.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.naming.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_bibl">
+    <element name="bibl">
+      <a:documentation>(bibliographic citation) contains a loosely-structured bibliographic citation of which the sub-components may or may
+    not be explicitly tagged. </a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.gLike"/>
+          <ref name="tei_model.highlighted"/>
+          <ref name="tei_model.pPart.data"/>
+          <ref name="tei_model.pPart.edit"/>
+          <ref name="tei_model.segLike"/>
+          <ref name="tei_model.ptrLike"/>
+          <ref name="tei_model.biblPart"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_biblStruct">
+    <element name="biblStruct">
+      <a:documentation>(structured bibliographic citation) contains a structured bibliographic citation, in which only bibliographic sub-elements
+    appear and in a specified order. </a:documentation>
+      <group>
+        <zeroOrMore>
+          <ref name="tei_analytic"/>
+        </zeroOrMore>
+        <oneOrMore>
+          <ref name="tei_monogr"/>
+          <zeroOrMore>
+            <ref name="tei_series"/>
+          </zeroOrMore>
+        </oneOrMore>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.noteLike"/>
+            <ref name="tei_idno"/>
+            <ref name="tei_relatedItem"/>
+          </choice>
+        </zeroOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_listBibl">
+    <element name="listBibl">
+      <a:documentation>(citation list) contains a list of bibliographic citations of any kind. </a:documentation>
+      <group>
+        <zeroOrMore>
+          <ref name="tei_model.headLike"/>
+        </zeroOrMore>
+        <oneOrMore>
+          <choice>
+            <ref name="tei_model.biblLike"/>
+            <ref name="tei_model.milestoneLike"/>
+            <ref name="tei_listBibl"/>
+          </choice>
+        </oneOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_relatedItem">
+    <element name="relatedItem">
+      <a:documentation>contains or references some other bibliographic item which is related to the present one in
+    some specified manner, for example as a constituent or alternative version of it.</a:documentation>
+      <optional>
+        <choice>
+          <ref name="tei_model.biblLike"/>
+          <ref name="tei_model.ptrLike"/>
+        </choice>
+      </optional>
+      <sch:pattern id="relatedItem-constraint-targetorcontent1">
+        <sch:rule context="tei:relatedItem">
+          <sch:report test="@target and count( child::* ) &gt; 0">If the 'target' attribute is used, the
+        relatedItem element must be empty</sch:report>
+        </sch:rule>
+      </sch:pattern>
+      <sch:pattern id="relatedItem-constraint-targetorcontent1">
+        <sch:rule context="tei:relatedItem">
+          <sch:assert test="@target or child::*">A relatedItem element should have either a 'target' attribute
+        or a child element to indicate the related bibliographic item</sch:assert>
+        </sch:rule>
+      </sch:pattern>
+      <ref name="att.global.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <optional>
+        <attribute name="target">
+          <a:documentation>points to the related bibliographic element by means of an
+      absolute or relative URI reference</a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_l">
+    <element name="l">
+      <a:documentation>(verse line) contains a single, possibly incomplete, line of verse.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="part" a:defaultValue="N">
+          <a:documentation>specifies whether or not the line is metrically complete. </a:documentation>
+          <choice>
+            <value>Y</value>
+            <a:documentation>(yes) the line is metrically incomplete</a:documentation>
+            <value>N</value>
+            <a:documentation>(no) either the line is complete, or no claim is made as to its completeness</a:documentation>
+            <value>I</value>
+            <a:documentation>(initial) the initial part of an incomplete line</a:documentation>
+            <value>M</value>
+            <a:documentation>(medial) a medial part of an incomplete line</a:documentation>
+            <value>F</value>
+            <a:documentation>(final) the final part of an incomplete line</a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_lg">
+    <element name="lg">
+      <a:documentation>(line group) contains a group of verse lines functioning as a formal unit, e.g. a stanza, refrain,
+        verse paragraph, etc.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.divTop"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <choice>
+          <ref name="tei_model.lLike"/>
+          <ref name="tei_lg"/>
+        </choice>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.lLike"/>
+            <ref name="tei_lg"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <zeroOrMore>
+          <ref name="tei_model.divBottom"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </zeroOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.divLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_sp">
+    <element name="sp">
+      <a:documentation>(speech) An individual speech in a performance text, or a passage presented as such in a prose or
+    verse text.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <ref name="tei_model.global"/>
+        </zeroOrMore>
+        <optional>
+          <ref name="tei_speaker"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </optional>
+        <oneOrMore>
+          <choice>
+            <ref name="tei_model.lLike"/>
+            <ref name="tei_lg"/>
+            <ref name="tei_model.pLike"/>
+            <ref name="tei_model.stageLike"/>
+            <ref name="tei_model.qLike"/>
+          </choice>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </oneOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.ascribed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_speaker">
+    <element name="speaker">
+      <a:documentation>A specialized form of heading or label, giving the name of one or more speakers in a
+        dramatic text or fragment.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_stage">
+    <element name="stage">
+      <a:documentation>(stage direction) contains any kind of stage direction within a dramatic text or fragment.</a:documentation>
+      <ref name="tei_macro.specialPara"/>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="type">
+          <a:documentation>indicates the kind of stage direction.
+Suggested values include: 1] setting; 2] entrance; 3] exit; 4] business; 5] novelistic; 6] delivery; 7] modifier; 8] location; 9] mixed</a:documentation>
+          <choice>
+            <value>setting</value>
+            <a:documentation>describes a setting.</a:documentation>
+            <value>entrance</value>
+            <a:documentation>describes an entrance.</a:documentation>
+            <value>exit</value>
+            <a:documentation>describes an exit.</a:documentation>
+            <value>business</value>
+            <a:documentation>describes stage business.</a:documentation>
+            <value>novelistic</value>
+            <a:documentation>is a narrative, motivating stage direction.</a:documentation>
+            <value>delivery</value>
+            <a:documentation>describes how a character speaks.</a:documentation>
+            <value>modifier</value>
+            <a:documentation>gives some detail about a character.</a:documentation>
+            <value>location</value>
+            <a:documentation>describes a location.</a:documentation>
+            <value>mixed</value>
+            <a:documentation>more than one of the above</a:documentation>
+            <data type="Name"/>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_teiCorpus">
+    <element name="teiCorpus">
+      <a:documentation>contains the whole of a TEI encoded corpus, comprising a single corpus header and one or
+    more TEI elements, each containing a single text header and a text.</a:documentation>
+      <group>
+        <ref name="tei_teiHeader"/>
+        <oneOrMore>
+          <choice>
+            <ref name="tei_TEI"/>
+            <ref name="tei_teiCorpus"/>
+          </choice>
+        </oneOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="version" a:defaultValue="5.0">
+          <a:documentation>The version of the TEI scheme</a:documentation>
+          <data type="token">
+            <param name="pattern">[\d]+(\.[\d]+){0,2}</param>
+          </data>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_divGen">
+    <element name="divGen">
+      <a:documentation>(automatically generated text division) indicates the location at which a textual division generated
+        automatically by a text-processing application is to appear.</a:documentation>
+      <zeroOrMore>
+        <ref name="tei_model.headLike"/>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="type">
+          <a:documentation>specifies what type of generated text division (e.g. index,
+                table of contents, etc.) is to appear.
+Sample values include: 1] index; 2] toc; 3] figlist; 4] tablist</a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_teiHeader">
+    <element name="teiHeader">
+      <a:documentation>(TEI Header) supplies the descriptive and declarative information making up an electronic title page
+    prefixed to every TEI-conformant text.</a:documentation>
+      <group>
+        <ref name="tei_fileDesc"/>
+        <zeroOrMore>
+          <ref name="tei_model.teiHeaderPart"/>
+        </zeroOrMore>
+        <optional>
+          <ref name="tei_revisionDesc"/>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="type" a:defaultValue="text">
+          <a:documentation>specifies the kind of document to which the header is attached, for example whether it
+        is a corpus or individual text.
+Sample values include: 1] text; 2] corpus</a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_fileDesc">
+    <element name="fileDesc">
+      <a:documentation>(file description) contains a full bibliographic description of an electronic file.</a:documentation>
+      <group>
+        <group>
+          <ref name="tei_titleStmt"/>
+          <optional>
+            <ref name="tei_editionStmt"/>
+          </optional>
+          <optional>
+            <ref name="tei_extent"/>
+          </optional>
+          <ref name="tei_publicationStmt"/>
+          <optional>
+            <ref name="tei_seriesStmt"/>
+          </optional>
+          <optional>
+            <ref name="tei_notesStmt"/>
+          </optional>
+        </group>
+        <oneOrMore>
+          <ref name="tei_sourceDesc"/>
+        </oneOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_titleStmt">
+    <element name="titleStmt">
+      <a:documentation>(title statement) groups information about the title of a work and those responsible for its intellectual
+    content.</a:documentation>
+      <group>
+        <oneOrMore>
+          <ref name="tei_title"/>
+        </oneOrMore>
+        <zeroOrMore>
+          <ref name="tei_model.respLike"/>
+        </zeroOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_sponsor">
+    <element name="sponsor">
+      <a:documentation>specifies the name of a sponsoring organization or institution.</a:documentation>
+      <ref name="tei_macro.phraseSeq.limited"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_funder">
+    <element name="funder">
+      <a:documentation>(funding body) specifies the name of an individual, institution, or organization responsible for the
+    funding of a project or text.</a:documentation>
+      <ref name="tei_macro.phraseSeq.limited"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_principal">
+    <element name="principal">
+      <a:documentation>(principal researcher) supplies the name of the principal researcher responsible for the
+creation of an electronic text.</a:documentation>
+      <ref name="tei_macro.phraseSeq.limited"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_editionStmt">
+    <element name="editionStmt">
+      <a:documentation>(edition statement) groups information relating to one edition of a text.</a:documentation>
+      <choice>
+        <oneOrMore>
+          <ref name="tei_model.pLike"/>
+        </oneOrMore>
+        <group>
+          <ref name="tei_edition"/>
+          <zeroOrMore>
+            <ref name="tei_respStmt"/>
+          </zeroOrMore>
+        </group>
+      </choice>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_edition">
+    <element name="edition">
+      <a:documentation>(edition) describes the particularities of one edition of a text.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_extent">
+    <element name="extent">
+      <a:documentation>describes the approximate size of a text as stored on some carrier medium, whether digital
+    or non-digital, specified in any convenient units.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_publicationStmt">
+    <element name="publicationStmt">
+      <a:documentation>(publication statement) groups information concerning the publication or distribution of an electronic or other
+    text. </a:documentation>
+      <choice>
+        <oneOrMore>
+          <ref name="tei_model.pLike"/>
+        </oneOrMore>
+        <oneOrMore>
+          <ref name="tei_model.publicationStmtPart"/>
+        </oneOrMore>
+      </choice>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_distributor">
+    <element name="distributor">
+      <a:documentation>supplies the name of a person or other agency responsible for the
+distribution of a text.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_authority">
+    <element name="authority">
+      <a:documentation>(release authority) supplies the name of a person or other agency responsible for
+  making an electronic file available, other than a publisher or
+  distributor.</a:documentation>
+      <ref name="tei_macro.phraseSeq.limited"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_idno">
+    <element name="idno">
+      <a:documentation>(identifier) supplies any form of identifier used to identify some object,
+  such as a bibliographic item, a person, a title, an organization,
+  etc. in a standardized way.</a:documentation>
+      <text/>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="type">
+          <a:documentation>categorizes the identifier, for example as an ISBN, Social
+      Security number, etc. </a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_availability">
+    <element name="availability">
+      <a:documentation>supplies information about the availability of a text, for example any restrictions on its
+    use or distribution, its copyright status, etc.</a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.pLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <optional>
+        <attribute name="status" a:defaultValue="unknown">
+          <a:documentation>supplies a code identifying the current availability of the text. </a:documentation>
+          <choice>
+            <value>free</value>
+            <a:documentation>the text is freely available. </a:documentation>
+            <value>unknown</value>
+            <a:documentation>the status of the text is unknown. </a:documentation>
+            <value>restricted</value>
+            <a:documentation>the text is not freely available. </a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_seriesStmt">
+    <element name="seriesStmt">
+      <a:documentation>(series statement) groups information about the series, if any, to which a publication belongs.</a:documentation>
+      <choice>
+        <oneOrMore>
+          <ref name="tei_model.pLike"/>
+        </oneOrMore>
+        <group>
+          <oneOrMore>
+            <ref name="tei_title"/>
+          </oneOrMore>
+          <zeroOrMore>
+            <choice>
+              <ref name="tei_idno"/>
+              <ref name="tei_respStmt"/>
+            </choice>
+          </zeroOrMore>
+        </group>
+      </choice>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_notesStmt">
+    <element name="notesStmt">
+      <a:documentation>(notes statement) collects together any notes providing information about a text additional to that recorded
+    in other parts of the bibliographic description.</a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.noteLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_sourceDesc">
+    <element name="sourceDesc">
+      <a:documentation>(source description) describes the source from which an electronic text was derived or generated, typically a
+    bibliographic description in the case of a digitized text, or a phrase such as "born digital"
+    for a text which has no previous existence.</a:documentation>
+      <choice>
+        <oneOrMore>
+          <ref name="tei_model.pLike"/>
+        </oneOrMore>
+        <oneOrMore>
+          <choice>
+            <ref name="tei_model.biblLike"/>
+            <ref name="tei_model.sourceDescPart"/>
+            <ref name="tei_model.listLike"/>
+          </choice>
+        </oneOrMore>
+      </choice>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_biblFull">
+    <element name="biblFull">
+      <a:documentation>(fully-structured bibliographic citation) contains a fully-structured bibliographic citation, in which all components of the TEI file
+    description are present.</a:documentation>
+      <group>
+        <group>
+          <ref name="tei_titleStmt"/>
+          <optional>
+            <ref name="tei_editionStmt"/>
+          </optional>
+          <optional>
+            <ref name="tei_extent"/>
+          </optional>
+          <ref name="tei_publicationStmt"/>
+          <optional>
+            <ref name="tei_seriesStmt"/>
+          </optional>
+          <optional>
+            <ref name="tei_notesStmt"/>
+          </optional>
+        </group>
+        <zeroOrMore>
+          <ref name="tei_sourceDesc"/>
+        </zeroOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_encodingDesc">
+    <element name="encodingDesc">
+      <a:documentation>(encoding description) documents the relationship between an electronic text and the
+source or sources from which it was derived.</a:documentation>
+      <oneOrMore>
+        <choice>
+          <ref name="tei_model.encodingDescPart"/>
+          <ref name="tei_model.pLike"/>
+        </choice>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_projectDesc">
+    <element name="projectDesc">
+      <a:documentation>(project description) describes in detail the aim or purpose for which an electronic file was encoded, together
+    with any other relevant information concerning the process by which it was assembled or
+    collected.</a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.pLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_samplingDecl">
+    <element name="samplingDecl">
+      <a:documentation>(sampling declaration) contains a prose description of the rationale and methods used in sampling texts in the
+    creation of a corpus or collection.</a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.pLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_editorialDecl">
+    <element name="editorialDecl">
+      <a:documentation>(editorial practice declaration) provides details of editorial principles and practices applied
+during the encoding of a text.</a:documentation>
+      <oneOrMore>
+        <choice>
+          <ref name="tei_model.pLike"/>
+          <ref name="tei_model.editorialDeclPart"/>
+        </choice>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_correction">
+    <element name="correction">
+      <a:documentation>(correction principles) states how and under what circumstances corrections have been made in the text.</a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.pLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <optional>
+        <attribute name="status" a:defaultValue="unknown">
+          <a:documentation>indicates the degree of correction applied to the text. </a:documentation>
+          <choice>
+            <value>high</value>
+            <a:documentation>the text has been thoroughly checked and proofread. </a:documentation>
+            <value>medium</value>
+            <a:documentation>the text has been checked at least once. </a:documentation>
+            <value>low</value>
+            <a:documentation>the text has not been checked. </a:documentation>
+            <value>unknown</value>
+            <a:documentation>the correction status of the text is unknown. </a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="method" a:defaultValue="silent">
+          <a:documentation>indicates the method adopted to indicate corrections within the text. </a:documentation>
+          <choice>
+            <value>silent</value>
+            <a:documentation>corrections have been made silently </a:documentation>
+            <value>markup</value>
+            <a:documentation>corrections have been represented using markup</a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_normalization">
+    <element name="normalization">
+      <a:documentation>indicates the extent of normalization or regularization of the original source carried out
+    in converting it to electronic form.</a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.pLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <optional>
+        <attribute name="source">
+          <a:documentation>indicates the authority for any normalization carried out. </a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="method" a:defaultValue="silent">
+          <a:documentation>indicates the method adopted to indicate normalizations within the text. </a:documentation>
+          <choice>
+            <value>silent</value>
+            <a:documentation>normalization made silently </a:documentation>
+            <value>markup</value>
+            <a:documentation>normalization represented using markup </a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_quotation">
+    <element name="quotation">
+      <a:documentation>specifies editorial practice adopted with respect to quotation marks in the original. </a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.pLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <optional>
+        <attribute name="marks" a:defaultValue="all">
+          <a:documentation>(quotation marks) indicates whether or not quotation marks have been retained as content within the text. </a:documentation>
+          <choice>
+            <value>none</value>
+            <a:documentation>no quotation marks have been retained </a:documentation>
+            <value>some</value>
+            <a:documentation>some quotation marks have been retained </a:documentation>
+            <value>all</value>
+            <a:documentation>all quotation marks have been retained </a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="form" a:defaultValue="unknown">
+          <a:documentation>specifies how quotation marks are indicated within the text.</a:documentation>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_hyphenation">
+    <element name="hyphenation">
+      <a:documentation>summarizes the way in which hyphenation in a source text has been treated in an encoded
+    version of it.</a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.pLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <optional>
+        <attribute name="eol" a:defaultValue="some">
+          <a:documentation>(end-of-line) indicates whether or not end-of-line hyphenation has been retained in a text.</a:documentation>
+          <choice>
+            <value>all</value>
+            <a:documentation>all end-of-line hyphenation has been retained, even though the lineation of the
+            original may not have been. </a:documentation>
+            <value>some</value>
+            <a:documentation>end-of-line hyphenation has been retained in some cases. </a:documentation>
+            <value>hard</value>
+            <a:documentation>all soft end-of-line hyphenation has been removed: any remaining end-od-line
+            hyphenation should be retained. </a:documentation>
+            <value>none</value>
+            <a:documentation>all end-of-line hyphenation has been removed: any remaining hyphenation occurred
+            within the line. </a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_segmentation">
+    <element name="segmentation">
+      <a:documentation>describes the principles according to which the text has been segmented, for example into
+    sentences, tone-units, graphemic strata, etc.</a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.pLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_stdVals">
+    <element name="stdVals">
+      <a:documentation>(standard values) specifies the format used when standardized date or number values are supplied.</a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.pLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_interpretation">
+    <element name="interpretation">
+      <a:documentation>describes the scope of any analytic or interpretive information added to the text in
+    addition to the transcription. </a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.pLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_tagsDecl">
+    <element name="tagsDecl">
+      <a:documentation>(tagging declaration) provides detailed information about the tagging applied to a document.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <ref name="tei_rendition"/>
+        </zeroOrMore>
+        <zeroOrMore>
+          <ref name="tei_namespace"/>
+        </zeroOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_tagUsage">
+    <element name="tagUsage">
+      <a:documentation>supplies information about the usage of a specific element within a text. </a:documentation>
+      <ref name="tei_macro.limitedContent"/>
+      <ref name="att.global.attributes"/>
+      <attribute name="gi">
+        <a:documentation>(element name) the name (generic identifier) of the element indicated by the tag.</a:documentation>
+        <data type="Name"/>
+      </attribute>
+      <optional>
+        <attribute name="occurs">
+          <a:documentation>specifies the number of occurrences of this element within the text.</a:documentation>
+          <data type="nonNegativeInteger"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="withId">
+          <a:documentation>(with unique identifier) specifies the number of occurrences of this element within the text which bear a
+        distinct value for the global xml:id attribute. </a:documentation>
+          <data type="nonNegativeInteger"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="render">
+          <a:documentation>specifies the identifier of a rendition element which defines how this element
+        is to be rendered.</a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_namespace">
+    <element name="namespace">
+      <a:documentation>supplies the formal name of the namespace to which the elements documented by its children
+    belong. </a:documentation>
+      <oneOrMore>
+        <ref name="tei_tagUsage"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <attribute name="name">
+        <a:documentation>the full formal name of the namespace concerned.</a:documentation>
+        <data type="anyURI"/>
+      </attribute>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_rendition">
+    <element name="rendition">
+      <a:documentation>supplies information about the rendition or appearance of one or more elements in the source
+    text.</a:documentation>
+      <ref name="tei_macro.limitedContent"/>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="scheme">
+          <a:documentation>identifies the language used to describe the rendition.</a:documentation>
+          <choice>
+            <value>css</value>
+            <a:documentation>Cascading Stylesheet Language</a:documentation>
+            <value>xslfo</value>
+            <a:documentation>Extensible Stylesheet Language Formatting Objects</a:documentation>
+            <value>free</value>
+            <a:documentation>Informal free text description</a:documentation>
+            <value>other</value>
+            <a:documentation>A user-defined rendition description language</a:documentation>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="scope">
+          <a:documentation>where CSS is used, provides a way of defining
+pseudo-elements, that is, styling rules
+applicable to specific sub-portions of an element.</a:documentation>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_refsDecl">
+    <element name="refsDecl">
+      <a:documentation>(references declaration) specifies how canonical references are constructed for this
+  text.</a:documentation>
+      <choice>
+        <oneOrMore>
+          <ref name="tei_model.pLike"/>
+        </oneOrMore>
+        <oneOrMore>
+          <ref name="tei_cRefPattern"/>
+        </oneOrMore>
+        <oneOrMore>
+          <ref name="tei_refState"/>
+        </oneOrMore>
+      </choice>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_cRefPattern">
+    <element name="cRefPattern">
+      <a:documentation>(canonical reference pattern) specifies an expression and replacement pattern for transforming a canonical reference into
+    a URI. </a:documentation>
+      <zeroOrMore>
+        <ref name="tei_model.pLike"/>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <attribute name="matchPattern">
+        <a:documentation>specifies a regular expression against which the values of cRef attributes
+        can be matched.</a:documentation>
+        <data type="token"/>
+      </attribute>
+      <attribute name="replacementPattern">
+        <a:documentation>specifies a replacement pattern which, once subpattern substitution
+        has been performed, provides a URI.</a:documentation>
+      </attribute>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_refState">
+    <element name="refState">
+      <a:documentation>(reference state) specifies one component of a canonical reference defined by the milestone method.</a:documentation>
+      <empty/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.sourced.attributes"/>
+      <attribute name="unit">
+        <a:documentation>indicates what kind of state is changing at this milestone.
+Suggested values include: 1] page; 2] column; 3] line; 4] book; 5] poem; 6] canto; 7] stanza; 8] act; 9] scene; 10] section; 11] absent</a:documentation>
+        <choice>
+          <value>page</value>
+          <a:documentation>page breaks in the reference edition. </a:documentation>
+          <value>column</value>
+          <a:documentation>column breaks. </a:documentation>
+          <value>line</value>
+          <a:documentation>line breaks. </a:documentation>
+          <value>book</value>
+          <a:documentation>any units termed book, liber, etc. </a:documentation>
+          <value>poem</value>
+          <a:documentation>individual poems in a collection. </a:documentation>
+          <value>canto</value>
+          <a:documentation>cantos or other major sections of a poem. </a:documentation>
+          <value>stanza</value>
+          <a:documentation>stanzas within a poem, book, or canto. </a:documentation>
+          <value>act</value>
+          <a:documentation>acts within a play. </a:documentation>
+          <value>scene</value>
+          <a:documentation>scenes within a play or act. </a:documentation>
+          <value>section</value>
+          <a:documentation>sections of any kind. </a:documentation>
+          <value>absent</value>
+          <a:documentation>passages not present in the reference edition.</a:documentation>
+          <data type="Name"/>
+        </choice>
+      </attribute>
+      <optional>
+        <attribute name="length">
+          <a:documentation>specifies the fixed length of the reference component.</a:documentation>
+          <data type="nonNegativeInteger"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="delim">
+          <a:documentation>(delimiter) supplies a delimiting string following the reference component.</a:documentation>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_classDecl">
+    <element name="classDecl">
+      <a:documentation>(classification declarations) contains one or more taxonomies defining any classificatory
+codes used elsewhere in the text.</a:documentation>
+      <oneOrMore>
+        <ref name="tei_taxonomy"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_taxonomy">
+    <element name="taxonomy">
+      <a:documentation>defines a typology used to classify texts either implicitly, by means of a bibliographic
+    citation, or explicitly by a structured taxonomy.</a:documentation>
+      <choice>
+        <zeroOrMore>
+          <ref name="tei_model.glossLike"/>
+        </zeroOrMore>
+        <oneOrMore>
+          <ref name="tei_category"/>
+        </oneOrMore>
+        <group>
+          <ref name="tei_model.biblLike"/>
+          <zeroOrMore>
+            <ref name="tei_category"/>
+          </zeroOrMore>
+        </group>
+      </choice>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_category">
+    <element name="category">
+      <a:documentation>contains an individual descriptive category, possibly nested within a superordinate
+    category, within a user-defined taxonomy.</a:documentation>
+      <group>
+        <choice>
+          <oneOrMore>
+            <ref name="tei_catDesc"/>
+          </oneOrMore>
+          <zeroOrMore>
+            <ref name="tei_model.glossLike"/>
+          </zeroOrMore>
+        </choice>
+        <zeroOrMore>
+          <ref name="tei_category"/>
+        </zeroOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_catDesc">
+    <element name="catDesc">
+      <a:documentation>(category description) describes some category within a taxonomy or text typology, either in the form of a brief
+    prose description or in terms of the situational parameters used by the TEI formal textDesc.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.limitedPhrase"/>
+          <ref name="tei_model.catDescPart"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_appInfo">
+    <element name="appInfo">
+      <a:documentation>(application information) records information about an application which has
+  edited the TEI file. </a:documentation>
+      <oneOrMore>
+        <ref name="tei_model.applicationLike"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_application">
+    <element name="application">
+      <a:documentation>provides information about an application which has acted upon the document.</a:documentation>
+      <group>
+        <oneOrMore>
+          <ref name="tei_model.labelLike"/>
+        </oneOrMore>
+        <choice>
+          <zeroOrMore>
+            <ref name="tei_model.ptrLike"/>
+          </zeroOrMore>
+          <zeroOrMore>
+            <ref name="tei_model.pLike"/>
+          </zeroOrMore>
+        </choice>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.datable.attributes"/>
+      <attribute name="ident">
+        <a:documentation>Supplies an identifier for the application, independent of its version number or display
+        name.</a:documentation>
+        <data type="Name"/>
+      </attribute>
+      <attribute name="version">
+        <a:documentation>Supplies a version number for the application, independent of its identifier or display
+        name.</a:documentation>
+        <data type="token">
+          <param name="pattern">[\d]+[a-z]*[\d]*(\.[\d]+[a-z]*[\d]*){0,3}</param>
+        </data>
+      </attribute>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_profileDesc">
+    <element name="profileDesc">
+      <a:documentation>(text-profile description) provides a detailed description of non-bibliographic aspects of a text, specifically the
+    languages and sublanguages used, the situation in which it was produced, the participants and
+    their setting.</a:documentation>
+      <zeroOrMore>
+        <ref name="tei_model.profileDescPart"/>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_creation">
+    <element name="creation">
+      <a:documentation>contains information about the creation of a text.</a:documentation>
+      <ref name="tei_macro.phraseSeq.limited"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_langUsage">
+    <element name="langUsage">
+      <a:documentation>(language usage) describes the languages, sublanguages, registers, dialects, etc.
+represented within a text.</a:documentation>
+      <oneOrMore>
+        <ref name="tei_language"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_language">
+    <element name="language">
+      <a:documentation>characterizes a single language or sublanguage used within a text.</a:documentation>
+      <ref name="tei_macro.phraseSeq.limited"/>
+      <ref name="att.global.attributes"/>
+      <attribute name="ident">
+        <a:documentation>(identifier) Supplies a language code constructed as defined in BCP 47 which is used to identify the
+        language documented by this element, and which is referenced by the global
+        xml:lang attribute.</a:documentation>
+        <data type="language"/>
+      </attribute>
+      <optional>
+        <attribute name="usage">
+          <a:documentation>specifies the approximate percentage (by volume) of the text which uses this language. </a:documentation>
+          <data type="nonNegativeInteger">
+            <param name="maxInclusive">100</param>
+          </data>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_textClass">
+    <element name="textClass">
+      <a:documentation>(text classification) groups information which describes the nature or topic of a text in terms of a standard
+    classification scheme, thesaurus, etc.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <ref name="tei_classCode"/>
+          <ref name="tei_catRef"/>
+          <ref name="tei_keywords"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_keywords">
+    <element name="keywords">
+      <a:documentation>contains a list of keywords or phrases identifying the topic or nature of a text.</a:documentation>
+      <choice>
+        <oneOrMore>
+          <ref name="tei_term"/>
+        </oneOrMore>
+        <ref name="tei_list"/>
+      </choice>
+      <ref name="att.global.attributes"/>
+      <attribute name="scheme">
+        <a:documentation>identifies the controlled vocabulary within which the set of keywords concerned is
+        defined. </a:documentation>
+        <data type="anyURI"/>
+      </attribute>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_classCode">
+    <element name="classCode">
+      <a:documentation>(classification code) contains the classification code used for this text in some standard classification system.</a:documentation>
+      <ref name="tei_macro.phraseSeq.limited"/>
+      <ref name="att.global.attributes"/>
+      <attribute name="scheme">
+        <a:documentation>identifies the classification system or taxonomy in use.</a:documentation>
+        <data type="anyURI"/>
+      </attribute>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_catRef">
+    <element name="catRef">
+      <a:documentation>(category reference) specifies one or more defined categories within some taxonomy or text typology.</a:documentation>
+      <empty/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.pointing.attributes"/>
+      <optional>
+        <attribute name="scheme">
+          <a:documentation>identifies the classification scheme within which the set of categories concerned is
+        defined </a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_revisionDesc">
+    <element name="revisionDesc">
+      <a:documentation>(revision description) summarizes the revision history for a file.</a:documentation>
+      <choice>
+        <ref name="tei_list"/>
+        <oneOrMore>
+          <ref name="tei_change"/>
+        </oneOrMore>
+      </choice>
+      <ref name="att.global.attributes"/>
+      <ref name="att.docStatus.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_change">
+    <element name="change">
+      <a:documentation>summarizes a particular change or correction made to a particular version of an electronic
+    text which is shared between several researchers.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.limitedPhrase"/>
+          <ref name="tei_model.inter"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.ascribed.attributes"/>
+      <ref name="att.datable.attributes"/>
+      <ref name="att.docStatus.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_geoDecl">
+    <element name="geoDecl">
+      <a:documentation>(geographic coordinates declaration) documents the notation and the datum used for geographic coordinates expressed as content of
+    the geo element elsewhere within the document.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declarable.attributes"/>
+      <optional>
+        <attribute name="datum" a:defaultValue="WGS84">
+          <a:documentation>supplies a commonly used code name for the datum employed.
+Suggested values include: 1] WGS84 (World Geodetic System세계 측지 시스템Sistema Geodésico MundialSystème Géodésique Mondialsistema geodetico mondiale); 2] MGRS (Military Grid Reference System군사 좌표 참조 시스템Sistema de Coordenadas MGRSSystème de Référence du Réseau Militaire,
+            (MGRS).sistema di riferimento delle coordinate MGRS); 3] OSGB36 (ordnance survey great britain영국 육지 측량부Système de coordonnées de Grande-Bretagne (OSGB) sistema di riferimento a reticolato OSGB36); 4] ED50 (European Datum coordinate system유럽 자료 좌표 시스템Sistema de coordinadas European Datumsystème de coordonnées de données européen.sistema di riferimento ED50)</a:documentation>
+          <choice>
+            <value>WGS84</value>
+            <a:documentation>(World Geodetic System) a pair of numbers to be interpreted as latitude followed by longitude according to
+            the World Geodetic System.</a:documentation>
+            <value>MGRS</value>
+            <a:documentation>(Military Grid Reference System) the values supplied are geospatial entity object codes, based on</a:documentation>
+            <value>OSGB36</value>
+            <a:documentation>(ordnance survey great britain) the value supplied is to be interpreted as a British National Grid Reference.</a:documentation>
+            <value>ED50</value>
+            <a:documentation>(European Datum coordinate system) the value supplied is to be interpreted as latitude followed by longitude according
+            to the European Datum coordinate system.</a:documentation>
+            <data type="Name"/>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_TEI">
+    <element name="TEI">
+      <a:documentation>(TEI document) contains a single TEI-conformant document,
+comprising a TEI header and a text, either in isolation or as part of a
+teiCorpus element.</a:documentation>
+      <group>
+        <ref name="tei_teiHeader"/>
+        <choice>
+          <group>
+            <oneOrMore>
+              <ref name="tei_model.resourceLike"/>
+            </oneOrMore>
+            <optional>
+              <ref name="tei_text"/>
+            </optional>
+          </group>
+          <ref name="tei_text"/>
+        </choice>
+      </group>
+      <sch:ns prefix="tei" uri="http://www.tei-c.org/ns/1.0"/>
+      <sch:ns prefix="rng" uri="http://relaxng.org/ns/structure/1.0"/>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="version">
+          <a:documentation>specifies the version number of the TEI Guidelines against
+      which this document is valid.</a:documentation>
+          <data type="token">
+            <param name="pattern">[\d]+(\.[\d]+){0,2}</param>
+          </data>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_text">
+    <element name="text">
+      <a:documentation>contains a single text of any kind, whether unitary or composite, for example a poem or
+    drama, a collection of essays, a novel, a dictionary, or a corpus sample.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <ref name="tei_model.global"/>
+        </zeroOrMore>
+        <optional>
+          <ref name="tei_front"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </optional>
+        <choice>
+          <ref name="tei_body"/>
+          <ref name="tei_group"/>
+        </choice>
+        <zeroOrMore>
+          <ref name="tei_model.global"/>
+        </zeroOrMore>
+        <optional>
+          <ref name="tei_back"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_body">
+    <element name="body">
+      <a:documentation>(text body) contains the whole body of a single unitary text, excluding any front or back matter.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <ref name="tei_model.global"/>
+        </zeroOrMore>
+        <optional>
+          <ref name="tei_model.divTop"/>
+          <zeroOrMore>
+            <choice>
+              <ref name="tei_model.global"/>
+              <ref name="tei_model.divTop"/>
+            </choice>
+          </zeroOrMore>
+        </optional>
+        <optional>
+          <ref name="tei_model.divGenLike"/>
+          <zeroOrMore>
+            <choice>
+              <ref name="tei_model.global"/>
+              <ref name="tei_model.divGenLike"/>
+            </choice>
+          </zeroOrMore>
+        </optional>
+        <choice>
+          <oneOrMore>
+            <ref name="tei_model.divLike"/>
+            <zeroOrMore>
+              <choice>
+                <ref name="tei_model.global"/>
+                <ref name="tei_model.divGenLike"/>
+              </choice>
+            </zeroOrMore>
+          </oneOrMore>
+          <oneOrMore>
+            <ref name="tei_model.div1Like"/>
+            <zeroOrMore>
+              <choice>
+                <ref name="tei_model.global"/>
+                <ref name="tei_model.divGenLike"/>
+              </choice>
+            </zeroOrMore>
+          </oneOrMore>
+          <group>
+            <oneOrMore>
+              <ref name="tei_model.common"/>
+              <zeroOrMore>
+                <ref name="tei_model.global"/>
+              </zeroOrMore>
+            </oneOrMore>
+            <optional>
+              <choice>
+                <oneOrMore>
+                  <ref name="tei_model.divLike"/>
+                  <zeroOrMore>
+                    <choice>
+                      <ref name="tei_model.global"/>
+                      <ref name="tei_model.divGenLike"/>
+                    </choice>
+                  </zeroOrMore>
+                </oneOrMore>
+                <oneOrMore>
+                  <ref name="tei_model.div1Like"/>
+                  <zeroOrMore>
+                    <choice>
+                      <ref name="tei_model.global"/>
+                      <ref name="tei_model.divGenLike"/>
+                    </choice>
+                  </zeroOrMore>
+                </oneOrMore>
+              </choice>
+            </optional>
+          </group>
+        </choice>
+        <zeroOrMore>
+          <ref name="tei_model.divBottom"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </zeroOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_group">
+    <element name="group">
+      <a:documentation>contains the body of a composite text, grouping together a sequence of distinct texts (or
+    groups of such texts) which are regarded as a unit for some purpose, for example the collected
+    works of an author, a sequence of prose essays, etc.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.divTop"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <group>
+          <choice>
+            <ref name="tei_text"/>
+            <ref name="tei_group"/>
+          </choice>
+          <zeroOrMore>
+            <choice>
+              <ref name="tei_text"/>
+              <ref name="tei_group"/>
+              <ref name="tei_model.global"/>
+            </choice>
+          </zeroOrMore>
+        </group>
+        <zeroOrMore>
+          <ref name="tei_model.divBottom"/>
+        </zeroOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_floatingText">
+    <element name="floatingText">
+      <a:documentation>contains a single text of any kind, whether unitary or composite, which interrupts the text
+    containing it at any point and after which the surrounding text resumes.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <ref name="tei_model.global"/>
+        </zeroOrMore>
+        <optional>
+          <ref name="tei_front"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </optional>
+        <choice>
+          <ref name="tei_body"/>
+          <ref name="tei_group"/>
+        </choice>
+        <zeroOrMore>
+          <ref name="tei_model.global"/>
+        </zeroOrMore>
+        <optional>
+          <ref name="tei_back"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_div">
+    <element name="div">
+      <a:documentation>(text division) contains a subdivision of the front, body, or back of a text.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.divTop"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <optional>
+          <choice>
+            <oneOrMore>
+              <choice>
+                <ref name="tei_model.divLike"/>
+                <ref name="tei_model.divGenLike"/>
+              </choice>
+              <zeroOrMore>
+                <ref name="tei_model.global"/>
+              </zeroOrMore>
+            </oneOrMore>
+            <group>
+              <oneOrMore>
+                <ref name="tei_model.common"/>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </oneOrMore>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_model.divLike"/>
+                  <ref name="tei_model.divGenLike"/>
+                </choice>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </zeroOrMore>
+            </group>
+          </choice>
+          <zeroOrMore>
+            <ref name="tei_model.divBottom"/>
+            <zeroOrMore>
+              <ref name="tei_model.global"/>
+            </zeroOrMore>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.divLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_div1">
+    <element name="div1">
+      <a:documentation>(level-1 text division) contains a first-level subdivision of the front, body, or back of a text.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.divTop"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <optional>
+          <choice>
+            <oneOrMore>
+              <choice>
+                <ref name="tei_model.div2Like"/>
+                <ref name="tei_model.divGenLike"/>
+              </choice>
+              <zeroOrMore>
+                <ref name="tei_model.global"/>
+              </zeroOrMore>
+            </oneOrMore>
+            <group>
+              <oneOrMore>
+                <ref name="tei_model.common"/>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </oneOrMore>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_model.div2Like"/>
+                  <ref name="tei_model.divGenLike"/>
+                </choice>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </zeroOrMore>
+            </group>
+          </choice>
+          <zeroOrMore>
+            <ref name="tei_model.divBottom"/>
+            <zeroOrMore>
+              <ref name="tei_model.global"/>
+            </zeroOrMore>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.divLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_div2">
+    <element name="div2">
+      <a:documentation>(level-2 text division) contains a second-level subdivision of the front, body, or back of a
+ text.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.divTop"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <optional>
+          <choice>
+            <oneOrMore>
+              <choice>
+                <ref name="tei_model.div3Like"/>
+                <ref name="tei_model.divGenLike"/>
+              </choice>
+              <zeroOrMore>
+                <ref name="tei_model.global"/>
+              </zeroOrMore>
+            </oneOrMore>
+            <group>
+              <oneOrMore>
+                <ref name="tei_model.common"/>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </oneOrMore>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_model.div3Like"/>
+                  <ref name="tei_model.divGenLike"/>
+                </choice>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </zeroOrMore>
+            </group>
+          </choice>
+          <zeroOrMore>
+            <ref name="tei_model.divBottom"/>
+            <zeroOrMore>
+              <ref name="tei_model.global"/>
+            </zeroOrMore>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.divLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_div3">
+    <element name="div3">
+      <a:documentation>(level-3 text division) contains a third-level subdivision of the front, body, or back of a text.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.divTop"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <optional>
+          <choice>
+            <oneOrMore>
+              <choice>
+                <ref name="tei_model.div4Like"/>
+                <ref name="tei_model.divGenLike"/>
+              </choice>
+              <zeroOrMore>
+                <ref name="tei_model.global"/>
+              </zeroOrMore>
+            </oneOrMore>
+            <group>
+              <oneOrMore>
+                <ref name="tei_model.common"/>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </oneOrMore>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_model.div4Like"/>
+                  <ref name="tei_model.divGenLike"/>
+                </choice>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </zeroOrMore>
+            </group>
+          </choice>
+          <zeroOrMore>
+            <ref name="tei_model.divBottom"/>
+            <zeroOrMore>
+              <ref name="tei_model.global"/>
+            </zeroOrMore>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.divLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_div4">
+    <element name="div4">
+      <a:documentation>(level-4 text division) contains a fourth-level subdivision of the front, body, or back of a text.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.divTop"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <optional>
+          <choice>
+            <oneOrMore>
+              <choice>
+                <ref name="tei_model.div5Like"/>
+                <ref name="tei_model.divGenLike"/>
+              </choice>
+              <zeroOrMore>
+                <ref name="tei_model.global"/>
+              </zeroOrMore>
+            </oneOrMore>
+            <group>
+              <oneOrMore>
+                <ref name="tei_model.common"/>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </oneOrMore>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_model.div5Like"/>
+                  <ref name="tei_model.divGenLike"/>
+                </choice>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </zeroOrMore>
+            </group>
+          </choice>
+          <zeroOrMore>
+            <ref name="tei_model.divBottom"/>
+            <zeroOrMore>
+              <ref name="tei_model.global"/>
+            </zeroOrMore>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.divLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_div5">
+    <element name="div5">
+      <a:documentation>(level-5 text division) contains a fifth-level subdivision of the front, body, or back of a text.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.divTop"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <optional>
+          <choice>
+            <oneOrMore>
+              <choice>
+                <ref name="tei_model.div6Like"/>
+                <ref name="tei_model.divGenLike"/>
+              </choice>
+              <zeroOrMore>
+                <ref name="tei_model.global"/>
+              </zeroOrMore>
+            </oneOrMore>
+            <group>
+              <oneOrMore>
+                <ref name="tei_model.common"/>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </oneOrMore>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_model.div6Like"/>
+                  <ref name="tei_model.divGenLike"/>
+                </choice>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </zeroOrMore>
+            </group>
+          </choice>
+          <zeroOrMore>
+            <ref name="tei_model.divBottom"/>
+            <zeroOrMore>
+              <ref name="tei_model.global"/>
+            </zeroOrMore>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.divLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_div6">
+    <element name="div6">
+      <a:documentation>(level-6 text division) contains a sixth-level subdivision of the front, body, or back of a text.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.divTop"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <optional>
+          <choice>
+            <oneOrMore>
+              <choice>
+                <ref name="tei_model.div7Like"/>
+                <ref name="tei_model.divGenLike"/>
+              </choice>
+              <zeroOrMore>
+                <ref name="tei_model.global"/>
+              </zeroOrMore>
+            </oneOrMore>
+            <group>
+              <oneOrMore>
+                <ref name="tei_model.common"/>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </oneOrMore>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_model.div7Like"/>
+                  <ref name="tei_model.divGenLike"/>
+                </choice>
+                <zeroOrMore>
+                  <ref name="tei_model.global"/>
+                </zeroOrMore>
+              </zeroOrMore>
+            </group>
+          </choice>
+          <zeroOrMore>
+            <ref name="tei_model.divBottom"/>
+            <zeroOrMore>
+              <ref name="tei_model.global"/>
+            </zeroOrMore>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.divLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_div7">
+    <element name="div7">
+      <a:documentation>(level-7 text division) contains the smallest possible subdivision of the front, body or back of a text, larger than
+    a paragraph.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.divTop"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <optional>
+          <oneOrMore>
+            <ref name="tei_model.common"/>
+            <zeroOrMore>
+              <ref name="tei_model.global"/>
+            </zeroOrMore>
+          </oneOrMore>
+          <zeroOrMore>
+            <ref name="tei_model.divBottom"/>
+            <zeroOrMore>
+              <ref name="tei_model.global"/>
+            </zeroOrMore>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.divLike.attributes"/>
+      <ref name="att.typed.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_trailer">
+    <element name="trailer">
+      <a:documentation>contains a closing title or footer appearing at the end of a division of a text. </a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_byline">
+    <element name="byline">
+      <a:documentation>contains the primary statement of responsibility given for a work
+on its title page or at the head or end of the work.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.gLike"/>
+          <ref name="tei_model.phrase"/>
+          <ref name="tei_docAuthor"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_dateline">
+    <element name="dateline">
+      <a:documentation>contains a brief description of the place, date, time, etc. of production of a letter,
+    newspaper story, or other work, prefixed or suffixed to it as a kind of heading or trailer. </a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_argument">
+    <element name="argument">
+      <a:documentation>A formal list or prose description of the topics addressed by
+	a subdivision of a text.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.global"/>
+            <ref name="tei_model.headLike"/>
+          </choice>
+        </zeroOrMore>
+        <oneOrMore>
+          <ref name="tei_model.common"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </oneOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_epigraph">
+    <element name="epigraph">
+      <a:documentation>contains a quotation, anonymous or attributed, appearing at the start of a section or
+    chapter, or on a title page. </a:documentation>
+      <zeroOrMore>
+        <choice>
+          <ref name="tei_model.common"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_opener">
+    <element name="opener">
+      <a:documentation>groups together dateline, byline, salutation, and similar phrases appearing as a preliminary
+    group at the start of a division, especially of a letter.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.gLike"/>
+          <ref name="tei_model.phrase"/>
+          <ref name="tei_argument"/>
+          <ref name="tei_byline"/>
+          <ref name="tei_dateline"/>
+          <ref name="tei_epigraph"/>
+          <ref name="tei_salute"/>
+          <ref name="tei_signed"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_closer">
+    <element name="closer">
+      <a:documentation>groups together salutations, datelines, and similar phrases appearing as a final group at
+    the end of a division, especially of a letter.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.gLike"/>
+          <ref name="tei_signed"/>
+          <ref name="tei_dateline"/>
+          <ref name="tei_salute"/>
+          <ref name="tei_model.phrase"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_salute">
+    <element name="salute">
+      <a:documentation>(salutation) contains a salutation or greeting prefixed to a foreword, dedicatory epistle, or other
+    division of a text, or the salutation in the closing of a letter, preface, etc.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_signed">
+    <element name="signed">
+      <a:documentation>(signature) contains the closing salutation, etc., appended to a foreword,
+dedicatory epistle, or other division of a text. </a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_postscript">
+    <element name="postscript">
+      <a:documentation>contains a postscript, e.g. to a letter.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <ref name="tei_model.common"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_titlePage">
+    <element name="titlePage">
+      <a:documentation>(title page) contains the title page of a text, appearing within the front or back matter. </a:documentation>
+      <group>
+        <zeroOrMore>
+          <ref name="tei_model.global"/>
+        </zeroOrMore>
+        <ref name="tei_model.titlepagePart"/>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.titlepagePart"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="type">
+          <a:documentation>classifies the title page according to any convenient typology.</a:documentation>
+          <data type="Name"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_docTitle">
+    <element name="docTitle">
+      <a:documentation>(document title) contains the title of a document, including all its
+constituents, as given on a title page.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <ref name="tei_model.global"/>
+        </zeroOrMore>
+        <oneOrMore>
+          <ref name="tei_titlePart"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </oneOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.canonical.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_titlePart">
+    <element name="titlePart">
+      <a:documentation>contains a subsection or division of the title of a work, as
+indicated on a title page.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="type" a:defaultValue="main">
+          <a:documentation>specifies the role of this subdivision of the title.
+Suggested values include: 1] main; 2] sub (subordinate부수적subordinatosous-titre de l’ouvrage.Untertitel des Werkssubtítulo de una obra); 3] alt (alternate이명alternativotitre alternatif de
+                        l’ouvrage.Alternativer Titel des Werkstítulo alternativo de una obra); 4] short; 5] desc (descriptive기술적descrittivodescription paraphrastique de
+                            l’ouvrage.Kurzbeschreibung des Werksparáfrasis descriptiva de la obra)</a:documentation>
+          <choice>
+            <value>main</value>
+            <a:documentation>main title of the work
+        </a:documentation>
+            <value>sub</value>
+            <a:documentation>(subordinate) subtitle  of the work
+        </a:documentation>
+            <value>alt</value>
+            <a:documentation>(alternate) alternative title  of the work
+        </a:documentation>
+            <value>short</value>
+            <a:documentation>abbreviated form of title</a:documentation>
+            <value>desc</value>
+            <a:documentation>(descriptive) descriptive paraphrase of the work 
+   </a:documentation>
+            <data type="Name"/>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_docAuthor">
+    <element name="docAuthor">
+      <a:documentation>(document author) contains the name of the author of the document, as given on the
+title page (often but not always contained in a byline).</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <ref name="att.canonical.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_imprimatur">
+    <element name="imprimatur">
+      <a:documentation>contains a formal statement authorizing the publication of a work, sometimes required to
+    appear on a title page or its verso.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_docEdition">
+    <element name="docEdition">
+      <a:documentation>(document edition) contains an edition statement as presented on a title page of a
+document.</a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_docImprint">
+    <element name="docImprint">
+      <a:documentation>(document imprint) contains the imprint statement (place and date of publication,
+publisher name), as given
+(usually) at the foot of a title page.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.gLike"/>
+          <ref name="tei_model.phrase"/>
+          <ref name="tei_pubPlace"/>
+          <ref name="tei_docDate"/>
+          <ref name="tei_publisher"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_docDate">
+    <element name="docDate">
+      <a:documentation>(document date) contains the date of a document, as given
+(usually) on a title page.</a:documentation>
+      <ref name="tei_macro.phraseSeq"/>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="when">
+          <a:documentation>gives the value of the date in standard form, i.e. YYYY-MM-DD.</a:documentation>
+          <choice>
+            <data type="date"/>
+            <data type="gYear"/>
+            <data type="gMonth"/>
+            <data type="gDay"/>
+            <data type="gYearMonth"/>
+            <data type="gMonthDay"/>
+            <data type="time"/>
+            <data type="dateTime"/>
+          </choice>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_front">
+    <element name="front">
+      <a:documentation>(front matter) contains any prefatory matter (headers,
+title page, prefaces, dedications, etc.)
+found  at the start of a document, before the main body.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.frontPart"/>
+            <ref name="tei_model.pLike.front"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <optional>
+          <choice>
+            <group>
+              <ref name="tei_model.div1Like"/>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_model.frontPart"/>
+                  <ref name="tei_model.div1Like"/>
+                  <ref name="tei_model.global"/>
+                </choice>
+              </zeroOrMore>
+            </group>
+            <group>
+              <ref name="tei_model.divLike"/>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_model.frontPart"/>
+                  <ref name="tei_model.divLike"/>
+                  <ref name="tei_model.global"/>
+                </choice>
+              </zeroOrMore>
+            </group>
+          </choice>
+        </optional>
+        <optional>
+          <ref name="tei_model.divBottomPart"/>
+          <zeroOrMore>
+            <choice>
+              <ref name="tei_model.divBottomPart"/>
+              <ref name="tei_model.global"/>
+            </choice>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_back">
+    <element name="back">
+      <a:documentation>(back matter) contains any appendixes, etc. following the main part of a text.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.frontPart"/>
+            <ref name="tei_model.pLike.front"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <optional>
+          <choice>
+            <group>
+              <ref name="tei_model.div1Like"/>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_model.frontPart"/>
+                  <ref name="tei_model.div1Like"/>
+                  <ref name="tei_model.global"/>
+                </choice>
+              </zeroOrMore>
+            </group>
+            <group>
+              <ref name="tei_model.divLike"/>
+              <zeroOrMore>
+                <choice>
+                  <ref name="tei_model.frontPart"/>
+                  <ref name="tei_model.divLike"/>
+                  <ref name="tei_model.global"/>
+                </choice>
+              </zeroOrMore>
+            </group>
+          </choice>
+        </optional>
+        <optional>
+          <ref name="tei_model.divBottomPart"/>
+          <zeroOrMore>
+            <choice>
+              <ref name="tei_model.divBottomPart"/>
+              <ref name="tei_model.global"/>
+            </choice>
+          </zeroOrMore>
+        </optional>
+      </group>
+      <ref name="att.global.attributes"/>
+      <ref name="att.declaring.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_table">
+    <element name="table">
+      <a:documentation>contains text displayed in tabular form, in rows and columns.</a:documentation>
+      <group>
+        <zeroOrMore>
+          <choice>
+            <ref name="tei_model.headLike"/>
+            <ref name="tei_model.global"/>
+          </choice>
+        </zeroOrMore>
+        <oneOrMore>
+          <ref name="tei_row"/>
+          <zeroOrMore>
+            <ref name="tei_model.global"/>
+          </zeroOrMore>
+        </oneOrMore>
+      </group>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="rows">
+          <a:documentation>indicates the number of rows in the table.</a:documentation>
+          <data type="nonNegativeInteger"/>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="cols">
+          <a:documentation>(columns) indicates the number of columns in each row of the table.</a:documentation>
+          <data type="nonNegativeInteger"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_row">
+    <element name="row">
+      <a:documentation>contains one row of a table. </a:documentation>
+      <oneOrMore>
+        <ref name="tei_cell"/>
+      </oneOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.tableDecoration.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_cell">
+    <element name="cell">
+      <a:documentation>contains one cell of a table. </a:documentation>
+      <ref name="tei_macro.paraContent"/>
+      <optional>
+        <attribute name="align" a:defaultValue="left">
+          <a:documentation>Alignment of the cell.</a:documentation>
+          <choice>
+            <value>left</value>
+            <a:documentation/>
+            <value>right</value>
+            <value>center</value>
+            <value>centre</value>
+          </choice>
+        </attribute>
+      </optional>
+      <ref name="att.global.attributes"/>
+      <ref name="att.tableDecoration.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_formula">
+    <element name="formula">
+      <a:documentation>contains a mathematical or other formula.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <text/>
+          <ref name="tei_model.graphicLike"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <optional>
+        <attribute name="notation">
+          <a:documentation>supplies the name of a previously defined notation used for the content of the element.</a:documentation>
+          <data type="anyURI"/>
+        </attribute>
+      </optional>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_figure">
+    <element name="figure">
+      <a:documentation>groups elements representing or containing graphic information such as an illustration or
+    figure.</a:documentation>
+      <zeroOrMore>
+        <choice>
+          <ref name="tei_model.headLike"/>
+          <ref name="tei_model.pLike"/>
+          <ref name="tei_figDesc"/>
+          <ref name="tei_model.graphicLike"/>
+          <ref name="tei_model.egLike"/>
+          <ref name="tei_floatingText"/>
+          <ref name="tei_model.global"/>
+        </choice>
+      </zeroOrMore>
+      <ref name="att.global.attributes"/>
+      <ref name="att.placement.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <define name="tei_figDesc">
+    <element name="figDesc">
+      <a:documentation>(description of figure) contains a brief prose description of the appearance or content
+of a graphic figure, for use when documenting an image without
+displaying it.</a:documentation>
+      <ref name="tei_macro.limitedContent"/>
+      <ref name="att.global.attributes"/>
+      <empty/>
+    </element>
+  </define>
+  <start>
+    <ref name="tei_TEI"/>
+  </start>
+</grammar>

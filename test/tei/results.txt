@@ -1,0 +1,665 @@
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        TEI
+fireEvent returned true
+possible events
+attributeName:
+    :
+        n
+        rend
+        rendition
+        version
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        teiHeader
+fireEvent returned true
+possible events
+attributeName:
+    :
+        n
+        rend
+        rendition
+        type
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        fileDesc
+fireEvent returned true
+possible events
+attributeName:
+    :
+        n
+        rend
+        rendition
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        titleStmt
+fireEvent returned true
+possible events
+attributeName:
+    :
+        n
+        rend
+        rendition
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        title
+fireEvent returned true
+possible events
+attributeName:
+    :
+        key
+        level
+        n
+        ref
+        rend
+        rendition
+        type
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        title
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        abbr
+        add
+        address
+        bibl
+        biblFull
+        biblStruct
+        binaryObject
+        cb
+        choice
+        cit
+        corr
+        date
+        del
+        desc
+        distinct
+        email
+        emph
+        expan
+        figure
+        foreign
+        formula
+        gap
+        gloss
+        graphic
+        hi
+        idno
+        index
+        label
+        lb
+        list
+        listBibl
+        measure
+        measureGrp
+        mentioned
+        milestone
+        name
+        note
+        num
+        orig
+        pb
+        ptr
+        q
+        quote
+        ref
+        reg
+        rs
+        said
+        sic
+        soCalled
+        stage
+        table
+        term
+        time
+        title
+        unclear
+text
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        titleStmt
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        author
+        editor
+        funder
+        meeting
+        principal
+        respStmt
+        sponsor
+        title
+fireEvent returned true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        editionStmt
+        extent
+        publicationStmt
+fireEvent returned true
+possible events
+attributeName:
+    :
+        n
+        rend
+        rendition
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        address
+        authority
+        availability
+        date
+        distributor
+        idno
+        p
+        pubPlace
+        publisher
+fireEvent returned true
+possible events
+attributeName:
+    :
+        decls
+        n
+        rend
+        rendition
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        abbr
+        add
+        address
+        bibl
+        biblFull
+        biblStruct
+        binaryObject
+        cb
+        choice
+        cit
+        corr
+        date
+        del
+        desc
+        distinct
+        email
+        emph
+        expan
+        figure
+        foreign
+        formula
+        gap
+        gloss
+        graphic
+        hi
+        idno
+        index
+        label
+        lb
+        list
+        listBibl
+        measure
+        measureGrp
+        mentioned
+        milestone
+        name
+        note
+        num
+        orig
+        pb
+        ptr
+        q
+        quote
+        ref
+        reg
+        rs
+        said
+        sic
+        soCalled
+        stage
+        table
+        term
+        time
+        title
+        unclear
+text
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        publicationStmt
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+fireEvent returned true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        notesStmt
+        seriesStmt
+        sourceDesc
+fireEvent returned true
+possible events
+attributeName:
+    :
+        default
+        n
+        rend
+        rendition
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        bibl
+        biblFull
+        biblStruct
+        list
+        listBibl
+        p
+fireEvent returned true
+possible events
+attributeName:
+    :
+        decls
+        n
+        rend
+        rendition
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        abbr
+        add
+        address
+        bibl
+        biblFull
+        biblStruct
+        binaryObject
+        cb
+        choice
+        cit
+        corr
+        date
+        del
+        desc
+        distinct
+        email
+        emph
+        expan
+        figure
+        foreign
+        formula
+        gap
+        gloss
+        graphic
+        hi
+        idno
+        index
+        label
+        lb
+        list
+        listBibl
+        measure
+        measureGrp
+        mentioned
+        milestone
+        name
+        note
+        num
+        orig
+        pb
+        ptr
+        q
+        quote
+        ref
+        reg
+        rs
+        said
+        sic
+        soCalled
+        stage
+        table
+        term
+        time
+        title
+        unclear
+text
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        sourceDesc
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        fileDesc
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        sourceDesc
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        teiHeader
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        encodingDesc
+        profileDesc
+        revisionDesc
+fireEvent returned true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        text
+fireEvent returned true
+possible events
+attributeName:
+    :
+        decls
+        n
+        rend
+        rendition
+        subtype
+        type
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        body
+        cb
+        figure
+        front
+        gap
+        group
+        index
+        lb
+        milestone
+        note
+        pb
+fireEvent returned true
+possible events
+attributeName:
+    :
+        decls
+        n
+        rend
+        rendition
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        dateline
+        desc
+        div
+        div1
+        divGen
+        docAuthor
+        docDate
+        epigraph
+        figure
+        floatingText
+        gap
+        head
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        meeting
+        milestone
+        note
+        opener
+        p
+        pb
+        q
+        quote
+        said
+        salute
+        sp
+        stage
+        table
+fireEvent returned true
+possible events
+attributeName:
+    :
+        decls
+        n
+        rend
+        rendition
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        abbr
+        add
+        address
+        bibl
+        biblFull
+        biblStruct
+        binaryObject
+        cb
+        choice
+        cit
+        corr
+        date
+        del
+        desc
+        distinct
+        email
+        emph
+        expan
+        figure
+        foreign
+        formula
+        gap
+        gloss
+        graphic
+        hi
+        idno
+        index
+        label
+        lb
+        list
+        listBibl
+        measure
+        measureGrp
+        mentioned
+        milestone
+        name
+        note
+        num
+        orig
+        pb
+        ptr
+        q
+        quote
+        ref
+        reg
+        rs
+        said
+        sic
+        soCalled
+        stage
+        table
+        term
+        time
+        title
+        unclear
+text
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        body
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        closer
+        dateline
+        desc
+        div
+        div1
+        docAuthor
+        docDate
+        epigraph
+        figure
+        floatingText
+        gap
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        meeting
+        milestone
+        note
+        p
+        pb
+        postscript
+        q
+        quote
+        said
+        salute
+        signed
+        sp
+        stage
+        table
+        trailer
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        text
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        back
+        cb
+        figure
+        gap
+        index
+        lb
+        milestone
+        note
+        pb
+fireEvent returned true
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        TEI
+fireEvent returned true
+possible events 

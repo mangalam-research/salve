@@ -1,0 +1,24 @@
+<element xmlns="http://relaxng.org/ns/structure/1.0" name="test">
+  <choice>
+    <element name="a">
+      <attribute name="hamster"><text/></attribute>
+      <text/>
+    </element>
+    <element name="a">
+      <attribute name="colibri"><text/></attribute>
+      <text/>
+    </element>
+    <element name="a">
+      <attribute name="colibri"><text/></attribute>
+      <optional>
+	<attribute name="blip"><text/></attribute>
+      </optional>
+      <choice>
+	<element name="b">
+	  <text/>
+	</element>
+	<text/>
+      </choice>
+    </element>
+  </choice>
+</element>

@@ -1,0 +1,154 @@
+possible events
+enterStartTag:
+    :
+        html
+fireEvent returned true
+possible events
+attributeName:
+    :
+        style
+fireEvent returned true
+possible events
+attributeValue:
+    *
+fireEvent returned true
+possible events
+leaveStartTag
+fireEvent returned true
+possible events
+enterStartTag:
+    :
+        head
+fireEvent returned true
+possible events
+leaveStartTag
+fireEvent returned true
+possible events
+enterStartTag:
+    :
+        title
+fireEvent returned true
+possible events
+leaveStartTag
+fireEvent returned true
+possible events
+endTag:
+    :
+        title
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        title
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        title
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        title
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        head
+fireEvent returned true
+possible events
+enterStartTag:
+    :
+        body
+fireEvent returned true
+possible events
+leaveStartTag
+fireEvent returned true
+possible events
+endTag:
+    :
+        body
+enterStartTag:
+    :
+        em
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        body
+enterStartTag:
+    :
+        em
+text
+fireEvent returned true
+possible events
+leaveStartTag
+fireEvent returned true
+possible events
+endTag:
+    :
+        em
+enterStartTag:
+    :
+        em
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        em
+enterStartTag:
+    :
+        em
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        em
+enterStartTag:
+    :
+        em
+text
+fireEvent returned true
+possible events
+leaveStartTag
+fireEvent returned true
+possible events
+endTag:
+    :
+        em
+enterStartTag:
+    :
+        em
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        em
+enterStartTag:
+    :
+        em
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        body
+enterStartTag:
+    :
+        em
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        html
+fireEvent returned true
+possible events 

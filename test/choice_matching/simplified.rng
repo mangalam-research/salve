@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<rng:grammar xmlns:rng="http://relaxng.org/ns/structure/1.0">
+  <rng:start>
+    <rng:ref name="__test-elt-idp7984"/>
+  </rng:start>
+  <rng:define name="__test-elt-idp7984">
+    <element xmlns="http://relaxng.org/ns/structure/1.0">
+      <rng:name ns="">test</rng:name>
+      <choice>
+        <choice>
+          <rng:ref name="__a-elt-idm7344"/>
+          <rng:ref name="__a-elt-idm5712"/>
+        </choice>
+        <rng:ref name="__a-elt-idm4080"/>
+      </choice>
+    </element>
+  </rng:define>
+  <rng:define name="__a-elt-idm7344">
+    <element xmlns="http://relaxng.org/ns/structure/1.0">
+      <rng:name ns="">a</rng:name>
+      <rng:group>
+        <attribute>
+          <rng:name ns="">hamster</rng:name>
+          <text/>
+        </attribute>
+        <text/>
+      </rng:group>
+    </element>
+  </rng:define>
+  <rng:define name="__a-elt-idm5712">
+    <element xmlns="http://relaxng.org/ns/structure/1.0">
+      <rng:name ns="">a</rng:name>
+      <rng:group>
+        <attribute>
+          <rng:name ns="">colibri</rng:name>
+          <text/>
+        </attribute>
+        <text/>
+      </rng:group>
+    </element>
+  </rng:define>
+  <rng:define name="__a-elt-idm4080">
+    <element xmlns="http://relaxng.org/ns/structure/1.0">
+      <rng:name ns="">a</rng:name>
+      <rng:group>
+        <rng:group>
+          <attribute>
+            <rng:name ns="">colibri</rng:name>
+            <text/>
+          </attribute>
+          <rng:choice>
+            <rng:empty/>
+            <attribute>
+              <rng:name ns="">blip</rng:name>
+              <text/>
+            </attribute>
+          </rng:choice>
+        </rng:group>
+        <choice>
+          <rng:ref name="__b-elt-idp114160"/>
+          <text/>
+        </choice>
+      </rng:group>
+    </element>
+  </rng:define>
+  <rng:define name="__b-elt-idp114160">
+    <element xmlns="http://relaxng.org/ns/structure/1.0">
+      <rng:name ns="">b</rng:name>
+      <text/>
+    </element>
+  </rng:define>
+</rng:grammar>

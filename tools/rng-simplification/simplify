@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -e 
+
+prog=$(basename $0)
+dirname=$(dirname $0)
+tmpdir=$(mktemp --tmpdir -d $prog.XXXXXXXX)
+
+input=$1
+count=1
+for step in $(cd $dirname; ls rng-simpl* | sort -tp -k3 -g); do
+    output=$tmpdir/out$count.xml
+    xsltproc -o $output $dirname/$step $input 
+    input=$output
+    count=$(($count + 1))
+done
+
+if [ -e $output ]; then
+    xmllint --format $output > $2
+fi
+
+#rm -rf $tmpdir

@@ -1,0 +1,51 @@
+possible events
+enterStartTag:
+    :
+        test
+fireEvent returned true
+possible events
+leaveStartTag
+fireEvent returned true
+possible events
+enterStartTag:
+    :
+        a
+fireEvent returned true
+possible events
+attributeName:
+    :
+        blip
+        colibri
+        hamster
+fireEvent returned true
+possible events
+attributeValue:
+    *
+fireEvent returned true
+possible events
+attributeName:
+    :
+        blip
+leaveStartTag
+fireEvent returned true
+possible events
+endTag:
+    :
+        a
+enterStartTag:
+    :
+        b
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        a
+text
+fireEvent returned true
+possible events
+endTag:
+    :
+        test
+fireEvent returned true
+possible events 

@@ -1,0 +1,9 @@
+enterStartTag, , test
+leaveStartTag
+enterStartTag, , a
+attributeName, , colibri
+attributeValue, a
+leaveStartTag
+text
+endTag, , a
+endTag, , test
