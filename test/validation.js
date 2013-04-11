@@ -254,6 +254,7 @@ describe("Parser errors", function () {
     it("empty file", makeErrorTest("empty"));
     it("not closed 1: one tag", makeErrorTest("not_closed1"));
     it("not closed 2: multiple tags", makeErrorTest("not_closed2"));
+    it("missing namespace", makeErrorTest("missing_namespace"));
 });
 
 
