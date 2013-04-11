@@ -113,6 +113,9 @@ The `[rng as js]` parameter is the RNG, simplified and converted to
 Javascript. The `[xml to validate]` parameter is the XML file to
 validate against the RNG.
 
+Remember to call the `end()` method on your walker at the end of
+validation to make sure that there are no unclosed tags, etc.
+
 Events
 ======
 
