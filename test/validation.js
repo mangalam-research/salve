@@ -65,8 +65,9 @@ function makeValidTest(dir) {
         // Read the RNG tree.
         var source = fileAsString("test/" + dir + "/simplified-rng.js");
 
+        var tree;
         try {
-            var tree = validate.constructTree(source);
+            tree = validate.constructTree(source);
         }
         catch (e) {
             if (e instanceof validate.ValidationError)
@@ -100,9 +101,9 @@ function makeValidTest(dir) {
         
         var ev_x = 0; // event index
         var eventCheck = function (ev) {
-                var expected = event_list[ev_x++];
+            var expected = event_list[ev_x++];
             assert.equal(ev.toString(), ((expected !== undefined)?expected:"NO MORE").toString(), "event check at line: " + ev_x);
-        }
+        };
 
         var recorded_states = [];
         function issueEvent(gev_ix, gev) {
@@ -162,14 +163,14 @@ function makeValidTest(dir) {
         ev_x = recorded_states[start_at][2];
         gev_ix = recorded_states[start_at][3];
 
-        for (var gev; (gev = recorded_events[gev_ix++]) !== undefined;) {
+        for (gev; (gev = recorded_events[gev_ix++]) !== undefined;) {
             issueEvent(gev_ix, gev);
         }
         
         compare("possible events " + walker.possible().toString(), new validate.Event(["final"]));
 
         compare("end returned " + walker.end(), "*final*");
-    }
+    };
 }
 
 function makeErrorTest(dir) {
@@ -177,8 +178,9 @@ function makeErrorTest(dir) {
         // Read the RNG tree.
         var source = fileAsString("test/rng/simplified-rng-for-error-cases.js");
 
+        var tree;
         try {
-            var tree = validate.constructTree(source);
+            tree = validate.constructTree(source);
         }
         catch (e) {
             if (e instanceof validate.ValidationError)
@@ -208,12 +210,6 @@ function makeErrorTest(dir) {
             exp_ix += lines.length;
         }
         
-        var ev_x = 0; // event index
-        var eventCheck = function (ev) {
-                var expected = event_list[ev_x++];
-            assert.equal(ev.toString(), ((expected !== undefined)?expected:"NO MORE").toString());
-        }
-
         function handleEvent() {
             var gev = arguments;
             var slice_len = gev.length;
@@ -242,7 +238,7 @@ function makeErrorTest(dir) {
         var parser = makeParser(handleEvent);
         parser.write(xml_source).close();
         compare("end returned " + walker.end(), "*final*");
-    }
+    };
 }
 
 
@@ -256,7 +252,8 @@ describe("Parser valid", function () {
 
 describe("Parser errors", function () {
     it("empty file", makeErrorTest("empty"));
-    it("not closed 1", makeErrorTest("not_closed1"));
+    it("not closed 1: one tag", makeErrorTest("not_closed1"));
+    it("not closed 2: multiple tags", makeErrorTest("not_closed2"));
 });
 
 
