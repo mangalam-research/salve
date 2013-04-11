@@ -49,3 +49,4 @@ endTag:
         test
 fireEvent returned true
 possible events 
+end returned true

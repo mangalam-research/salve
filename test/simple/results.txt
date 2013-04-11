@@ -152,3 +152,4 @@ endTag:
         html
 fireEvent returned true
 possible events 
+end returned true

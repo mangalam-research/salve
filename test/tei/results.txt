@@ -663,3 +663,4 @@ endTag:
         TEI
 fireEvent returned true
 possible events 
+end returned true
