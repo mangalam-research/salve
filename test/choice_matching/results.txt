@@ -1,3 +1,4 @@
+wholly context-independent false
 possible events
 enterStartTag:
     :

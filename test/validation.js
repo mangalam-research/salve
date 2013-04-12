@@ -149,12 +149,17 @@ function makeValidTest(dir) {
         var parser = makeParser(recordEvent);
         parser.write(xml_source).close();
         
+        var context_independent = tree.whollyContextIndependent();
+        compare("wholly context-independent " + context_independent, "*context-independent*");
+
         var gev_ix = 0;
         for (var gev; (gev = recorded_events[gev_ix]) !== undefined; gev_ix++) {
             issueEvent(gev_ix, gev);
         }
 
         compare("possible events " + walker.possible().toString(), new validate.Event(["final"]));
+
+        compare("end returned " + walker.end(), "*final*");
 
         // Roll back
         var start_at = (recorded_events.length / 2) >> 0; // trick to get integer

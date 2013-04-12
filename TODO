@@ -1,15 +1,21 @@
+* Support for verifying that the removal of a node would yield a valid
+   structure.
+
+* Support for verifying that the addition of a node would yield a
+   valid structure.
+
 * Support for context-invariant validations, which should reduce
    memory usage, help editors be more user friendly and possibly be
    faster generally.
 
-Context Invariance
+Context Independence
 ==================
 
-An element is context-invariant if the schema does not allow its
+An element is context-independent if the schema does not allow its
 structure to vary depending on where it appears in the document being
 validated. 
 
-An element E is context-invariant relative to another element C which
+An element E is context-independent relative to another element C which
 is its parent or preceding sibling if, given that E is a child of C or
 a sibling of C makes it so that E can only have one structure.
 
@@ -17,19 +23,19 @@ Shallow validation: A shallow validation of element E is one which
 walks the children nodes of E to ascertain that the structure of E is
 correct but assumes that the children of E are internally valid.
 
-A document which contains only context-invariant elements can be
+A document which contains only context-independent elements can be
 validated by shallowly validating all its elements in any order.
 
-A document which contains a mixture of context-invariant elements can
+A document which contains a mixture of context-independent elements can
 be validated as follows:
 
 While there are elements not validated:
   For each not-validated element E:
-    If E is context-invariant OR E has a definition associated with it:
+    If E is context-independent OR E has a definition associated with it:
       For each child node C:
         Check that C fits E's structure but do not descend into C. (Shallow validation of E.)
-        If C is not context-invariant:
-          If C is relatively context-invariant:
+        If C is not context-independent:
+          If C is relatively context-independent:
             Associate C with the definition required by context.
           Else: 
             # Is this possible??? It seems to me that E would 
@@ -41,8 +47,8 @@ While there are elements not validated:
 The algorithm above, if correct should empty the set of non-validated
 elements. If not, there's an error in the algorithm.
 
-Fake Variance
-=============
+Fake Dependence
+===============
 
 <choice>
  <element name="person">
