@@ -3,20 +3,33 @@
 set -e 
 
 prog=$(basename $0)
-dirname=$(dirname $0)
+dirname=$(dirname "$(readlink -f $0)")
+libdir=$dirname/../lib/salve/rng-simplification/
 tmpdir=$(mktemp --tmpdir -d $prog.XXXXXXXX)
 
+cleanup () {
+    rm -rf $tmpdir
+}
+
+trap cleanup ERR EXIT
+
+[ -e $libdir ] || { echo "$prog: $libdir does not exist"; exit 1; }
+
 input=$1
+final=$2
+
+[ -n "$input" ] && [ -n "$final" ] || { echo "$prog requires two arguments."; exit 1; }
+
 count=1
-for step in $(cd $dirname; ls rng-simpl* | sort -tp -k3 -g); do
+for step in $(cd $libdir; ls rng-simpl* | sort -tp -k3 -g); do
     output=$tmpdir/out$count.xml
-    xsltproc -o $output $dirname/$step $input 
+    xsltproc -o $output $libdir/$step $input 
     input=$output
     count=$(($count + 1))
 done
 
 if [ -e $output ]; then
-    xmllint --format $output > $2
+    xmllint --format $output > $final
 fi
 
-#rm -rf $tmpdir
+cleanup
