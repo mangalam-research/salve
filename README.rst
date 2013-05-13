@@ -1,4 +1,4 @@
-.. image:: https://travis-ci.org/mangalamresearch/salve.png
+.. image:: https://travis-ci.org/mangalam-research/salve.png
 
 Introduction
 ============
