@@ -28,11 +28,11 @@
   </xsl:template>
 
   <xsl:template match="rng:name">
-    <xsl:text>new EName("</xsl:text>
+    <xsl:text>{ "type": "EName", "args": ["</xsl:text>
     <xsl:apply-templates select="@ns"/>
     <xsl:text>","</xsl:text>
     <xsl:apply-templates/>
-    <xsl:text>")</xsl:text>
+    <xsl:text>"] }</xsl:text>
   </xsl:template>
 
   <xsl:template match="rng:start">
@@ -69,7 +69,7 @@
     <xsl:call-template name="generate-new-start">
       <xsl:with-param name="name" select="$name"/>
     </xsl:call-template>
-    <xsl:text>"</xsl:text><xsl:apply-templates select="ancestor-or-self::*" mode="name"/><xsl:text>"</xsl:text>
+    <xsl:text>"args": ["</xsl:text><xsl:apply-templates select="ancestor-or-self::*" mode="name"/><xsl:text>"</xsl:text>
     <xsl:if test="count($first) > 0 or $rest">
       <xsl:text>, </xsl:text>
     </xsl:if>
@@ -82,12 +82,12 @@
     <xsl:if test="$rest">
       <xsl:text>[</xsl:text><xsl:apply-templates select="$rest"/><xsl:text>]</xsl:text>
     </xsl:if>
-    <xsl:text>)</xsl:text>
+    <xsl:text>] }</xsl:text>
   </xsl:template>
 
   <xsl:template name="generate-new-start">
     <xsl:param name="name" select="local-name()"/>
-    <xsl:text>new </xsl:text><xsl:value-of select="concat(translate(substring($name, 1, 1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'), substring($name, 2))"/><xsl:text>(</xsl:text>
+    <xsl:text>{ "type": "</xsl:text><xsl:value-of select="concat(translate(substring($name, 1, 1), 'abcdefghijklmnopqrstuvwxyz', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'), substring($name, 2))"/><xsl:text>", </xsl:text>
   </xsl:template>
   
 </xsl:stylesheet>

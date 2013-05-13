@@ -113,10 +113,6 @@ This example uses xsltproc but any XSLT processor able to process XSLT
 earlier simplify pass. The `[js]` parameter is where you want to save
 the resulting JavaScript.
 
-**SECURITY NOTE**: The way salve currently works, the JavaScript
-produced by rng-to-js.xsl is `eval`-ed by validate.js. It would be
-trivial to include hostile code into that file. Use at your own risk.
-
 Code-wise, a typical usage scenario would be as follows::
 
     // Import the validation module
