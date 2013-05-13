@@ -1,6 +1,6 @@
 'use strict';
 require("amd-loader");
-var validate = require("../lib/salve/validate");
+var validate = require("../build/lib/salve/validate");
 var util = require("util");
 var fs = require("fs");
 var path = require("path");
