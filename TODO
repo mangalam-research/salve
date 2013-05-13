@@ -1,3 +1,5 @@
+* Better build system.
+
 * Support for verifying that the removal of a node would yield a valid
    structure.
 
@@ -97,7 +99,4 @@ elements but between two contents for "person".
   * Since this is a variable used for debugging, then the cost of
    computing these will be born during debugging but not otherwise.
 
-* Handle the util.inspect replacement better in rng_parse.js
-
-* Manage to have ace be able to integrate with rng_parse intelligently
-   instead of having a bindfs.
+* Handle the util.inspect replacement better.

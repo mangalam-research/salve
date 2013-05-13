@@ -2,7 +2,7 @@ Introduction
 ============
 
 Salve (Schema-Aware Library for Validation and Edition) is a
-Javascript library which implements a validator able to validate an
+JavaScript library which implements a validator able to validate an
 XML document on the basis of a subset of RelaxNG. Plans are to support
 as much RelaxNG as possible but for now salve has, by conscious
 design, the following limitations:
@@ -13,9 +13,10 @@ design, the following limitations:
 * Treats all attributes as if they were specified to contain text of any length, format, etc. (All attributes accept any text whatsoever.)
 
 At the moment the library is able to know that a document is valid
-according to the schema it has received. However, it is not very good
-at reporting problems. It will emit errors but the errors might not be
-anything that a regular person would find comprehensible.
+according to the schema it has received. (But keep in mind the
+provision above regarding attributes.) However, right now is not very
+good at reporting problems. It will emit errors but the errors might
+not be anything that a regular person would find comprehensible.
 
 A full validation solution has the following components:
 
@@ -34,7 +35,7 @@ A full validation solution has the following components:
   only this!**
 
 A good example of this division of labor can be found in
-`tools/parse.js` and in the test suite. In both cases the tokenizer
+`lib/salve/parse.js` and in the test suite. In both cases the tokenizer
 function is performed by `sax`, and the parser function is performed
 by a parser object that `sax` creates, customized to call
 `fireEvent()`.
@@ -58,32 +59,61 @@ packages:
 * chai
 * sax
 
-Running the following command from the root of salve will run the tests::
+Please see the package.json file for details regarding these
+dependencies. The `salve-simplify` script requires that `xmllint` and
+`xsltproc` be installed on your system.
+
+Testing
+=======
+
+Running the following command from the root of salve will install the
+dependencies required for testing and will run the tests::
+
+    $ npm test
+
+Or you may bypass npm with this command::
 
     $ mocha 
+
+Building
+========
+
+Run::
+
+    $ npm build
+
+Or::
+
+    $ make
+
+This will create a `build` subdirectory in which the JavaScript
+necessary to validate XML files against a prepared RNG schema. (See
+below for how preparation happens.) You could copy what is in build to
+a server to serve these files to a client that would then perform
+validation.
 
 Basic Usage
 ===========
 
 An RNG schema must be prepared before it can be used by salve. The
-first step is to simplify the schema. The `tools` subdirectory
+first step is to simplify the schema. The `bin` subdirectory
 contains a rudimentary shell script. (If you are using Windows you are
 on your own; contributions welcome.) It can be used like this::
 
-    $ tools/rng-simplification/simplify [input] [output]
+    $ bin/salve-simplify [input] [output]
 
 The `[input]` parameter should be the RNG to simplify. The `[output]`
 parameter should be where to put the simplification. The output must
-then be converted to Javascript code::
+then be converted to JavaScript code::
 
     $ xsltproc tools/rng-to-js.xsl [simplified rng] > [js]
 
 This example uses xsltproc but any XSLT processor able to process XSLT
 1.0 would work. The `[simplified rng]` parameter is the result of the
 earlier simplify pass. The `[js]` parameter is where you want to save
-the resulting Javascript.
+the resulting JavaScript.
 
-**SECURITY NOTE**: The way salve currently works, the Javascript
+**SECURITY NOTE**: The way salve currently works, the JavaScript
 produced by rng-to-js.xsl is `eval`-ed by validate.js. It would be
 trivial to include hostile code into that file. Use at your own risk.
 
@@ -104,13 +134,13 @@ Code-wise, a typical usage scenario would be as follows::
 Then the code that parses the XML file to be validated should call
 `fireEvent()` on the `walker`.
 
-The file `tools/parse.js` contains an example of a rudimentary parser
+The file `lib/salve/parse.js` contains an example of a rudimentary parser
 runnable in Node.js::
 
     $ node parse.js [rng as js] [xml to validate]
 
 The `[rng as js]` parameter is the RNG, simplified and converted to
-Javascript. The `[xml to validate]` parameter is the XML file to
+JavaScript. The `[xml to validate]` parameter is the XML file to
 validate against the RNG.
 
 Remember to call the `end()` method on your walker at the end of
