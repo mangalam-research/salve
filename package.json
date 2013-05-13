@@ -1,0 +1,35 @@
+{
+    "name": "salve",
+    "description": "Salve is a Javascript library which implements a validator able to validate an XML document on the basis of a subset of RelaxNG.",
+    "version": "0.9.0",
+    "versionedSources": "lib/salve/validate.js",
+    "keywords": ["RelaxNG", "rng", "XML"],
+    "homepage" : "https://github.com/mangalam-research/salve",
+    "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
+    "main": "lib/salve/validate.js",
+    "repository" : {
+        "type" : "git",
+        "url" : "https://github.com/mangalam-research/salve.git"
+    },
+    "licenses": [ {
+        "type": "MPL"
+    },
+    {
+        "type": "CeCILL"
+    }],
+    "dependencies": {
+        "amd-loader": "~0.0.4"
+    },
+    "devDependencies": {
+        "mocha": "1.9.x", 
+        "chai": "1.5.x", 
+        "sax": "0.5.x"
+    },
+    "bin": {
+        "salve-simplify": "./bin/salve-simplify"
+    },
+    "scripts": {
+        "test": "make test",
+        "build": "make build"
+    }
+}
