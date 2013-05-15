@@ -11,3 +11,8 @@ build:
 .PHONY: test
 test: build
 	mocha
+
+.PHONY: prepublish
+prepublish:
+	@semver-sync -v
+	@[ "$$(git status --untracked-files=no --porcelain | head -n1)" = "" ] || echo "Uncommited changes!"
