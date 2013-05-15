@@ -1,7 +1,7 @@
 {
     "name": "salve",
     "description": "Salve is a Javascript library which implements a validator able to validate an XML document on the basis of a subset of RelaxNG.",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "versionedSources": "lib/salve/validate.js",
     "keywords": ["RelaxNG", "rng", "XML"],
     "homepage" : "https://github.com/mangalam-research/salve",
@@ -27,8 +27,7 @@
         "chai": "1.5.x", 
         "sax": "0.5.x",
         "//": "1.1.1 does not handle AMD-style modules. 1.1.1-ldd.x does.",
-        "//": "Find it here: https://github.com/mangalam-research/semver-sync",
-        "semver-sync": "1.1.1-ldd.x"
+        "semver-sync": "git://github.com/mangalam-research/semver-sync.git"
     },
     "bin": {
         "salve-simplify": "./bin/salve-simplify"
