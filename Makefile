@@ -1,7 +1,7 @@
 all: build
 
-# This is admitedly primitive and wasteful. Settling on a better build method
-# is part of the TODO.
+# This is admitedly primitive and wasteful. Settling on a better build
+# method is part of the TODO.
 .PHONY: build
 build:
 	-rm -rf build
@@ -11,8 +11,3 @@ build:
 .PHONY: test
 test: build
 	mocha
-
-.PHONY: prepublish
-prepublish:
-	@semver-sync -v
-	@[ "$$(git status --untracked-files=no --porcelain | head -n1)" = "" ] || echo "Uncommited changes!"
