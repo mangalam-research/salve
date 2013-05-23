@@ -1,0 +1,7 @@
+fireEvent returned true
+fireEvent returned attribute missing: {}style
+fireEvent returned true
+fireEvent returned true
+fireEvent returned tag required: {}title
+fireEvent returned tag required: {}body
+end returned true
