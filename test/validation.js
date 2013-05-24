@@ -274,6 +274,38 @@ describe("Parser errors", function () {
         it("missing attribute", makeErrorTest("missing_attribute"));
     });
 
+    describe("error objects", function () {
+        function makeErrorTest (ctor_name, names, fake_names, 
+                                first, second) {
+            names = names || [new validate.EName("a", "b")];
+            fake_names = fake_names || ["a"];
+            first = first || "blah: {a}b";
+            second = second || "blah: a";
+
+            it(ctor_name, function () {
+                var ctor = validate[ctor_name];
+                var err = Object.create(ctor.prototype); 
+                ctor.apply(err, ["blah"].concat(names));
+                assert.equal(err.toString(), first);
+                assert.sameMembers(err.getNames(), names);
+                assert.equal(err.toStringWithNames(fake_names), second);
+            });
+        }
+        makeErrorTest("AttributeNameError");
+        makeErrorTest("AttributeValueError");
+        makeErrorTest("ElementNameError");
+
+        it("ChoiceError", function () {
+            var names = [new validate.EName("a", "b"), new validate.EName("c", "d")];
+            var err = new validate.ChoiceError(names[0], names[1]);
+            assert.equal(err.toString(), "must choose one of these: {a}b, {c}d");
+            assert.sameMembers(err.getNames(), names);
+            assert.equal(err.toStringWithNames(["a", "b"]), "must choose one of these: a, b");
+        });
+
+    });
+
+
 });
 
 
