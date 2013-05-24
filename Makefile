@@ -1,3 +1,5 @@
+JSDOC3=~/src/git-repos/jsdoc/jsdoc
+
 all: build
 
 # This is admitedly primitive and wasteful. Settling on a better build
@@ -11,3 +13,6 @@ build:
 .PHONY: test
 test: build
 	mocha
+
+doc:
+	$(JSDOC3) -d build/doc -r lib
