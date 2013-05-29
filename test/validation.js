@@ -206,103 +206,130 @@ describe("GrammarWalker.fireEvent reports no error on",
              it("a tei file", makeValidTest("tei"));
          });
 
-describe("GrammarWalker.fireEvent reports errors on", function () {
-    var walker;
-    var rng;
-    function makeErrorTest(dir) {
-        return function () {
-            // Read the RNG tree.
-            var source = fileAsString(rng);
-            
-            var tree;
-            try {
-                tree = validate.constructTree(source);
-            }
-            catch (e) {
-                if (e instanceof validate.ValidationError)
-                    console.log(e.toString());
-                throw e;
-            }
-            walker = tree.newWalker();
-
-            var xml_source = fileAsString("test/" + dir + 
-                                          "/to_parse.xml");
-            
-            // Get the expected results
-            var expected_source = fileAsString("test/" + dir + 
-                                               "/results.txt");
-            var expected = expected_source.split("\n");
-            
-            var exp_ix = 0;
-            function compare(msg, ev)
-            {
-                var lines = msg.split(/\n/);
+describe("GrammarWalker.fireEvent",  function () {
+    describe("reports errors on", function () {
+        var walker;
+        var rng;
+        function makeErrorTest(dir) {
+            return function () {
+                // Read the RNG tree.
+                var source = fileAsString(rng);
                 
-                // Drop final blank lines
-                while(lines[lines.length - 1] === "")
-                    lines.pop();
-                msg = lines.join("\n");
-                var to = expected.slice(exp_ix, exp_ix + lines.length);
-                
-                assert.equal(msg, to.join("\n"), "at line: " + 
-                             (exp_ix + 1) + " event " + ev.toString());
-                exp_ix += lines.length;
-            }
-            
-            function handleEvent() {
-                var gev = arguments;
-                var slice_len = gev.length;
-                if (gev[0] === "leaveStartTag")
-                    slice_len = 1;
-                else if (gev[0] === "text") {
-                    var text = gev[1];
-                    var issue = true;
-                    if (text === "") {
-                        var text_possible = 
-                            walker.possible().filter(function (x) {
-                                return x.params[0] === "text";
-                            });
-                        issue = text_possible.length > 0;
-                    }
-                    if (!issue)
-                        return;
-                    slice_len = 1;
+                var tree;
+                try {
+                    tree = validate.constructTree(source);
                 }
-                var ev_params = 
-                    Array.prototype.slice.call(gev, 0, slice_len);
+                catch (e) {
+                    if (e instanceof validate.ValidationError)
+                        console.log(e.toString());
+                    throw e;
+                }
+                walker = tree.newWalker();
+
+                var xml_source = fileAsString("test/" + dir + 
+                                              "/to_parse.xml");
                 
-                var ev = new validate.Event(ev_params);
-                var ret = walker.fireEvent(ev);
-                compare("fireEvent returned " + 
-                        ((ret === true) ? ret : ret[0].toString()), 
-                        ev);
-            }
-            
-            var parser = makeParser(handleEvent);
-            parser.write(xml_source).close();
-            compare("end returned " + walker.end(), "*final*");
-        };
-    }
+                // Get the expected results
+                var expected_source = fileAsString("test/" + dir + 
+                                                   "/results.txt");
+                var expected = expected_source.split("\n");
+                
+                var exp_ix = 0;
+                function compare(msg, ev)
+                {
+                    var lines = msg.split(/\n/);
+                    
+                    // Drop final blank lines
+                    while(lines[lines.length - 1] === "")
+                        lines.pop();
+                    msg = lines.join("\n");
+                    var to = expected.slice(exp_ix, exp_ix + 
+                                            lines.length);
+                    
+                    assert.equal(msg, to.join("\n"), "at line: " + 
+                                 (exp_ix + 1) + " event " + 
+                                 ev.toString());
+                    exp_ix += lines.length;
+                }
+                
+                function handleEvent() {
+                    var gev = arguments;
+                    var slice_len = gev.length;
+                    if (gev[0] === "leaveStartTag")
+                        slice_len = 1;
+                    else if (gev[0] === "text") {
+                        var text = gev[1];
+                        var issue = true;
+                        if (text === "") {
+                            var text_possible = 
+                                walker.possible().filter(function (x) {
+                                    return x.params[0] === "text";
+                                });
+                            issue = text_possible.length > 0;
+                        }
+                        if (!issue)
+                            return;
+                        slice_len = 1;
+                    }
+                    var ev_params = 
+                        Array.prototype.slice.call(gev, 0, slice_len);
+                    
+                    var ev = new validate.Event(ev_params);
+                    var ret = walker.fireEvent(ev);
+                    compare("fireEvent returned " + 
+                            ((ret === true) ? ret : 
+                             ret[0].toString()), 
+                            ev);
+                }
+                
+                var parser = makeParser(handleEvent);
+                parser.write(xml_source).close();
+                compare("end returned " + walker.end(), "*final*");
+            };
+        }
 
-    describe("a tei-based file", function () {
-        before(function () {
-            rng = "test/rng/simplified-tei-rng-for-error-cases.js";
+        describe("a tei-based file", function () {
+            before(function () {
+                rng = "test/rng/simplified-tei-rng-for-error-cases.js";
+            });
+            it("which is empty", makeErrorTest("empty"));
+            it("which has an unclosed element", 
+               makeErrorTest("not_closed1"));
+            it("which has two unclosed elements", 
+               makeErrorTest("not_closed2"));
+            it("which has a missing namespace", 
+               makeErrorTest("missing_namespace"));
         });
-        it("which is empty", makeErrorTest("empty"));
-        it("which has an unclosed element", 
-           makeErrorTest("not_closed1"));
-        it("which has two unclosed elements", 
-           makeErrorTest("not_closed2"));
-        it("which has a missing namespace", 
-           makeErrorTest("missing_namespace"));
-    });
 
-    describe("a simple schema", function () {
-        before(function () {
-            rng = "test/rng/simplified-simple-rng-for-error-cases.js";
+        describe("a simple schema", function () {
+            before(function () {
+                rng = "test/rng/"+
+                    "simplified-simple-rng-for-error-cases.js";
+            });
+            it("which has a missing attribute", 
+               makeErrorTest("missing_attribute"));
         });
-        it("which has a missing attribute", 
-           makeErrorTest("missing_attribute"));
+
+        it("an attribute without value", function () {
+            // Read the RNG tree.
+            var source = fileAsString(
+                "test/rng/simplified-simple-rng-for-error-cases.js");
+
+            var tree;
+            tree = validate.constructTree(source);
+            var walker = tree.newWalker();
+            var ret = walker.fireEvent(
+                new validate.Event("enterStartTag", "", "html"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("attributeName", "", "style"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("attributeName", "", "style"));
+            assert.equal(ret.length, 1);
+            assert.equal(ret[0].toString(), 
+                         "attribute not allowed here: {}style");
+        });
     });
 });
 
