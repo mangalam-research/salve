@@ -277,7 +277,8 @@ describe("GrammarWalker.fireEvent",  function () {
                     var ev = new validate.Event(ev_params);
                     var ret = walker.fireEvent(ev);
                     compare("fireEvent returned " + 
-                            ((ret === true) ? ret : 
+                            ((ret === true || ret === undefined) ? 
+                             ret : 
                              ret[0].toString()), 
                             ev);
                 }
@@ -310,6 +311,9 @@ describe("GrammarWalker.fireEvent",  function () {
                makeErrorTest("missing_attribute"));
             it("which has misplaced text",
                makeErrorTest("misplaced_text"));
+            it("which has foreign elements followed by misplaced text",
+               makeErrorTest("foreign_elements"));
+
         });
 
         it("an attribute without value", function () {
@@ -336,7 +340,9 @@ describe("GrammarWalker.fireEvent",  function () {
 
     // These tests deal with situations that would probably occur if
     // the tokenizer or parser which feeds events to salve is
-    // broken. Still try to handle these cases gracefully rather than
+    // broken. 
+    //
+    // Still try to handle these cases gracefully rather than
     // crash and burn.
     describe("handles mangled documents having", function () {
         it("misplaced text", function () {
@@ -356,6 +362,93 @@ describe("GrammarWalker.fireEvent",  function () {
             assert.equal(ret[0].toString(), 
                          "text not allowed here");
         });
+
+        it("duplicate leaveStartTag", function () {
+            // Read the RNG tree.
+            var source = fileAsString(
+                "test/rng/simplified-simple-rng-for-error-cases.js");
+
+            var tree;
+            tree = validate.constructTree(source);
+            var walker = tree.newWalker();
+            var ret = walker.fireEvent(
+                new validate.Event("enterStartTag", "", "html"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("attributeName", "", "style"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("attributeValue", "", "x"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("leaveStartTag"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("leaveStartTag"));
+            assert.equal(ret.length, 1);
+            assert.equal(ret[0].toString(), 
+                         "unexpected leaveStartTag event; " +
+                         "it is likely that "+
+                         "fireEvent is incorrectly called");
+        });
+
+        it("duplicate attributeValue", function () {
+            // Read the RNG tree.
+            var source = fileAsString(
+                "test/rng/simplified-simple-rng-for-error-cases.js");
+
+            var tree;
+            tree = validate.constructTree(source);
+            var walker = tree.newWalker();
+            var ret = walker.fireEvent(
+                new validate.Event("enterStartTag", "", "html"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("attributeName", "", "style"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("attributeValue", "", "x"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("attributeValue", "", "x"));
+            assert.equal(ret.length, 1);
+            assert.equal(ret[0].toString(), 
+                         "unexpected attributeValue event; " +
+                         "it is likely that "+
+                         "fireEvent is incorrectly called");
+        });
+
+        it("duplicate endTag", function () {
+            // Read the RNG tree.
+            var source = fileAsString(
+                "test/rng/simplified-simple-rng-for-error-cases.js");
+
+            var tree;
+            tree = validate.constructTree(source);
+            var walker = tree.newWalker();
+            var ret = walker.fireEvent(
+                new validate.Event("enterStartTag", "", "html"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("attributeName", "", "style"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("attributeValue", "", "x"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("leaveStartTag"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("endTag", "", "html"));
+            assert.equal(ret.length, 1);
+            assert.equal(ret[0].toString(), "tag required: {}head");
+            ret = walker.fireEvent(
+                new validate.Event("endTag", "", "html"));
+            assert.equal(ret.length, 1);
+            assert.equal(ret[0].toString(), "unexpected end tag: {}html");
+        });
+
+
     });
 });
 
