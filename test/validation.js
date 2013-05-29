@@ -308,6 +308,8 @@ describe("GrammarWalker.fireEvent",  function () {
             });
             it("which has a missing attribute", 
                makeErrorTest("missing_attribute"));
+            it("which has misplaced text",
+               makeErrorTest("misplaced_text"));
         });
 
         it("an attribute without value", function () {
@@ -329,6 +331,30 @@ describe("GrammarWalker.fireEvent",  function () {
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(), 
                          "attribute not allowed here: {}style");
+        });
+    });
+
+    // These tests deal with situations that would probably occur if
+    // the tokenizer or parser which feeds events to salve is
+    // broken. Still try to handle these cases gracefully rather than
+    // crash and burn.
+    describe("handles mangled documents having", function () {
+        it("misplaced text", function () {
+            // Read the RNG tree.
+            var source = fileAsString(
+                "test/rng/simplified-simple-rng-for-error-cases.js");
+
+            var tree;
+            tree = validate.constructTree(source);
+            var walker = tree.newWalker();
+            var ret = walker.fireEvent(
+                new validate.Event("enterStartTag", "", "html"));
+            assert.isTrue(ret);
+            ret = walker.fireEvent(
+                new validate.Event("text"));
+            assert.equal(ret.length, 1);
+            assert.equal(ret[0].toString(), 
+                         "text not allowed here");
         });
     });
 });
