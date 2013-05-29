@@ -308,6 +308,33 @@ describe("Parser errors", function () {
 
 });
 
+describe("Grammar", function () {
+    describe("getNamespaces", function () {
+        it("returns the namespaces", function () {
+            // Read the RNG tree.
+            var source = fileAsString("test/tei/simplified-rng.js");
+
+            var tree = validate.constructTree(source);
+            assert.sameMembers(
+                tree.getNamespaces(),
+                ["http://www.tei-c.org/ns/1.0",
+                 "http://www.w3.org/XML/1998/namespace"]);
+        });
+    });
+    describe("getNamespaces", function () {
+        it("returns an empty namespace when there are no namespaces", 
+           function () {
+               // Read the RNG tree.
+               var source = fileAsString(
+                   "test/simple/simplified-rng.js");
+               
+               var tree = validate.constructTree(source);
+               assert.sameMembers(tree.getNamespaces(), [""]);
+           });
+    });
+    
+});
+
 
 describe("Misc", function () {
     it("Text singleton", function() {
