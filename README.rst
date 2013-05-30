@@ -278,9 +278,10 @@ Mangalam Research Center for Buddhist Languages.
 
 This software has been made possible in part by a Level I Digital
 Humanities Start-up Grant from the National Endowment for the
-Humanities. Any views, findings, conclusions, or recommendations
-expressed in this software, do not necessarily represent those of the
-National Endowment for the Humanities.
+Humanities (grant number HD-51383-11). Any views, findings,
+conclusions, or recommendations expressed in this software, do not
+necessarily represent those of the National Endowment for the
+Humanities.
 
 .. image:: http://www.neh.gov/files/neh_logo_horizontal_rgb.jpg
    :target: http://www.neh.gov/
