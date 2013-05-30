@@ -12,6 +12,7 @@ build:
 
 .PHONY: test
 test: build
+	semver-sync -v
 	mocha
 
 doc:
