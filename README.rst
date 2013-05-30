@@ -5,9 +5,12 @@ Introduction
 
 Salve (Schema-Aware Library for Validation and Edition) is a
 JavaScript library which implements a validator able to validate an
-XML document on the basis of a subset of RelaxNG. Plans are to support
-as much RelaxNG as possible but for now salve has, by conscious
-design, the following limitations:
+XML document on the basis of a subset of RelaxNG. It is developed
+as part of the Buddhist Translators Workbench. It can be seen in
+action in `wed <https://github.com/mangalam-research/wed>`_.
+
+Plans are to support as much RelaxNG as possible but for now salve
+has, by conscious design, the following limitations:
 
 * Does not support <interleave>.
 * Does not support <anyName>.
@@ -16,9 +19,7 @@ design, the following limitations:
 
 At the moment the library is able to know that a document is valid
 according to the schema it has received. (But keep in mind the
-provision above regarding attributes.) However, right now is not very
-good at reporting problems. It will emit errors but the errors might
-not be anything that a regular person would find comprehensible.
+provision above regarding attributes.)
 
 A full validation solution has the following components:
 
@@ -27,20 +28,21 @@ A full validation solution has the following components:
 
 * A parser: responsible for converting tokens to validation events
   (see below) and managing the mapping between namespace prefixes and
-  namespace URIs. Salve works with namespaces if there is logic
-  outside of salve converting all qualified names to uri/local-name
-  pairs.
+  namespace URIs. Salve works with namespaces as long as there is
+  logic outside of salve converting all qualified names to
+  uri/local-name pairs.
 
 * A validator: responsible for checking that validation events are
-  valid against a schema and telling the parser what is possible at
-  the current point in validation. This is what salve offers, **and
-  only this!**
+  valid against a schema, telling the parser what is possible at the
+  current point in validation, and telling the parser what is possible
+  generally speaking (e.g. what namespace uris are used in the
+  schema). This is what salve offers, **and only this!**
 
 A good example of this division of labor can be found in
-`lib/salve/parse.js` and in the test suite. In both cases the tokenizer
-function is performed by `sax`, and the parser function is performed
-by a parser object that `sax` creates, customized to call
-`fireEvent()`.
+`lib/salve/parse.js` and in the test suite. In both cases the
+tokenizer function is performed by `sax`, and the parser function is
+performed by a parser object that `sax` creates, customized to call
+salve's `Walker.fireEvent()`.
 
 Dependencies
 ============
@@ -60,6 +62,7 @@ packages:
 * mocha
 * chai
 * sax
+* semver-sync
 
 Please see the package.json file for details regarding these
 dependencies. The `salve-simplify` script requires that `xmllint` and
@@ -75,7 +78,10 @@ dependencies required for testing and will run the tests::
 
 Or you may bypass npm with this command::
 
-    $ mocha 
+    $ make test
+
+Running `mocha` directly also works but you may run the test against
+stale code whereas `make test` always runs a build first.
 
 Building
 ========
@@ -90,9 +96,10 @@ Or::
 
 This will create a `build` subdirectory in which the JavaScript
 necessary to validate XML files against a prepared RNG schema. (See
-below for how preparation happens.) You could copy what is in build to
-a server to serve these files to a client that would then perform
-validation.
+below for how preparation happens.) You could copy what is in `build`
+to a server to serve these files to a client that would then perform
+validation. Future releases will include automatic support for
+minified versions of salve.
 
 Basic Usage
 ===========
@@ -105,7 +112,7 @@ on your own; contributions welcome.) It can be used like this::
     $ bin/salve-simplify [input] [output]
 
 The `[input]` parameter should be the RNG to simplify. The `[output]`
-parameter should be where to put the simplification. The output must
+parameter should be where to save the simplification. The output must
 then be converted to JavaScript code::
 
     $ xsltproc tools/rng-to-js.xsl [simplified rng] > [js]
@@ -113,7 +120,9 @@ then be converted to JavaScript code::
 This example uses xsltproc but any XSLT processor able to process XSLT
 1.0 would work. The `[simplified rng]` parameter is the result of the
 earlier simplify pass. The `[js]` parameter is where you want to save
-the resulting JavaScript.
+the resulting JavaScript. (Actually, the simplified RNG is converted
+to JSON, but since JSON is a subset of JavaScript saying that
+rng-to-js.xsl produces JavaScript is correct.)
 
 Code-wise, a typical usage scenario would be as follows::
 
@@ -132,8 +141,8 @@ Code-wise, a typical usage scenario would be as follows::
 Then the code that parses the XML file to be validated should call
 `fireEvent()` on the `walker`.
 
-The file `lib/salve/parse.js` contains an example of a rudimentary parser
-runnable in Node.js::
+The file `lib/salve/parse.js` contains an example of a rudimentary
+parser runnable in Node.js::
 
     $ node parse.js [rng as js] [xml to validate]
 
@@ -147,25 +156,9 @@ validation to make sure that there are no unclosed tags, etc.
 Events
 ======
 
-Looking at an XML document as a set of DOM nodes, the set of events
-supported by salve might seem strange. Why would one need an
-`enterStartTag` event and a `leaveStartTag` event given that if the
-document can be modeled using DOM there cannot ever be an
-`enterStartTag` even without a corresponding `leaveStartTag`
-event. The reason for the set of events supported is that salve is
-designed to handle not only XML modeled as a DOM tree but also XML
-parsed as text being dynamically edited. The best and closest example
-of this would be what nxml-mode does in Emacs. If the user starts a
-new document and types only the following into their editing buffer::
-
-    <html
-
-then what the parser has seen by the time it gets to the end of the
-buffer is an `enterStartTag` event with an empty uri and the
-local-name "html". The parser will not see a `leaveStartTag` event
-until the user enters the greater-than symbol ending the start tag.
-
-The events currently supported are defined below:
+The parser is responsible to call `fireEvent()` on the walker returned
+by the tree created from the RNG. (See above.) The events currently
+supported are defined below:
 
 `Event("enterStartTag", uri, local-name)` 
   Emitted when encountering the beginning of a start tag (the string
@@ -188,6 +181,25 @@ The events currently supported are defined below:
 
 `Event("text")`
   Emitted when encountering text.
+
+Looking at an XML document as a set of DOM nodes, the set of events
+supported by salve might seem strange. Why would one need an
+`enterStartTag` event and a `leaveStartTag` event given that if the
+document **can** be modeled using DOM there cannot ever be an
+`enterStartTag` even without a corresponding `leaveStartTag`
+event. The reason for the set of events supported is that salve is
+designed to handle not only XML modeled as a DOM tree but also XML
+parsed as a text string being dynamically edited. The best and closest
+example of this would be what nxml-mode does in Emacs. If the user
+starts a new document and types only the following into their editing
+buffer::
+
+    <html
+
+then what the parser has seen by the time it gets to the end of the
+buffer is an `enterStartTag` event with an empty uri and the
+local-name "html". The parser will not see a `leaveStartTag` event
+until the user enters the greater-than symbol ending the start tag.
 
 Support for Guided Editing
 ==========================
@@ -217,17 +229,12 @@ only `Event` objects in the exact same form as what must be passed to
 Editors that would depend on salve for guided editing would most
 likely need to use the `clone()` method on the walker to record the
 state of parsing at strategic points in the document being
-edited. This is to avoid reparsing a file needlessly. In an editor
-like Ace for instance, it would be prudent to record the state of
-parsing at the beginning of a new line. So if the user edits line 94
-of a 100 line file, the parser can restart parsing at line 94 instead
-of having to start from the first line.
-
-There is currently no example code to nicely illustrate how this
-works. However, the testing code in `test/validation.js` does call
-`possible()` repeatedly to test this function and also simulates
-restarting parsing in the middle of a document by means of cloning the
-walker.
+edited. This is to avoid needless reparsing. How frequently this
+should happen depends on the structure of the editor. The `clone()`
+method and the code it depends on has been optimized since early
+versions of salve but it is possible to call it too often, resulting
+in a slower validation speed than could be attainable with less
+aggressive cloning.
 
 Documentation
 =============
@@ -252,16 +259,34 @@ Languages, Berkeley, CA.
 RNG Simplification Code
 -----------------------
 
-The rng simplification transformation files are adapted from Nicolas
-Debeissat's code at:
+The rng simplification transformation files are adapted from `Nicolas
+Debeissat's code
+<https://code.google.com/p/jsrelaxngvalidator/>`_. They are covered by
+the `CeCILL license <http://www.cecill.info>`_. Some bugs have been
+corrected and some changes made for salve. For the sake of simplicity,
+these changes are also covered by the CeCILL license.
 
-https://code.google.com/p/jsrelaxngvalidator/
+Credits
+=======
 
-They are covered by the CeCILL license:
+Salve designed and developed by Louis-Dominique Dubeau, Director of
+Software Development for the Buddhist Translators Workbench project,
+Mangalam Research Center for Buddhist Languages.
 
-http://www.cecill.info
+.. image:: https://secure.gravatar.com/avatar/7fc4e7a64d9f789a90057e7737e39b2a
+   :target: http://www.mangalamresearch.org/
 
-Some bugs have been corrected and some changes made for salve. For the
-sake of simplicity, these changes are also covered by the CeCILL
-license.
+This software has been made possible in part by a Level I Digital
+Humanities Start-up Grant from the National Endowment for the
+Humanities. Any views, findings, conclusions, or recommendations
+expressed in this software, do not necessarily represent those of the
+National Endowment for the Humanities.
 
+.. image:: http://www.neh.gov/files/neh_logo_horizontal_rgb.jpg
+   :target: http://www.neh.gov/
+
+..  LocalWords:  fireEvent js chai semver json xmllint xsltproc npm
+..  LocalWords:  RNG minified rng XSLT xsl constructTree newWalker
+..  LocalWords:  xml enterStartTag uri leaveStartTag endTag nxml html
+..  LocalWords:  attributeName attributeValue jsdoc Debeissat's
+..  LocalWords:  CeCILL
