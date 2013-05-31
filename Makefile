@@ -1,7 +1,7 @@
 -include local.mk
 
 JSDOC3?=jsdoc
-RST2HTML=rst2html
+RST2HTML?=rst2html
 
 all: build
 
