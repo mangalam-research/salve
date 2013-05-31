@@ -62,7 +62,7 @@ packages:
 * mocha
 * chai
 * sax
-* semver-sync
+* semver-sync (installed so that the semver-sync executable is in your path).
 
 Please see the package.json file for details regarding these
 dependencies. The `salve-simplify` script requires that `xmllint` and
@@ -242,9 +242,14 @@ Documentation
 The code is documented using jsdoc3. The following command will
 generate the documentation::
 
-    $ jsdoc -r lib
+    $ make doc
 
-The formatted documents will appear in the `out` subdirectory. 
+Edit `<local.mk>`_ so that `JSDOC3` points to the location of the
+jsdoc3 executable in your setup and `RST2HTML` points to the location
+of the rst2html executable. (Defaults are such that Makefile will use
+your `PATH` to execute them.) The formatted jsdoc3 will appear in the
+`<build/doc>`_ subdirectory, and the `<README.html>`_ in the root of
+the source tree.
 
 License
 =======
