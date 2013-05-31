@@ -1,18 +1,37 @@
+-include local.mk
+
+JSDOC3?=jsdoc
+RST2HTML?=rst2html
+
 all: build
 
-# This is admitedly primitive and wasteful. Settling on a better build method
-# is part of the TODO.
+LIB_FILES:=$(shell find lib -type f -not -name "*_flymake.*" -not -path "lib/salve/parse.js")
+BUILD_LIB_FILES:=$(foreach f,$(LIB_FILES),build/$f)
+
+.PHONY: build-dir
+build-dir: 
+	-@[ -e build ] || mkdir build
+
 .PHONY: build
-build:
-	-rm -rf build
-	mkdir build
-	ls lib/salve/*.js | grep -v parse.js | xargs -n1 -iXX cp --parents -rp XX build
+build: $(BUILD_LIB_FILES) | build-dir
+
+build/lib/%: lib/%
+	-@[ -e $(dir $@) ] || mkdir -p $(dir $@)
+	cp $< $@
 
 .PHONY: test
 test: build
+	semver-sync -v
 	mocha
 
-.PHONY: prepublish
-prepublish:
-	@semver-sync -v
-	@[ "$$(git status --untracked-files=no --porcelain | head -n1)" = "" ] || echo "Uncommited changes!"
+.PHONY: doc
+doc:
+	$(JSDOC3) -d build/doc -r lib
+# rst2html does not seem to support rewriting relative
+# urls. So we produce the html in our root.
+	$(RST2HTML) README.rst README.html
+
+.PHONY: clean
+clean:
+	-rm -rf build
+	-rm README.html
