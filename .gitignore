@@ -2,3 +2,4 @@ out
 build
 README.html
 *_flymake.*
+local.mk
