@@ -300,6 +300,8 @@ describe("GrammarWalker.fireEvent",  function () {
                makeErrorTest("not_closed2"));
             it("which has a missing namespace", 
                makeErrorTest("missing_namespace"));
+            it("which has a missing element", 
+               makeErrorTest("missing_element"));
         });
 
         describe("a simple schema", function () {
