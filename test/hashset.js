@@ -145,70 +145,70 @@ describe("HashSet", function () {
                 [new Test("dog"), new Test("cat"), new Test("hamster")]);
             var hs2 = new hashstructs.HashSet(ah_hash, init2);
             hs2.union(hs);
-	    assert.equal(hs2.size(), 6, "hs2");
-	    hs.union(hs2);
-	    assert.equal(hs.size(), 6, "hs");
-    	});
+            assert.equal(hs2.size(), 6, "hs2");
+            hs.union(hs2);
+            assert.equal(hs.size(), 6, "hs");
+        });
 
-	it("filter", function () {
-	    var hs = new hashstructs.HashSet(ah_hash, init);
-	    var subset = hs.filter(function (x) {
-		return x.name.indexOf("a") >= 0;
-	    });
-	    // Makesure HashBase used the right type.
-	    assert.equal(subset.constructor, hashstructs.HashSet);
-	    assert.equal(subset.size(), 2);
-	});
+        it("filter", function () {
+            var hs = new hashstructs.HashSet(ah_hash, init);
+            var subset = hs.filter(function (x) {
+                return x.name.indexOf("a") >= 0;
+            });
+            // Makesure HashBase used the right type.
+            assert.equal(subset.constructor, hashstructs.HashSet);
+            assert.equal(subset.size(), 2);
+        });
     });
 
 });
 
 describe("HashMap", function () {
     function Test(name) {
-	this.name = name;
-	this.id = this.createID();
+        this.name = name;
+        this.id = this.createID();
     }
 
     (function () {
-	var next_id = 0;
-	this.createID = function () {
-	    return next_id++;
-	}
+        var next_id = 0;
+        this.createID = function () {
+            return next_id++;
+        }
 
-	this.hash = function () { return this.id }
+        this.hash = function () { return this.id }
     }).call(Test.prototype);
 
     var ah_hash = function (x) { return x.hash() }
 
     describe("ad-hoc hash",function () {
-	var init = [
-	    [new Test("Alice"), new Test("dog")],
-	    [new Test("Bob"), new Test("cat")],
-	    [new Test("Charlie"), new Test("hamster")]
-	];
-	it("simple", function () {
-	    var map = new hashstructs.HashMap(ah_hash);
-	    for (var i = 0, e; e = init[i]; ++i) {
-		map.add(e[0], e[1]);
-	    }
-	    for (var i = 0, e; e = init[i]; ++i) {
-		assert.equal(map.has(e[0]), e[1]);
-	    }
-	    assert.equal(map.size(), 3);
+        var init = [
+            [new Test("Alice"), new Test("dog")],
+            [new Test("Bob"), new Test("cat")],
+            [new Test("Charlie"), new Test("hamster")]
+        ];
+        it("simple", function () {
+            var map = new hashstructs.HashMap(ah_hash);
+            for (var i = 0, e; e = init[i]; ++i) {
+                map.add(e[0], e[1]);
+            }
+            for (var i = 0, e; e = init[i]; ++i) {
+                assert.equal(map.has(e[0]), e[1]);
+            }
+            assert.equal(map.size(), 3);
 
-	});
-	it("filter", function () {
-	    var map = new hashstructs.HashMap(ah_hash);
-	    for (var i = 0, e; e = init[i]; ++i) {
-		map.add(e[0], e[1]);
-	    }
-	    assert.equal(map.size(), 3);
-	    var submap = map.filter(function (a, b) {
-		return (a.name.indexOf("o") + b.name.indexOf("o")) > -2;
-	    });
-	    // Makesure HashBase used the right type.
-	    assert.equal(submap.constructor, hashstructs.HashMap);
-	    assert.equal(submap.size(), 2);
-	});
+        });
+        it("filter", function () {
+            var map = new hashstructs.HashMap(ah_hash);
+            for (var i = 0, e; e = init[i]; ++i) {
+                map.add(e[0], e[1]);
+            }
+            assert.equal(map.size(), 3);
+            var submap = map.filter(function (a, b) {
+                return (a.name.indexOf("o") + b.name.indexOf("o")) > -2;
+            });
+            // Makesure HashBase used the right type.
+            assert.equal(submap.constructor, hashstructs.HashMap);
+            assert.equal(submap.size(), 2);
+        });
     });
 });
