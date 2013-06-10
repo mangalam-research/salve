@@ -291,7 +291,7 @@ describe("GrammarWalker.fireEvent",  function () {
 
         describe("a tei-based file", function () {
             before(function () {
-                rng = "test/rng/simplified-tei-rng-for-error-cases.js";
+                rng = "test/tei/simplified-rng.js";
             });
             it("which is empty", makeErrorTest("empty"));
             it("which has an unclosed element", 
@@ -306,8 +306,7 @@ describe("GrammarWalker.fireEvent",  function () {
 
         describe("a simple schema", function () {
             before(function () {
-                rng = "test/rng/"+
-                    "simplified-simple-rng-for-error-cases.js";
+                rng = "test/simple/simplified-rng.js";
             });
             it("which has a missing attribute", 
                makeErrorTest("missing_attribute"));
