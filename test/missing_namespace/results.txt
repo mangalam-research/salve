@@ -1,4 +1,4 @@
 fireEvent returned tag not allowed here: {}TEI
-fireEvent returned true
-fireEvent returned true
+fireEvent returned false
+fireEvent returned false
 end returned tag required: {http://www.tei-c.org/ns/1.0}TEI

@@ -1,0 +1,22 @@
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned must choose either {}b or {}em
+fireEvent returned false
+fireEvent returned false
+end returned false

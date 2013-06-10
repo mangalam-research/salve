@@ -3,32 +3,32 @@ possible events
 enterStartTag:
     :
         test
-fireEvent returned true
+fireEvent returned false
 possible events
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     :
         a
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
         blip
         colibri
         hamster
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeValue:
     *
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
         blip
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
@@ -37,17 +37,17 @@ enterStartTag:
     :
         b
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
         a
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
         test
-fireEvent returned true
+fireEvent returned false
 possible events 
-end returned true
+end returned false
