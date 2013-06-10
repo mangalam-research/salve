@@ -150,10 +150,8 @@ function makeValidTest(dir) {
                     validate.eventsToTreeString(possible_evs), ev);
             eventCheck(ev);
             var ret = walker.fireEvent(ev);
-            if (ret !== true)
-                console.log(util.inspect(ret[0]));
             compare("fireEvent returned " + 
-                    ((ret === true) ? ret : ret[0].toString()), ev);
+                    (!ret ? ret : ret[0].toString()), ev);
         }
 
         var recorded_events = [];
@@ -281,10 +279,7 @@ describe("GrammarWalker.fireEvent",  function () {
                     var ev = new validate.Event(ev_params);
                     var ret = walker.fireEvent(ev);
                     compare("fireEvent returned " + 
-                            ((ret === true || ret === undefined) ? 
-                             ret : 
-                             ret[0].toString()), 
-                            ev);
+                            (!ret ? ret : ret[0].toString()), ev);
                 }
                 
                 var parser = makeParser(handleEvent);
@@ -338,10 +333,10 @@ describe("GrammarWalker.fireEvent",  function () {
             var walker = tree.newWalker();
             var ret = walker.fireEvent(
                 new validate.Event("enterStartTag", "", "html"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("attributeName", "", "style"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("attributeName", "", "style"));
             assert.equal(ret.length, 1);
@@ -367,7 +362,7 @@ describe("GrammarWalker.fireEvent",  function () {
             var walker = tree.newWalker();
             var ret = walker.fireEvent(
                 new validate.Event("enterStartTag", "", "html"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("text"));
             assert.equal(ret.length, 1);
@@ -385,16 +380,16 @@ describe("GrammarWalker.fireEvent",  function () {
             var walker = tree.newWalker();
             var ret = walker.fireEvent(
                 new validate.Event("enterStartTag", "", "html"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("attributeName", "", "style"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("attributeValue", "", "x"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("leaveStartTag"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("leaveStartTag"));
             assert.equal(ret.length, 1);
@@ -414,13 +409,13 @@ describe("GrammarWalker.fireEvent",  function () {
             var walker = tree.newWalker();
             var ret = walker.fireEvent(
                 new validate.Event("enterStartTag", "", "html"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("attributeName", "", "style"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("attributeValue", "", "x"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("attributeValue", "", "x"));
             assert.equal(ret.length, 1);
@@ -440,16 +435,16 @@ describe("GrammarWalker.fireEvent",  function () {
             var walker = tree.newWalker();
             var ret = walker.fireEvent(
                 new validate.Event("enterStartTag", "", "html"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("attributeName", "", "style"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("attributeValue", "", "x"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("leaveStartTag"));
-            assert.isTrue(ret);
+            assert.isFalse(ret);
             ret = walker.fireEvent(
                 new validate.Event("endTag", "", "html"));
             assert.equal(ret.length, 1);

@@ -3,7 +3,7 @@ possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         TEI
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -17,12 +17,12 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         teiHeader
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -36,12 +36,12 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         fileDesc
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -54,12 +54,12 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         titleStmt
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -72,12 +72,12 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         title
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -94,7 +94,7 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
@@ -157,7 +157,7 @@ enterStartTag:
         title
         unclear
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
@@ -172,14 +172,14 @@ enterStartTag:
         respStmt
         sponsor
         title
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         editionStmt
         extent
         publicationStmt
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -192,7 +192,7 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
@@ -205,7 +205,7 @@ enterStartTag:
         p
         pubPlace
         publisher
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -219,7 +219,7 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
@@ -282,7 +282,7 @@ enterStartTag:
         title
         unclear
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
@@ -290,14 +290,14 @@ endTag:
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         p
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         notesStmt
         seriesStmt
         sourceDesc
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -311,7 +311,7 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
@@ -321,7 +321,7 @@ enterStartTag:
         list
         listBibl
         p
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -335,7 +335,7 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
@@ -398,7 +398,7 @@ enterStartTag:
         title
         unclear
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
@@ -406,7 +406,7 @@ endTag:
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         p
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
@@ -414,7 +414,7 @@ endTag:
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         sourceDesc
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
@@ -424,12 +424,12 @@ enterStartTag:
         encodingDesc
         profileDesc
         revisionDesc
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         text
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -445,7 +445,7 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
@@ -460,7 +460,7 @@ enterStartTag:
         milestone
         note
         pb
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -474,7 +474,7 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
@@ -517,7 +517,7 @@ enterStartTag:
         sp
         stage
         table
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
@@ -531,7 +531,7 @@ attributeName:
         lang
         space
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
@@ -594,7 +594,7 @@ enterStartTag:
         title
         unclear
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
@@ -641,7 +641,7 @@ enterStartTag:
         stage
         table
         trailer
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
@@ -657,11 +657,11 @@ enterStartTag:
         milestone
         note
         pb
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
         TEI
-fireEvent returned true
+fireEvent returned false
 possible events 
-end returned true
+end returned false

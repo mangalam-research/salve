@@ -3,72 +3,72 @@ possible events
 enterStartTag:
     :
         html
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeName:
     :
         style
-fireEvent returned true
+fireEvent returned false
 possible events
 attributeValue:
     *
-fireEvent returned true
+fireEvent returned false
 possible events
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     :
         head
-fireEvent returned true
+fireEvent returned false
 possible events
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     :
         title
-fireEvent returned true
+fireEvent returned false
 possible events
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
         title
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
         title
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
         title
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
         title
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
         head
-fireEvent returned true
+fireEvent returned false
 possible events
 enterStartTag:
     :
         body
-fireEvent returned true
+fireEvent returned false
 possible events
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
@@ -77,7 +77,7 @@ enterStartTag:
     :
         em
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
@@ -86,10 +86,10 @@ enterStartTag:
     :
         em
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
@@ -98,7 +98,7 @@ enterStartTag:
     :
         em
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
@@ -107,7 +107,7 @@ enterStartTag:
     :
         em
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
@@ -116,10 +116,10 @@ enterStartTag:
     :
         em
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 leaveStartTag
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
@@ -128,7 +128,7 @@ enterStartTag:
     :
         em
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
@@ -137,7 +137,7 @@ enterStartTag:
     :
         em
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
@@ -146,11 +146,11 @@ enterStartTag:
     :
         em
 text
-fireEvent returned true
+fireEvent returned false
 possible events
 endTag:
     :
         html
-fireEvent returned true
+fireEvent returned false
 possible events 
-end returned true
+end returned false
