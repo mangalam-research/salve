@@ -212,8 +212,12 @@ describe("GrammarWalker.fireEvent",  function () {
         var rng;
         function makeErrorTest(dir) {
             return function () {
+                var myrng = rng;
+                // Give it a default
+                if (myrng === undefined)
+                    myrng = "test/" + dir + "/simplified-rng.js";
                 // Read the RNG tree.
-                var source = fileAsString(rng);
+                var source = fileAsString(myrng);
                 
                 var tree;
                 try {
@@ -314,13 +318,20 @@ describe("GrammarWalker.fireEvent",  function () {
                makeErrorTest("misplaced_text"));
             it("which has foreign elements followed by misplaced text",
                makeErrorTest("foreign_elements"));
+        });
 
+        describe("ad hoc schema", function () {
+            before(function () {
+                rng = undefined;
+            });
+            it("which has a choice not chosen",
+               makeErrorTest("choice_not_chosen"));
         });
 
         it("an attribute without value", function () {
             // Read the RNG tree.
             var source = fileAsString(
-                "test/rng/simplified-simple-rng-for-error-cases.js");
+                "test/simple/simplified-rng.js");
 
             var tree;
             tree = validate.constructTree(source);
@@ -349,7 +360,7 @@ describe("GrammarWalker.fireEvent",  function () {
         it("misplaced text", function () {
             // Read the RNG tree.
             var source = fileAsString(
-                "test/rng/simplified-simple-rng-for-error-cases.js");
+                "test/simple/simplified-rng.js");
 
             var tree;
             tree = validate.constructTree(source);
@@ -367,7 +378,7 @@ describe("GrammarWalker.fireEvent",  function () {
         it("duplicate leaveStartTag", function () {
             // Read the RNG tree.
             var source = fileAsString(
-                "test/rng/simplified-simple-rng-for-error-cases.js");
+                "test/simple/simplified-rng.js");
 
             var tree;
             tree = validate.constructTree(source);
@@ -396,7 +407,7 @@ describe("GrammarWalker.fireEvent",  function () {
         it("duplicate attributeValue", function () {
             // Read the RNG tree.
             var source = fileAsString(
-                "test/rng/simplified-simple-rng-for-error-cases.js");
+                "test/simple/simplified-rng.js");
 
             var tree;
             tree = validate.constructTree(source);
@@ -422,7 +433,7 @@ describe("GrammarWalker.fireEvent",  function () {
         it("duplicate endTag", function () {
             // Read the RNG tree.
             var source = fileAsString(
-                "test/rng/simplified-simple-rng-for-error-cases.js");
+                "test/simple/simplified-rng.js");
 
             var tree;
             tree = validate.constructTree(source);
