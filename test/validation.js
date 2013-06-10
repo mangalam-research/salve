@@ -487,14 +487,16 @@ describe("error objects", function () {
     makeErrorTest("ElementNameError");
     
     it("ChoiceError", function () {
-        var names = [new validate.EName("a", "b"), 
-                     new validate.EName("c", "d")];
-        var err = new validate.ChoiceError(names[0], names[1]);
+        var names_a = [new validate.EName("a", "b"),
+                       new validate.EName("c", "d")];
+        var names_b = [new validate.EName("e", "f"),
+                       new validate.EName("g", "h")];
+        var err = new validate.ChoiceError(names_a, names_b);
         assert.equal(err.toString(), 
-                     "must choose one of these: {a}b, {c}d");
-        assert.sameMembers(err.getNames(), names);
-        assert.equal(err.toStringWithNames(["a", "b"]), 
-                     "must choose one of these: a, b");
+                     "must choose either {a}b, {c}d or {e}f, {g}h");
+        assert.sameMembers(err.getNames(), names_a.concat(names_b));
+        assert.equal(err.toStringWithNames(["a", "b", "c", "d"]),
+                     "must choose either a, b or c, d");
     });
     
 });
