@@ -1,5 +1,12 @@
 .. image:: https://travis-ci.org/mangalam-research/salve.png
 
+Release History
+===============
+
+This section covers only salient changes:
+
+* 0.12 Introduces a major API change. Whereas `Walker.fireEvent()` and `Walker.end()` used to return `true` when there was no validation error, they now return `false` instead. This makes differentiating between error conditions and an absence of error easier. (If the return value is interpreted as the boolean `true` then there is an error, otherwise there is no error. Previously, one would have to test the return value for identity with the value `true`, which more verbose.)
+
 Introduction
 ============
 
