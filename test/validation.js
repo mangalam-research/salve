@@ -60,7 +60,12 @@ function makeParser(recordEvent) {
     return parser;
 }
 
+function errorsToString(errs) {
+    if (!errs)
+        return errs + "";
 
+    return errs.join(",").toString();
+}
 
 function makeValidTest(dir) {
     return function () {
@@ -150,8 +155,7 @@ function makeValidTest(dir) {
                     validate.eventsToTreeString(possible_evs), ev);
             eventCheck(ev);
             var ret = walker.fireEvent(ev);
-            compare("fireEvent returned " +
-                    (!ret ? ret : ret[0].toString()), ev);
+            compare("fireEvent returned " + errorsToString(ret), ev);
         }
 
         var recorded_events = [];
@@ -278,8 +282,7 @@ describe("GrammarWalker.fireEvent",  function () {
 
                     var ev = new validate.Event(ev_params);
                     var ret = walker.fireEvent(ev);
-                    compare("fireEvent returned " +
-                            (!ret ? ret : ret[0].toString()), ev);
+                    compare("fireEvent returned " + errorsToString(ret), ev);
                 }
 
                 var parser = makeParser(handleEvent);
