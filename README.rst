@@ -5,7 +5,14 @@ Release History
 
 This section covers only salient changes:
 
-* 0.12 Introduces a major API change. Whereas `Walker.fireEvent()` and `Walker.end()` used to return `true` when there was no validation error, they now return `false` instead. This makes differentiating between error conditions and an absence of error easier. (If the return value is interpreted as the boolean `true` then there is an error, otherwise there is no error. Previously, one would have to test the return value for identity with the value `true`, which more verbose.)
+* 0.12 Introduces a major API change. Whereas ``Walker.fireEvent()``
+  and ``Walker.end()`` used to return ``true`` when there was no
+  validation error, they now return ``false`` instead. This makes
+  differentiating between error conditions and an absence of error
+  easier. (If the return value is interpreted as the boolean ``true``
+  then there is an error, otherwise there is no error. Previously, one
+  would have to test the return value for identity with the value
+  ``true``, which is more verbose.)
 
 Introduction
 ============
@@ -19,10 +26,12 @@ action in `wed <https://github.com/mangalam-research/wed>`_.
 Plans are to support as much RelaxNG as possible but for now salve
 has, by conscious design, the following limitations:
 
-* Does not support <interleave>.
-* Does not support <anyName>.
-* Does not support <except>.
-* Treats all attributes as if they were specified to contain text of any length, format, etc. (All attributes accept any text whatsoever.)
+* Does not support ``<interleave>``.
+* Does not support ``<anyName>``.
+* Does not support ``<except>``.
+* Treats all attributes as if they were specified to contain text of
+  any length, format, etc. (All attributes accept any text
+  whatsoever.)
 
 At the moment the library is able to know that a document is valid
 according to the schema it has received. (But keep in mind the
@@ -46,10 +55,10 @@ A full validation solution has the following components:
   schema). This is what salve offers, **and only this!**
 
 A good example of this division of labor can be found in
-`lib/salve/parse.js` and in the test suite. In both cases the
-tokenizer function is performed by `sax`, and the parser function is
-performed by a parser object that `sax` creates, customized to call
-salve's `Walker.fireEvent()`.
+``lib/salve/parse.js`` and in the test suite. In both cases the
+tokenizer function is performed by ``sax``, and the parser function is
+performed by a parser object that ``sax`` creates, customized to call
+salve's ``Walker.fireEvent()``.
 
 Dependencies
 ============
@@ -72,8 +81,8 @@ packages:
 * semver-sync (installed so that the semver-sync executable is in your path).
 
 Please see the package.json file for details regarding these
-dependencies. The `salve-simplify` script requires that `xmllint` and
-`xsltproc` be installed on your system.
+dependencies. The ``salve-simplify`` script requires that ``xmllint`` and
+``xsltproc`` be installed on your system.
 
 Testing
 =======
@@ -87,8 +96,8 @@ Or you may bypass npm with this command::
 
     $ make test
 
-Running `mocha` directly also works but you may run the test against
-stale code whereas `make test` always runs a build first.
+Running ``mocha`` directly also works but you may run the test against
+stale code whereas ``make test`` always runs a build first.
 
 Building
 ========
@@ -101,9 +110,9 @@ Or::
 
     $ make
 
-This will create a `build` subdirectory in which the JavaScript
+This will create a ``build`` subdirectory in which the JavaScript
 necessary to validate XML files against a prepared RNG schema. (See
-below for how preparation happens.) You could copy what is in `build`
+below for how preparation happens.) You could copy what is in ``build``
 to a server to serve these files to a client that would then perform
 validation. Future releases will include automatic support for
 minified versions of salve.
@@ -112,21 +121,21 @@ Basic Usage
 ===========
 
 An RNG schema must be prepared before it can be used by salve. The
-first step is to simplify the schema. The `bin` subdirectory
+first step is to simplify the schema. The ``bin`` subdirectory
 contains a rudimentary shell script. (If you are using Windows you are
 on your own; contributions welcome.) It can be used like this::
 
     $ bin/salve-simplify [input] [output]
 
-The `[input]` parameter should be the RNG to simplify. The `[output]`
+The ``[input]`` parameter should be the RNG to simplify. The ``[output]``
 parameter should be where to save the simplification. The output must
 then be converted to JavaScript code::
 
     $ xsltproc tools/rng-to-js.xsl [simplified rng] > [js]
 
 This example uses xsltproc but any XSLT processor able to process XSLT
-1.0 would work. The `[simplified rng]` parameter is the result of the
-earlier simplify pass. The `[js]` parameter is where you want to save
+1.0 would work. The ``[simplified rng]`` parameter is the result of the
+earlier simplify pass. The ``[js]`` parameter is where you want to save
 the resulting JavaScript. (Actually, the simplified RNG is converted
 to JSON, but since JSON is a subset of JavaScript saying that
 rng-to-js.xsl produces JavaScript is correct.)
@@ -146,54 +155,54 @@ Code-wise, a typical usage scenario would be as follows::
     var walker = tree.newWalker();
 
 Then the code that parses the XML file to be validated should call
-`fireEvent()` on the `walker`.
+``fireEvent()`` on the ``walker``.
 
-The file `lib/salve/parse.js` contains an example of a rudimentary
+The file `<lib/salve/parse.js>`_ contains an example of a rudimentary
 parser runnable in Node.js::
 
     $ node parse.js [rng as js] [xml to validate]
 
-The `[rng as js]` parameter is the RNG, simplified and converted to
-JavaScript. The `[xml to validate]` parameter is the XML file to
+The ``[rng as js]`` parameter is the RNG, simplified and converted to
+JavaScript. The ``[xml to validate]`` parameter is the XML file to
 validate against the RNG.
 
-Remember to call the `end()` method on your walker at the end of
+Remember to call the ``end()`` method on your walker at the end of
 validation to make sure that there are no unclosed tags, etc.
 
 Events
 ======
 
-The parser is responsible to call `fireEvent()` on the walker returned
+The parser is responsible to call ``fireEvent()`` on the walker returned
 by the tree created from the RNG. (See above.) The events currently
 supported are defined below:
 
-`Event("enterStartTag", uri, local-name)` 
+``Event("enterStartTag", uri, local-name)``
   Emitted when encountering the beginning of a start tag (the string
   "<tag", where "tag" is whatever tag name) or the equivalent. The
   qualified name should be resolved to its uri and local-name
   components.
 
-`Event("leaveStartTag")`
+``Event("leaveStartTag")``
   Emitted when encountering the end of a start tag (the string ">") or
   equivalent.
 
-`Event("endTag", uri, local-name)`
+``Event("endTag", uri, local-name)``
   Emitted when encountering an end tag.
 
-`Event("attributeName", uri, local-name)`
+``Event("attributeName", uri, local-name)``
   Emitted when encountering an attribute name.
 
-`Event("attributeValue", value)`
+``Event("attributeValue", value)``
   Emitted when encountering an attribute value
 
-`Event("text")`
+``Event("text")``
   Emitted when encountering text.
 
 Looking at an XML document as a set of DOM nodes, the set of events
 supported by salve might seem strange. Why would one need an
-`enterStartTag` event and a `leaveStartTag` event given that if the
+``enterStartTag`` event and a ``leaveStartTag`` event given that if the
 document **can** be modeled using DOM there cannot ever be an
-`enterStartTag` even without a corresponding `leaveStartTag`
+``enterStartTag`` even without a corresponding ``leaveStartTag``
 event. The reason for the set of events supported is that salve is
 designed to handle not only XML modeled as a DOM tree but also XML
 parsed as a text string being dynamically edited. The best and closest
@@ -204,21 +213,21 @@ buffer::
     <html
 
 then what the parser has seen by the time it gets to the end of the
-buffer is an `enterStartTag` event with an empty uri and the
-local-name "html". The parser will not see a `leaveStartTag` event
+buffer is an ``enterStartTag`` event with an empty uri and the
+local-name "html". The parser will not see a ``leaveStartTag`` event
 until the user enters the greater-than symbol ending the start tag.
 
 Support for Guided Editing
 ==========================
 
-Calling the `possible()` method on a walker will return the list of
-valid `Event` objects that could be fired on the walker, given what
+Calling the ``possible()`` method on a walker will return the list of
+valid ``Event`` objects that could be fired on the walker, given what
 the walker has seen so far. Again, if the user is editing a document
 which contains only the text::
 
     <html
 
-and hits a function key which makes the editor call `possible()`, then
+and hits a function key which makes the editor call ``possible()``, then
 the editor can tell the user what attributes would be possible to add
 to this element. In editing facilities like nxml-mode in Emacs this is
 called completion. Similarly, once the start tag is ended by adding
@@ -226,18 +235,18 @@ the greater-than symbol::
 
    <html>
 
-and the user again asks for possibilities, calling `possible()` will
-return the list of `Event` objects that could be fired. Note here that
+and the user again asks for possibilities, calling ``possible()`` will
+return the list of ``Event`` objects that could be fired. Note here that
 it is the responsibility of the editor to translate what salve returns
-into something the user can use. The `possible()` function returns
-only `Event` objects in the exact same form as what must be passed to
-`fireEvent()`.
+into something the user can use. The ``possible()`` function returns
+only ``Event`` objects in the exact same form as what must be passed to
+``fireEvent()``.
 
 Editors that would depend on salve for guided editing would most
-likely need to use the `clone()` method on the walker to record the
+likely need to use the ``clone()`` method on the walker to record the
 state of parsing at strategic points in the document being
 edited. This is to avoid needless reparsing. How frequently this
-should happen depends on the structure of the editor. The `clone()`
+should happen depends on the structure of the editor. The ``clone()``
 method and the code it depends on has been optimized since early
 versions of salve but it is possible to call it too often, resulting
 in a slower validation speed than could be attainable with less
@@ -251,12 +260,12 @@ generate the documentation::
 
     $ make doc
 
-Edit `<local.mk>`_ so that `JSDOC3` points to the location of the
-jsdoc3 executable in your setup and `RST2HTML` points to the location
-of the rst2html executable. (Defaults are such that Makefile will use
-your `PATH` to execute them.) The formatted jsdoc3 will appear in the
-`<build/doc>`_ subdirectory, and the `<README.html>`_ in the root of
-the source tree.
+Create a ``local.mk`` file that sets the variable ``JSDOC3`` to the
+location of the jsdoc3 executable in your setup and ``RST2HTML``
+points to the location of the rst2html executable. (Defaults are such
+that Makefile will use your ``PATH`` to execute them.) The formatted
+jsdoc3 will appear in the `<build/doc>`_ subdirectory, and the
+`<README.html>`_ in the root of the source tree.
 
 License
 =======
@@ -281,7 +290,7 @@ these changes are also covered by the CeCILL license.
 Credits
 =======
 
-Salve designed and developed by Louis-Dominique Dubeau, Director of
+Salve is designed and developed by Louis-Dominique Dubeau, Director of
 Software Development for the Buddhist Translators Workbench project,
 Mangalam Research Center for Buddhist Languages.
 
@@ -302,4 +311,4 @@ Humanities.
 ..  LocalWords:  RNG minified rng XSLT xsl constructTree newWalker
 ..  LocalWords:  xml enterStartTag uri leaveStartTag endTag nxml html
 ..  LocalWords:  attributeName attributeValue jsdoc Debeissat's
-..  LocalWords:  CeCILL
+..  LocalWords:  CeCILL tokenizer Makefile README
