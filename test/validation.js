@@ -300,6 +300,8 @@ describe("GrammarWalker.fireEvent",  function () {
                makeErrorTest("not_closed1"));
             it("which has two unclosed elements",
                makeErrorTest("not_closed2"));
+            it("which has two unclosed elements, with contents",
+               makeErrorTest("not_closed3"));
             it("which has a missing namespace",
                makeErrorTest("missing_namespace"));
             it("which has a missing element",
