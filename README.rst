@@ -80,7 +80,7 @@ packages:
 * sax
 * semver-sync (installed so that the semver-sync executable is in your path).
 
-Please see the package.json file for details regarding these
+Please see the `<package.json>`_ file for details regarding these
 dependencies. The ``salve-simplify`` script requires that ``xmllint`` and
 ``xsltproc`` be installed on your system.
 
