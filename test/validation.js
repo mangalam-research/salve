@@ -1,6 +1,7 @@
 'use strict';
 require("amd-loader");
 var validate = require("../build/lib/salve/validate");
+var oop = require("../build/lib/salve/oop");
 var util = require("util");
 var fs = require("fs");
 var path = require("path");
@@ -22,26 +23,52 @@ function getEventList(event_source) {
     return event_list;
 }
 
-function makeParser(recordEvent) {
+function makeParser(er, walker, use_name_resolver) {
     var parser = sax.parser(true, {xmlns: true});
+    use_name_resolver = !!use_name_resolver;
 
     var tag_stack = [];
     parser.onopentag = function (node) {
-        recordEvent("enterStartTag", node.uri, node.local);
+        if (use_name_resolver)
+            er.recordEvent(walker, "enterContext");
+
         var names = Object.keys(node.attributes);
         names.sort();
         names.forEach(function (name) {
             var attr = node.attributes[name];
-            // The parser hadles all namespace issues
             if (// xmlns="..."
                 (attr.local === "" && name === "xmlns") ||
                     // xmlns:...=...
-                    (attr.prefix == "xmlns"))
-                return;
-            recordEvent("attributeName", attr.uri, attr.local);
-            recordEvent("attributeValue", attr.value);
+                    (attr.prefix === "xmlns")) {
+                if (use_name_resolver)
+                    er.recordEvent(walker, "definePrefix",
+                                   attr.local, attr.value);
+                // else: the parser hadles all namespace issues
+            }
         });
-        recordEvent("leaveStartTag", node.uri, node.local);
+
+        if (use_name_resolver) {
+            var ename = walker.resolveName(node.prefix + ":" + node.local);
+            node.uri = ename.ns;
+        }
+
+        er.recordEvent(walker, "enterStartTag", node.uri, node.local);
+        names.forEach(function (name) {
+            var attr = node.attributes[name];
+            if (// xmlns="..."
+                (attr.local === "" && name === "xmlns") ||
+                    // xmlns:...=...
+                    (attr.prefix === "xmlns"))
+                return;
+            if (use_name_resolver) {
+                var ename = walker.resolveName(attr.prefix + ":" +
+                                               attr.local, true);
+                attr.uri = ename.ns;
+            }
+            er.recordEvent(walker, "attributeName", attr.uri, attr.local);
+            er.recordEvent(walker, "attributeValue", attr.value);
+        });
+        er.recordEvent(walker, "leaveStartTag", node.uri, node.local);
         tag_stack.unshift([node.uri, node.local]);
     };
 
@@ -49,16 +76,100 @@ function makeParser(recordEvent) {
         text = text.trim();
         var chunk = text.split(/&/);
         for(var x = 0; x < chunk.length; ++x)
-            recordEvent("text", chunk[x].trim());
+            er.recordEvent(walker, "text", chunk[x].trim());
     };
 
     parser.onclosetag = function (node) {
         var tag_info = tag_stack.shift();
-        recordEvent("endTag", tag_info[0], tag_info[1]);
+        er.recordEvent(walker, "endTag", tag_info[0], tag_info[1]);
+        if (use_name_resolver)
+            er.recordEvent(walker, "leaveContext");
     };
 
     return parser;
 }
+
+function EventRecorder(ComparisonEngine) {
+    this.events = [];
+    this.recorded_states = [];
+    this.ce = ComparisonEngine;
+    this.dont_record_state = false;
+}
+
+EventRecorder.prototype.recordEvent = function (walker) {
+    this.events.push(Array.prototype.slice.call(arguments, 1));
+    this.issueLastEvent(walker);
+};
+
+EventRecorder.prototype.issueEventAt = function (walker, at) {
+    this.issueEvent(walker, at, this.events[at]);
+    return at < this.events.length - 1;
+};
+
+EventRecorder.prototype.issueLastEvent = function (walker) {
+    this.issueEventAt(walker, this.events.length - 1);
+};
+
+EventRecorder.prototype.issueEvent = function (walker, ev_ix, ev) {
+    var slice_len = ev.length;
+    if (ev[0] === "leaveStartTag")
+        slice_len = 1;
+    else if (ev[0] === "text") {
+        var text = ev[1];
+        var issue = true;
+        if (text === "") {
+            var text_possible =
+                    walker.possible().filter(function (x) {
+                        return x.params[0] === "text";
+                    });
+            issue = text_possible.length > 0;
+        }
+        if (!issue)
+            return;
+        slice_len = 1;
+    }
+    var ev_params = Array.prototype.slice.call(ev, 0, slice_len);
+
+    // For the clone check
+    if (!this.dont_record_state)
+        this.recorded_states.push([walker.clone(),
+                                   this.ce.exp_ix, ev_ix]);
+
+    var nev = new validate.Event(ev_params);
+    this.ce.compare("\ninvoking fireEvent with " + nev.toString(), nev);
+    var ret = walker.fireEvent(nev);
+    this.ce.compare("fireEvent returned " + errorsToString(ret), nev);
+    var possible_evs = walker.possible().toArray();
+    // We sort events alphabetically, because the
+    // implementation does not guarantee any specific order.
+    possible_evs.sort();
+    if (ev_params[0] !== "enterContext" &&
+        ev_params[0] !== "leaveContext" &&
+        ev_params[0] !== "definePrefix")
+        this.ce.compare("possible events\n" +
+                        validate.eventsToTreeString(possible_evs), nev);
+};
+
+function ComparisonEngine(expected) {
+    this.exp_ix = 0;
+    this.expected = expected;
+}
+
+ComparisonEngine.prototype.compare =  function (msg, ev)
+{
+    var lines = msg.split(/\n/);
+
+    // Drop final blank lines
+    while(lines[lines.length - 1] === "")
+        lines.pop();
+    msg = lines.join("\n");
+    var to = this.expected.slice(this.exp_ix, this.exp_ix + lines.length);
+
+            assert.equal(msg, to.join("\n"), "at line: " +
+                         (this.exp_ix + 1) + " event " + ev.toString());
+    this.exp_ix += lines.length;
+};
+
 
 function errorsToString(errs) {
     if (!errs)
@@ -67,7 +178,8 @@ function errorsToString(errs) {
     return errs.join(",").toString();
 }
 
-function makeValidTest(dir) {
+function makeValidTest(dir, use_name_resolver) {
+    use_name_resolver = !!use_name_resolver;
     return function () {
         // Read the RNG tree.
         var source = fileAsString("test/" + dir +
@@ -83,119 +195,100 @@ function makeValidTest(dir) {
             throw e;
         }
         var walker = tree.newWalker();
+        if (use_name_resolver)
+            walker.useNameResolver();
 
         var xml_source = fileAsString("test/" + dir +
                                       "/to_parse.xml");
 
         // Get the expected results
-        var expected_source = fileAsString("test/" + dir +
-                                           "/results.txt");
+        var expected_source =
+                fileAsString("test/" + dir +
+                             (use_name_resolver ? "/nr_results.txt" :
+                             "/results.txt"));
+
+
         var expected = expected_source.split("\n");
-
-        var exp_ix = 0;
-        function compare(msg, ev)
-        {
-            var lines = msg.split(/\n/);
-
-            // Drop final blank lines
-            while(lines[lines.length - 1] === "")
-                lines.pop();
-            msg = lines.join("\n");
-            var to = expected.slice(exp_ix, exp_ix + lines.length);
-
-            assert.equal(msg, to.join("\n"), "at line: " +
-                         (exp_ix + 1) + " event " + ev.toString());
-            exp_ix += lines.length;
-        }
-
-        var recorded_states = [];
-        function issueEvent(gev_ix, gev) {
-            var slice_len = gev.length;
-            if (gev[0] === "leaveStartTag")
-                slice_len = 1;
-            else if (gev[0] === "text") {
-                var text = gev[1];
-                var issue = true;
-                if (text === "") {
-                    var text_possible =
-                        walker.possible().filter(function (x) {
-                            return x.params[0] === "text";
-                        });
-                    issue = text_possible.length > 0;
-                }
-                if (!issue)
-                    return;
-                slice_len = 1;
-            }
-            var ev_params =
-                Array.prototype.slice.call(gev, 0, slice_len);
-
-            // Clone check
-            recorded_states.push([walker.clone(),
-                                  exp_ix, gev_ix]);
-
-            var ev = new validate.Event(ev_params);
-            var possible_evs = walker.possible().toArray();
-            // We sort events alphabetically, because the
-            // implementation does not guarantee any specific order.
-            possible_evs.sort();
-            compare("possible events\n" +
-                    validate.eventsToTreeString(possible_evs), ev);
-            compare("\ninvoking fireEvent with " + ev.toString(), ev);
-            var ret = walker.fireEvent(ev);
-            compare("fireEvent returned " + errorsToString(ret), ev);
-        }
-
-        var recorded_events = [];
-        function recordEvent() {
-            recorded_events.push(arguments);
-        }
-
-        var parser = makeParser(recordEvent);
-        parser.write(xml_source).close();
+        var ce = new ComparisonEngine(expected);
+        var er = new EventRecorder(ce);
 
         var context_independent = tree.whollyContextIndependent();
-        compare("wholly context-independent " + context_independent,
-                "*context-independent*");
+        ce.compare("wholly context-independent " + context_independent,
+                   "*context-independent*");
 
-        var gev_ix = 0;
-        for (var gev; (gev = recorded_events[gev_ix]) !== undefined;
-             gev_ix++) {
-            issueEvent(gev_ix, gev);
-        }
+        ce.compare("possible events\n" +
+                   validate.eventsToTreeString(walker.possible()),
+                new validate.Event(["initial"]));
 
-        compare("possible events" + walker.possible().toString(),
-                new validate.Event(["final"]));
+        var parser = makeParser(er, walker, use_name_resolver);
+        parser.write(xml_source).close();
 
-        compare("end returned " + walker.end(), "*final*");
+        ce.compare("end returned " + walker.end(), "*final*");
 
         // Roll back; >> gives us an integer
-        var start_at = (recorded_events.length / 2) >> 0;
-        walker = recorded_states[start_at][0];
-        exp_ix = recorded_states[start_at][1];
-        gev_ix = recorded_states[start_at][2];
+        var start_at = (er.recorded_states.length / 2) >> 0;
+        walker = er.recorded_states[start_at][0];
+        ce.exp_ix = er.recorded_states[start_at][1];
+        var ev_ix = er.recorded_states[start_at][2];
 
-        for (gev; (gev = recorded_events[gev_ix++]) !== undefined;) {
-            issueEvent(gev_ix, gev);
-        }
+        er.dont_record_state = true; // stop recording.
+        var more = true;
+        while(more)
+            more = er.issueEventAt(walker, ev_ix++);
 
-        compare("possible events" + walker.possible().toString(),
-                new validate.Event(["final"]));
-
-        compare("end returned " + walker.end(), "*final*");
+        ce.compare("end returned " + walker.end(), "*final*");
     };
 }
 
-describe("GrammarWalker.fireEvent reports no error on",
-         function () {
-             it("a simple test", makeValidTest("simple"));
+describe("GrammarWalker.fireEvent reports no error on", function () {
+    it("a simple test", makeValidTest("simple"));
 
-             it("choice matching", makeValidTest("choice_matching"));
+    it("choice matching", makeValidTest("choice_matching"));
 
-             it("a tei file", makeValidTest("tei"));
+    it("a tei file", makeValidTest("tei"));
 
-             it("a tei file, with namespaces", makeValidTest("namespaces"));
-         });
+    it("a tei file, with namespaces", makeValidTest("namespaces"));
+
+    // Use the name resolver.
+    it("a tei file, with namespaces", makeValidTest("namespaces",
+                                                    true));
+});
+
+function EventNonRecorder () {
+    EventRecorder.apply(this, arguments);
+}
+
+oop.inherit(EventNonRecorder, EventRecorder);
+
+
+EventNonRecorder.prototype.recordEvent = function (walker) {
+    this.issueEvent(walker, 0, Array.prototype.slice.call(arguments, 1));
+};
+
+EventNonRecorder.prototype.issueEvent = function (walker, ev_ix, ev) {
+    var slice_len = ev.length;
+    if (ev[0] === "leaveStartTag")
+        slice_len = 1;
+    else if (ev[0] === "text") {
+        var text = ev[1];
+        var issue = true;
+        if (text === "") {
+            var text_possible =
+                    walker.possible().filter(function (x) {
+                        return x.params[0] === "text";
+                    });
+            issue = text_possible.length > 0;
+        }
+        if (!issue)
+            return;
+        slice_len = 1;
+    }
+    var ev_params = Array.prototype.slice.call(ev, 0, slice_len);
+
+    var nev = new validate.Event(ev_params);
+    var ret = walker.fireEvent(nev);
+    this.ce.compare("fireEvent returned " + errorsToString(ret), nev);
+};
 
 describe("GrammarWalker.fireEvent",  function () {
     describe("reports errors on", function () {
@@ -229,54 +322,12 @@ describe("GrammarWalker.fireEvent",  function () {
                                                    "/results.txt");
                 var expected = expected_source.split("\n");
 
-                var exp_ix = 0;
-                function compare(msg, ev)
-                {
-                    var lines = msg.split(/\n/);
+                var ce = new ComparisonEngine(expected);
+                var er = new EventNonRecorder(ce);
 
-                    // Drop final blank lines
-                    while(lines[lines.length - 1] === "")
-                        lines.pop();
-                    msg = lines.join("\n");
-                    var to = expected.slice(exp_ix, exp_ix +
-                                            lines.length);
-
-                    assert.equal(msg, to.join("\n"), "at line: " +
-                                 (exp_ix + 1) + " event " +
-                                 ev.toString());
-                    exp_ix += lines.length;
-                }
-
-                function handleEvent() {
-                    var gev = arguments;
-                    var slice_len = gev.length;
-                    if (gev[0] === "leaveStartTag")
-                        slice_len = 1;
-                    else if (gev[0] === "text") {
-                        var text = gev[1];
-                        var issue = true;
-                        if (text === "") {
-                            var text_possible =
-                                walker.possible().filter(function (x) {
-                                    return x.params[0] === "text";
-                                });
-                            issue = text_possible.length > 0;
-                        }
-                        if (!issue)
-                            return;
-                        slice_len = 1;
-                    }
-                    var ev_params =
-                        Array.prototype.slice.call(gev, 0, slice_len);
-
-                    var ev = new validate.Event(ev_params);
-                    var ret = walker.fireEvent(ev);
-                    compare("fireEvent returned " + errorsToString(ret), ev);
-                }
-
-                var parser = makeParser(handleEvent);
+                var parser = makeParser(er, walker);
                 parser.write(xml_source).close();
-                compare("end returned " + walker.end(), "*final*");
+                ce.compare("end returned " + walker.end(), "*final*");
             };
         }
 
