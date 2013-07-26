@@ -735,5 +735,5 @@ endTag:
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, TEI
 fireEvent returned false
-possible events 
+possible events
 end returned false

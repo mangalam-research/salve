@@ -164,7 +164,7 @@ function makeValidTest(dir) {
             issueEvent(gev_ix, gev);
         }
 
-        compare("possible events " + walker.possible().toString(),
+        compare("possible events" + walker.possible().toString(),
                 new validate.Event(["final"]));
 
         compare("end returned " + walker.end(), "*final*");
@@ -179,7 +179,7 @@ function makeValidTest(dir) {
             issueEvent(gev_ix, gev);
         }
 
-        compare("possible events " + walker.possible().toString(),
+        compare("possible events" + walker.possible().toString(),
                 new validate.Event(["final"]));
 
         compare("end returned " + walker.end(), "*final*");
@@ -193,6 +193,8 @@ describe("GrammarWalker.fireEvent reports no error on",
              it("choice matching", makeValidTest("choice_matching"));
 
              it("a tei file", makeValidTest("tei"));
+
+             it("a tei file, with namespaces", makeValidTest("namespaces"));
          });
 
 describe("GrammarWalker.fireEvent",  function () {
