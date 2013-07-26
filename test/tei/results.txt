@@ -3,6 +3,8 @@ possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         TEI
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, TEI
 fireEvent returned false
 possible events
 attributeName:
@@ -17,11 +19,15 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         teiHeader
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, teiHeader
 fireEvent returned false
 possible events
 attributeName:
@@ -36,11 +42,15 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         fileDesc
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, fileDesc
 fireEvent returned false
 possible events
 attributeName:
@@ -54,11 +64,15 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         titleStmt
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, titleStmt
 fireEvent returned false
 possible events
 attributeName:
@@ -72,11 +86,15 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         title
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, title
 fireEvent returned false
 possible events
 attributeName:
@@ -94,6 +112,8 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
@@ -157,6 +177,8 @@ enterStartTag:
         title
         unclear
 text
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, title
 fireEvent returned false
 possible events
 endTag:
@@ -172,6 +194,8 @@ enterStartTag:
         respStmt
         sponsor
         title
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, titleStmt
 fireEvent returned false
 possible events
 enterStartTag:
@@ -179,6 +203,8 @@ enterStartTag:
         editionStmt
         extent
         publicationStmt
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, publicationStmt
 fireEvent returned false
 possible events
 attributeName:
@@ -192,6 +218,8 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
@@ -205,6 +233,8 @@ enterStartTag:
         p
         pubPlace
         publisher
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 attributeName:
@@ -219,6 +249,8 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
@@ -282,6 +314,8 @@ enterStartTag:
         title
         unclear
 text
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 endTag:
@@ -290,6 +324,8 @@ endTag:
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         p
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, publicationStmt
 fireEvent returned false
 possible events
 enterStartTag:
@@ -297,6 +333,8 @@ enterStartTag:
         notesStmt
         seriesStmt
         sourceDesc
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, sourceDesc
 fireEvent returned false
 possible events
 attributeName:
@@ -311,6 +349,8 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
@@ -321,6 +361,8 @@ enterStartTag:
         list
         listBibl
         p
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 attributeName:
@@ -335,6 +377,8 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
@@ -398,6 +442,8 @@ enterStartTag:
         title
         unclear
 text
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 endTag:
@@ -406,6 +452,8 @@ endTag:
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         p
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, sourceDesc
 fireEvent returned false
 possible events
 endTag:
@@ -414,6 +462,8 @@ endTag:
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         sourceDesc
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, fileDesc
 fireEvent returned false
 possible events
 endTag:
@@ -424,11 +474,15 @@ enterStartTag:
         encodingDesc
         profileDesc
         revisionDesc
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, teiHeader
 fireEvent returned false
 possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         text
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, text
 fireEvent returned false
 possible events
 attributeName:
@@ -445,6 +499,8 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
@@ -460,6 +516,8 @@ enterStartTag:
         milestone
         note
         pb
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, body
 fireEvent returned false
 possible events
 attributeName:
@@ -474,6 +532,8 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
@@ -517,6 +577,8 @@ enterStartTag:
         sp
         stage
         table
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 attributeName:
@@ -531,6 +593,8 @@ attributeName:
         lang
         space
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
@@ -594,6 +658,8 @@ enterStartTag:
         title
         unclear
 text
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 endTag:
@@ -641,6 +707,8 @@ enterStartTag:
         stage
         table
         trailer
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, body
 fireEvent returned false
 possible events
 endTag:
@@ -657,11 +725,15 @@ enterStartTag:
         milestone
         note
         pb
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, text
 fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
         TEI
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, TEI
 fireEvent returned false
 possible events 
 end returned false

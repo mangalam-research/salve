@@ -84,9 +84,6 @@ function makeValidTest(dir) {
         }
         var walker = tree.newWalker();
 
-        // Get the events we expect to emit
-        var event_list = getEventList(fileAsString("test/" + dir +
-                                                   "/events.txt"));
         var xml_source = fileAsString("test/" + dir +
                                       "/to_parse.xml");
 
@@ -110,15 +107,6 @@ function makeValidTest(dir) {
                          (exp_ix + 1) + " event " + ev.toString());
             exp_ix += lines.length;
         }
-
-        var ev_x = 0; // event index
-        var eventCheck = function (ev) {
-            var expected = event_list[ev_x++];
-            assert.equal(ev.toString(),
-                         ((expected !== undefined) ? expected
-                          : "NO MORE").toString(),
-                         "event check at line: " + ev_x);
-        };
 
         var recorded_states = [];
         function issueEvent(gev_ix, gev) {
@@ -144,7 +132,7 @@ function makeValidTest(dir) {
 
             // Clone check
             recorded_states.push([walker.clone(),
-                                  exp_ix, ev_x, gev_ix]);
+                                  exp_ix, gev_ix]);
 
             var ev = new validate.Event(ev_params);
             var possible_evs = walker.possible().toArray();
@@ -153,7 +141,7 @@ function makeValidTest(dir) {
             possible_evs.sort();
             compare("possible events\n" +
                     validate.eventsToTreeString(possible_evs), ev);
-            eventCheck(ev);
+            compare("\ninvoking fireEvent with " + ev.toString(), ev);
             var ret = walker.fireEvent(ev);
             compare("fireEvent returned " + errorsToString(ret), ev);
         }
@@ -185,8 +173,7 @@ function makeValidTest(dir) {
         var start_at = (recorded_events.length / 2) >> 0;
         walker = recorded_states[start_at][0];
         exp_ix = recorded_states[start_at][1];
-        ev_x = recorded_states[start_at][2];
-        gev_ix = recorded_states[start_at][3];
+        gev_ix = recorded_states[start_at][2];
 
         for (gev; (gev = recorded_events[gev_ix++]) !== undefined;) {
             issueEvent(gev_ix, gev);
