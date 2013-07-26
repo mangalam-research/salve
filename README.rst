@@ -29,6 +29,7 @@ has, by conscious design, the following limitations:
 * Does not support ``<interleave>``.
 * Does not support ``<anyName>``.
 * Does not support ``<except>``.
+* Does not support ``<nsName>``.
 * Treats all attributes as if they were specified to contain text of
   any length, format, etc. (All attributes accept any text
   whatsoever.)
