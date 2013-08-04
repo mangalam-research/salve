@@ -3,71 +3,101 @@ possible events
 enterStartTag:
     :
         html
+
+invoking fireEvent with Event: enterStartTag, , html
 fireEvent returned false
 possible events
 attributeName:
     :
         style
+
+invoking fireEvent with Event: attributeName, , style
 fireEvent returned false
 possible events
 attributeValue:
     *
+
+invoking fireEvent with Event: attributeValue, toto
 fireEvent returned false
 possible events
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
     :
         head
+
+invoking fireEvent with Event: enterStartTag, , head
 fireEvent returned false
 possible events
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
     :
         title
+
+invoking fireEvent with Event: enterStartTag, , title
 fireEvent returned false
 possible events
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
     :
         title
 text
+
+invoking fireEvent with Event: text
 fireEvent returned false
 possible events
 endTag:
     :
         title
 text
+
+invoking fireEvent with Event: text
 fireEvent returned false
 possible events
 endTag:
     :
         title
 text
+
+invoking fireEvent with Event: text
 fireEvent returned false
 possible events
 endTag:
     :
         title
 text
+
+invoking fireEvent with Event: endTag, , title
 fireEvent returned false
 possible events
 endTag:
     :
         head
+
+invoking fireEvent with Event: endTag, , head
 fireEvent returned false
 possible events
 enterStartTag:
     :
         body
+
+invoking fireEvent with Event: enterStartTag, , body
 fireEvent returned false
 possible events
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
@@ -77,6 +107,8 @@ enterStartTag:
     :
         em
 text
+
+invoking fireEvent with Event: text
 fireEvent returned false
 possible events
 endTag:
@@ -86,9 +118,13 @@ enterStartTag:
     :
         em
 text
+
+invoking fireEvent with Event: enterStartTag, , em
 fireEvent returned false
 possible events
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
@@ -98,6 +134,8 @@ enterStartTag:
     :
         em
 text
+
+invoking fireEvent with Event: text
 fireEvent returned false
 possible events
 endTag:
@@ -107,6 +145,8 @@ enterStartTag:
     :
         em
 text
+
+invoking fireEvent with Event: text
 fireEvent returned false
 possible events
 endTag:
@@ -116,9 +156,13 @@ enterStartTag:
     :
         em
 text
+
+invoking fireEvent with Event: enterStartTag, , em
 fireEvent returned false
 possible events
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
@@ -128,6 +172,8 @@ enterStartTag:
     :
         em
 text
+
+invoking fireEvent with Event: endTag, , em
 fireEvent returned false
 possible events
 endTag:
@@ -137,6 +183,8 @@ enterStartTag:
     :
         em
 text
+
+invoking fireEvent with Event: endTag, , em
 fireEvent returned false
 possible events
 endTag:
@@ -146,11 +194,15 @@ enterStartTag:
     :
         em
 text
+
+invoking fireEvent with Event: endTag, , body
 fireEvent returned false
 possible events
 endTag:
     :
         html
+
+invoking fireEvent with Event: endTag, , html
 fireEvent returned false
-possible events 
+possible events
 end returned false

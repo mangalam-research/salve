@@ -3,7 +3,11 @@
 Release History
 ===============
 
-This section covers only salient changes:
+This section covers only salient changes. Releases of the form 0.x.y
+are bugfixes to the corresponding 0.x release.
+
+* 0.13(?) Adds name resolving facilities to salve. See the
+  documentation on ``enterContext`` and associated events below.
 
 * 0.12 Introduces a major API change. Whereas ``Walker.fireEvent()``
   and ``Walker.end()`` used to return ``true`` when there was no
@@ -29,6 +33,7 @@ has, by conscious design, the following limitations:
 * Does not support ``<interleave>``.
 * Does not support ``<anyName>``.
 * Does not support ``<except>``.
+* Does not support ``<nsName>``.
 * Treats all attributes as if they were specified to contain text of
   any length, format, etc. (All attributes accept any text
   whatsoever.)
@@ -43,10 +48,8 @@ A full validation solution has the following components:
   delimiters, attribute names, attribute values, etc.
 
 * A parser: responsible for converting tokens to validation events
-  (see below) and managing the mapping between namespace prefixes and
-  namespace URIs. Salve works with namespaces as long as there is
-  logic outside of salve converting all qualified names to
-  uri/local-name pairs.
+  (see below) and optionally managing the mapping between namespace
+  prefixes and namespace URIs.
 
 * A validator: responsible for checking that validation events are
   valid against a schema, telling the parser what is possible at the
@@ -147,7 +150,7 @@ Code-wise, a typical usage scenario would be as follows::
 
     // Source should be a string which contains the entire
     // output of having simplified the original RNG and converted it to JS.
-    // This would be read from [js] in the example of xsltproc invocation 
+    // This would be read from [js] in the example of xsltproc invocation
     // above.
     var tree = validate.constructTree(source);
 
@@ -198,6 +201,15 @@ supported are defined below:
 ``Event("text")``
   Emitted when encountering text.
 
+``Event("enterContext")``
+  Emitted when entering a new namespace context.
+
+``Event("leaveContext")``
+  Emitted when leaving a namespace context.
+
+``Event("definePrefix", prefix, uri)``
+  Emitted when defining a namespace prefix.
+
 Looking at an XML document as a set of DOM nodes, the set of events
 supported by salve might seem strange. Why would one need an
 ``enterStartTag`` event and a ``leaveStartTag`` event given that if the
@@ -216,6 +228,54 @@ then what the parser has seen by the time it gets to the end of the
 buffer is an ``enterStartTag`` event with an empty uri and the
 local-name "html". The parser will not see a ``leaveStartTag`` event
 until the user enters the greater-than symbol ending the start tag.
+
+If there is already functionality allowing the resolution of namespace
+prefixes that allows you to resolve names to their uri/local-name
+parts, you can use salve without ever emitting ``enterContext``,
+``leaveContext`` and ``definePrefix``. However, if you want to have
+salve keep track of namespace prefixes, you must first call
+``useNameResolver()`` on the walker you get from ``newWalker()``. Then
+you must issue a ``enterContext`` each time you encounter an start tag
+that defines namespaces and issue ``leaveContext`` when you encounter
+its corresponding end tag. And you must issue ``definePrefix`` for
+each prefix defined by the element. Example::
+
+    <p xmlns="q" xmlns:foo="foons">...
+
+would require issuing::
+
+    Event("enterContext")
+    Event("definePrefix", "", "q")
+    Event("definePrefix", "foo", "foons")
+    (Presumably, your code here would call resolveName("p") to determine
+     what namespace p is in, which would yield the result "q".)
+    Event("enterStartTag", "q", "p")
+
+Note the order of the events. The new context must start before salve
+sees the ``enterStartTag`` event because the way namespace works, a
+start tag can declare its own namespace. So by the time
+``enterStartTag`` is issued, salve must know what namespaces are
+declared by the tag. If the events were not issued this way, then the
+start tag ``p`` in the example would be interpreted to be in the
+default namespace in effect **before** it started, which could be
+other than ``q``. Similarly, ``leaveContext`` must be issued after the
+corresponding ``endTag`` event.
+
+For the lazy: it is possible to issue ``enterContext`` for each start
+tag and ``leaveContext`` for each end tag irrespective of whether or
+not the start tag declares new namespaces. Except that performance
+will be impacted somewhat because name resolution will have to
+potentially search a deeper stack of contexts that what would be
+strictly necessary. The test suite does it this way.
+
+What determines whether or not you want to use the name resolver
+included with salve is whether or not you need to use salve's cloning
+facilities to record validation state. The namespaces that are in
+effect at the point a walker is cloned are also part of the validation
+state. If you have to use a name resolver that does not allow for
+recording validation state, then you are on your own with providing
+this functionality. Or you can call ``useNameResolver`` on your walker
+and use the facilities described here.
 
 Support for Guided Editing
 ==========================
@@ -308,7 +368,9 @@ Humanities.
    :target: http://www.neh.gov/
 
 ..  LocalWords:  fireEvent js chai semver json xmllint xsltproc npm
-..  LocalWords:  RNG minified rng XSLT xsl constructTree newWalker
+..  LocalWords:  RNG minified rng XSLT xsl constructTree newWalker mk
 ..  LocalWords:  xml enterStartTag uri leaveStartTag endTag nxml html
-..  LocalWords:  attributeName attributeValue jsdoc Debeissat's
-..  LocalWords:  CeCILL tokenizer Makefile README
+..  LocalWords:  attributeName attributeValue jsdoc Debeissat's API
+..  LocalWords:  CeCILL tokenizer Makefile README boolean anyName RST
+..  LocalWords:  nsName URIs uris enterContext leaveContext xmlns rst
+..  LocalWords:  definePrefix useNameResolver foons resolveName HD
