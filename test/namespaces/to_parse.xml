@@ -1,0 +1,26 @@
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:a="uri:test1">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title></title>
+      </titleStmt>
+      <publicationStmt>
+        <p></p>
+      </publicationStmt>
+      <sourceDesc>
+        <p></p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <!-- Defines a new namespace. -->
+      <p xmlns:b="uri:test2" b:style="attribute in namespace"><b:emph/><a:emph/></p>
+      <!-- Redefines "a". a:test2 is valid only in "uri:test2". -->
+      <p xmlns:a="uri:test2"><emph a:test2="q"/></p>
+      <!-- Redefines the default namespace. The element test1unique
+           can exist only in the uri:test1 namespace. -->
+      <tei:p xmlns="uri:test1" xmlns:tei="http://www.tei-c.org/ns/1.0"><emph><test1unique/></emph><emph><a:test1unique/></emph></tei:p>
+    </body>
+  </text>
+</TEI>

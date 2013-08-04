@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0"
+     xmlns:rng="http://relaxng.org/ns/structure/1.0"
+     xml:lang="en">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Test</title>
+        <author>Louis-Dominique Dubeau</author>
+      </titleStmt>
+      <publicationStmt>
+        <p></p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>No source; originally written in digital form.</p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <schemaSpec ident="test" start="TEI">
+        <moduleRef xmlns="http://www.tei-c.org/ns/1.0" key="header"/>
+        <moduleRef xmlns="http://www.tei-c.org/ns/1.0" key="core"/>
+        <moduleRef xmlns="http://www.tei-c.org/ns/1.0" key="tei"/>
+        <moduleRef xmlns="http://www.tei-c.org/ns/1.0" key="textstructure"/>
+        <elementSpec ident="teiCorpus" mode="delete" module="core"/>
+        <!-- required to avoid Sanity Checker complaint -->
+        <elementSpec ident="handNote" mode="delete" module="header"/>
+
+        <classSpec ident="att.global" type="atts" mode="change" module="tei">
+          <classes>
+            <memberOf key="att.test1"/>
+            <memberOf key="att.test2"/>
+          </classes>
+        </classSpec>
+
+
+        <classSpec ident="att.test1" type="atts">
+          <attList>
+            <attDef ident="style" mode="add" ns="uri:test1">
+              <datatype>
+                <rng:text/>
+              </datatype>
+            </attDef>
+            <attDef ident="test1" mode="add" ns="uri:test1">
+              <datatype>
+                <rng:text/>
+              </datatype>
+            </attDef>
+          </attList>
+        </classSpec>
+
+        <classSpec ident="att.test2" type="atts">
+          <attList>
+            <attDef ident="style" mode="add" ns="uri:test2">
+              <datatype>
+                <rng:text/>
+              </datatype>
+            </attDef>
+            <attDef ident="test2" mode="add" ns="uri:test2">
+              <datatype>
+                <rng:text/>
+              </datatype>
+            </attDef>
+          </attList>
+        </classSpec>
+
+        <elementSpec ident="emph"
+                     ns="uri:test1"
+                     prefix="test1_">
+          <classes>
+            <memberOf key="model.emphLike"/>
+          </classes>
+          <content>
+            <rng:choice>
+              <rng:text/>
+              <rng:ref name="test1unique"/>
+            </rng:choice>
+          </content>
+        </elementSpec>
+
+        <elementSpec ident="test1unique"
+                     ns="uri:test1"
+                     prefix="test1_">
+          <content>
+              <rng:text/>
+          </content>
+        </elementSpec>
+
+
+        <elementSpec ident="emph"
+                     ns="uri:test2"
+                     prefix="test2_">
+          <classes>
+            <memberOf key="model.emphLike"/>
+          </classes>
+          <content>
+            <rng:text/>
+          </content>
+        </elementSpec>
+
+      </schemaSpec>
+    </body>
+  </text>
+</TEI>
