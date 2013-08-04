@@ -3,14 +3,20 @@ possible events
 enterStartTag:
     :
         test
+
+invoking fireEvent with Event: enterStartTag, , test
 fireEvent returned false
 possible events
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
     :
         a
+
+invoking fireEvent with Event: enterStartTag, , a
 fireEvent returned false
 possible events
 attributeName:
@@ -18,16 +24,22 @@ attributeName:
         blip
         colibri
         hamster
+
+invoking fireEvent with Event: attributeName, , colibri
 fireEvent returned false
 possible events
 attributeValue:
     *
+
+invoking fireEvent with Event: attributeValue, a
 fireEvent returned false
 possible events
 attributeName:
     :
         blip
 leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
@@ -37,17 +49,23 @@ enterStartTag:
     :
         b
 text
+
+invoking fireEvent with Event: text
 fireEvent returned false
 possible events
 endTag:
     :
         a
 text
+
+invoking fireEvent with Event: endTag, , a
 fireEvent returned false
 possible events
 endTag:
     :
         test
+
+invoking fireEvent with Event: endTag, , test
 fireEvent returned false
-possible events 
+possible events
 end returned false
