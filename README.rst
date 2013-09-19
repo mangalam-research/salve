@@ -4,12 +4,21 @@ Release History
 ===============
 
 This section covers only salient changes. Releases of the form 0.x.y
-are bugfixes to the corresponding 0.x release.
+are bug fixes to the corresponding 0.x release.
 
-* 0.13(?) Adds name resolving facilities to salve. See the
+* 0.14 changes how rng-to-js.xsl generates its output. See the part on
+  `rng-to-js.xsl`__. Although salve still supports the old output, I
+  strongly recommend running ``salve-simplify`` and ``xsltproc``
+  with ``rng-to-js.xsl`` to regenerate the JSON that encodes
+  your schema. You can easily get a file which is one order of
+  magnitude smaller than those produced by earlier versions of salve.
+
+  __ rng_to_xsl_
+
+* 0.13 adds name resolving facilities to salve. See the
   documentation on ``enterContext`` and associated events below.
 
-* 0.12 Introduces a major API change. Whereas ``Walker.fireEvent()``
+* 0.12 introduces a major API change. Whereas ``Walker.fireEvent()``
   and ``Walker.end()`` used to return ``true`` when there was no
   validation error, they now return ``false`` instead. This makes
   differentiating between error conditions and an absence of error
@@ -130,18 +139,40 @@ on your own; contributions welcome.) It can be used like this::
 
     $ bin/salve-simplify [input] [output]
 
+.. _rng_to_xsl:
+
 The ``[input]`` parameter should be the RNG to simplify. The ``[output]``
 parameter should be where to save the simplification. The output must
 then be converted to JavaScript code::
 
-    $ xsltproc tools/rng-to-js.xsl [simplified rng] > [js]
+    $ xsltproc lib/salve/rng-to-js.xsl [simplified rng] > [js]
 
-This example uses xsltproc but any XSLT processor able to process XSLT
-1.0 would work. The ``[simplified rng]`` parameter is the result of the
-earlier simplify pass. The ``[js]`` parameter is where you want to save
-the resulting JavaScript. (Actually, the simplified RNG is converted
-to JSON, but since JSON is a subset of JavaScript saying that
-rng-to-js.xsl produces JavaScript is correct.)
+This example uses ``xsltproc`` but any XSLT processor able to process
+XSLT 1.0 would work. The ``[simplified rng]`` parameter is the result
+of the earlier simplify pass. The ``[js]`` parameter is where you want
+to save the resulting JavaScript. (Actually, the simplified RNG is
+converted to JSON. Generally speaking JSON is not a subset of
+JavaScript but in this instance, the JSON produced is a subset, so
+calling it JavaScript is not wrong.)
+
+.. _element paths:
+
+Before version 0.14 ``rng-to-js.xsl`` by default included information
+which easily allowed to determine where each JavaScript object
+modeling the original RNG came from. (Each object had path information
+pointing to the location of the corresponding element in the
+simplified RNG.) However, this information is useful only for
+debugging salve and its associated software. Starting with version
+0.14 ``rng-to-js.xsl`` no longer outputs this information by
+default. It has to be turned on by passing ``--param output-paths
+true()`` to ``xsltproc``. (Most likely the string ``true()`` must be
+quoted to avoid shell interpretation. Or you could pass anything that
+XSLT considers to be "true".) This change reduces the size of a
+JavaScript file created for a vanilla TEI schema by a factor of more
+than 4.
+
+Version 0.14 also changes the structure of the output of
+``rng-to-js.xsl``. See `File Format`_ for more details.
 
 Code-wise, a typical usage scenario would be as follows::
 
@@ -327,6 +358,57 @@ that Makefile will use your ``PATH`` to execute them.) The formatted
 jsdoc3 will appear in the `<build/doc>`_ subdirectory, and the
 `<README.html>`_ in the root of the source tree.
 
+File Format
+===========
+
+When you simplify your RNG schema and pass it to ``rng-to-js.xsl`` for
+conversion to JSON, you get a file which salve will use to create a
+run-time representation of your schema when you call
+``constructTree``. The file instructs salve on how to create this
+memory representation.
+
+Before 0.14 ``rng-to-js.xsl`` would generate a file with the following
+structure::
+
+    { "type": <object type>, "args": [...]}
+
+The ``<object type>`` would be a string like ``"Choice"`` or
+``"Group"`` indicating which constructor to use to build the
+object. The ``args`` field would be a list of arguments to pass to the
+constructor. These arguments were either primitive JSON objects
+(integers, strings, arrays, etc.) or objects of the same format as
+described above, with a ``type`` and ``args`` field. The problem with
+this format is that it wastes a lot of space. We could call this
+version 0 of salve's schema format.
+
+Version 0.14 introduces a new format. This format has version
+number 1. The new structure is::
+
+    {"v":<version>,"o":<options>,"d":[...]}
+
+The ``v`` field gives the version number of the data. Only version 1
+exists for now. The ``o`` field is a bit field of options indicating
+how the file was created. Right now the only thing is records is
+whether or not `element paths`_ are present in the generated
+file. More on this later. The ``d`` field contains the actual
+schema. Each item in it is of the form::
+
+   [<array type>, ...]
+
+The first element ``<array type>`` determines how to interpret the
+array. The array type could indicate that the array should be
+interpreted as an actual array or that it should be interpreted as an
+object of type ``Group`` or ``Choice``, etc. If it is an array, then
+``<array type>`` is discarded and the rest of the array is the
+converted array. If it is another type of object then again the
+``<array type>`` is discarded and an object is created with the rest
+of the array as its constructor's parameters. All the array's elements
+after ``<array type>`` can be JSON primitive types, or arrays to be
+interpreted as actual arrays or as objects as described above.
+
+It is likely that salve will always support version 0 of the format
+because it is useful for debugging.
+
 License
 =======
 
@@ -374,3 +456,4 @@ Humanities.
 ..  LocalWords:  CeCILL tokenizer Makefile README boolean anyName RST
 ..  LocalWords:  nsName URIs uris enterContext leaveContext xmlns rst
 ..  LocalWords:  definePrefix useNameResolver foons resolveName HD
+..  LocalWords:  args param TEI
