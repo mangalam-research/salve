@@ -3,10 +3,9 @@
 Release History
 ===============
 
-This section covers only salient changes. Releases of the form 0.x.y
-are bug fixes to the corresponding 0.x release.
+This section covers only salient changes.
 
-* 0.14 changes how rng-to-js.xsl generates its output. See the part on
+* 0.14.0 changes how rng-to-js.xsl generates its output. See the part on
   `rng-to-js.xsl`__. Although salve still supports the old output, I
   strongly recommend running ``salve-simplify`` and ``xsltproc``
   with ``rng-to-js.xsl`` to regenerate the JSON that encodes
@@ -15,10 +14,10 @@ are bug fixes to the corresponding 0.x release.
 
   __ rng_to_xsl_
 
-* 0.13 adds name resolving facilities to salve. See the
+* 0.13.0 adds name resolving facilities to salve. See the
   documentation on ``enterContext`` and associated events below.
 
-* 0.12 introduces a major API change. Whereas ``Walker.fireEvent()``
+* 0.12.0 introduces a major API change. Whereas ``Walker.fireEvent()``
   and ``Walker.end()`` used to return ``true`` when there was no
   validation error, they now return ``false`` instead. This makes
   differentiating between error conditions and an absence of error
@@ -96,6 +95,11 @@ Please see the `<package.json>`_ file for details regarding these
 dependencies. The ``salve-simplify`` script requires that ``xmllint`` and
 ``xsltproc`` be installed on your system.
 
+If you want to contribute to salve, your code will have to pass the
+checks listed in `<.glerbl/repo_conf.py>`_. So you either have to
+install glerbl to get those checks done for you or run the checks
+through other means. See Contributing_.
+
 Testing
 =======
 
@@ -128,6 +132,16 @@ below for how preparation happens.) You could copy what is in ``build``
 to a server to serve these files to a client that would then perform
 validation. Future releases will include automatic support for
 minified versions of salve.
+
+Contributing
+============
+
+Contributions must pass the commit checks turned on in
+`<.glerbl/repo_conf.py>`. Use ``glerbl install`` to install the
+hooks. Glerbl itself can be found at
+https://github.com/lddubeau/glerbl. It will eventually make its way to
+the Python package repository so that ``pip install glerbl`` will
+work.
 
 Basic Usage
 ===========
@@ -456,4 +470,4 @@ Humanities.
 ..  LocalWords:  CeCILL tokenizer Makefile README boolean anyName RST
 ..  LocalWords:  nsName URIs uris enterContext leaveContext xmlns rst
 ..  LocalWords:  definePrefix useNameResolver foons resolveName HD
-..  LocalWords:  args param TEI
+..  LocalWords:  args param TEI glerbl
