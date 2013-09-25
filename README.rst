@@ -15,7 +15,9 @@ This section covers only salient changes.
   __ rng_to_xsl_
 
 * 0.13.0 adds name-resolving facilities to salve. See the
-  documentation on ``enterContext`` and associated events below.
+  documentation on ``enterContext`` and `associated events`__ below.
+
+__ Events_
 
 * 0.12.0 introduces a major API change. Whereas ``Walker.fireEvent()``
   and ``Walker.end()`` used to return ``true`` when there was no
@@ -452,9 +454,9 @@ Mangalam Research Center for Buddhist Languages.
 .. image:: https://secure.gravatar.com/avatar/7fc4e7a64d9f789a90057e7737e39b2a
    :target: http://www.mangalamresearch.org/
 
-This software has been made possible in part by a Level I Digital
-Humanities Start-up Grant from the National Endowment for the
-Humanities (grant number HD-51383-11). Any views, findings,
+This software has been made possible in part by a Level I Digital Humanities Start-up Grant
+and a Level II Digital Humanities Start-up Grant from the National Endowment for the Humanities
+(grant numbers HD-51383-11 and HD-51772-13). Any views, findings,
 conclusions, or recommendations expressed in this software do not
 necessarily represent those of the National Endowment for the
 Humanities.
