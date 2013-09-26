@@ -1,5 +1,11 @@
 .. image:: https://travis-ci.org/mangalam-research/salve.png
 
+.. role:: file(literal)
+
+Please note that Github currently does not implement all
+reStructuredText directives, so some links in this readme
+may not work correctly when viewed there.
+
 Release History
 ===============
 
@@ -128,9 +134,9 @@ Or::
 
     $ make
 
-This will create a ``build`` subdirectory in which the JavaScript
+This will create a `<build>`_ subdirectory in which the JavaScript
 necessary to validate XML files against a prepared Relax NG schema. (See
-below for how preparation happens.) You could copy what is in ``build``
+below for how preparation happens.) You could copy what is in `<build>`_
 to a server to serve these files to a client that would then perform
 validation. Future releases will include automatic support for
 minified versions of salve.
@@ -440,7 +446,7 @@ RNG Simplification Code
 The RNG simplification transformation files are adapted from `Nicolas
 Debeissat's code
 <https://code.google.com/p/jsrelaxngvalidator/>`_. They are covered by
-the `CeCILL license <http://www.cecill.info>`_. Some bugs have been
+the `CeCILL license <http://www.cecill.info/index.en.html>`_. Some bugs have been
 corrected and some changes made for salve. For the sake of simplicity,
 these changes are also covered by the CeCILL license.
 
