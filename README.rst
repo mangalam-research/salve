@@ -74,7 +74,7 @@ A full validation solution has the following components:
   schema). This is what salve offers, **and only this!**
 
 A good example of this division of labor can be found in
-``lib/salve/parse.js`` and in the test suite. In both cases the
+`<lib/salve/parse.js>`_ and in the test suite. In both cases the
 tokenizer function is performed by ``sax``, and the parser function is
 performed by a parser object that ``sax`` creates, customized to call
 salve's ``Walker.fireEvent()``.
