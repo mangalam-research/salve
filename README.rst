@@ -1,7 +1,5 @@
 .. image:: https://travis-ci.org/mangalam-research/salve.png
 
-.. role:: file(literal)
-
 Please note that Github currently does not implement all
 reStructuredText directives, so some links in this readme
 may not work correctly when viewed there.
@@ -11,11 +9,11 @@ Release History
 
 This section covers only salient changes.
 
-* 0.14.0 changes how rng-to-js.xsl generates its output. See the section on
-  `rng-to-js.xsl`__. Although salve still supports the old output, I
-  strongly recommend running ``salve-simplify`` and ``xsltproc``
-  with ``rng-to-js.xsl`` to regenerate the JSON that encodes
-  your schema. You can easily get a file which is one order of
+* 0.14.0 changes how rng-to-js.xsl generates its output. See the
+  section on `rng-to-js.xsl`__. Although salve still supports the old
+  output, I strongly recommend running ``salve-simplify`` and
+  ``xsltproc`` with ``rng-to-js.xsl`` to regenerate the JSON that
+  encodes your schema. You can easily get a file which is one order of
   magnitude smaller than those produced by earlier versions of salve.
 
   __ rng_to_xsl_
@@ -97,11 +95,12 @@ packages:
 * mocha
 * chai
 * sax
-* semver-sync (installed so that the ``semver-sync`` executable is in your path).
+* semver-sync (installed so that the ``semver-sync`` executable
+  is in your path).
 
 Please see the `<package.json>`_ file for details regarding these
-dependencies. The ``salve-simplify`` script requires that ``xmllint`` and
-``xsltproc`` be installed on your system.
+dependencies. The ``salve-simplify`` script requires that ``xmllint``
+and ``xsltproc`` be installed on your system.
 
 If you want to contribute to salve, your code will have to pass the
 checks listed in `<.glerbl/repo_conf.py>`_. So you either have to
@@ -318,8 +317,8 @@ For the lazy: it is possible to issue ``enterContext`` for each start
 tag and ``leaveContext`` for each end tag irrespective of whether or
 not the start tag declares new namespaces. The test suite does it this way.
 Note, however, that performance will be affected somewhat because name
-resolution will have to potentially search a deeper stack of contexts than would be
-strictly necessary.
+resolution will have to potentially search a deeper stack of contexts than
+would be strictly necessary.
 
 What determines whether or not you want to use the name resolver
 included with salve is whether or not you need to use salve's cloning
@@ -437,8 +436,8 @@ Original Code
 -------------
 
 Code completely original to salve is released under the `Mozilla Public
-License version 2.0 <http://www.mozilla.org/MPL/2.0/>`_. Copyright Mangalam Research Center for Buddhist
-Languages, Berkeley, CA.
+License version 2.0 <http://www.mozilla.org/MPL/2.0/>`_. Copyright Mangalam
+Research Center for Buddhist Languages, Berkeley, CA.
 
 RNG Simplification Code
 -----------------------
@@ -446,8 +445,8 @@ RNG Simplification Code
 The RNG simplification transformation files are adapted from `Nicolas
 Debeissat's code
 <https://code.google.com/p/jsrelaxngvalidator/>`_. They are covered by
-the `CeCILL license <http://www.cecill.info/index.en.html>`_. Some bugs have been
-corrected and some changes made for salve. For the sake of simplicity,
+the `CeCILL license <http://www.cecill.info/index.en.html>`_. Some bugs have
+been corrected and some changes made for salve. For the sake of simplicity,
 these changes are also covered by the CeCILL license.
 
 Credits

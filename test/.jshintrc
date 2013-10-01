@@ -1,4 +1,6 @@
-{ "globals": 
+{ "globalstrict": true,
+  "maxlen": 80,
+  "globals":
   { "describe": false,
     "it": false,
     "require": false,
