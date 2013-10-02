@@ -1,7 +1,10 @@
-{ "globals": 
+{
+    "globalstrict": true,
+    "maxlen": 80,
+    "globals":
   { "define": false,
     "require": false,
     "process": false,
     "console": false
-  } 
+  }
 }
