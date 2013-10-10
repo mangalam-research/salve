@@ -478,3 +478,4 @@ the Humanities.
 ..  LocalWords:  definePrefix useNameResolver foons resolveName HD
 ..  LocalWords:  args param TEI glerbl Github reStructuredText readme
 ..  LocalWords:  validator namespace RequireJS subdirectory DOM
+..  LocalWords:  Dubeau Mangalam
