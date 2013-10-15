@@ -476,4 +476,6 @@ the Humanities.
 ..  LocalWords:  CeCILL tokenizer Makefile README boolean anyName RST
 ..  LocalWords:  nsName URIs uris enterContext leaveContext xmlns rst
 ..  LocalWords:  definePrefix useNameResolver foons resolveName HD
-..  LocalWords:  args param TEI glerbl
+..  LocalWords:  args param TEI glerbl Github reStructuredText readme
+..  LocalWords:  validator namespace RequireJS subdirectory DOM
+..  LocalWords:  Dubeau Mangalam
