@@ -1,22 +1,64 @@
+
+invoking fireEvent with Event: enterStartTag, , html
 fireEvent returned false
+
+invoking fireEvent with Event: attributeName, , style
 fireEvent returned false
+
+invoking fireEvent with Event: attributeValue, toto
 fireEvent returned false
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , head
 fireEvent returned false
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , title
 fireEvent returned false
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+
+invoking fireEvent with Event: text
 fireEvent returned false
+
+invoking fireEvent with Event: text
 fireEvent returned false
+
+invoking fireEvent with Event: text
 fireEvent returned false
+
+invoking fireEvent with Event: endTag, , title
 fireEvent returned false
+
+invoking fireEvent with Event: endTag, , head
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , body
 fireEvent returned false
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+
+invoking fireEvent with Event: text
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , em
 fireEvent returned false
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+
+invoking fireEvent with Event: endTag, , em
 fireEvent returned must choose either {}b or {}em
+
+invoking fireEvent with Event: endTag, , body
 fireEvent returned false
+
+invoking fireEvent with Event: endTag, , html
 fireEvent returned false
 end returned false

@@ -95,11 +95,18 @@ function makeParser(er, walker, use_name_resolver) {
     return parser;
 }
 
-function EventRecorder(ComparisonEngine) {
+function EventRecorder(ComparisonEngine, options) {
+    options = options || {
+        check_fireEvent_invocation: true,
+        check_possible: true
+    };
+
     this.events = [];
     this.recorded_states = [];
     this.ce = ComparisonEngine;
     this.dont_record_state = false;
+    this.check_fireEvent_invocation = options.check_fireEvent_invocation;
+    this.check_possible = options.check_possible;
 }
 
 EventRecorder.prototype.recordEvent = function (walker) {
@@ -142,18 +149,21 @@ EventRecorder.prototype.issueEvent = function (walker, ev_ix, ev) {
                                    this.ce.exp_ix, ev_ix]);
 
     var nev = new validate.Event(ev_params);
-    this.ce.compare("\ninvoking fireEvent with " + nev.toString(), nev);
+    if (this.check_fireEvent_invocation)
+        this.ce.compare("\ninvoking fireEvent with " + nev.toString(), nev);
     var ret = walker.fireEvent(nev);
     this.ce.compare("fireEvent returned " + errorsToString(ret), nev);
-    var possible_evs = walker.possible().toArray();
-    // We sort events alphabetically, because the
-    // implementation does not guarantee any specific order.
-    possible_evs.sort();
-    if (ev_params[0] !== "enterContext" &&
-        ev_params[0] !== "leaveContext" &&
-        ev_params[0] !== "definePrefix")
-        this.ce.compare("possible events\n" +
-                        validate.eventsToTreeString(possible_evs), nev);
+    if (this.check_possible) {
+        var possible_evs = walker.possible().toArray();
+        // We sort events alphabetically, because the
+        // implementation does not guarantee any specific order.
+        possible_evs.sort();
+        if (ev_params[0] !== "enterContext" &&
+            ev_params[0] !== "leaveContext" &&
+            ev_params[0] !== "definePrefix")
+            this.ce.compare("possible events\n" +
+                            validate.eventsToTreeString(possible_evs), nev);
+    }
 };
 
 function ComparisonEngine(expected) {
@@ -260,47 +270,15 @@ describe("GrammarWalker.fireEvent reports no error on", function () {
                                                     true));
 });
 
-function EventNonRecorder () {
-    EventRecorder.apply(this, arguments);
-}
-
-oop.inherit(EventNonRecorder, EventRecorder);
-
-
-EventNonRecorder.prototype.recordEvent = function (walker) {
-    this.issueEvent(walker, 0, Array.prototype.slice.call(arguments, 1));
-};
-
-EventNonRecorder.prototype.issueEvent = function (walker, ev_ix, ev) {
-    var slice_len = ev.length;
-    if (ev[0] === "leaveStartTag")
-        slice_len = 1;
-    else if (ev[0] === "text") {
-        var text = ev[1];
-        var issue = true;
-        if (text === "") {
-            var text_possible =
-                    walker.possible().filter(function (x) {
-                        return x.params[0] === "text";
-                    });
-            issue = text_possible.length > 0;
-        }
-        if (!issue)
-            return;
-        slice_len = 1;
-    }
-    var ev_params = Array.prototype.slice.call(ev, 0, slice_len);
-
-    var nev = new validate.Event(ev_params);
-    var ret = walker.fireEvent(nev);
-    this.ce.compare("fireEvent returned " + errorsToString(ret), nev);
-};
-
 describe("GrammarWalker.fireEvent",  function () {
     describe("reports errors on", function () {
         var walker;
         var rng;
-        function makeErrorTest(dir) {
+        function makeErrorTest(dir, recorder_options) {
+            recorder_options = recorder_options || {
+                check_fireEvent_invocation: false,
+                check_possible: false
+            };
             return function () {
                 var myrng = rng;
                 // Give it a default
@@ -329,7 +307,7 @@ describe("GrammarWalker.fireEvent",  function () {
                 var expected = expected_source.split("\n");
 
                 var ce = new ComparisonEngine(expected);
-                var er = new EventNonRecorder(ce);
+                var er = new EventRecorder(ce, recorder_options);
 
                 var parser = makeParser(er, walker);
                 parser.write(xml_source).close();
@@ -388,7 +366,10 @@ describe("GrammarWalker.fireEvent",  function () {
                 rng = undefined;
             });
             it("which has a choice not chosen",
-               makeErrorTest("choice_not_chosen"));
+               makeErrorTest("choice_not_chosen", {
+                   check_fireEvent_invocation: true,
+                   check_possible: false
+               }));
         });
 
         it("an attribute without value", function () {
