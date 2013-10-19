@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<rng:grammar xmlns:rng="http://relaxng.org/ns/structure/1.0">
+  <start xmlns="http://relaxng.org/ns/structure/1.0">
+    <ref name="html-idp18208"/>
+  </start>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="html-idp18208">
+    <element>
+      <rng:name ns="">html</rng:name>
+      <rng:group>
+        <group>
+          <ref name="head-idp21424"/>
+          <ref name="body-idp138112"/>
+        </group>
+        <attribute>
+          <rng:name ns="">style</rng:name>
+          <rng:text/>
+        </attribute>
+      </rng:group>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="head-idp21424">
+    <element>
+      <rng:name ns="">head</rng:name>
+      <ref name="title-idp136864"/>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="title-idp136864">
+    <element>
+      <rng:name ns="">title</rng:name>
+      <text/>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="body-idp138112">
+    <element>
+      <rng:name ns="">body</rng:name>
+      <choice>
+        <empty/>
+        <oneOrMore>
+          <choice>
+            <text/>
+            <ref name="em-idp140400"/>
+          </choice>
+        </oneOrMore>
+      </choice>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="em-idp140400">
+    <element>
+      <rng:name ns="">em</rng:name>
+      <rng:group>
+        <choice>
+          <ref name="b-idp143120"/>
+          <ref name="em-idp140400"/>
+        </choice>
+        <ref name="i-idp144384"/>
+      </rng:group>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="b-idp143120">
+    <element>
+      <rng:name ns="">b</rng:name>
+      <text/>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="i-idp144384">
+    <element>
+      <rng:name ns="">i</rng:name>
+      <text/>
+    </element>
+  </define>
+</rng:grammar>

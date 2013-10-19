@@ -370,6 +370,11 @@ describe("GrammarWalker.fireEvent",  function () {
                    check_fireEvent_invocation: true,
                    check_possible: false
                }));
+            it("which has a choice ended by a subsequent item",
+               makeErrorTest("choice_ended_by_following_item", {
+                   check_fireEvent_invocation: true,
+                   check_possible: false
+               }));
         });
 
         it("an attribute without value", function () {

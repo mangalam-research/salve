@@ -4,34 +4,6 @@ Please note that Github currently does not implement all
 reStructuredText directives, so some links in this readme
 may not work correctly when viewed there.
 
-Release History
-===============
-
-This section covers only salient changes.
-
-* 0.14.0 changes how rng-to-js.xsl generates its output. See the
-  section on `rng-to-js.xsl`__. Although salve still supports the old
-  output, I strongly recommend running ``salve-simplify`` and
-  ``xsltproc`` with ``rng-to-js.xsl`` to regenerate the JSON that
-  encodes your schema. You can easily get a file which is one order of
-  magnitude smaller than those produced by earlier versions of salve.
-
-  __ rng_to_xsl_
-
-* 0.13.0 adds name-resolving facilities to salve. See the
-  documentation on ``enterContext`` and `associated events`__ below.
-
-__ Events_
-
-* 0.12.0 introduces a major API change. Whereas ``Walker.fireEvent()``
-  and ``Walker.end()`` used to return ``true`` when there was no
-  validation error, they now return ``false`` instead. This makes
-  differentiating between error conditions and an absence of errors
-  easier. (If the return value is interpreted as the boolean ``true``
-  then there is an error, otherwise there is no error. Previously, one
-  would have to test the return value for identity with the value
-  ``true``, which is more verbose.)
-
 Introduction
 ============
 
@@ -44,7 +16,7 @@ action in `wed <https://github.com/mangalam-research/wed>`_.
 Plans are to support as much Relax NG as possible but for now salve
 has, by conscious design, the following limitations:
 
-* Does not support ``<interleave>``.
+* Does not support ``<interleave>`` or ``<mixed>``.
 * Does not support ``<anyName>``.
 * Does not support ``<except>``.
 * Does not support ``<nsName>``.
@@ -475,7 +447,7 @@ the Humanities.
 ..  LocalWords:  attributeName attributeValue jsdoc Debeissat's API
 ..  LocalWords:  CeCILL tokenizer Makefile README boolean anyName RST
 ..  LocalWords:  nsName URIs uris enterContext leaveContext xmlns rst
-..  LocalWords:  definePrefix useNameResolver foons resolveName HD
+..  LocalWords:  definePrefix useNameResolver foons resolveName HD NG
 ..  LocalWords:  args param TEI glerbl Github reStructuredText readme
 ..  LocalWords:  validator namespace RequireJS subdirectory DOM
 ..  LocalWords:  Dubeau Mangalam
