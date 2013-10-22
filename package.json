@@ -26,7 +26,7 @@
         "mocha": "1.9.x",
         "chai": "1.6.x",
         "sax": "0.5.x",
-        "semver-sync": "git://github.com/mangalam-research/semver-sync.git#node-0.6-execution-fix-version-bump"
+        "semver-sync": ">=1.2.0"
     },
     "bin": {
         "salve-simplify": "./bin/salve-simplify"
