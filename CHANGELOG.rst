@@ -6,16 +6,16 @@
   processed. The bug fix makes it so that the error is reported as
   soon as ``<i>`` is processed.
 
-* 0.14.0 changes how rng-to-js.xsl generates its output. See the
+  * 0.14.0 changes how ``rng-to-js.xsl`` generates its output. See the
   section on ``rng-to-js.xsl`` in the README file. Although salve
   still supports the old output, I strongly recommend running
   ``salve-simplify`` and ``xsltproc`` with ``rng-to-js.xsl`` to
   regenerate the JSON that encodes your schema. You can easily get a
-  file which is one order of magnitude smaller than those produced by
+  file that is one order of magnitude smaller than those produced by
   earlier versions of salve.
 
 * 0.13.0 adds name-resolving facilities to salve. See the
-  documentation events in the README file.
+  documentation about events in the README file.
 
 * 0.12.0 introduces a major API change. Whereas ``Walker.fireEvent()``
   and ``Walker.end()`` used to return ``true`` when there was no
