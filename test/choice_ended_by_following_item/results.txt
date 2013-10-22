@@ -53,8 +53,20 @@ fireEvent returned false
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 
-invoking fireEvent with Event: endTag, , em
+invoking fireEvent with Event: enterStartTag, , i
 fireEvent returned must choose either {}b or {}em
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+
+invoking fireEvent with Event: text
+fireEvent returned false
+
+invoking fireEvent with Event: endTag, , i
+fireEvent returned false
+
+invoking fireEvent with Event: endTag, , em
+fireEvent returned false
 
 invoking fireEvent with Event: endTag, , body
 fireEvent returned false
