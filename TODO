@@ -10,12 +10,14 @@
    memory usage, help editors be more user friendly and possibly be
    faster generally.
 
+* Document why mixins are used in validate.js instead of a class hierarchy.
+
 Context Independence
 ==================
 
 An element is context-independent if the schema does not allow its
 structure to vary depending on where it appears in the document being
-validated. 
+validated.
 
 An element E is context-independent relative to another element C which
 is its parent or preceding sibling if, given that E is a child of C or
@@ -39,13 +41,13 @@ While there are elements not validated:
         If C is not context-independent:
           If C is relatively context-independent:
             Associate C with the definition required by context.
-          Else: 
-            # Is this possible??? It seems to me that E would 
+          Else:
+            # Is this possible??? It seems to me that E would
             # also have to be variant or have no definition associated with it
-            # for this to happen. 
+            # for this to happen.
       Remove E from the set of non-validated elements
-    # Else we skip it   
-      
+    # Else we skip it
+
 The algorithm above, if correct should empty the set of non-validated
 elements. If not, there's an error in the algorithm.
 
