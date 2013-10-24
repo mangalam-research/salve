@@ -1,38 +1,46 @@
 {
-    "name": "salve",
-    "description": "Salve is a Javascript library which implements a validator able to validate an XML document on the basis of a subset of RelaxNG.",
-    "version": "0.14.1",
-    "versionedSources": "lib/salve/validate.js",
-    "keywords": ["RelaxNG", "rng", "XML", "validation"],
-    "homepage" : "https://github.com/mangalam-research/salve",
-    "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
-    "main": "lib/salve/validate.js",
-    "repository" : {
-        "type" : "git",
-        "url" : "https://github.com/mangalam-research/salve.git"
-    },
-    "licenses": [ {
-        "type": "MPL",
-        "url": "https://www.mozilla.org/MPL/2.0/"
+  "name": "salve",
+  "description": "Salve is a Javascript library which implements a validator able to validate an XML document on the basis of a subset of RelaxNG.",
+  "version": "0.14.1",
+  "versionedSources": "lib/salve/validate.js",
+  "keywords": [
+    "RelaxNG",
+    "rng",
+    "XML",
+    "validation"
+  ],
+  "homepage": "https://github.com/mangalam-research/salve",
+  "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
+  "main": "lib/salve/validate.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mangalam-research/salve.git"
+  },
+  "licenses": [
+    {
+      "type": "MPL",
+      "url": "https://www.mozilla.org/MPL/2.0/"
     },
     {
-        "type": "CeCILL",
-        "url": "http://www.cecill.info"
-    }],
-    "dependencies": {
-        "amd-loader": "~0.0.4"
-    },
-    "devDependencies": {
-        "mocha": "1.9.x",
-        "chai": "1.6.x",
-        "sax": "0.5.x",
-        "semver-sync": ">=1.2.0"
-    },
-    "bin": {
-        "salve-simplify": "./bin/salve-simplify"
-    },
-    "scripts": {
-        "test": "make test",
-        "postinstall": "make build"
+      "type": "CeCILL",
+      "url": "http://www.cecill.info"
     }
+  ],
+  "dependencies": {
+    "amd-loader": "~0.0.4"
+  },
+  "devDependencies": {
+    "mocha": "1.9.x",
+    "chai": "1.6.x",
+    "sax": "0.5.x",
+    "semver-sync": ">=1.2.0",
+    "jake": "~0.7.2"
+  },
+  "bin": {
+    "salve-simplify": "./bin/salve-simplify"
+  },
+  "scripts": {
+    "test": "make test",
+    "postinstall": "make build"
+  }
 }
