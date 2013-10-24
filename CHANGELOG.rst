@@ -1,3 +1,5 @@
+Only major changes are reported here.
+
 * 0.14.1: in prior versions, ``<rng:group>`` would sometimes report an
   error later than the earliest event it could report it on. To
   illustrate, imagine the following content model for the ``em``
