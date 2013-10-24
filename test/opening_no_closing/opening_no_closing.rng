@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar ns="" xmlns="http://relaxng.org/ns/structure/1.0">
+  <start>
+    <ref name="html"/>
+  </start>
+  <define name="html">
+    <element name="html">
+      <oneOrMore>
+        <ref name="q"/>
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="q">
+    <element name="q">
+      <text/>
+    </element>
+  </define>
+</grammar>

@@ -375,6 +375,19 @@ describe("GrammarWalker.fireEvent",  function () {
                    check_fireEvent_invocation: true,
                    check_possible: false
                }));
+
+            it("which has a one-or-more prematurely ended",
+               makeErrorTest("one_or_more_not_satisfied", {
+                   check_fireEvent_invocation: true,
+                   check_possible: false
+               }));
+
+            it("top-level opening tag without closing",
+               makeErrorTest("opening_no_closing", {
+                   check_fireEvent_invocation: true,
+                   check_possible: false
+               }));
+
         });
 
         it("an attribute without value", function () {

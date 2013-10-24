@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<rng:grammar xmlns:rng="http://relaxng.org/ns/structure/1.0">
+  <start xmlns="http://relaxng.org/ns/structure/1.0">
+    <ref name="html-idp37661232"/>
+  </start>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="html-idp37661232">
+    <element>
+      <rng:name ns="">html</rng:name>
+      <rng:group>
+        <group>
+          <ref name="head-idp37664448"/>
+          <ref name="body-idp37781168"/>
+        </group>
+        <attribute>
+          <rng:name ns="">style</rng:name>
+          <rng:text/>
+        </attribute>
+      </rng:group>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="head-idp37664448">
+    <element>
+      <rng:name ns="">head</rng:name>
+      <ref name="title-idp37779808"/>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="title-idp37779808">
+    <element>
+      <rng:name ns="">title</rng:name>
+      <text/>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="body-idp37781168">
+    <element>
+      <rng:name ns="">body</rng:name>
+      <choice>
+        <empty/>
+        <oneOrMore>
+          <choice>
+            <text/>
+            <ref name="em-idp37783424"/>
+          </choice>
+        </oneOrMore>
+      </choice>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="em-idp37783424">
+    <element>
+      <rng:name ns="">em</rng:name>
+      <oneOrMore>
+        <ref name="b-idp37785136"/>
+      </oneOrMore>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="b-idp37785136">
+    <element>
+      <rng:name ns="">b</rng:name>
+      <text/>
+    </element>
+  </define>
+</rng:grammar>
