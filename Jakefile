@@ -52,21 +52,6 @@ task('buildlib', 'build/lib', {async: true}, function() {
     console.log('\nDone');
     complete();
 });
-// task('buildlib', ['build/lib'], {async: true}, function() {
-//     var filearr = jake.readdirR('lib');
-//     function globFiles(element, index, array) {
-//         extension = element.substr((~-element.lastIndexOf(".") >>> 0) + 2);
-//         if (element != 'lib/salve/parse.js' &&
-//             (extension =='js' || extension == 'xsl')) {
-//             cmd =
-//             console.log(element);
-//             jake.exec( element);
-//             }
-//         }
-//     filearr.forEach(globFiles);
-//     complete();
-//     });
-
 
 task('default', ['buildlib'], function() {});
 
