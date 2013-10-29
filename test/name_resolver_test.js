@@ -168,6 +168,11 @@ describe("NameResolver", function () {
             assert.equal(resolver.unresolveName("uri:X", "blah"),
                          "blah");
         });
+        it("handles attribute names outside namespaces",
+           function () {
+            assert.equal(resolver.unresolveName("", "blah"),
+                         "blah");
+        });
     });
 
     describe("clone", function () {
