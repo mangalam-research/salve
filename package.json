@@ -26,7 +26,8 @@
         "mocha": "1.9.x",
         "chai": "1.6.x",
         "sax": "0.5.x",
-        "semver-sync": ">=1.2.0"
+        "semver-sync": ">=1.2.0",
+        "jake": "~0.7.2"
     },
     "bin": {
         "salve-simplify": "./bin/salve-simplify"
