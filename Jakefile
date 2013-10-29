@@ -1,7 +1,10 @@
 var path = require('path');
 
-var rst2html = 'rst2html';
-var jsdoc3 = 'jsdoc';
+var rst2htmlcmd = 'rst2html';
+var jsdoc3cmd = 'jsdoc';
+var semvercmd = 'semver-sync -v';
+var mochacmd = 'mocha';
+if (process.env['MOCHA_PARAMS']) mochacmd += ' ' + process.env['MOCHA_PARAMS'];
 
 var src_globs = path.join('lib', '**');
 var dest_globs = path.join('build', src_globs);
@@ -26,7 +29,7 @@ namespace('docs', function() {
 
     desc('Create documentation for JavaScript scripts');
     task('jsdoc', [doc_dest_dir], {async: true}, function(){
-        cmd = jsdoc3 + ' -d ' + doc_dest_dir + ' -r lib';
+        var cmd = jsdoc3cmd + ' -d ' + doc_dest_dir + ' -r lib';
         console.log('Compiling documentation for JavaScript scripts\n');
         jake.exec(cmd, function() {
             console.log('Done');
@@ -37,7 +40,7 @@ namespace('docs', function() {
     desc('Create documentation for JavaScript scripts including private methods' +
          'and objects');
     task('jsdoc_priv', [doc_dest_dir], {async: true}, function(){
-        cmd = jsdoc3 + ' -p -d ' + doc_dest_dir + ' -r lib';
+        var cmd = jsdoc3cmd + ' -p -d ' + doc_dest_dir + ' -r lib';
         console.log(cmd);
         console.log('Compiling private documentation for JavaScript scripts\n');
         jake.exec(cmd, function() {
@@ -48,7 +51,7 @@ namespace('docs', function() {
 
     desc('Create README.html from README.rst');
     file('README.html', [doc_dest_dir, 'README.rst'], {async: true}, function(){
-        cmd = rst2html + ' README.rst README.html';
+        var cmd = rst2htmlcmd + ' README.rst README.html';
         console.log('Compiling README.html from rst\n');
         jake.exec(cmd, function() {
             console.log('Done');
@@ -73,6 +76,22 @@ task('copysrc', lib_dest_dir, {async: true}, function() {
     console.log('\nDone');
     complete();
 });
+
+desc('Run tests for salve');
+namespace('tests', function () {
+    task('semver', function () {
+        jake.exec(semvercmd, {printStdout: true, printStderr: true}, function(){});
+        complete();
+    });
+    task('mocha', function () {
+        jake.exec(mochacmd, {printStdout: true, printStderr: true}, function(){});
+        complete();
+    });
+});
+
+desc('Run salve tests');
+task('test', ['copysrc', 'tests:semver', 'tests:mocha'], function() {});
+
 
 task('default', ['copysrc'], function() {});
 task('doc', ['docs:README.html','docs:jsdoc'], function() {});
