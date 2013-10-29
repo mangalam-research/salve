@@ -1,0 +1,8 @@
+<html invalid="toto">
+  <head><title>ab&amp;
+cd&amp;
+ef</title></head>
+<body>
+abc
+</body>
+</html>
