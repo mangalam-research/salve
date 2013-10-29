@@ -22,46 +22,46 @@ task('clean', [], function() {
     });
 
 desc('Create documentation for the project');
-task('doc', ['README.html', 'jsdoc']);
+namespace('docs', function() {
 
-//Perhaps add a namespace so that doc tasks are grouped together
+    desc('Create documentation for JavaScript scripts');
+    task('jsdoc', [doc_dest_dir], {async: true}, function(){
+        cmd = jsdoc3 + ' -d ' + doc_dest_dir + ' -r lib';
+        console.log('Compiling documentation for JavaScript scripts\n');
+        jake.exec(cmd, function() {
+            console.log('Done');
+            complete();
+        });
+    });
 
-desc('Create documentation for JavaScript scripts');
-task('jsdoc', [doc_dest_dir], {async: true}, function(){
-    cmd = jsdoc3 + ' -d ' + doc_dest_dir + ' -r lib';
-    console.log('Compiling documentation for JavaScript scripts\n');
-    jake.exec(cmd, function() {
-        console.log('Done');
-        complete();
+    desc('Create documentation for JavaScript scripts including private methods' +
+         'and objects');
+    task('jsdoc_priv', [doc_dest_dir], {async: true}, function(){
+        cmd = jsdoc3 + ' -p -d ' + doc_dest_dir + ' -r lib';
+        console.log(cmd);
+        console.log('Compiling private documentation for JavaScript scripts\n');
+        jake.exec(cmd, function() {
+            console.log('Done');
+            complete();
+        });
+    });
+
+    desc('Create README.html from README.rst');
+    file('README.html', [doc_dest_dir, 'README.rst'], {async: true}, function(){
+        cmd = rst2html + ' README.rst README.html';
+        console.log('Compiling README.html from rst\n');
+        jake.exec(cmd, function() {
+            console.log('Done');
+            complete();
+        });
     });
 });
-
-desc('Create README.html from README.rst');
-file('README.html', [doc_dest_dir, 'README.rst'], {async: true}, function(){
-    cmd = rst2html + ' README.rst README.html';
-    console.log('Compiling README.html from rst\n');
-    jake.exec(cmd, function() {
-        console.log('Done');
-        complete();
-    });
-});
-
-
 
 var src_file_list = new jake.FileList();
 src_file_list.include(path.join(src_globs, '*.js'));
 src_file_list.include(path.join(src_globs, '*.xsl'));
 src_file_list.exclude(/parse.js/);
 
-// var dest_file_list = new jake.FileList();
-// src_file_list.toArray().forEach(function (element, index, array) {
-//     dest_file_list.include(path.join(dest_dir, element));
-//  });
-
-// Not totally convinced that I can't make jake check
-// to see if files have been modified
-// Have to use "file", which would require getting all of the
-// files to be built in one file task
 desc('Copy JavaScript source to build directory');
 task('copysrc', lib_dest_dir, {async: true}, function() {
     console.log('Copying to build directory\n');
@@ -75,5 +75,5 @@ task('copysrc', lib_dest_dir, {async: true}, function() {
 });
 
 task('default', ['copysrc'], function() {});
-
+task('doc', ['docs:README.html','docs:jsdoc'], function() {});
 //  LocalWords:  html jsdoc README rst js xsl copysrc LocalWords
