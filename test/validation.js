@@ -388,6 +388,11 @@ describe("GrammarWalker.fireEvent",  function () {
                    check_possible: false
                }));
 
+            it("invalid attribute",
+               makeErrorTest("invalid_attribute", {
+                   check_fireEvent_invocation: true,
+                   check_possible: false
+               }));
         });
 
         it("an attribute without value", function () {
