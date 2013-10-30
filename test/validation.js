@@ -268,6 +268,9 @@ describe("GrammarWalker.fireEvent reports no error on", function () {
     // Use the name resolver.
     it("a tei file, with namespaces", makeValidTest("namespaces",
                                                     true));
+
+    it("a tei file using a more complex schema",
+       makeValidTest("tei-with-modules"));
 });
 
 describe("GrammarWalker.fireEvent",  function () {
