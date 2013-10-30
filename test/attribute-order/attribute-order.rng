@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar ns="" xmlns="http://relaxng.org/ns/structure/1.0">
+  <start>
+    <ref name="html"/>
+  </start>
+  <define name="html">
+    <element name="html">
+      <oneOrMore>
+        <choice>
+          <text/>
+          <ref name="em"/>
+        </choice>
+      </oneOrMore>
+    </element>
+  </define>
+  <define name="em">
+    <element name="em">
+      <text/>
+      <attribute name="attr-a"/>
+      <attribute name="attr-b"/>
+      <attribute name="attr-c"/>
+    </element>
+  </define>
+</grammar>

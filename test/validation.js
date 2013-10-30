@@ -420,6 +420,78 @@ describe("GrammarWalker.fireEvent",  function () {
         });
     });
 
+    describe("handles valid documents having", function () {
+        it("attributes in any valid order", function () {
+            // Read the RNG tree.
+            var source = fileAsString(
+                "test/attribute-order/simplified-rng.js");
+
+            var tree;
+            tree = validate.constructTree(source);
+            var walker = tree.newWalker();
+            var ret = walker.fireEvent(
+                new validate.Event("enterStartTag", "", "html"));
+            assert.isFalse(ret);
+            ret = walker.fireEvent(
+                new validate.Event("leaveStartTag", "", "html"));
+            assert.isFalse(ret);
+
+            var permutations = [
+                ["attr-a", "attr-b", "attr-c"],
+                ["attr-a", "attr-c", "attr-b"],
+                ["attr-b", "attr-a", "attr-c"],
+                ["attr-b", "attr-c", "attr-a"],
+                ["attr-c", "attr-a", "attr-b"],
+                ["attr-c", "attr-b", "attr-a"]
+            ];
+            var stub =
+                "attributeName:\n" +
+                "    :\n" +
+                "        ";
+            permutations.forEach(function (perm) {
+                var ret = walker.fireEvent(
+                    new validate.Event("enterStartTag", "", "em"));
+                assert.isFalse(ret, "entering em");
+
+                var possible = [];
+                perm.forEach(function (attr) {
+                    possible.push(attr);
+                });
+                perm.forEach(function (attr) {
+                    var sorted = possible.slice().sort();
+                    assert.equal(
+                        validate.eventsToTreeString(walker.possible()),
+                        stub + sorted.join("\n        ") + "\n");
+
+                    ret = walker.fireEvent(
+                        new validate.Event("attributeName", "", attr));
+                    assert.isFalse(ret);
+
+                    // We've seen it. This array is in the same order
+                    // as perm.
+                    possible.shift();
+
+                    ret = walker.fireEvent(
+                        new validate.Event("attributeValue", "x"));
+                    assert.isFalse(ret);
+
+                    // Seen all possible attributes.
+                    if (!possible.length)
+                        assert.equal(
+                            validate.eventsToTreeString(walker.possible()),
+                            "leaveStartTag\n");
+                });
+
+                ret = walker.fireEvent(
+                    new validate.Event("leaveStartTag"));
+                assert.isFalse(ret);
+                ret = walker.fireEvent(
+                    new validate.Event("endTag", "", "em"));
+                assert.isFalse(ret);
+            });
+        });
+    });
+
     // These tests deal with situations that would probably occur if
     // the tokenizer or parser which feeds events to salve is
     // broken.
