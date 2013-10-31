@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<rng:grammar xmlns:rng="http://relaxng.org/ns/structure/1.0">
+  <start xmlns="http://relaxng.org/ns/structure/1.0">
+    <ref name="html-idp36379104"/>
+  </start>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="html-idp36379104">
+    <element>
+      <rng:name ns="">html</rng:name>
+      <oneOrMore>
+        <choice>
+          <text/>
+          <ref name="em-idp36381136"/>
+        </choice>
+      </oneOrMore>
+    </element>
+  </define>
+  <define xmlns="http://relaxng.org/ns/structure/1.0" name="em-idp36381136">
+    <element>
+      <rng:name ns="">em</rng:name>
+      <rng:group>
+        <rng:group>
+          <rng:group>
+            <text/>
+            <attribute>
+              <rng:name ns="">attr-a</rng:name>
+              <rng:text/>
+            </attribute>
+          </rng:group>
+          <attribute>
+            <rng:name ns="">attr-b</rng:name>
+            <rng:text/>
+          </attribute>
+        </rng:group>
+        <attribute>
+          <rng:name ns="">attr-c</rng:name>
+          <rng:text/>
+        </attribute>
+      </rng:group>
+    </element>
+  </define>
+</rng:grammar>
