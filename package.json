@@ -32,7 +32,7 @@
         "semver-sync": ">=1.2.0"
     },
     "bin": {
-        "salve-simplify": "./bin/salve-simplify"
+        "salve-convert": "./bin/salve-convert"
     },
     "scripts": {
         "test": "make test",
