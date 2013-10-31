@@ -19,6 +19,7 @@
         "type": "CeCILL",
         "url": "http://www.cecill.info"
     }],
+    "engines" : { "node" : ">=0.8.0 <0.12" },
     "dependencies": {
         "amd-loader": "~0.0.4",
         "argparse": "~0.1.15",
