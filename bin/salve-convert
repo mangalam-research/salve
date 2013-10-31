@@ -1,0 +1,287 @@
+#!/usr/bin/env node
+
+'use strict';
+
+require("amd-loader");
+var temp = require("temp");
+temp.track();
+
+//
+// Safety harness
+//
+
+function Fatal(msg) {
+    this.name = "Fatal";
+    this.message = msg;
+}
+Fatal.prototype = new Error();
+Fatal.prototype.constructor = Fatal;
+
+var terminating = false;
+process.on('uncaughtException', function (ex) {
+    // We don't want to handle exceptions that happen while we're terminating.
+    if (terminating)
+        return;
+
+    terminating = true;
+    if (ex instanceof Fatal) {
+        console.log(ex.message);
+        process.exit(1);
+    }
+    else
+        throw ex;
+});
+
+//
+// The real logic begins here.
+//
+
+var salve = require("../");
+var formats = require("../lib/salve/formats");
+var patterns = require("../lib/salve/patterns");
+var oop = require("../lib/salve/oop");
+var spawn = require("child_process").spawn;
+var path = require("path");
+var fs = require("fs");
+var ArgumentParser = require("argparse").ArgumentParser;
+
+var parser = new ArgumentParser({
+    addHelp: true,
+    description: 'Converts a simplified RNG file to a JavaScript file '+
+        'that salve can use.'});
+
+parser.addArgument(['--version'], {
+    action: 'version',
+    version: salve.version,
+    help: "Shows version number and exit."
+});
+parser.addArgument(["--no-optimize-ids"], {
+    help: "Do NOT optimize the identifiers used by references and definitions.",
+    action: "storeTrue"
+});
+parser.addArgument(["--include-paths"], {
+    help: "Include RNG node path information in the JavaScript file.",
+    action: "storeTrue"
+});
+parser.addArgument(["--format-version"], {
+    help: "Version number of the JavaScript format that the tool must produce.",
+    defaultValue: 1
+});
+parser.addArgument(["--simplify-only"], {
+    help: "Stop converting at the simplification stage.",
+    action: "storeTrue"
+});
+parser.addArgument(["--simplified-input"], {
+    help: "The input is as simplified RNG.",
+    action: "storeTrue"
+});
+parser.addArgument(["--keep-temp"], {
+    help: "Keep the temporary files around. Useful for diagnosis.",
+    action: "storeTrue"
+});
+parser.addArgument(["-v", "--verbose"], {
+    help: "Run verbosely.",
+    action: "storeTrue"
+});
+
+
+parser.addArgument(["input_path"]);
+parser.addArgument(["output_path"]);
+
+var args = parser.parseArgs();
+
+// We can't optimize ids when the version is less than 1.
+if (args.format_version < 1) {
+    if (args.verbose)
+        console.log("Cannot optimize ids for format version " +
+                    args.format_version + "; turning off id optimization.");
+    args.no_optimize_ids = true;
+}
+
+if (args.simplified_input)
+    convert(args.input_path);
+else {
+    // Grab the xsl files that form the simplification process, and store
+    // these paths in ``steps``.
+    var lib_path = path.resolve(__dirname, path.join("..", "lib", "salve",
+                                                     "rng-simplification"));
+    var steps = fs.readdirSync(lib_path);
+    var step_re = /^rng-simplification_step(\d*?).xsl$/;
+    steps = steps.filter(function (file) {
+        return file.match(step_re);
+    });
+
+    // The filter step above ensures the regexp match.
+    steps.sort(function (a, b) {
+        return parseInt(a.match(step_re)[1]) -
+            parseInt(b.match(step_re)[1]);
+    });
+
+    steps = steps.map(function (file) {
+        return path.join(lib_path, file);
+    });
+
+    if (args.verbose)
+        console.log("Simplifying...");
+
+    var temp_dir = temp.mkdirSync({prefix: "salve-convert"});
+
+    if (args.keep_temp) {
+        temp.track(false);
+        console.log("Temporary files in: " + temp_dir);
+    }
+
+    executeStep(0, 1, args.input_path, convert);
+}
+
+/**
+ * @param {Integer} step_no The index in <code>steps</code> of the
+ * step we are running.
+ * @param {Integer} step_label The step label. (For human
+ * consumption. This does not skip numbers.)
+ * @param {String} in_path Path of the input file for this step.
+ * @param {Function} after Callback to run after all steps.
+ */
+function executeStep(step_no, step_label, in_path, after) {
+    if (step_no >= steps.length)
+        return after(in_path);
+
+    var step = steps[step_no];
+    var out_path = path.join(temp_dir, "out" + step_label + ".rng");
+    var child = spawn("xsltproc", ["-o", out_path, step, in_path],
+                      {stdio: "inherit"});
+    child.on('exit', function (status) {
+        if (status)
+            throw new Fatal("xsltproc terminated with status: " + status);
+
+        return executeStep(step_no + 1, step_label + 1, out_path, after);
+    });
+}
+
+/**
+ * Meant to be used as the <code>after</code> call back for
+ * <code>executeStep</code>. Performs the conversion from RNG to JS.
+ *
+ * @param {String} simplified_path Path pointing to the result of the
+ * simplification.
+ */
+function convert(simplified_path) {
+    if (args.simplify_only) {
+        var child = spawn("xmllint",
+                          ["--format", "--output", args.output_path,
+                           simplified_path],
+                          {stdio: "inherit"});
+        child.on('exit', process.exit.bind(undefined, 0));
+        return;
+    }
+
+    if (args.verbose)
+        console.log("Transforming RNG to JavaScript...");
+    var xsltproc_args = ["--param", "output-version", args.format_version,
+                         "-o", args.output_path,
+                          path.resolve(__dirname,
+                                       path.join("..", "lib", "salve",
+                                                 "rng-to-js.xsl")),
+                simplified_path];
+
+    if (args.include_paths)
+        xsltproc_args = ["--param", "output-paths",
+                         "true()"].concat(xsltproc_args);
+
+    var xsltproc = spawn("xsltproc",
+                         xsltproc_args,
+                         {stdio: "inherit"});
+
+    var V1JSONWalker = formats.__protected.V1JSONWalker;
+    function NameGatherer() {
+        V1JSONWalker.apply(this, arguments);
+        this.names = {};
+    }
+    oop.inherit(NameGatherer, V1JSONWalker);
+
+    NameGatherer.prototype._processObject = function(array, ctor, args) {
+        if (ctor === patterns.__protected.Ref ||
+            ctor === patterns.__protected.Define) {
+            var name = args[1];
+            if (!(name in this.names))
+                this.names[name] = 0;
+
+            this.names[name]++;
+        }
+    };
+
+    var constructors = [];
+    (function () {
+        var name_to_constructor = formats.__protected.name_to_constructor;
+        var i = 0;
+        while(name_to_constructor[i]) {
+            constructors[i] = name_to_constructor[i];
+            i++;
+        }
+    })();
+
+
+    function Renamer(options, names) {
+        V1JSONWalker.apply(this, [options]);
+        this.names = names;
+    }
+    oop.inherit(Renamer, V1JSONWalker);
+
+    Renamer.prototype._processObject = function(array, ctor, args) {
+        if (ctor === patterns.__protected.Ref ||
+            ctor === patterns.__protected.Define) {
+            args[1] = this.names[args[1]];
+        }
+
+        if ((this.options & formats.__protected.OPTION_NO_PATHS) &&
+            ctor !== patterns.__protected.EName)
+            args = args.slice(1);
+
+        return [constructors.indexOf(ctor)].concat(args);
+    };
+
+    Renamer.prototype._processArray = function(array) {
+        return this._walkArray(array);
+    };
+
+    xsltproc.on('exit', function (status) {
+        if (status)
+            throw new Fatal("xsltproc terminated with status: " + status);
+
+        if (!args.no_optimize_ids) {
+            if (args.verbose)
+                console.log("Optimizing ids...");
+            var parsed = JSON.parse(fs.readFileSync(args.output_path));
+
+            // Gather names
+            var version = parsed.v;
+            if (version === 1) {
+                var g = new NameGatherer(parsed.o);
+                g.walkObject(parsed.d);
+                var names = g.names;
+                var sorted = Object.keys(names).map(function (key) {
+                    return {key: key, freq: names[key]};
+                });
+                sorted.sort(function(a, b) {
+                    // Yes, we want to sort in reverse order of frequency
+                    return b.freq - a.freq;
+                });
+                var id = 1;
+                var new_names = {};
+                sorted.forEach(function (elem) {
+                    new_names[elem.key] = id++;
+                });
+                var renamer = new Renamer(parsed.o, new_names);
+                parsed.d = renamer.walkObject(parsed.d);
+                var to_write = '{"v":' + JSON.stringify(parsed.v) +
+                        ',"o":' + JSON.stringify(parsed.o) +
+                        ',"d":' + JSON.stringify(parsed.d) + '}';
+                fs.writeFileSync(args.output_path, to_write);
+            }
+            else
+                throw new Fatal("unknown converted version: " + version);
+        }
+
+        process.exit(0);
+    });
+}

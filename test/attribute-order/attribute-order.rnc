@@ -1,0 +1,10 @@
+default namespace = ""
+namespace rng = "http://relaxng.org/ns/structure/1.0"
+
+start = html
+html = element html { (text | em)+ }
+em = element em { text,
+   attribute attr-a {text},
+   attribute attr-b {text},
+   attribute attr-c {text}
+}
