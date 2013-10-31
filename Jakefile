@@ -1,13 +1,15 @@
 var path = require('path');
 
-var rst2htmlcmd = 'rst2html';
-var jsdoc3cmd = 'jsdoc';
-var semvercmd = 'semver-sync -v';
-var mochacmd = 'mocha';
-if (process.env['MOCHA_PARAMS']) mochacmd += ' ' + process.env['MOCHA_PARAMS'];
+var localconfig = require('local.jake');
+
+
+var rst2htmlcmd = (localconfig.rst2htmlcmd) ? localconfig.rst2htmlcmd : 'rst2html';
+var jsdoc3cmd = (localconfig.jsdoc3cmd) ? localconfig.jsdoc3cmd : 'jsdoc';
+var semvercmd = (localconfig.semvercmd) ? localconfig.semvercmd :'semver-sync';
+var mochacmd = (localconfig.mochacmd) ? localconfig.mochacmd : 'mocha';
+if (process.env['mocha_params']) mochacmd += ' ' + process.env['mocha_params'];
 
 var src_globs = path.join('lib', '**');
-var dest_globs = path.join('build', src_globs);
 
 var dest_dir = 'build';
 var lib_dest_dir = path.join(dest_dir, 'lib');
@@ -22,7 +24,7 @@ desc('Remove build directory and all files');
 task('clean', [], function() {
     jake.rmRf(dest_dir);
     jake.rmRf('README.html');
-    });
+});
 
 desc('Create documentation for the project');
 namespace('docs', function() {
@@ -65,34 +67,44 @@ src_file_list.include(path.join(src_globs, '*.js'));
 src_file_list.include(path.join(src_globs, '*.xsl'));
 src_file_list.exclude(/parse.js/);
 
-desc('Copy JavaScript source to build directory');
-task('copysrc', lib_dest_dir, {async: true}, function() {
-    console.log('Copying to build directory\n');
-    src_file_list.toArray().forEach(function (element, index, array) {
-        var out_path = path.join(dest_dir, path.dirname(element));
-        jake.mkdirP(out_path);
-        jake.cpR(element, out_path);
+var dst_file_list = [];
+src_file_list.forEach(function (x) {
+    var dst = path.join("build", x);
+    dst_file_list.push(dst);
+    file(dst, [x], function () {
+        jake.mkdirP(path.dirname(this.name));
+        jake.cpR(this.prereqs[0], this.name);
     });
-    console.log('\nDone');
-    complete();
 });
+
+// desc('Copy JavaScript source to build directory');
+// task('copysrc', lib_dest_dir, {async: true}, function() {
+//     console.log('Copying to build directory\n');
+//     src_file_list.toArray().forEach(function (element, index, array) {
+//         var out_path = path.join(dest_dir, path.dirname(element));
+//         jake.mkdirP(out_path);
+//         jake.cpR(element, out_path);
+//     });
+//     console.log('\nDone');
+//     complete();
+// });
 
 desc('Run tests for salve');
 namespace('tests', function () {
     task('semver', function () {
-        jake.exec(semvercmd, {printStdout: true, printStderr: true}, function(){});
+        jake.exec(semvercmd + ' -v', {printStdout: true, printStderr: true});
         complete();
     });
     task('mocha', function () {
-        jake.exec(mochacmd, {printStdout: true, printStderr: true}, function(){});
+        jake.exec(mochacmd, {printStdout: true, printStderr: true});
         complete();
     });
 });
 
 desc('Run salve tests');
-task('test', ['copysrc', 'tests:semver', 'tests:mocha'], function() {});
+task('test', dst_file_list.concat(['tests:semver', 'tests:mocha']));
 
 
-task('default', ['copysrc'], function() {});
-task('doc', ['docs:README.html','docs:jsdoc'], function() {});
+task('default', dst_file_list);
+task('doc', ['docs:README.html','docs:jsdoc']);
 //  LocalWords:  html jsdoc README rst js xsl copysrc LocalWords
