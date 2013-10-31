@@ -268,6 +268,9 @@ describe("GrammarWalker.fireEvent reports no error on", function () {
     // Use the name resolver.
     it("a tei file, with namespaces", makeValidTest("namespaces",
                                                     true));
+
+    it("a tei file using a more complex schema",
+       makeValidTest("tei-with-modules"));
 });
 
 describe("GrammarWalker.fireEvent",  function () {
@@ -349,6 +352,23 @@ describe("GrammarWalker.fireEvent",  function () {
                makeErrorTest("missing_element"));
         });
 
+        describe("a tei-based file (using v1, optimized ids)", function () {
+            before(function () {
+                rng = "test/tei/simplified-rng-v1-optimized-ids.js";
+            });
+            it("which is empty", makeErrorTest("empty"));
+            it("which has an unclosed element",
+               makeErrorTest("not_closed1"));
+            it("which has two unclosed elements",
+               makeErrorTest("not_closed2"));
+            it("which has two unclosed elements, with contents",
+               makeErrorTest("not_closed3"));
+            it("which has a missing namespace",
+               makeErrorTest("missing_namespace"));
+            it("which has a missing element",
+               makeErrorTest("missing_element"));
+        });
+
         describe("a simple schema", function () {
             before(function () {
                 rng = "test/simple/simplified-rng.js";
@@ -414,6 +434,78 @@ describe("GrammarWalker.fireEvent",  function () {
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(),
                          "attribute not allowed here: {}style");
+        });
+    });
+
+    describe("handles valid documents having", function () {
+        it("attributes in any valid order", function () {
+            // Read the RNG tree.
+            var source = fileAsString(
+                "test/attribute-order/simplified-rng.js");
+
+            var tree;
+            tree = validate.constructTree(source);
+            var walker = tree.newWalker();
+            var ret = walker.fireEvent(
+                new validate.Event("enterStartTag", "", "html"));
+            assert.isFalse(ret);
+            ret = walker.fireEvent(
+                new validate.Event("leaveStartTag", "", "html"));
+            assert.isFalse(ret);
+
+            var permutations = [
+                ["attr-a", "attr-b", "attr-c"],
+                ["attr-a", "attr-c", "attr-b"],
+                ["attr-b", "attr-a", "attr-c"],
+                ["attr-b", "attr-c", "attr-a"],
+                ["attr-c", "attr-a", "attr-b"],
+                ["attr-c", "attr-b", "attr-a"]
+            ];
+            var stub =
+                "attributeName:\n" +
+                "    :\n" +
+                "        ";
+            permutations.forEach(function (perm) {
+                var ret = walker.fireEvent(
+                    new validate.Event("enterStartTag", "", "em"));
+                assert.isFalse(ret, "entering em");
+
+                var possible = [];
+                perm.forEach(function (attr) {
+                    possible.push(attr);
+                });
+                perm.forEach(function (attr) {
+                    var sorted = possible.slice().sort();
+                    assert.equal(
+                        validate.eventsToTreeString(walker.possible()),
+                        stub + sorted.join("\n        ") + "\n");
+
+                    ret = walker.fireEvent(
+                        new validate.Event("attributeName", "", attr));
+                    assert.isFalse(ret);
+
+                    // We've seen it. This array is in the same order
+                    // as perm.
+                    possible.shift();
+
+                    ret = walker.fireEvent(
+                        new validate.Event("attributeValue", "x"));
+                    assert.isFalse(ret);
+
+                    // Seen all possible attributes.
+                    if (!possible.length)
+                        assert.equal(
+                            validate.eventsToTreeString(walker.possible()),
+                            "leaveStartTag\n");
+                });
+
+                ret = walker.fireEvent(
+                    new validate.Event("leaveStartTag"));
+                assert.isFalse(ret);
+                ret = walker.fireEvent(
+                    new validate.Event("endTag", "", "em"));
+                assert.isFalse(ret);
+            });
         });
     });
 

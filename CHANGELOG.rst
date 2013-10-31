@@ -1,5 +1,9 @@
 Only major changes are reported here.
 
+* 0.15.0: ``salve-simplify`` is gone and replaced by
+  ``salve-convert``. ``salve-convert`` is more aggressive than
+  ``salve-simplify`` + ``rng-to-js.xsl`` in optimizing file size.
+
 * 0.14.1: in prior versions, ``<rng:group>`` would sometimes report an
   error later than the earliest event it could report it on. To
   illustrate, imagine the following content model for the ``em``
@@ -8,7 +12,7 @@ Only major changes are reported here.
   processed. The bug fix makes it so that the error is reported as
   soon as ``<i>`` is processed.
 
-  * 0.14.0 changes how ``rng-to-js.xsl`` generates its output. See the
+* 0.14.0 changes how ``rng-to-js.xsl`` generates its output. See the
   section on ``rng-to-js.xsl`` in the README file. Although salve
   still supports the old output, I strongly recommend running
   ``salve-simplify`` and ``xsltproc`` with ``rng-to-js.xsl`` to
@@ -27,3 +31,6 @@ Only major changes are reported here.
   then there is an error, otherwise there is no error. Previously, one
   would have to test the return value for identity with the value
   ``true``, which is more verbose.)
+
+..  LocalWords:  rng js xsl README xsltproc JSON API fireEvent
+..  LocalWords:  boolean

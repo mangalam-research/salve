@@ -1,0 +1,923 @@
+wholly context-independent true
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        TEI
+        teiCorpus
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, TEI
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        facs
+        n
+        rend
+        rendition
+        style
+        version
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        teiHeader
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, teiHeader
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        facs
+        n
+        rend
+        rendition
+        style
+        type
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        fileDesc
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, fileDesc
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        facs
+        n
+        rend
+        rendition
+        style
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        titleStmt
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, titleStmt
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        facs
+        n
+        rend
+        rendition
+        style
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        title
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, title
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        facs
+        key
+        level
+        n
+        ref
+        rend
+        rendition
+        style
+        subtype
+        type
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        title
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        abbr
+        add
+        addSpan
+        address
+        am
+        bibl
+        biblFull
+        biblStruct
+        binaryObject
+        cb
+        choice
+        cit
+        corr
+        damage
+        damageSpan
+        date
+        del
+        delSpan
+        desc
+        distinct
+        email
+        emph
+        ex
+        expan
+        figure
+        floatingText
+        foreign
+        formula
+        fw
+        gap
+        gb
+        gloss
+        graphic
+        handShift
+        hi
+        idno
+        index
+        label
+        lb
+        lg
+        list
+        listBibl
+        listTranspose
+        measure
+        measureGrp
+        media
+        mentioned
+        metamark
+        milestone
+        mod
+        name
+        notatedMusic
+        note
+        num
+        orig
+        pb
+        ptr
+        q
+        quote
+        redo
+        ref
+        reg
+        restore
+        retrace
+        rs
+        said
+        sic
+        soCalled
+        space
+        stage
+        subst
+        substJoin
+        supplied
+        surplus
+        table
+        term
+        time
+        title
+        unclear
+        undo
+text
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, title
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        titleStmt
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        author
+        editor
+        funder
+        meeting
+        principal
+        respStmt
+        sponsor
+        title
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, titleStmt
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        editionStmt
+        extent
+        publicationStmt
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, publicationStmt
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        facs
+        n
+        rend
+        rendition
+        style
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        address
+        authority
+        availability
+        date
+        distributor
+        idno
+        p
+        pubPlace
+        publisher
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        decls
+        facs
+        n
+        part
+        rend
+        rendition
+        style
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        abbr
+        add
+        addSpan
+        address
+        am
+        bibl
+        biblFull
+        biblStruct
+        binaryObject
+        cb
+        choice
+        cit
+        corr
+        damage
+        damageSpan
+        date
+        del
+        delSpan
+        desc
+        distinct
+        email
+        emph
+        ex
+        expan
+        figure
+        floatingText
+        foreign
+        formula
+        fw
+        gap
+        gb
+        gloss
+        graphic
+        handShift
+        hi
+        idno
+        index
+        label
+        lb
+        lg
+        list
+        listBibl
+        listTranspose
+        measure
+        measureGrp
+        media
+        mentioned
+        metamark
+        milestone
+        mod
+        name
+        notatedMusic
+        note
+        num
+        orig
+        pb
+        ptr
+        q
+        quote
+        redo
+        ref
+        reg
+        restore
+        retrace
+        rs
+        said
+        sic
+        soCalled
+        space
+        stage
+        subst
+        substJoin
+        supplied
+        surplus
+        table
+        term
+        time
+        title
+        unclear
+        undo
+text
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        publicationStmt
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, publicationStmt
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        notesStmt
+        seriesStmt
+        sourceDesc
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, sourceDesc
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        default
+        facs
+        n
+        rend
+        rendition
+        style
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        bibl
+        biblFull
+        biblStruct
+        list
+        listBibl
+        p
+        table
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        decls
+        facs
+        n
+        part
+        rend
+        rendition
+        style
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        abbr
+        add
+        addSpan
+        address
+        am
+        bibl
+        biblFull
+        biblStruct
+        binaryObject
+        cb
+        choice
+        cit
+        corr
+        damage
+        damageSpan
+        date
+        del
+        delSpan
+        desc
+        distinct
+        email
+        emph
+        ex
+        expan
+        figure
+        floatingText
+        foreign
+        formula
+        fw
+        gap
+        gb
+        gloss
+        graphic
+        handShift
+        hi
+        idno
+        index
+        label
+        lb
+        lg
+        list
+        listBibl
+        listTranspose
+        measure
+        measureGrp
+        media
+        mentioned
+        metamark
+        milestone
+        mod
+        name
+        notatedMusic
+        note
+        num
+        orig
+        pb
+        ptr
+        q
+        quote
+        redo
+        ref
+        reg
+        restore
+        retrace
+        rs
+        said
+        sic
+        soCalled
+        space
+        stage
+        subst
+        substJoin
+        supplied
+        surplus
+        table
+        term
+        time
+        title
+        unclear
+        undo
+text
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        sourceDesc
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, sourceDesc
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        fileDesc
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        sourceDesc
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, fileDesc
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        teiHeader
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        encodingDesc
+        profileDesc
+        revisionDesc
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, teiHeader
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        facsimile
+        sourceDoc
+        text
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, text
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        decls
+        facs
+        n
+        rend
+        rendition
+        style
+        subtype
+        type
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        addSpan
+        body
+        cb
+        damageSpan
+        delSpan
+        figure
+        front
+        fw
+        gap
+        gb
+        group
+        index
+        lb
+        listTranspose
+        metamark
+        milestone
+        notatedMusic
+        note
+        pb
+        space
+        substJoin
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, body
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        decls
+        facs
+        n
+        rend
+        rendition
+        style
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        addSpan
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        damageSpan
+        dateline
+        delSpan
+        desc
+        div
+        div1
+        divGen
+        docAuthor
+        docDate
+        epigraph
+        figure
+        floatingText
+        fw
+        gap
+        gb
+        head
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        listTranspose
+        meeting
+        metamark
+        milestone
+        notatedMusic
+        note
+        opener
+        p
+        pb
+        q
+        quote
+        said
+        salute
+        sp
+        space
+        stage
+        substJoin
+        table
+
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
+fireEvent returned false
+possible events
+attributeName:
+    :
+        change
+        decls
+        facs
+        n
+        part
+        rend
+        rendition
+        style
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        abbr
+        add
+        addSpan
+        address
+        am
+        bibl
+        biblFull
+        biblStruct
+        binaryObject
+        cb
+        choice
+        cit
+        corr
+        damage
+        damageSpan
+        date
+        del
+        delSpan
+        desc
+        distinct
+        email
+        emph
+        ex
+        expan
+        figure
+        floatingText
+        foreign
+        formula
+        fw
+        gap
+        gb
+        gloss
+        graphic
+        handShift
+        hi
+        idno
+        index
+        label
+        lb
+        lg
+        list
+        listBibl
+        listTranspose
+        measure
+        measureGrp
+        media
+        mentioned
+        metamark
+        milestone
+        mod
+        name
+        notatedMusic
+        note
+        num
+        orig
+        pb
+        ptr
+        q
+        quote
+        redo
+        ref
+        reg
+        restore
+        retrace
+        rs
+        said
+        sic
+        soCalled
+        space
+        stage
+        subst
+        substJoin
+        supplied
+        surplus
+        table
+        term
+        time
+        title
+        unclear
+        undo
+text
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        body
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        addSpan
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        closer
+        damageSpan
+        dateline
+        delSpan
+        desc
+        div
+        div1
+        docAuthor
+        docDate
+        epigraph
+        figure
+        floatingText
+        fw
+        gap
+        gb
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        listTranspose
+        meeting
+        metamark
+        milestone
+        notatedMusic
+        note
+        p
+        pb
+        postscript
+        q
+        quote
+        said
+        salute
+        signed
+        sp
+        space
+        stage
+        substJoin
+        table
+        trailer
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, body
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        text
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        addSpan
+        back
+        cb
+        damageSpan
+        delSpan
+        figure
+        fw
+        gap
+        gb
+        index
+        lb
+        listTranspose
+        metamark
+        milestone
+        notatedMusic
+        note
+        pb
+        space
+        substJoin
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, text
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        TEI
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, TEI
+fireEvent returned false
+possible events
+end returned false
