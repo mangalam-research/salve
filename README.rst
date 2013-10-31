@@ -71,7 +71,7 @@ packages:
   is in your path).
 
 Please see the `<package.json>`_ file for details regarding these
-dependencies. The ``salve-simplify`` script requires that ``xmllint``
+dependencies. The ``salve-convert`` script requires that ``xmllint``
 and ``xsltproc`` be installed on your system.
 
 If you want to contribute to salve, your code will have to pass the
@@ -125,47 +125,45 @@ work.
 Basic Usage
 ===========
 
-An RNG schema must be prepared before it can be used by salve. The
+A Relax NG schema must be prepared before it can be used by salve. The
 first step is to simplify the schema. The ``bin`` subdirectory
-contains a rudimentary shell script. (If you are using Windows you are
-on your own; contributions welcome.) It can be used like this::
+contains a shell script which can be used to convert a Relax NG schema
+to the format salve wants. Use the ``--help`` option to see the entire
+list of options available. Typical usage is::
 
-    $ bin/salve-simplify [input] [output]
+    $ bin/salve-convert [input] [output]
 
-.. _rng_to_xsl:
-
-The ``[input]`` parameter should be the RNG to simplify. The ``[output]``
-parameter should be where to save the simplification. The output must
-then be converted to JavaScript code::
-
-    $ xsltproc lib/salve/rng-to-js.xsl [simplified rng] > [js]
-
-This example uses ``xsltproc`` but any XSLT processor able to process
-XSLT 1.0 would work. The ``[simplified rng]`` parameter is the result
-of the earlier simplify pass. The ``[js]`` parameter is where you want
-to save the resulting JavaScript. (Actually, the simplified RNG is
+The ``[input]`` parameter should be the Relax NG schema to
+convert. The ``[output]`` parameter should be where to save schema
+once converted to JavaScript. (Actually, the simplified RNG is
 converted to JSON. Generally speaking JSON is not a subset of
 JavaScript but in this instance, the JSON produced is a subset, so
 calling it JavaScript is not wrong.)
 
+.. note:: If you've ever used salve prior to version 0.15, know that
+          ``salve-convert`` replaces both ``salve-simplify`` and the
+          need to use ``rng-to-js.xsl`` manually.
+
 .. _element paths:
 
-Before version 0.14 ``rng-to-js.xsl`` by default included information
-which made it easy to determine where each JavaScript object
-modeling the original RNG came from. (Each object had path information
-pointing to the location of the corresponding element in the
-simplified RNG.) However, this information is useful only for
+Before version 0.14, the conversion process by default included
+information which made it easy to determine where each JavaScript
+object modeling the original RNG came from. (Each object had path
+information pointing to the location of the corresponding element in
+the simplified RNG.) However, this information is useful only for
 debugging salve and its associated software. Starting with version
-0.14 ``rng-to-js.xsl`` no longer outputs this information by
-default. It has to be turned on by passing ``--param output-paths
-true()`` to ``xsltproc``. (Most likely the string ``true()`` must be
-quoted to avoid shell interpretation. Or you could pass anything that
-XSLT considers to be "true".) This change reduces the size of a
-JavaScript file created for a vanilla TEI schema by a factor of more
-than 4.
+0.14 such information is no longer included by default. This change
+reduces the size of a JavaScript file created for a vanilla TEI schema
+by a factor of more than 4.
 
-Version 0.14 also changes the structure of the output of
-``rng-to-js.xsl``. See `File Format`_ for more details.
+Version 0.14 also changes the structure of the file format that salve
+uses by default. See `File Format`_ for more details.
+
+Version 0.15 further reduced the size of the generated files by
+optimizing the size of the identifiers used by references and
+definitions. With this optimization, the size of a run-of-the-mill TEI
+schema was reduced by 35% compared to the same schema in previous
+versions.
 
 Turning to actual code, a typical usage scenario would be as follows::
 
@@ -364,14 +362,8 @@ jsdoc3 will appear in the `<build/doc>`_ subdirectory, and the
 File Format
 ===========
 
-When you simplify your RNG schema and pass it to ``rng-to-js.xsl`` for
-conversion to JSON, you get a file which salve will use to create a
-run-time representation of your schema when you call
-``constructTree``. The file instructs salve on how to create this
-memory representation.
-
-Before 0.14 ``rng-to-js.xsl`` would generate a file with the following
-structure::
+Before version 0.14, the schemas that salve would accept were saved in
+files presenting the following structure::
 
     { "type": <object type>, "args": [...]}
 

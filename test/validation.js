@@ -352,6 +352,23 @@ describe("GrammarWalker.fireEvent",  function () {
                makeErrorTest("missing_element"));
         });
 
+        describe("a tei-based file (using v1, optimized ids)", function () {
+            before(function () {
+                rng = "test/tei/simplified-rng-v1-optimized-ids.js";
+            });
+            it("which is empty", makeErrorTest("empty"));
+            it("which has an unclosed element",
+               makeErrorTest("not_closed1"));
+            it("which has two unclosed elements",
+               makeErrorTest("not_closed2"));
+            it("which has two unclosed elements, with contents",
+               makeErrorTest("not_closed3"));
+            it("which has a missing namespace",
+               makeErrorTest("missing_namespace"));
+            it("which has a missing element",
+               makeErrorTest("missing_element"));
+        });
+
         describe("a simple schema", function () {
             before(function () {
                 rng = "test/simple/simplified-rng.js";
