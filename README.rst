@@ -350,6 +350,17 @@ that Makefile will use your ``PATH`` to execute them.) The formatted
 jsdoc3 will appear in the `<build/doc>`_ subdirectory, and the
 `<README.html>`_ in the root of the source tree.
 
+.. warning:: All the public interfaces of salve are available through
+             the ``validate`` module. However, ``validate`` is a
+             facade that exposes interfaces that are implemented in
+             separate modules like ``patterns`` and ``formats``. The
+             documentation documents interfaces where they are
+             *implemented*. So if you look for
+             ``validate.constructTree`` you will find it in
+             ``formats``. There is currently no simple way to get
+             jsdoc3 to expose these elements as being part of
+             ``validate``.
+
 File Format
 ===========
 
