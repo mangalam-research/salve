@@ -175,6 +175,44 @@ describe("NameResolver", function () {
         });
     });
 
+    describe("prefixFromURI", function () {
+        beforeEach(function () {
+            resolver = new name_resolver.NameResolver();
+            Object.keys(mapping).forEach(function (k) {
+                resolver.definePrefix(k, mapping[k]);
+            });
+        });
+        it("knows the uri for the default namespace",
+           function () {
+            assert.equal(resolver.prefixFromURI("http://www.tei-c.org/ns/1.0"),
+                         "");
+        });
+        it("knows the uri of other namespaces that were defined",
+           function () {
+            assert.equal(
+                resolver.prefixFromURI("http://lddubeau.com/ns/btw-storage"),
+
+                "btw");
+        });
+        it("returns undefined when passed an unknown uri", function () {
+            assert.isUndefined(resolver.prefixFromURI("ttt"));
+        });
+        // The next two tests show that the order of defintions
+        // is irrelevant.
+        it("gives priority to the default namespace (first)",
+           function () {
+            resolver.definePrefix("X", "uri:X");
+            resolver.definePrefix("", "uri:X");
+            assert.equal(resolver.prefixFromURI("uri:X"), "");
+        });
+        it("gives priority to the default namespace (second)",
+           function () {
+            resolver.definePrefix("", "uri:X");
+            resolver.definePrefix("X", "uri:X");
+            assert.equal(resolver.prefixFromURI("uri:X"), "");
+        });
+    });
+
     describe("clone", function () {
         beforeEach(function () {
             resolver = new name_resolver.NameResolver();
