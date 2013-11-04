@@ -131,30 +131,28 @@ else {
         console.log("Temporary files in: " + temp_dir);
     }
 
-    executeStep(0, 1, args.input_path, convert);
+    executeStep(0, args.input_path, convert);
 }
 
 /**
  * @param {Integer} step_no The index in <code>steps</code> of the
  * step we are running.
- * @param {Integer} step_label The step label. (For human
- * consumption. This does not skip numbers.)
  * @param {String} in_path Path of the input file for this step.
  * @param {Function} after Callback to run after all steps.
  */
-function executeStep(step_no, step_label, in_path, after) {
+function executeStep(step_no, in_path, after) {
     if (step_no >= steps.length)
         return after(in_path);
 
     var step = steps[step_no];
-    var out_path = path.join(temp_dir, "out" + step_label + ".rng");
+    var out_path = path.join(temp_dir, "out" + (step_no + 1) + ".rng");
     var child = spawn("xsltproc", ["-o", out_path, step, in_path],
                       {stdio: "inherit"});
     child.on('exit', function (status) {
         if (status)
             throw new Fatal("xsltproc terminated with status: " + status);
 
-        return executeStep(step_no + 1, step_label + 1, out_path, after);
+        return executeStep(step_no + 1, out_path, after);
     });
 }
 
