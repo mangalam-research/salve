@@ -251,12 +251,16 @@ function convert(simplified_path) {
                 console.log("Optimizing ids...");
             var parsed = JSON.parse(fs.readFileSync(args.output_path));
 
-            // Gather names
             var version = parsed.v;
             if (version === 1) {
+                // Gather names
                 var g = new NameGatherer(parsed.o);
                 g.walkObject(parsed.d);
                 var names = g.names;
+
+                // Now assign new names with shorter new names being
+                // assigned to those original names that are most
+                // frequent.
                 var sorted = Object.keys(names).map(function (key) {
                     return {key: key, freq: names[key]};
                 });
@@ -269,8 +273,15 @@ function convert(simplified_path) {
                 sorted.forEach(function (elem) {
                     new_names[elem.key] = id++;
                 });
+
+                // Perform the renaming.
                 var renamer = new Renamer(parsed.o, new_names);
                 parsed.d = renamer.walkObject(parsed.d);
+
+                // And save. We don't use ``JSON.stringify`` for the
+                // topmost object because it is nice to have *this*
+                // order when opening the file in an editor or using
+                // ``less``.
                 var to_write = '{"v":' + JSON.stringify(parsed.v) +
                         ',"o":' + JSON.stringify(parsed.o) +
                         ',"d":' + JSON.stringify(parsed.d) + '}';
