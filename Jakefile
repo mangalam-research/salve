@@ -1,13 +1,30 @@
 var path = require('path');
 
-var localconfig = require('local.jake');
+// Default values for our configuration parameters
+var config = {
+    rst2html: "rst2html",
+    jsdoc3: "jsdoc",
+    semver_sync: "semver-sync",
+    mocha: "mocha"
+};
 
+// Try to load a local configuration file.
+var local_config = {};
+try {
+    local_config = require('./local.jake');
+}
+catch (e) {
+    if (e.code !== "MODULE_NOT_FOUND")
+        throw e;
+}
 
-var rst2htmlcmd = (localconfig.rst2htmlcmd) ? localconfig.rst2htmlcmd : 'rst2html';
-var jsdoc3cmd = (localconfig.jsdoc3cmd) ? localconfig.jsdoc3cmd : 'jsdoc';
-var semvercmd = (localconfig.semvercmd) ? localconfig.semvercmd :'semver-sync';
-var mochacmd = (localconfig.mochacmd) ? localconfig.mochacmd : 'mocha';
-if (process.env['mocha_params']) mochacmd += ' ' + process.env['mocha_params'];
+// And override the defaults with what the local file has.
+for(var i in config)
+    if (local_config[i])
+        config[i] = local_config[i];
+
+if (process.env['mocha_params'])
+    config.mocha += ' ' + process.env['mocha_params'];
 
 var src_globs = path.join('lib', '**');
 
@@ -30,21 +47,12 @@ desc('Create documentation for the project');
 namespace('docs', function() {
 
     desc('Create documentation for JavaScript scripts');
-    task('jsdoc', [doc_dest_dir], {async: true}, function(){
-        var cmd = jsdoc3cmd + ' -d ' + doc_dest_dir + ' -r lib';
+    task('jsdoc', [doc_dest_dir], {async: true}, function(priv) {
+        var cmd = config.jsdoc3;
+        if (priv)
+            cmd += ' -p';
+        cmd += ' -d ' + doc_dest_dir + ' -r lib';
         console.log('Compiling documentation for JavaScript scripts\n');
-        jake.exec(cmd, function() {
-            console.log('Done');
-            complete();
-        });
-    });
-
-    desc('Create documentation for JavaScript scripts including private methods' +
-         'and objects');
-    task('jsdoc_priv', [doc_dest_dir], {async: true}, function(){
-        var cmd = jsdoc3cmd + ' -p -d ' + doc_dest_dir + ' -r lib';
-        console.log(cmd);
-        console.log('Compiling private documentation for JavaScript scripts\n');
         jake.exec(cmd, function() {
             console.log('Done');
             complete();
@@ -53,7 +61,7 @@ namespace('docs', function() {
 
     desc('Create README.html from README.rst');
     file('README.html', [doc_dest_dir, 'README.rst'], {async: true}, function(){
-        var cmd = rst2htmlcmd + ' README.rst README.html';
+        var cmd = config.rst2html + ' README.rst README.html';
         console.log('Compiling README.html from rst\n');
         jake.exec(cmd, function() {
             console.log('Done');
@@ -65,8 +73,9 @@ namespace('docs', function() {
 var src_file_list = new jake.FileList();
 src_file_list.include(path.join(src_globs, '*.js'));
 src_file_list.include(path.join(src_globs, '*.xsl'));
-src_file_list.exclude(/parse.js/);
+src_file_list.exclude(/parse.js$/);
 
+// Create the list of files that must be built from the source.
 var dst_file_list = [];
 src_file_list.forEach(function (x) {
     var dst = path.join("build", x);
@@ -77,32 +86,25 @@ src_file_list.forEach(function (x) {
     });
 });
 
-// desc('Copy JavaScript source to build directory');
-// task('copysrc', lib_dest_dir, {async: true}, function() {
-//     console.log('Copying to build directory\n');
-//     src_file_list.toArray().forEach(function (element, index, array) {
-//         var out_path = path.join(dest_dir, path.dirname(element));
-//         jake.mkdirP(out_path);
-//         jake.cpR(element, out_path);
-//     });
-//     console.log('\nDone');
-//     complete();
-// });
-
 desc('Run tests for salve');
 namespace('tests', function () {
     task('semver', function () {
-        jake.exec(semvercmd + ' -v', {printStdout: true, printStderr: true});
-        complete();
+        jake.exec(config.semver_sync + ' -v',
+                  {printStdout: true, printStderr: true},
+                  function () {
+            complete();
+        });
     });
-    task('mocha', function () {
-        jake.exec(mochacmd, {printStdout: true, printStderr: true});
-        complete();
+    task('mocha', dst_file_list, function () {
+        jake.exec(config.mocha, {printStdout: true, printStderr: true},
+                 function () {
+            complete();
+        });
     });
 });
 
 desc('Run salve tests');
-task('test', dst_file_list.concat(['tests:semver', 'tests:mocha']));
+task('test', ['tests:semver', 'tests:mocha']);
 
 
 task('default', dst_file_list);
