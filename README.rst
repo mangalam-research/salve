@@ -61,23 +61,57 @@ following node package:
 
 * node-amd-loader
 
-Running salve's tests **additionally** requires the following node
-packages:
+Running ``salve-convert`` requires a Node.js environment and the
+following node modules:
 
-* mocha
-* chai
-* sax
-* semver-sync (installed so that the ``semver-sync`` executable
-  is in your path).
+* argparse
+* temp
 
-Please see the `<package.json>`_ file for details regarding these
-dependencies. The ``salve-convert`` script requires that ``xmllint``
-and ``xsltproc`` be installed on your system.
+This script also requires that ``xmllint`` and ``xsltproc`` be
+installed on your system.
+
+Running salve's tests **additionally** requires that the development
+dependencies be installed. Please see the `<package.json>`_ file for
+details regarding these dependencies. Note that these packages must be
+installed so that their executables are in your path:
+
+* grunt-cli (to launch grunt)
+* semver-sync
 
 If you want to contribute to salve, your code will have to pass the
 checks listed in `<.glerbl/repo_conf.py>`_. So you either have to
 install glerbl to get those checks done for you or run the checks
 through other means. See Contributing_.
+
+Grunt
+=====
+
+`<Gruntfile.js>`_ gets its values for variables from three sources:
+
+* Internally.
+
+* From a possible ``local.grunt.js`` module.
+
+* From the command line.
+
+The variables that can be set are:
+
+============== =================================================================
+Name           Meaning
+============== =================================================================
+mocha_grep     --grep parameter for Mocha
+rst2html       rst2html command to run
+jsdoc3         jsdoc3 command to run
+jsdoc_private  Whether jsdoc3 should produce documentation for private entities.
+============== =================================================================
+
+Note that when used on the command line, underscores become dashes so
+``--mocha-grep`` and ``--jsdoc-private``.
+
+The ``local.grunt.js`` file is a module. So you must export values
+like this::
+
+    exports.jsdoc3 = "/usr/local/blah/jsdoc"
 
 Testing
 =======
@@ -89,21 +123,17 @@ dependencies required for testing and will run the tests::
 
 Or you may bypass npm with this command::
 
-    $ make test
+    $ grunt test
 
 Running ``mocha`` directly also works but you may run the test against
-stale code whereas ``make test`` always runs a build first.
+stale code whereas ``grunt test`` always runs a build first.
 
 Building
 ========
 
 Run::
 
-    $ npm build
-
-Or::
-
-    $ make
+    $ grunt
 
 This will create a `<build>`_ subdirectory in which the JavaScript
 necessary to validate XML files against a prepared Relax NG schema. (See
@@ -339,14 +369,13 @@ Documentation
 The code is documented using jsdoc3. The following command will
 generate the documentation::
 
-    $ make doc
+    $ grunt doc
 
-Create a ``local.mk`` file that sets the variable ``JSDOC3`` to the
-location of the jsdoc3 executable in your setup and ``RST2HTML``
-points to the location of the rst2html executable. (Defaults are such
-that Makefile will use your ``PATH`` to execute them.) The formatted
-jsdoc3 will appear in the `<build/doc>`_ subdirectory, and the
-`<README.html>`_ in the root of the source tree.
+You may need to create a ``local.grunt`` module to tell grunt where to
+get jsdoc3 and rst2html. (Defaults are such that grunt will use a
+jsdoc shipped with grunt-jsdoc, and will use your ``PATH`` to execute
+them rst2html.) The formatted jsdoc3 will appear in the `<build/doc>`_
+subdirectory, and the `<README.html>`_ in the root of the source tree.
 
 .. warning:: All the public interfaces of salve are available through
              the ``validate`` module. However, ``validate`` is a
@@ -452,5 +481,5 @@ the Humanities.
 ..  LocalWords:  nsName URIs uris enterContext leaveContext xmlns rst
 ..  LocalWords:  definePrefix useNameResolver foons resolveName HD NG
 ..  LocalWords:  args param TEI glerbl Github reStructuredText readme
-..  LocalWords:  validator namespace RequireJS subdirectory DOM
-..  LocalWords:  Dubeau Mangalam
+..  LocalWords:  validator namespace RequireJS subdirectory DOM cli
+..  LocalWords:  Dubeau Mangalam argparse Gruntfile
