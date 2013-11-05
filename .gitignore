@@ -1,6 +1,7 @@
-build
-local.mk
-README.html
+/build
+/local.mk
+/local.jake.js
+/local.grunt.js
+/README.html
 *_flymake.*
-local.mk
-node_modules
+/node_modules
