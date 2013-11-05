@@ -5,42 +5,33 @@ module.exports = function(grunt) {
     require("load-grunt-tasks")(grunt);
 
     // Read in local environment variables
-    var path = require("path"),
-        os = require("os"),
-        fs = require("fs");
+    var config = {
+        mocha_grep: "",
+        rst2html: "rst2html",
+        jsdoc3: "jsdoc",
+        jsdoc_private: false
+    };
 
-    var content = "",
-        lines = null,
-        eol = os.platform == "windows" ? "\r\n" : "\n";
-
-    var mocha_grep = "",
-        rst2html = "rst2html";
-
-    //Read from a local file, "grunt.local"
+    // Try to load a local configuration file.
+    var local_config = {};
     try {
-    content = fs.readFileSync(path.join(process.cwd(), "grunt.local"), "utf8");
-    } catch(e) {
+        local_config = require('./local.grunt');
+    }
+    catch (e) {
+        if (e.code !== "MODULE_NOT_FOUND")
+            throw e;
     }
 
-    if (content) {
-        lines = content.split(eol);
-        for (var i = 0, len = lines.length; i < len; i++) {
-            try {
-                eval(lines[i]);
-            } catch(e) {
-                console.log("\n" + e + "\nContinuing...\n");
-            }
-        }
+    // Override the defaults with what the local file has and the
+    // environment
+    for(var i in config) {
+        if (local_config[i] !== undefined)
+            config[i] = local_config[i];
+        var opt_name = i.replace("_", "-");
+        var opt = grunt.option(opt_name);
+        if (opt !== undefined)
+            config[i] = opt;
     }
-    // Override with any options from the process environment
-    if (process.env["rst2html"]) {
-        rst2html = process.env["rst2html"];
-    }
-
-    if (process.env["mocha_grep"]) {
-        mocha_grep = process.env["mocha_grep"];
-    }
-
 
     grunt.initConfig({
         copy: {
@@ -57,23 +48,22 @@ module.exports = function(grunt) {
         },
         jsdoc: {
             build: {
+                jsdoc: config.jsdoc3,
                 src: "lib/**/*.js",
-                options: { destination: "build/doc",
-                           private: false }
-                },
-            private: {
-                src: "lib/**/*.js",
-                options: { destination: "build/doc"}
-                }
+                dest: "build/doc",
+                options: { private: config.jsdoc_private}
+            }
         },
         shell: {
             readme: {
+                src: "README.rst",
+                dest: "README.html",
                 options: {
                     stdout: true,
                     stderr: true,
                     failOnError: true
-                    },
-                command: rst2html + " README.rst README.html"
+                },
+                command: config.rst2html + " README.rst README.html"
             },
             semver: {
                 options: {
@@ -86,16 +76,14 @@ module.exports = function(grunt) {
         },
         mochaTest: {
             options:  {
-                grep: mocha_grep
+                grep: config.mocha_grep
             },
             src: ["test/*.js"]
         }
     });
     grunt.registerTask("default", ["newer:copy:build"]);
-    grunt.registerTask("doc", ["newer:jsdoc:build","newer:shell:readme"]);
-    grunt.registerTask("private_doc", ["newer:jsdoc:private",
-                                       "newer:shell:readme"]);
-    grunt.registerTask("test", ["shell:semver", "mochaTest"]);
+    grunt.registerTask("doc", ["any-newer:jsdoc:build",
+                               "any-newer:shell:readme"]);
+    grunt.registerTask("test", ["default", "shell:semver", "mochaTest"]);
 //  grunt-contrib-clean is its own task: "grunt clean"
-
 };
