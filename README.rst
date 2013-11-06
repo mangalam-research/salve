@@ -49,126 +49,23 @@ tokenizer function is performed by ``sax``, and the parser function is
 performed by a parser object that ``sax`` creates, customized to call
 salve's ``Walker.fireEvent()``.
 
-Dependencies
-============
-
-Salve is packaged as a RequireJS module. So to use it in a browser
-environment, you need to first load RequireJS and pass to it a
-configuration that will allow it to find salve's code.
-
-Loading salve in a Node.js environment requires installing the
-following node package:
-
-* node-amd-loader
-
-Running ``salve-convert`` requires a Node.js environment and the
-following node modules:
-
-* argparse
-* temp
-
-This script also requires that ``xmllint`` and ``xsltproc`` be
-installed on your system.
-
-Running salve's tests **additionally** requires that the development
-dependencies be installed. Please see the `<package.json>`_ file for
-details regarding these dependencies. Note that these packages must be
-installed so that their executables are in your path:
-
-* grunt-cli (to launch grunt)
-* semver-sync
-
-If you want to contribute to salve, your code will have to pass the
-checks listed in `<.glerbl/repo_conf.py>`_. So you either have to
-install glerbl to get those checks done for you or run the checks
-through other means. See Contributing_.
-
-Grunt
-=====
-
-`<Gruntfile.js>`_ gets its values for variables from three sources:
-
-* Internally.
-
-* From a possible ``local.grunt.js`` module.
-
-* From the command line.
-
-The variables that can be set are:
-
-============== =================================================================
-Name           Meaning
-============== =================================================================
-mocha_grep     --grep parameter for Mocha
-rst2html       rst2html command to run
-jsdoc3         jsdoc3 command to run
-jsdoc_private  Whether jsdoc3 should produce documentation for private entities.
-============== =================================================================
-
-Note that when used on the command line, underscores become dashes so
-``--mocha-grep`` and ``--jsdoc-private``.
-
-The ``local.grunt.js`` file is a module. So you must export values
-like this::
-
-    exports.jsdoc3 = "/usr/local/blah/jsdoc"
-
-Testing
-=======
-
-Running the following command from the root of salve will install the
-dependencies required for testing and will run the tests::
-
-    $ npm test
-
-Or you may bypass npm with this command::
-
-    $ grunt test
-
-Running ``mocha`` directly also works but you may run the test against
-stale code whereas ``grunt test`` always runs a build first.
-
-Building
-========
-
-Run::
-
-    $ grunt
-
-This will create a `<build>`_ subdirectory in which the JavaScript
-necessary to validate XML files against a prepared Relax NG schema. (See
-below for how preparation happens.) You could copy what is in `<build>`_
-to a server to serve these files to a client that would then perform
-validation. Future releases will include automatic support for
-minified versions of salve.
-
-Contributing
-============
-
-Contributions must pass the commit checks turned on in
-`<.glerbl/repo_conf.py>`_. Use ``glerbl install`` to install the
-hooks. Glerbl itself can be found at
-https://github.com/lddubeau/glerbl. It will eventually make its way to
-the Python package repository so that ``pip install glerbl`` will
-work.
-
 Basic Usage
 ===========
 
 A Relax NG schema must be prepared before it can be used by salve. The
-first step is to simplify the schema. The ``bin`` subdirectory
-contains a shell script which can be used to convert a Relax NG schema
-to the format salve wants. Use the ``--help`` option to see the entire
-list of options available. Typical usage is::
+``bin`` subdirectory contains a shell script which can be used to
+convert a Relax NG schema to the format salve wants. You can use the
+``--help`` option to see the entire list of options available. Typical
+usage is::
 
-    $ bin/salve-convert [input] [output]
+    $ salve-convert [input] [output]
 
 The ``[input]`` parameter should be the Relax NG schema to
 convert. The ``[output]`` parameter should be where to save schema
 once converted to JavaScript. (Actually, the simplified RNG is
 converted to JSON. Generally speaking JSON is not a subset of
 JavaScript but in this instance, the JSON produced is a subset, so
-calling it JavaScript is not wrong.)
+calling it JavaScript is not incorrect.)
 
 .. note:: If you've ever used salve prior to version 0.15, know that
           ``salve-convert`` replaces both ``salve-simplify`` and the
@@ -189,11 +86,11 @@ by a factor of more than 4.
 Version 0.14 also changes the structure of the file format that salve
 uses by default. See `File Format`_ for more details.
 
-Version 0.15 further reduced the size of the generated files by
+Version 0.15 further reduces the size of the generated files by
 optimizing the size of the identifiers used by references and
 definitions. With this optimization, the size of a run-of-the-mill TEI
-schema was reduced by 35% compared to the same schema in previous
-versions.
+schema used in testing was reduced by 35% compared to the same schema
+in previous versions.
 
 Turning to actual code, a typical usage scenario would be as follows::
 
@@ -210,7 +107,9 @@ Turning to actual code, a typical usage scenario would be as follows::
     var walker = tree.newWalker();
 
 Then the code that parses the XML file to be validated should call
-``fireEvent()`` on the ``walker``.
+``fireEvent()`` on the ``walker``. Remember to call the ``end()``
+method on your walker at the end of validation to make sure that there
+are no unclosed tags, etc.
 
 The file `<lib/salve/parse.js>`_ contains an example of a rudimentary
 parser runnable in Node.js::
@@ -220,9 +119,6 @@ parser runnable in Node.js::
 The ``[rng as js]`` parameter is the RNG, simplified and converted to
 JavaScript. The ``[xml to validate]`` parameter is the XML file to
 validate against the RNG.
-
-Remember to call the ``end()`` method on your walker at the end of
-validation to make sure that there are no unclosed tags, etc.
 
 Events
 ======
@@ -287,10 +183,10 @@ parts, you can use salve without ever emitting ``enterContext``,
 ``leaveContext`` and ``definePrefix``. However, if you want to have
 salve keep track of namespace prefixes, you must first call
 ``useNameResolver()`` on the walker you get from ``newWalker()``. Then
-you must issue an ``enterContext`` each time you encounter a start tag
-that defines namespaces and issue ``leaveContext`` when you encounter
-its corresponding end tag. You must also issue ``definePrefix`` for
-each prefix defined by the element. Example::
+you must issue an ``enterContext`` event each time you encounter a
+start tag that defines namespaces and issue ``leaveContext`` when you
+encounter its corresponding end tag. You must also issue
+``definePrefix`` for each prefix defined by the element. Example::
 
     <p xmlns="q" xmlns:foo="foons">...
 
@@ -320,13 +216,14 @@ Note, however, that performance will be affected somewhat because name
 resolution will have to potentially search a deeper stack of contexts than
 would be strictly necessary.
 
-What determines whether or not you want to use the name resolver
+What determines whether or not you would want to use the name resolver
 included with salve is whether or not you need to use salve's cloning
 facilities to record validation state. The namespaces that are in
 effect at the point a walker is cloned are also part of the validation
 state. If you have to use a name resolver that does not allow for
-recording validation state, you can call ``useNameResolver`` on your walker
-and use the facilities described here, or provide such functionality yourself.
+recording validation state, you can call ``useNameResolver`` on your
+walker and use the facilities described here, or provide such
+functionality yourself.
 
 Support for Guided Editing
 ==========================
@@ -388,8 +285,118 @@ subdirectory, and the `<README.html>`_ in the root of the source tree.
              jsdoc3 to expose these elements as being part of
              ``validate``.
 
-File Format
-===========
+
+Dependencies
+============
+
+Salve is packaged as a RequireJS module. So to use it in a browser
+environment, you need to first load RequireJS and pass to RequireJS a
+configuration that will allow it to find salve's code.
+
+Loading salve in a Node.js environment requires installing the
+following node package:
+
+* node-amd-loader
+
+Running ``salve-convert`` requires a Node.js environment and the
+following node modules:
+
+* argparse
+* temp
+
+This script also requires that ``xmllint`` and ``xsltproc`` be
+installed on your system.
+
+Running salve's tests **additionally** requires that the development
+dependencies be installed. Please see the `<package.json>`_ file for
+details regarding these dependencies. Note that the following packages
+must be installed so that their executables are in your path:
+
+* grunt-cli (to launch grunt)
+* semver-sync
+
+If you want to contribute to salve, your code will have to pass the
+checks listed in `<.glerbl/repo_conf.py>`_. So you either have to
+install glerbl to get those checks done for you or run the checks
+through other means. See Contributing_.
+
+Build System
+============
+
+Salve uses grunt. `<Gruntfile.js>`_ gets the values for its
+configuration variables from three sources:
+
+* Internal default values.
+
+* From an optional ``local.grunt.js`` module that can override the
+  internal defaults.
+
+* From command line options that can override everything above.
+
+The variables that can be set are:
+
+============== =================================================================
+Name           Meaning
+============== =================================================================
+mocha_grep     --grep parameter for Mocha
+rst2html       rst2html command to run
+jsdoc3         jsdoc3 command to run
+jsdoc_private  Whether jsdoc3 should produce documentation for private entities.
+============== =================================================================
+
+Note that when used on the command line, underscores become dashes so
+``--mocha-grep`` and ``--jsdoc-private``.
+
+The ``local.grunt.js`` file is a module. So you must export values
+like this::
+
+    exports.jsdoc3 = "/usr/local/blah/jsdoc"
+
+Testing
+=======
+
+Running the following command from the root of salve will install the
+dependencies required for testing and will run the tests::
+
+    $ npm test
+
+Or you may bypass npm with this command::
+
+    $ grunt test
+
+Running ``mocha`` directly also works but you may run the test against
+stale code whereas ``grunt test`` always runs a build first.
+
+Building
+========
+
+If you are using salve in Node, there is no need to build. Building is
+necessary only to create a deployable file tree, or if you want to run
+tests.
+
+Run::
+
+    $ grunt
+
+This will create a `<build>`_ subdirectory in which the JavaScript
+necessary to validate XML files against a prepared Relax NG
+schema. You could copy what is in `<build>`_ to a server to serve
+these files to a client that would then perform validation. Future
+releases will include automatic support for minified versions of
+salve.
+
+Contributing
+============
+
+Contributions must pass the commit checks turned on in
+`<.glerbl/repo_conf.py>`_. Use ``glerbl install`` to install the
+hooks. Glerbl itself can be found at
+https://github.com/lddubeau/glerbl. It will eventually make its way to
+the Python package repository so that ``pip install glerbl`` will
+work.
+
+Schema File Format
+==================
 
 Before version 0.14, the schemas that salve would accept were saved in
 files presenting the following structure::
@@ -460,6 +467,9 @@ Salve is designed and developed by Louis-Dominique Dubeau, Director of
 Software Development for the Buddhist Translators Workbench project,
 Mangalam Research Center for Buddhist Languages.
 
+Jesse Bethel maintains salve's documentation, and migrated salve's
+build system from Make to Grunt.
+
 .. image:: https://secure.gravatar.com/avatar/7fc4e7a64d9f789a90057e7737e39b2a
    :target: http://www.mangalamresearch.org/
 
@@ -482,4 +492,4 @@ the Humanities.
 ..  LocalWords:  definePrefix useNameResolver foons resolveName HD NG
 ..  LocalWords:  args param TEI glerbl Github reStructuredText readme
 ..  LocalWords:  validator namespace RequireJS subdirectory DOM cli
-..  LocalWords:  Dubeau Mangalam argparse Gruntfile
+..  LocalWords:  Dubeau Mangalam argparse Gruntfile Bethel
