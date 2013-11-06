@@ -41,8 +41,8 @@ module.exports = function(grunt) {
         copy: {
             build: {
                 files: [
-                    { src: "lib/**/*.js", dest: "build/" },
-                    { src: "lib/**/*.xsl", dest: "build/" }
+                    { src: ["lib/**/*.js", "!lib/salve/parse.js"],
+                      dest: "build/" }
                 ]
             }
         },
