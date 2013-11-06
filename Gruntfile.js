@@ -25,12 +25,16 @@ module.exports = function(grunt) {
     // Override the defaults with what the local file has and the
     // environment
     for(var i in config) {
-        if (local_config[i] !== undefined)
-            config[i] = local_config[i];
         var opt_name = i.replace("_", "-");
         var opt = grunt.option(opt_name);
-        if (opt !== undefined)
+        if (opt !== undefined) {
+            console.log(i + " set from command line to " + opt);
             config[i] = opt;
+        }
+        else if (local_config[i] !== undefined) {
+            console.log(i + " set from local.grunt to " + local_config[i]);
+            config[i] = local_config[i];
+        }
     }
 
     grunt.initConfig({
