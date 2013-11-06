@@ -32,6 +32,7 @@
         "semver-sync": ">=1.2.0",
         "load-grunt-tasks": "~0.2.0",
         "grunt": "~0.4.1",
+        "grunt-cli": "~0.1.9",
         "grunt-contrib-clean": "~0.5.0",
         "grunt-contrib-copy": "~0.4.1",
         "grunt-jsdoc": "~0.4.1",
