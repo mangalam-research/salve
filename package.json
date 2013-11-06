@@ -43,7 +43,6 @@
         "salve-convert": "./bin/salve-convert"
     },
     "scripts": {
-        "test": "grunt test",
-        "postinstall": "grunt"
+        "test": "grunt test"
     }
 }
