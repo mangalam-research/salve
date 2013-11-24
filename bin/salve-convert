@@ -131,30 +131,28 @@ else {
         console.log("Temporary files in: " + temp_dir);
     }
 
-    executeStep(0, 1, args.input_path, convert);
+    executeStep(0, args.input_path, convert);
 }
 
 /**
  * @param {Integer} step_no The index in <code>steps</code> of the
  * step we are running.
- * @param {Integer} step_label The step label. (For human
- * consumption. This does not skip numbers.)
  * @param {String} in_path Path of the input file for this step.
  * @param {Function} after Callback to run after all steps.
  */
-function executeStep(step_no, step_label, in_path, after) {
+function executeStep(step_no, in_path, after) {
     if (step_no >= steps.length)
         return after(in_path);
 
     var step = steps[step_no];
-    var out_path = path.join(temp_dir, "out" + step_label + ".rng");
+    var out_path = path.join(temp_dir, "out" + (step_no + 1) + ".rng");
     var child = spawn("xsltproc", ["-o", out_path, step, in_path],
                       {stdio: "inherit"});
     child.on('exit', function (status) {
         if (status)
             throw new Fatal("xsltproc terminated with status: " + status);
 
-        return executeStep(step_no + 1, step_label + 1, out_path, after);
+        return executeStep(step_no + 1, out_path, after);
     });
 }
 
@@ -253,12 +251,16 @@ function convert(simplified_path) {
                 console.log("Optimizing ids...");
             var parsed = JSON.parse(fs.readFileSync(args.output_path));
 
-            // Gather names
             var version = parsed.v;
             if (version === 1) {
+                // Gather names
                 var g = new NameGatherer(parsed.o);
                 g.walkObject(parsed.d);
                 var names = g.names;
+
+                // Now assign new names with shorter new names being
+                // assigned to those original names that are most
+                // frequent.
                 var sorted = Object.keys(names).map(function (key) {
                     return {key: key, freq: names[key]};
                 });
@@ -271,8 +273,15 @@ function convert(simplified_path) {
                 sorted.forEach(function (elem) {
                     new_names[elem.key] = id++;
                 });
+
+                // Perform the renaming.
                 var renamer = new Renamer(parsed.o, new_names);
                 parsed.d = renamer.walkObject(parsed.d);
+
+                // And save. We don't use ``JSON.stringify`` for the
+                // topmost object because it is nice to have *this*
+                // order when opening the file in an editor or using
+                // ``less``.
                 var to_write = '{"v":' + JSON.stringify(parsed.v) +
                         ',"o":' + JSON.stringify(parsed.o) +
                         ',"d":' + JSON.stringify(parsed.d) + '}';

@@ -1,5 +1,11 @@
 Only major changes are reported here.
 
+* 0.16.0:
+
+  - Salve's build is now done with grunt rather than make.
+
+  - A build is no longer automatically performed upon installation.
+
 * 0.15.0: ``salve-simplify`` is gone and replaced by
   ``salve-convert``. ``salve-convert`` is more aggressive than
   ``salve-simplify`` + ``rng-to-js.xsl`` in optimizing file size.
