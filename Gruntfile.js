@@ -1,17 +1,15 @@
 module.exports = function(grunt) {
     "use strict";
-
     // Load all grunt-* modules in package.json
     require("load-grunt-tasks")(grunt);
-
     // Read in local environment variables
     var config = {
         mocha_grep: "",
         rst2html: "rst2html",
         jsdoc3: "jsdoc",
-        jsdoc_private: false
+        jsdoc_private: false,
+        jsdoc3_template_dir: "./"
     };
-
     // Try to load a local configuration file.
     var local_config = {};
     try {
@@ -21,9 +19,8 @@ module.exports = function(grunt) {
         if (e.code !== "MODULE_NOT_FOUND")
             throw e;
     }
-
-    // Override the defaults with what the local file has and the
-    // environment
+    // Override defaults with any variables from commandline environment,
+    // then from a local.grunt.js configuration file
     for(var i in config) {
         var opt_name = i.replace("_", "-");
         var opt = grunt.option(opt_name);
@@ -36,13 +33,48 @@ module.exports = function(grunt) {
             config[i] = local_config[i];
         }
     }
-
     grunt.initConfig({
         copy: {
             build: {
                 files: [
                     { src: ["lib/**/*.js", "!lib/salve/parse.js"],
                       dest: "build/" }
+                ]
+            },
+            jsdoc_template_defaults: {
+                files: [
+                    { cwd: config.jsdoc3_template_dir,
+                      src: ["**/*"],
+                      dest: "build/jsdoc_template/",
+                      expand: true
+                    }
+                ]
+            },
+            publish_js: {
+                files: [
+                    { cwd: "misc/jsdoc_template/",
+                      src: "publish.js",
+                      dest: "build/jsdoc_template/",
+                      expand: true
+                    }
+                ]
+            },
+            layout_tmpl: {
+                files: [
+                    { cwd: "misc/jsdoc_template/",
+                      src: "layout.tmpl",
+                      dest: "build/jsdoc_template/tmpl/",
+                      expand: true
+                    }
+                ]
+            },
+            mangalam_css: {
+                files: [
+                    { cwd: "misc/jsdoc_template/",
+                      src: "mangalam.css",
+                      dest: "build/jsdoc_template/static/styles/",
+                      expand: true
+                    }
                 ]
             }
         },
@@ -53,9 +85,10 @@ module.exports = function(grunt) {
         jsdoc: {
             build: {
                 jsdoc: config.jsdoc3,
-                src: "lib/**/*.js",
-                dest: "build/doc",
-                options: { private: config.jsdoc_private}
+                src: ["lib/**/*.js", "doc/api_intro.md", "package.json"],
+                dest: "build/api",
+                options: { private: config.jsdoc_private,
+                         template: "build/jsdoc_template"}
             }
         },
         shell: {
@@ -86,8 +119,15 @@ module.exports = function(grunt) {
         }
     });
     grunt.registerTask("default", ["newer:copy:build"]);
-    grunt.registerTask("doc", ["any-newer:jsdoc:build",
-                               "any-newer:shell:readme"]);
+
+    grunt.registerTask("copy_jsdoc_template",
+                       ["copy:jsdoc_template_defaults",
+                        "copy:publish_js", "copy:layout_tmpl",
+                        "copy:mangalam_css"]);
+    grunt.registerTask("create_jsdocs", ["copy_jsdoc_template",
+                                        "newer:jsdoc:build"]);
+    grunt.registerTask("doc", ["create_jsdocs",
+                               "newer:shell:readme"]);
     grunt.registerTask("test", ["default", "shell:semver", "mochaTest"]);
 //  grunt-contrib-clean is its own task: "grunt clean"
 };
