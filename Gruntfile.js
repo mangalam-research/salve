@@ -88,8 +88,9 @@ module.exports = function(grunt) {
                 src: ["lib/**/*.js", "doc/api_intro.md", "package.json"],
                 dest: "build/api",
                 options: { private: config.jsdoc_private,
-                         template: "build/jsdoc_template"}
-            }
+                           config: "jsdoc.conf.json"
+                         }
+                }
         },
         shell: {
             readme: {
