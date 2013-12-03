@@ -53,7 +53,7 @@ Basic Usage
 ===========
 
 A Relax NG schema must be prepared before it can be used by salve. The
-``bin`` subdirectory contains a shell script which can be used to
+``bin/`` subdirectory contains a shell script which can be used to
 convert a Relax NG schema to the format salve wants. You can use the
 ``--help`` option to see the entire list of options available. Typical
 usage is::
@@ -61,8 +61,8 @@ usage is::
     $ salve-convert [input] [output]
 
 The ``[input]`` parameter should be the Relax NG schema to
-convert. The ``[output]`` parameter should be where to save schema
-once converted to JavaScript. (Actually, the simplified RNG is
+convert. The ``[output]`` parameter should be where to save the schema
+once it is converted to JavaScript. (Actually, the simplified RNG is
 converted to JSON. Generally speaking JSON is not a subset of
 JavaScript but in this instance, the JSON produced is a subset, so
 calling it JavaScript is not incorrect.)
@@ -84,7 +84,7 @@ reduces the size of a JavaScript file created for a vanilla TEI schema
 by a factor of more than 4.
 
 Version 0.14 also changes the structure of the file format that salve
-uses by default. See `File Format`_ for more details.
+uses by default. See `Schema File Format`_ for more details.
 
 Version 0.15 further reduces the size of the generated files by
 optimizing the size of the identifiers used by references and
@@ -195,12 +195,14 @@ would require issuing::
     Event("enterContext")
     Event("definePrefix", "", "q")
     Event("definePrefix", "foo", "foons")
-    (Presumably, your code here would call resolveName("p") to determine
-     what namespace p is in, which would yield the result "q".)
+
+Presumably, your code here would call resolveName("p") to determine
+what namespace p is in, which would yield the result "q". ::
+
     Event("enterStartTag", "q", "p")
 
 Note the order of the events. The new context must start before salve
-sees the ``enterStartTag`` event because the way namespace works, a
+sees the ``enterStartTag`` event because the way namespaces work, a
 start tag can declare its own namespace. So by the time
 ``enterStartTag`` is issued, salve must know what namespaces are
 declared by the tag. If the events were not issued this way, then the
@@ -270,8 +272,8 @@ generate the documentation::
 
 You may need to create a ``local.grunt`` module to tell grunt where to
 get jsdoc3 and rst2html. (Defaults are such that grunt will use a
-jsdoc shipped with grunt-jsdoc, and will use your ``PATH`` to execute
-them rst2html.) The formatted jsdoc3 will appear in the `<build/doc>`_
+jsdoc shipped with grunt-jsdoc, and will use your ``PATH`` to locate
+rst2html.) The formatted jsdoc3 will appear in the `<build/api/>`_
 subdirectory, and the `<README.html>`_ in the root of the source tree.
 
 .. warning:: All the public interfaces of salve are available through
@@ -323,7 +325,7 @@ through other means. See Contributing_.
 Build System
 ============
 
-Salve uses grunt. `<Gruntfile.js>`_ gets the values for its
+Salve uses grunt. Salve's `<Gruntfile.js>`_ gets the values for its
 configuration variables from three sources:
 
 * Internal default values.
@@ -335,19 +337,25 @@ configuration variables from three sources:
 
 The variables that can be set are:
 
-============== =================================================================
-Name           Meaning
-============== =================================================================
-mocha_grep     --grep parameter for Mocha
-rst2html       rst2html command to run
-jsdoc3         jsdoc3 command to run
-jsdoc_private  Whether jsdoc3 should produce documentation for private entities.
-============== =================================================================
++-------------------+----------------------------------------------------------+
+|Name               | Meaning                                                  |
++===================+==========================================================+
+|mocha_grep         | --grep parameter for Mocha                               |
++-------------------+----------------------------------------------------------+
+|rst2html           | rst2html command to run                                  |
++-------------------+----------------------------------------------------------+
+|jsdoc3             |jsdoc3 command to run                                     |
++-------------------+----------------------------------------------------------+
+|jsdoc_private      |jsdoc should produce documentation for private entities.  |
+|                   |true by default.                                          |
++-------------------+----------------------------------------------------------+
+|jsdoc3_template_dir|Location of the jsdoc default template                    |
++-------------------+----------------------------------------------------------+
 
-Note that when used on the command line, underscores become dashes so
+Note that when used on the command line, underscores become dashes, thus
 ``--mocha-grep`` and ``--jsdoc-private``.
 
-The ``local.grunt.js`` file is a module. So you must export values
+The ``local.grunt.js`` file is a module. You must export values
 like this::
 
     exports.jsdoc3 = "/usr/local/blah/jsdoc"
@@ -364,8 +372,8 @@ Or you may bypass npm with this command::
 
     $ grunt test
 
-Running ``mocha`` directly also works but you may run the test against
-stale code whereas ``grunt test`` always runs a build first.
+Running ``mocha`` directly also works, but this may run the test against
+stale code, whereas ``grunt test`` always runs a build first.
 
 Building
 ========
@@ -378,9 +386,9 @@ Run::
 
     $ grunt
 
-This will create a `<build>`_ subdirectory in which the JavaScript
+This will create a `<build/>`_ subdirectory in which the JavaScript
 necessary to validate XML files against a prepared Relax NG
-schema. You could copy what is in `<build>`_ to a server to serve
+schema. You could copy what is in `<build/>`_ to a server to serve
 these files to a client that would then perform validation. Future
 releases will include automatic support for minified versions of
 salve.
@@ -426,7 +434,7 @@ schema. Each item in it is of the form::
 
    [<array type>, ...]
 
-The first element ``<array type>`` determines how to interpret the
+The first element, ``<array type>``, determines how to interpret the
 array. The array type could indicate that the array should be
 interpreted as an actual array or that it should be interpreted as an
 object of type ``Group`` or ``Choice``, etc. If it is an array, then
@@ -492,4 +500,6 @@ the Humanities.
 ..  LocalWords:  definePrefix useNameResolver foons resolveName HD NG
 ..  LocalWords:  args param TEI glerbl Github reStructuredText readme
 ..  LocalWords:  validator namespace RequireJS subdirectory DOM cli
-..  LocalWords:  Dubeau Mangalam argparse Gruntfile Bethel
+..  LocalWords:  Dubeau Mangalam argparse Gruntfile Bethel unclosed
+..  LocalWords:  runnable namespaces reparsing amd executables usr
+..  LocalWords:  deployable schemas LocalWords api dir
