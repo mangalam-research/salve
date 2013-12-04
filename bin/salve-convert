@@ -98,9 +98,56 @@ if (args.format_version < 1) {
     args.no_optimize_ids = true;
 }
 
+var temp_dir;
 if (args.simplified_input)
     convert(args.input_path);
 else {
+    if (args.verbose)
+        console.log("Validating RNG...");
+
+    var relaxng_rng = path.resolve(__dirname,
+                                   path.join("..", "lib", "salve",
+                                             "relaxng.rng"));
+
+    // This is a bit of a hack. We want to make sure that the schema
+    // is a valid RNG schema as per RNG specs. Running an xmllint on
+    // the schema with a schema that defines what an RNG schema should
+    // look like does not trap import errors or errors that are not
+    // expressible in a schema language. The tools trang and jing
+    // could possibly be used but they are costly to run. So we run
+    // xmllint with our schema as the schema to use for validation and
+    // /dev/null as the document to validate. This does catch errors
+    // but there is no clean way to get xmllint to output only schema
+    // errors, hence what we have here.
+
+    var child = spawn("xmllint", ["--relaxng", args.input_path,
+                                  "/dev/null"],
+                      {stdio: ['ignore', 'ignore', 'pipe']});
+
+    var err = "";
+    child.stderr.on('data', function (data) {
+        err += data;
+    });
+
+    child.on('close', function (status) {
+        // Remove everything that has to do with /dev/null to avoid confusing
+        // the user.
+        err = err.replace(/\/dev\/null(.|[\r\n])*/, '');
+        if (args.verbose)
+            process.stderr.write(err);
+
+        // Search for an actual schema error.
+        if (err.search(/Relax-NG parser error/) !== -1) {
+            var msg = "error in schema";
+            if (!args.verbose)
+                msg += "; run with --verbose to see what the problem was";
+            throw new Fatal(msg);
+        }
+        simplify();
+    });
+}
+
+function simplify() {
     // Grab the xsl files that form the simplification process, and store
     // these paths in ``steps``.
     var lib_path = path.resolve(__dirname, path.join("..", "lib", "salve",
@@ -124,14 +171,14 @@ else {
     if (args.verbose)
         console.log("Simplifying...");
 
-    var temp_dir = temp.mkdirSync({prefix: "salve-convert"});
+    temp_dir = temp.mkdirSync({prefix: "salve-convert"});
 
     if (args.keep_temp) {
         temp.track(false);
         console.log("Temporary files in: " + temp_dir);
     }
 
-    executeStep(0, args.input_path, convert);
+    executeStep(steps, 0, args.input_path, convert);
 }
 
 /**
@@ -140,7 +187,7 @@ else {
  * @param {String} in_path Path of the input file for this step.
  * @param {Function} after Callback to run after all steps.
  */
-function executeStep(step_no, in_path, after) {
+function executeStep(steps, step_no, in_path, after) {
     if (step_no >= steps.length)
         return after(in_path);
 
@@ -152,7 +199,11 @@ function executeStep(step_no, in_path, after) {
         if (status)
             throw new Fatal("xsltproc terminated with status: " + status);
 
-        return executeStep(step_no + 1, out_path, after);
+        if (!fs.existsSync(out_path))
+            throw new Fatal("xsltproc step " + step_no +
+                            " failed to create output");
+
+        return executeStep(steps, step_no + 1, out_path, after);
     });
 }
 
