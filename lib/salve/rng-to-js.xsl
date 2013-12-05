@@ -80,9 +80,15 @@
   <xsl:template name="name-to-type">
     <xsl:param name="name"/>
     <!-- XSLT ver 1 does not have $top, hence the loop -->
-    <xsl:for-each select="$name-to-type-table">
-      <xsl:value-of select="key('type-lookup', $name)"/>
-    </xsl:for-each>
+    <xsl:variable name="ret">
+      <xsl:for-each select="$name-to-type-table">
+        <xsl:value-of select="key('type-lookup', $name)"/>
+      </xsl:for-each>
+    </xsl:variable>
+    <xsl:if test="$ret = ''">
+      <xsl:message terminate="yes">rng-to-js.xsl: cannot convert name <xsl:value-of select="$name"/>; probably not supported.</xsl:message>
+    </xsl:if>
+    <xsl:value-of select="$ret"/>
   </xsl:template>
 
   <xsl:template name="output-version-abort">
@@ -90,6 +96,11 @@
   </xsl:template>
 
   <xsl:template match="rng:name">
+    <!-- Check that we don't have another name sibling. This is not
+         yet supported. -->
+    <xsl:if test="preceding-sibling::rng:name | following-sibling::rng:name">
+      <xsl:message terminate="yes">rng-to-js.xsl: complex name classes are not supported yet.</xsl:message>
+    </xsl:if>
     <xsl:choose>
       <xsl:when test="$output-version=0">
         <xsl:text>{"type":"EName","args":["</xsl:text>
