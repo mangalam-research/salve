@@ -464,9 +464,10 @@ RNG Simplification Code
 The RNG simplification transformation files are adapted from `Nicolas
 Debeissat's code
 <https://code.google.com/p/jsrelaxngvalidator/>`_. They are covered by
-the `CeCILL license <http://www.cecill.info/index.en.html>`_. Some bugs have
-been corrected and some changes made for salve. For the sake of simplicity,
-these changes are also covered by the CeCILL license.
+the `CeCILL license <http://www.cecill.info/index.en.html>`_. Multiple
+bugs in them have been corrected, some minor and some major, and some
+changes have been made for salve. For the sake of simplicity, these
+changes are also covered by the CeCILL license.
 
 Credits
 =======
