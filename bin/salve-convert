@@ -28,8 +28,11 @@ process.on('uncaughtException', function (ex) {
         console.log(ex.message);
         process.exit(1);
     }
-    else
+    else {
+        if (!args.keep_temp)
+            temp.cleanup(); // We need to do this ourselves...
         throw ex;
+    }
 });
 
 //
