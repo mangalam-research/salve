@@ -69,6 +69,12 @@ externalRef patterns are replaced by the content of the resource referenced by t
     <xsl:call-template name="include">
       <xsl:with-param
           name="nodes"
+          select="document(@href)/rng:grammar/*[not(self::rng:start or self::rng:define)]"/>
+      <xsl:with-param name="sourceDir" select="$sourceDir"/>
+    </xsl:call-template>
+    <xsl:call-template name="include">
+      <xsl:with-param
+          name="nodes"
           select="document(@href)/rng:grammar/rng:start[not(current()/rng:start)]"/>
       <xsl:with-param name="sourceDir" select="$sourceDir"/>
     </xsl:call-template>
@@ -78,7 +84,6 @@ externalRef patterns are replaced by the content of the resource referenced by t
           select="document(@href)/rng:grammar/rng:define[not(@name = current()/rng:define/@name)]"/>
       <xsl:with-param name="sourceDir" select="$sourceDir"/>
     </xsl:call-template>
-
   </rng:div>
 </xsl:template>
 
