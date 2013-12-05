@@ -4,6 +4,7 @@
 
 require("amd-loader");
 var temp = require("temp");
+var sax = require("sax");
 temp.track();
 
 //
@@ -168,7 +169,25 @@ function simplify() {
     });
 
     steps = steps.map(function (file) {
-        return path.join(lib_path, file);
+        var ret = { name: file, path: path.join(lib_path, file) };
+        if (file === "rng-simplification_step1.xsl") {
+            ret.repeatWhen = function (out_path) {
+                // We want to check whether we need to run the
+                // step again to include more files.
+                var parser = makeIncludeParser();
+                var data = fs.readFileSync(out_path).toString();
+                try {
+                    parser.write(data).close();
+                }
+                catch (ex) {
+                    if (!(ex instanceof Found))
+                        throw ex;
+                }
+                return parser.__found;
+            };
+            ret.repeat_no = 0;
+        }
+        return ret;
     });
 
     if (args.verbose)
@@ -195,8 +214,15 @@ function executeStep(steps, step_no, in_path, after) {
         return after(in_path);
 
     var step = steps[step_no];
-    var out_path = path.join(temp_dir, "out" + (step_no + 1) + ".rng");
-    var child = spawn("xsltproc", ["-o", out_path, step, in_path],
+    var out_base = "out" + (step_no + 1) +
+            (step.repeatWhen ? ("." + (step.repeat_no + 1)) : "") +
+            ".rng";
+    var out_path = path.join(temp_dir, out_base);
+    var child = spawn("xsltproc", ["-o", out_path, "--stringparam",
+                                   "originalDir",
+                                   path.resolve(path.dirname(args.input_path))
+                                   + "/",
+                                   step.path, in_path],
                       {stdio: "inherit"});
     child.on('exit', function (status) {
         if (status)
@@ -205,6 +231,13 @@ function executeStep(steps, step_no, in_path, after) {
         if (!fs.existsSync(out_path))
             throw new Fatal("xsltproc step " + step_no +
                             " failed to create output");
+
+        if (step.repeatWhen) {
+            if (step.repeatWhen(out_path)) {
+                step.repeat_no++;
+                return executeStep(steps, step_no, out_path, after);
+            }
+        }
 
         return executeStep(steps, step_no + 1, out_path, after);
     });
@@ -348,3 +381,27 @@ function convert(simplified_path) {
         process.exit(0);
     });
 }
+
+//
+//  Misc utilities
+//
+
+// Exception used to terminate the sax parser early.
+function Found() {
+    Error.call(this, arguments);
+}
+Found.prototype = new Error();
+
+function makeIncludeParser() {
+    var parser = sax.parser(true, {xmlns: true});
+    parser.onopentag = onOpenTag;
+    return parser;
+}
+
+function onOpenTag(node) {
+    if (node.uri === "http://relaxng.org/ns/structure/1.0" &&
+        (node.local === "include" || node.local === "externalRef")) {
+        this.__found = true;
+        throw new Found();  // Stop early.
+    }
+};
