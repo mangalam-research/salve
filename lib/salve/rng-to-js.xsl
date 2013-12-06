@@ -36,10 +36,6 @@
     <xsl:call-template name="generate-new"/>
   </xsl:template>
 
-  <xsl:template match="rng:grammar">
-    <xsl:call-template name="generate-new"/>
-  </xsl:template>
-
   <xsl:template match="rng:ref|rng:define">
     <xsl:call-template name="generate-new">
       <xsl:with-param name="first" select="@name"/>
