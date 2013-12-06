@@ -87,12 +87,19 @@ parser.addArgument(["-v", "--verbose"], {
     help: "Run verbosely.",
     action: "storeTrue"
 });
+parser.addArgument(["--timing"], {
+    help: "Output timing information. Implies --verbose.",
+    action: "storeTrue"
+});
 
 
 parser.addArgument(["input_path"]);
 parser.addArgument(["output_path"]);
 
 var args = parser.parseArgs();
+
+if (args.timing)
+    args.verbose = true;
 
 // We can't optimize ids when the version is less than 1.
 if (args.format_version < 1) {
@@ -106,8 +113,11 @@ var temp_dir;
 if (args.simplified_input)
     convert(args.input_path);
 else {
-    if (args.verbose)
+    if (args.verbose) {
         console.log("Validating RNG...");
+        if (args.timing)
+            var start_time = new Date();
+    }
 
     var relaxng_rng = path.resolve(__dirname,
                                    path.join("..", "lib", "salve",
@@ -147,13 +157,22 @@ else {
                 msg += "; run with --verbose to see what the problem was";
             throw new Fatal(msg);
         }
+        if (args.timing)
+            console.log("Validation delta: " + (new Date() - start_time));
         simplify();
     });
 }
 
+var simplifying_start_time;
 function simplify() {
     // Grab the xsl files that form the simplification process, and store
     // these paths in ``steps``.
+    if (args.verbose) {
+        console.log("Simplifying...");
+        if (args.timing)
+            simplifying_start_time = new Date();
+    }
+
     var lib_path = path.resolve(__dirname, path.join("..", "lib", "salve",
                                                      "rng-simplification"));
     var steps = fs.readdirSync(lib_path);
@@ -175,9 +194,9 @@ function simplify() {
                 // We want to check whether we need to run the
                 // step again to include more files.
                 var parser = makeIncludeParser();
-                var data = fs.readFileSync(out_path).toString();
+                var data = fs.createReadStream(out_path);
                 try {
-                    parser.write(data).close();
+                    data.pipe(parser);
                 }
                 catch (ex) {
                     if (!(ex instanceof Found))
@@ -189,9 +208,6 @@ function simplify() {
         }
         return ret;
     });
-
-    if (args.verbose)
-        console.log("Simplifying...");
 
     temp_dir = temp.mkdirSync({prefix: "salve-convert"});
 
@@ -251,6 +267,10 @@ function executeStep(steps, step_no, in_path, after) {
  * simplification.
  */
 function convert(simplified_path) {
+    if (args.timing)
+        console.log("Simplification delta: " + (new Date() -
+                                                simplifying_start_time));
+
     if (args.simplify_only) {
         var child = spawn("xmllint",
                           ["--format", "--output", args.output_path,
@@ -260,8 +280,11 @@ function convert(simplified_path) {
         return;
     }
 
-    if (args.verbose)
+    if (args.verbose) {
         console.log("Transforming RNG to JavaScript...");
+        if (args.timing)
+            var conv_start_time = new Date();
+    }
     var xsltproc_args = ["--param", "output-version", args.format_version,
                          "-o", args.output_path,
                           path.resolve(__dirname,
@@ -333,9 +356,15 @@ function convert(simplified_path) {
         if (status)
             throw new Fatal("xsltproc terminated with status: " + status);
 
+        if (args.timing)
+            console.log("Conversion delta: " + (new Date() - conv_start_time));
+
         if (!args.no_optimize_ids) {
-            if (args.verbose)
+            if (args.verbose) {
                 console.log("Optimizing ids...");
+                if (args.timing)
+                    var opt_start_time = new Date();
+            }
             var parsed = JSON.parse(fs.readFileSync(args.output_path));
 
             var version = parsed.v;
@@ -376,6 +405,10 @@ function convert(simplified_path) {
             }
             else
                 throw new Fatal("unknown converted version: " + version);
+
+            if (args.timing)
+                console.log("Optimization delta: " + (new Date() -
+                                                      opt_start_time));
         }
 
         process.exit(0);
@@ -393,7 +426,7 @@ function Found() {
 Found.prototype = new Error();
 
 function makeIncludeParser() {
-    var parser = sax.parser(true, {xmlns: true});
+    var parser = sax.createStream(true, {xmlns: true});
     parser.onopentag = onOpenTag;
     return parser;
 }
