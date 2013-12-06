@@ -183,7 +183,7 @@
       </xsl:when>
       <xsl:when test="$output-version=1">
         <xsl:if test="$output-paths">
-          <xsl:text>"</xsl:text>
+          <xsl:text>,"</xsl:text>
           <xsl:apply-templates select="ancestor-or-self::*" mode="name"/>
           <xsl:text>"</xsl:text>
         </xsl:if>

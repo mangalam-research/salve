@@ -24,12 +24,16 @@ describe("salve-convert", function () {
                           {stdio: "inherit"});
         child.on('exit', function (code, signal) {
             assert.equal(code, 0, "salve-convert exit status");
-            // The actual output from diff would not be that useful here.
-            spawn("diff", [outpath, expath], {stdio: 'ignore'})
+            if (expath) {
+                // The actual output from diff would not be that useful here.
+                spawn("diff", [outpath, expath], {stdio: 'ignore'})
                 .on('exit', function (code, signal) {
                     assert.equal(code, 0, "there was a difference");
                     done();
-            });
+                });
+            }
+            else
+                done();
         });
     }
 
@@ -80,5 +84,14 @@ describe("salve-convert", function () {
         var expath = "test/tei/simplified-rng-v1-optimized-ids.js";
 
         salve_convert(inpath, expath, [], done);
+    });
+
+    it("include paths", function (done) {
+        var inpath = "test/tei/myTEI.rng";
+        var expath = "test/tei/simplified-rng-v1-optimized-ids.js";
+
+        // Test created to deal with an internal error, so we don't
+        // check the output.
+        salve_convert(inpath, null, ["--include-paths"], done);
     });
 });
