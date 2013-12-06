@@ -23,12 +23,12 @@
     "dependencies": {
         "amd-loader": "~0.0.4",
         "argparse": "~0.1.15",
-        "temp": "~0.6.0"
+        "temp": "~0.6.0",
+        "sax": "~0.5.7"
     },
     "devDependencies": {
         "mocha": "1.9.x",
         "chai": "1.6.x",
-        "sax": "0.5.x",
         "semver-sync": ">=1.2.0",
         "load-grunt-tasks": "~0.2.0",
         "grunt": "~0.4.1",
