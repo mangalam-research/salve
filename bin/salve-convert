@@ -193,10 +193,11 @@ function simplify() {
             ret.repeatWhen = function (out_path) {
                 // We want to check whether we need to run the
                 // step again to include more files.
-                var parser = makeIncludeParser();
+                var parser = new IncludeParser(
+                    sax.createStream(true, {xmlns: true}));
                 var data = fs.createReadStream(out_path);
                 try {
-                    data.pipe(parser);
+                    data.pipe(parser.sax_parser);
                 }
                 catch (ex) {
                     if (!(ex instanceof Found))
@@ -425,16 +426,25 @@ function Found() {
 }
 Found.prototype = new Error();
 
-function makeIncludeParser() {
-    var parser = sax.createStream(true, {xmlns: true});
-    parser.onopentag = onOpenTag;
-    return parser;
+function Parser(sax_parser) {
+    this.sax_parser = sax_parser;
+    for(var name in this) {
+        if (name.lastIndexOf("on", 0) === 0)
+            this.sax_parser[name] = this.name;
+    }
 }
 
-function onOpenTag(node) {
+function IncludeParser(sax_parser) {
+    Parser.call(this, sax_parser);
+    this.found = false;
+}
+
+IncludeParser.prototype = new Parser();
+
+IncludeParser.prototype.onopentag = function (node) {
     if (node.uri === "http://relaxng.org/ns/structure/1.0" &&
         (node.local === "include" || node.local === "externalRef")) {
-        this.__found = true;
+        this.found = true;
         throw new Found();  // Stop early.
     }
-};
+}
