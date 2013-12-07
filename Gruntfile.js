@@ -19,7 +19,7 @@ module.exports = function(grunt) {
     }
     catch (e) {
         if (e.code !== "MODULE_NOT_FOUND")
-            throw(e);
+            throw e;
     }
     // Override defaults with any variables from commandline environment,
     // then from a local.grunt.js configuration file
@@ -126,6 +126,15 @@ module.exports = function(grunt) {
                       expand: true
                     }
                 ]
+            },
+            gh_pages_build: {
+                files: [
+                    { cwd: "build/api/",
+                      src: ["**/*"],
+                      dest: "gh-pages-build",
+                      expand: true
+                    }
+                ]
             }
         },
         clean: {
@@ -194,7 +203,10 @@ module.exports = function(grunt) {
                                         "newer:jsdoc:build"]);
     grunt.registerTask("doc", ["create_jsdocs",
                                "newer:shell:readme"]);
+    grunt.registerTask("gh-pages-build", ["create_jsdocs",
+                                          "newer:copy:gh_pages_build"]);
     grunt.registerTask("test", ["default", "shell:semver", "mochaTest"]);
+
 //  grunt-contrib-clean is its own task: "grunt clean"
 
 };
