@@ -30,7 +30,7 @@ process.on('uncaughtException', function (ex) {
         process.exit(1);
     }
     else {
-        if (!args.keep_temp)
+        if (!args || !args.keep_temp)
             temp.cleanup(); // We need to do this ourselves...
         throw ex;
     }
@@ -41,9 +41,10 @@ process.on('uncaughtException', function (ex) {
 //
 
 var salve = require("../");
-var formats = require("../lib/salve/formats");
 var patterns = require("../lib/salve/patterns");
 var oop = require("../lib/salve/oop");
+var conversion = require("../lib/salve/conversion");
+var Element = conversion.Element;
 var spawn = require("child_process").spawn;
 var path = require("path");
 var fs = require("fs");
@@ -69,6 +70,7 @@ parser.addArgument(["--include-paths"], {
 });
 parser.addArgument(["--format-version"], {
     help: "Version number of the JavaScript format that the tool must produce.",
+    type: Number,
     defaultValue: 1
 });
 parser.addArgument(["--simplify-only"], {
@@ -193,17 +195,16 @@ function simplify() {
             ret.repeatWhen = function (out_path) {
                 // We want to check whether we need to run the
                 // step again to include more files.
-                var parser = new IncludeParser(
-                    sax.createStream(true, {xmlns: true}));
-                var data = fs.createReadStream(out_path);
+                var parser = new IncludeParser(sax.parser(true, {xmlns: true}));
+                var data = fs.readFileSync(out_path).toString();
                 try {
-                    data.pipe(parser.sax_parser);
+                    parser.sax_parser.write(data).close();
                 }
                 catch (ex) {
                     if (!(ex instanceof Found))
                         throw ex;
                 }
-                return parser.__found;
+                return parser.found;
             };
             ret.repeat_no = 0;
         }
@@ -260,6 +261,7 @@ function executeStep(steps, step_no, in_path, after) {
     });
 }
 
+
 /**
  * Meant to be used as the <code>after</code> call back for
  * <code>executeStep</code>. Performs the conversion from RNG to JS.
@@ -286,134 +288,66 @@ function convert(simplified_path) {
         if (args.timing)
             var conv_start_time = new Date();
     }
-    var xsltproc_args = ["--param", "output-version", args.format_version,
-                         "-o", args.output_path,
-                          path.resolve(__dirname,
-                                       path.join("..", "lib", "salve",
-                                                 "rng-to-js.xsl")),
-                simplified_path];
 
-    if (args.include_paths)
-        xsltproc_args = ["--param", "output-paths",
-                         "true()"].concat(xsltproc_args);
-
-    var xsltproc = spawn("xsltproc",
-                         xsltproc_args,
-                         {stdio: "inherit"});
-
-    var V1JSONWalker = formats.__protected.V1JSONWalker;
-    function NameGatherer() {
-        V1JSONWalker.apply(this, arguments);
-        this.names = {};
+    var parser = new conversion.ConversionParser(sax.parser(true,
+                                                            {xmlns: true}));
+    var walker;
+    debugger;
+    switch(args.format_version) {
+    case 0:
+        walker = new conversion.ConversionWalker0(args.include_paths);
+        break;
+    case 1:
+        walker = new conversion.ConversionWalker1(args.include_paths);
+        break;
+    default:
+        throw new Error("unknown version: " + args.format_version);
     }
-    oop.inherit(NameGatherer, V1JSONWalker);
+    parser.sax_parser.write(
+        fs.readFileSync(simplified_path).toString()).close();
 
-    NameGatherer.prototype._processObject = function(array, ctor, args) {
-        if (ctor === patterns.__protected.Ref ||
-            ctor === patterns.__protected.Define) {
-            var name = args[1];
-            if (!(name in this.names))
-                this.names[name] = 0;
-
-            this.names[name]++;
-        }
-    };
-
-    var constructors = [];
-    (function () {
-        var name_to_constructor = formats.__protected.name_to_constructor;
-        var i = 0;
-        while(name_to_constructor[i]) {
-            constructors[i] = name_to_constructor[i];
-            i++;
-        }
-    })();
-
-
-    function Renamer(options, names) {
-        V1JSONWalker.apply(this, [options]);
-        this.names = names;
+    if (args.no_optimize_ids) {
+        walker.walk(parser.stack[0].children[0]);
+        fs.writeFileSync(args.output_path, walker.output.join(""));
     }
-    oop.inherit(Renamer, V1JSONWalker);
+    else {
+        if (args.format_version === 1) {
+            // Gather names
+            var g = new conversion.NameGatherer();
+            g.walk(parser.stack[0].children[0]);
+            var names = g.names;
 
-    Renamer.prototype._processObject = function(array, ctor, args) {
-        if (ctor === patterns.__protected.Ref ||
-            ctor === patterns.__protected.Define) {
-            args[1] = this.names[args[1]];
+            // Now assign new names with shorter new names being
+            // assigned to those original names that are most
+            // frequent.
+            var sorted = Object.keys(names).map(function (key) {
+                return {key: key, freq: names[key]};
+            });
+            sorted.sort(function(a, b) {
+                // Yes, we want to sort in reverse order of frequency
+                return b.freq - a.freq;
+            });
+            var id = 1;
+            var new_names = {};
+            sorted.forEach(function (elem) {
+                new_names[elem.key] = id++;
+            });
+
+            // Perform the renaming.
+            var renamer = new conversion.Renamer(new_names);
+            renamer.walk(parser.stack[0].children[0]);
+
+            walker.walk(parser.stack[0].children[0]);
+            fs.writeFileSync(args.output_path, walker.output.join(""));
         }
+        else
+            throw new Fatal("unknown version: " + args.format_version);
+    }
 
-        if ((this.options & formats.__protected.OPTION_NO_PATHS) &&
-            ctor !== patterns.__protected.EName)
-            args = args.slice(1);
+    if (args.timing)
+        console.log("Conversion delta: " + (new Date() - conv_start_time));
 
-        return [constructors.indexOf(ctor)].concat(args);
-    };
-
-    Renamer.prototype._processArray = function(array) {
-        return this._walkArray(array);
-    };
-
-    xsltproc.on('exit', function (status) {
-        if (status)
-            throw new Fatal("xsltproc terminated with status: " + status);
-
-        if (args.timing)
-            console.log("Conversion delta: " + (new Date() - conv_start_time));
-
-        if (!args.no_optimize_ids) {
-            if (args.verbose) {
-                console.log("Optimizing ids...");
-                if (args.timing)
-                    var opt_start_time = new Date();
-            }
-            var parsed = JSON.parse(fs.readFileSync(args.output_path));
-
-            var version = parsed.v;
-            if (version === 1) {
-                // Gather names
-                var g = new NameGatherer(parsed.o);
-                g.walkObject(parsed.d);
-                var names = g.names;
-
-                // Now assign new names with shorter new names being
-                // assigned to those original names that are most
-                // frequent.
-                var sorted = Object.keys(names).map(function (key) {
-                    return {key: key, freq: names[key]};
-                });
-                sorted.sort(function(a, b) {
-                    // Yes, we want to sort in reverse order of frequency
-                    return b.freq - a.freq;
-                });
-                var id = 1;
-                var new_names = {};
-                sorted.forEach(function (elem) {
-                    new_names[elem.key] = id++;
-                });
-
-                // Perform the renaming.
-                var renamer = new Renamer(parsed.o, new_names);
-                parsed.d = renamer.walkObject(parsed.d);
-
-                // And save. We don't use ``JSON.stringify`` for the
-                // topmost object because it is nice to have *this*
-                // order when opening the file in an editor or using
-                // ``less``.
-                var to_write = '{"v":' + JSON.stringify(parsed.v) +
-                        ',"o":' + JSON.stringify(parsed.o) +
-                        ',"d":' + JSON.stringify(parsed.d) + '}';
-                fs.writeFileSync(args.output_path, to_write);
-            }
-            else
-                throw new Fatal("unknown converted version: " + version);
-
-            if (args.timing)
-                console.log("Optimization delta: " + (new Date() -
-                                                      opt_start_time));
-        }
-
-        process.exit(0);
-    });
+    process.exit(0);
 }
 
 //
@@ -430,7 +364,7 @@ function Parser(sax_parser) {
     this.sax_parser = sax_parser;
     for(var name in this) {
         if (name.lastIndexOf("on", 0) === 0)
-            this.sax_parser[name] = this.name;
+            this.sax_parser[name] = this[name].bind(this);
     }
 }
 
@@ -447,4 +381,4 @@ IncludeParser.prototype.onopentag = function (node) {
         this.found = true;
         throw new Found();  // Stop early.
     }
-}
+};

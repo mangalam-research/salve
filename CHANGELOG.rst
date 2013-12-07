@@ -1,5 +1,11 @@
 Only major changes are reported here.
 
+* 0.17.0:
+
+  - The ``rng-to-js.xsl`` stylesheet is gone. It's work has been taken
+    over by ``salve-convert``. This change yields a speed improvement
+    of an order of magnitude on large schemas.
+
 * 0.16.0:
 
   - Salve's build is now done with grunt rather than make.
