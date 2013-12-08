@@ -318,23 +318,6 @@ describe("GrammarWalker.fireEvent",  function () {
             };
         }
 
-        describe("a tei-based file (using v0)", function () {
-            before(function () {
-                rng = "test/tei/simplified-rng.js";
-            });
-            it("which is empty", makeErrorTest("empty"));
-            it("which has an unclosed element",
-               makeErrorTest("not_closed1"));
-            it("which has two unclosed elements",
-               makeErrorTest("not_closed2"));
-            it("which has two unclosed elements, with contents",
-               makeErrorTest("not_closed3"));
-            it("which has a missing namespace",
-               makeErrorTest("missing_namespace"));
-            it("which has a missing element",
-               makeErrorTest("missing_element"));
-        });
-
         describe("a tei-based file (using v1)", function () {
             before(function () {
                 rng = "test/tei/simplified-rng-v1.js";
@@ -665,7 +648,7 @@ describe("Grammar", function () {
     describe("getNamespaces", function () {
         it("returns the namespaces", function () {
             // Read the RNG tree.
-            var source = fileAsString("test/tei/simplified-rng.js");
+            var source = fileAsString("test/tei/simplified-rng-v1.js");
 
             var tree = validate.constructTree(source);
             assert.sameMembers(

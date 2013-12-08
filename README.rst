@@ -406,20 +406,6 @@ work.
 Schema File Format
 ==================
 
-Before version 0.14, the schemas that salve would accept were saved in
-files presenting the following structure::
-
-    { "type": <object type>, "args": [...]}
-
-The ``<object type>`` would be a string like ``"Choice"`` or
-``"Group"`` indicating which constructor to use to build the
-object. The ``args`` field would be a list of arguments to pass to the
-constructor. These arguments were either primitive JSON objects
-(integers, strings, arrays, etc.) or objects of the same format as
-described above, with a ``type`` and ``args`` field. The problem with
-this format is that it wastes a lot of space. We could call this
-version 0 of salve's schema format.
-
 Version 0.14 introduces a new format. This format has version
 number 1. The new structure is::
 
@@ -444,9 +430,6 @@ converted array. If it is another type of object then again the
 of the array as its constructor's parameters. All the array's elements
 after ``<array type>`` can be JSON primitive types, or arrays to be
 interpreted as actual arrays or as objects as described above.
-
-It is likely that salve will always support version 0 of the format
-because it is useful for debugging.
 
 License
 =======

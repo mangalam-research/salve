@@ -37,31 +37,12 @@ describe("salve-convert", function () {
         });
     }
 
-    it("when producing v0 outputs paths with output-paths turned on",
-       function (done) {
-        var inpath = "test/tei/simplified.rng";
-        var expath = "test/tei/simplified-rng.js";
-
-        salve_convert(inpath, expath, ["--simplified-input",
-                                       "--format-version", "0",
-                                       "--include-paths"], done);
-    });
-
-    it("when producing v0 does not output paths by default", function (done) {
-        var inpath = "test/tei/simplified.rng";
-        var expath = "test/tei/simplified-rng-nopaths.js";
-
-        salve_convert(inpath, expath, ["--simplified-input",
-                                       "--format-version", "0"], done);
-    });
-
     it("when producing v1 does not output paths by default", function (done) {
         var inpath = "test/tei/simplified.rng";
         var expath = "test/tei/simplified-rng-v1.js";
 
         salve_convert(inpath, expath, ["--simplified-input",
-                                       "--no-optimize-ids",
-                                       "--format-version", "1"], done);
+                                       "--no-optimize-ids"], done);
     });
 
     it("outputs v1 by default", function (done) {

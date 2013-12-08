@@ -110,13 +110,8 @@ if (args.timing)
 if (args.verbose_format)
     args.no_optimize_ids = true;
 
-// We can't optimize ids when the version is less than 1.
-if (args.format_version < 1) {
-    if (args.verbose)
-        console.log("Cannot optimize ids for format version " +
-                    args.format_version + "; turning off id optimization.");
-    args.no_optimize_ids = true;
-}
+if (args.format_version < 1)
+    throw new Fatal("can't produce format version " + args.format_version);
 
 var temp_dir;
 if (args.simplified_input)
@@ -301,9 +296,6 @@ function convert(simplified_path) {
     var walker;
     debugger;
     switch(args.format_version) {
-    case 0:
-        walker = new conversion.ConversionWalker0(args.include_paths);
-        break;
     case 1:
         walker = new conversion.ConversionWalker1(args.include_paths,
                                                   args.verbose_format);
