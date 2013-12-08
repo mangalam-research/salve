@@ -6,6 +6,8 @@ Only major changes are reported here.
     over by ``salve-convert``. This change yields a speed improvement
     of an order of magnitude on large schemas.
 
+  - API change: ``text`` events now require a text value to be passed.
+
 * 0.16.0:
 
   - Salve's build is now done with grunt rather than make.

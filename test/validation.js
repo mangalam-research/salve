@@ -127,20 +127,6 @@ EventRecorder.prototype.issueEvent = function (walker, ev_ix, ev) {
     var slice_len = ev.length;
     if (ev[0] === "leaveStartTag")
         slice_len = 1;
-    else if (ev[0] === "text") {
-        var text = ev[1];
-        var issue = true;
-        if (text === "") {
-            var text_possible =
-                    walker.possible().filter(function (x) {
-                        return x.params[0] === "text";
-                    });
-            issue = text_possible.length > 0;
-        }
-        if (!issue)
-            return;
-        slice_len = 1;
-    }
     var ev_params = Array.prototype.slice.call(ev, 0, slice_len);
 
     // For the clone check
@@ -150,7 +136,7 @@ EventRecorder.prototype.issueEvent = function (walker, ev_ix, ev) {
 
     var nev = new validate.Event(ev_params);
     if (this.check_fireEvent_invocation)
-        this.ce.compare("\ninvoking fireEvent with " + nev.toString(), nev);
+        this.ce.compare("\ninvoking fireEvent with " + nev.toString().trim(), nev);
     var ret = walker.fireEvent(nev);
     this.ce.compare("fireEvent returned " + errorsToString(ret), nev);
     if (this.check_possible) {
@@ -511,7 +497,7 @@ describe("GrammarWalker.fireEvent",  function () {
                 new validate.Event("enterStartTag", "", "html"));
             assert.isFalse(ret);
             ret = walker.fireEvent(
-                new validate.Event("text"));
+                new validate.Event("text", "q"));
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(),
                          "text not allowed here");

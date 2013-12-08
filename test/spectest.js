@@ -44,13 +44,13 @@ var skips = {
     skips["test" + x] = {correct : true};
 });
 
-// Value support is buggy.
-[95, 380, 263, 376, 284, 383, 142, 272, 270, 385, 274, 99, 282, 275, 384, 256, 138, 264, 281, 378, 254, 271, 379, 381, 382, 262, 267, 280, 258, 266, 273, 259, 255].forEach(function (x) {
+// No support yet for datatypeLibrary other than the builtin one.
+[380, 99, 378, 379].forEach(function (x) {
     skips["test" + x] = {correct: true};
 });
 
 // Data support is buggy.
-[261].forEach(function (x) {
+[261, 383].forEach(function (x) {
     skips["test" + x] = {correct: true};
 });
 
@@ -178,7 +178,7 @@ describe("spectest", function () {
                     t.invalid.forEach(function (vfile) {
                         it(vfile, function (done) {
                             parse([outpath, vfile], true, function (code) {
-                                assert.notEqual(code, 0, "parse exit status");
+                                assert.equal(code, 1, "parse exit status");
                                 done();
                             });
                         });

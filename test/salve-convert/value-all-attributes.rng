@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<element xmlns:foo="http://foo.com" xmlns="http://relaxng.org/ns/structure/1.0" name="foo:foo">
+  <value type="QName" ns="http://bar.com" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">abc</value>
+</element>

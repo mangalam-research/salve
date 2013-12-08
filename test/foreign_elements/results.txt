@@ -36,4 +36,8 @@ fireEvent returned false
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
 end returned false

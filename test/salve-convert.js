@@ -37,15 +37,19 @@ describe("salve-convert", function () {
         });
     }
 
-    it("when producing v1 does not output paths by default", function (done) {
-        var inpath = "test/tei/simplified.rng";
-        var expath = "test/tei/simplified-rng-v1.js";
+    var dir = "test/salve-convert/";
+    var tests = fs.readdirSync(dir);
 
-        salve_convert(inpath, expath, ["--simplified-input",
-                                       "--no-optimize-ids"], done);
+    tests.forEach(function (t) {
+        if (t.slice(-4) === ".rng") {
+            var expected = t.slice(0, -4) + ".js";
+            it("convert " + t, function (done) {
+                salve_convert(dir + t, dir + expected, [], done);
+            });
+        }
     });
 
-    it("outputs v1 by default", function (done) {
+    it("when producing v1 does not output paths by default", function (done) {
         var inpath = "test/tei/simplified.rng";
         var expath = "test/tei/simplified-rng-v1.js";
 
