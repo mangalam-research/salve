@@ -93,6 +93,10 @@ parser.addArgument(["--timing"], {
     help: "Output timing information. Implies --verbose.",
     action: "storeTrue"
 });
+parser.addArgument(["--verbose-format"], {
+    help: "Outputs a verbose version of the data, with actual class names instead of numbers. Implies --no-optimize-ids. This format is cannot be read by salve. It is meant for debugging purposes only.",
+    action: "storeTrue"
+});
 
 
 parser.addArgument(["input_path"]);
@@ -102,6 +106,9 @@ var args = parser.parseArgs();
 
 if (args.timing)
     args.verbose = true;
+
+if (args.verbose_format)
+    args.no_optimize_ids = true;
 
 // We can't optimize ids when the version is less than 1.
 if (args.format_version < 1) {
@@ -298,7 +305,8 @@ function convert(simplified_path) {
         walker = new conversion.ConversionWalker0(args.include_paths);
         break;
     case 1:
-        walker = new conversion.ConversionWalker1(args.include_paths);
+        walker = new conversion.ConversionWalker1(args.include_paths,
+                                                  args.verbose_format);
         break;
     default:
         throw new Error("unknown version: " + args.format_version);
