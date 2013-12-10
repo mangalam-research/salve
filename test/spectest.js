@@ -50,18 +50,9 @@ var skips = {
 });
 
 // Data support is buggy.
-[261, 383].forEach(function (x) {
+[261, 281, 283, 260, 383, 384].forEach(function (x) {
     skips["test" + x] = {correct: true};
 });
-
-// List support is buggy.
-[284, 282, 384, 138, 237, 281, 238, 280, 260, 283].forEach(function (x) {
-    skips["test" + x] = {correct: true};
-});
-
-
-
-
 
 var spectest_dir = path.join(__dirname, "spectest");
 
