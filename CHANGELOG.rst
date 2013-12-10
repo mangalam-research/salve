@@ -8,6 +8,9 @@ Only major changes are reported here.
 
   - API change: ``text`` events now require a text value to be passed.
 
+  - API change: salve now expects all white space to be passed to
+    it. Previous versions did not.
+
 * 0.16.0:
 
   - Salve's build is now done with grunt rather than make.

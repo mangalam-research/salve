@@ -123,9 +123,9 @@ validate against the RNG.
 Events
 ======
 
-The parser is responsible for calling ``fireEvent()`` on the walker returned
-by the tree created from the RNG. (See above.) The events currently
-supported are defined below:
+The parser is responsible for calling ``fireEvent()`` on the walker
+returned by the tree created from the RNG. (See above.) The events
+currently supported are defined below:
 
 ``Event("enterStartTag", uri, local-name)``
   Emitted when encountering the beginning of a start tag (the string
@@ -146,8 +146,9 @@ supported are defined below:
 ``Event("attributeValue", value)``
   Emitted when encountering an attribute value
 
-``Event("text")``
-  Emitted when encountering text.
+``Event("text", value)``
+  Emitted when encountering text. This event must be fired **even** for
+  all instances of text, including white space.
 
 ``Event("enterContext")``
   Emitted when entering a new namespace context.
@@ -226,6 +227,16 @@ state. If you have to use a name resolver that does not allow for
 recording validation state, you can call ``useNameResolver`` on your
 walker and use the facilities described here, or provide such
 functionality yourself.
+
+Salve's Internals and Events
+----------------------------
+
+If you ever look at salve's internals be aware that as an
+implementation convenience, patterns that accept ``text`` events also
+accept ``attributeValue`` events. That is, ``fireEvent`` will accept
+both. However, these elements will only return ``text`` as a possible
+event. ``AttributeWalker`` is responsible to convert it to
+``attributeValue``.
 
 Support for Guided Editing
 ==========================
