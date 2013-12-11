@@ -9,6 +9,28 @@ public API. You should consider any function at the top level of a
 module that is marked `<inner>` to be public. These functions appear
 as `<inner>` due to a limitation of jsdoc3.
 
+#Salve's Internals
+
+## Context Cheats
+
+Salve cheats when it comes to handling context for &lt;value>. Only
+two types known to salve require a context: QName and NOTATION from
+the XML Schema library. The ``salve-convert`` command does not
+incorporate a context for them but instead uses the context in the
+schema to transform the &lt;value> element so that @ns is set to the
+URI under which the local-name in the &lt;value> element should be
+interpreted, and the contents of &lt;value> is turned in to a local
+name.
+
+##Events
+
+If you ever look at salve's internals be aware that as an
+implementation convenience, patterns that accept ``text`` events also
+accept ``attributeValue`` events. That is, ``fireEvent`` will accept
+both. However, these elements will only return ``text`` as a possible
+event. ``AttributeWalker`` is responsible to convert it to
+``attributeValue``.
+
 #Getting salve
 
 Please see the project

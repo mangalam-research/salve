@@ -24,7 +24,9 @@
         "amd-loader": "~0.0.4",
         "argparse": "~0.1.15",
         "temp": "~0.6.0",
-        "sax": "~0.5.7"
+        "sax": "~0.5.7",
+        "underscore": "~1.5.2",
+        "xregexp": "2.0.0"
     },
     "devDependencies": {
         "mocha": "1.9.x",
@@ -38,12 +40,11 @@
         "grunt-jsdoc": "~0.4.1",
         "grunt-mocha-test": "~0.7.0",
         "grunt-newer": "~0.6.0",
-        "grunt-shell": "~0.5.0"
+        "grunt-shell": "~0.5.0",
+        "grunt-chmod": ">=1.0.3 <=2",
+        "jison": "~0.4.13"
     },
     "bin": {
         "salve-convert": "./bin/salve-convert"
-    },
-    "scripts": {
-        "test": "grunt test"
     }
 }

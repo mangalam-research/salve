@@ -16,13 +16,39 @@ action in `wed <https://github.com/mangalam-research/wed>`_.
 Plans are to support as much Relax NG as possible but for now salve
 has, by conscious design, the following limitations:
 
+* Text meant to be seen contiguously must be passed to salve in one
+  event. In particular, comments and processing instructions are
+  invisible. Take for intance, this XML:
+
+      ab&lt;!-- blah -->cd
+
+  In a DOM interpretation, you'd have two text nodes separated by a
+  comment node. For the purpose of Relax NG validation, this is a
+  single string "abcd" and should be passed to salve as "abcd" and not
+  as "ab" and "cd".
+
 * Does not support ``<interleave>`` or ``<mixed>``.
+
 * Does not support ``<anyName>``.
+
 * Does not support ``<except>``.
+
 * Does not support ``<nsName>``.
-* Treats all attributes as if they were specified to contain text of
-  any length, format, etc. (All attributes accept any text
-  whatsoever.)
+
+* Support for XML Schema ``float`` and ``double`` types is not
+  thorough. Simple value comparisons work but if you put ``NaN`` or
+  ``INF`` or ``-INF`` in parameters like ``maxInclusive``, etc., it is
+  likely that salve won't behave correctly. Salve furthermore does not
+  verify that the numerical values fit within the limits of ``float``
+  or ``double``.
+
+* XML Schema types ``ENTITY`` and ``ENTITIES`` are treated as ``string``.
+
+* XML Schema types ``QName`` and ``NOTATION`` do not check namespaces.
+
+* None of the XML Schema types that deal with time allow the
+  parameters ``minInclusive``, ``minExclusive``, ``maxInclusive`` and
+  ``maxExclusive``.
 
 At the moment the library is able to know that a document is valid
 according to the schema it has received. (But keep in mind the
@@ -34,8 +60,7 @@ A full validation solution has the following components:
   delimiters, attribute names, attribute values, etc.
 
 * A parser: responsible for converting tokens to validation events
-  (see below) and optionally managing the mapping between namespace
-  prefixes and namespace URIs.
+  (see below).
 
 * A validator: responsible for checking that validation events are
   valid against a schema, telling the parser what is possible at the
@@ -178,13 +203,7 @@ buffer is an ``enterStartTag`` event with an empty uri and the
 local-name "html". The parser will not see a ``leaveStartTag`` event
 until the user enters the greater-than symbol ending the start tag.
 
-If there is already functionality allowing the resolution of namespace
-prefixes that allows you to resolve names to their uri/local-name
-parts, you can use salve without ever emitting ``enterContext``,
-``leaveContext`` and ``definePrefix``. However, if you want to have
-salve keep track of namespace prefixes, you must first call
-``useNameResolver()`` on the walker you get from ``newWalker()``. Then
-you must issue an ``enterContext`` event each time you encounter a
+You must issue an ``enterContext`` event each time you encounter a
 start tag that defines namespaces and issue ``leaveContext`` when you
 encounter its corresponding end tag. You must also issue
 ``definePrefix`` for each prefix defined by the element. Example::
@@ -218,25 +237,6 @@ not the start tag declares new namespaces. The test suite does it this way.
 Note, however, that performance will be affected somewhat because name
 resolution will have to potentially search a deeper stack of contexts than
 would be strictly necessary.
-
-What determines whether or not you would want to use the name resolver
-included with salve is whether or not you need to use salve's cloning
-facilities to record validation state. The namespaces that are in
-effect at the point a walker is cloned are also part of the validation
-state. If you have to use a name resolver that does not allow for
-recording validation state, you can call ``useNameResolver`` on your
-walker and use the facilities described here, or provide such
-functionality yourself.
-
-Salve's Internals and Events
-----------------------------
-
-If you ever look at salve's internals be aware that as an
-implementation convenience, patterns that accept ``text`` events also
-accept ``attributeValue`` events. That is, ``fireEvent`` will accept
-both. However, these elements will only return ``text`` as a possible
-event. ``AttributeWalker`` is responsible to convert it to
-``attributeValue``.
 
 Support for Guided Editing
 ==========================
@@ -317,8 +317,16 @@ following node modules:
 * argparse
 * temp
 
-This script also requires that ``xmllint`` and ``xsltproc`` be
-installed on your system.
+This script also requires that ``xmllint``, ``xsltproc`` and ``jing``
+be installed on your system.
+
+.. note:: Using ``jing`` makes the test suite take twice as long to
+          complete. So why, oh why use ``jing``? It is used to
+          validate the RNG file before salve's conversion code gets to
+          it. It helps keep salve small. A previous version used
+          xmllint for this task but ``xmllint`` would sometimes hang
+          while validating the RNG. It would hang on run-of-the-mill
+          TEI files.
 
 Running salve's tests **additionally** requires that the development
 dependencies be installed. Please see the `<package.json>`_ file for
@@ -397,8 +405,8 @@ Run::
 
     $ grunt
 
-This will create a `<build/>`_ subdirectory in which the JavaScript
-necessary to validate XML files against a prepared Relax NG
+This will create a `<build/dist/>`_ subdirectory in which the
+JavaScript necessary to validate XML files against a prepared Relax NG
 schema. You could copy what is in `<build/>`_ to a server to serve
 these files to a client that would then perform validation. Future
 releases will include automatic support for minified versions of

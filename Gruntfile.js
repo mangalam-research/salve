@@ -37,8 +37,12 @@ module.exports = function(grunt) {
         copy: {
             build: {
                 files: [
-                    { src: ["lib/**/*.js", "!lib/salve/parse.js"],
-                      dest: "build/" }
+                    { src: ["package.json",
+                            "bin/*",
+                            "lib/**/*.js",
+                            "lib/**/*.xsl",
+                            "!lib/salve/parse.js"],
+                      dest: "build/dist/" }
                 ]
             },
             jsdoc_template_defaults: {
@@ -78,6 +82,14 @@ module.exports = function(grunt) {
                 ]
             }
         },
+        // When grunt 0.4.3 is released, verify that it can preserve
+        // permissions when copying and get rid of this.
+        chmod: {
+            src: "build/dist/bin/*",
+            options: {
+                mode: "755"
+            }
+        },
         clean: {
             build: ["build/"],
             readme: ["README.html"]
@@ -110,6 +122,19 @@ module.exports = function(grunt) {
                     failOnError: true
                 },
                 command: "semver-sync -v"
+            },
+            regexp: {
+                src: "lib/salve/datatypes/regexp.jison",
+                dest: "build/dist/lib/salve/datatypes/regexp.js",
+                options: {
+                    stdout: true,
+                    stderr: true,
+                    failOnError: true
+                },
+                command:
+                "node_modules/.bin/jison " +
+                    "-o build/dist/lib/salve/datatypes/regexp.js " +
+                    "lib/salve/datatypes/regexp.jison"
             }
         },
         mochaTest: {
@@ -119,7 +144,8 @@ module.exports = function(grunt) {
             src: ["test/*.js"]
         }
     });
-    grunt.registerTask("default", ["newer:copy:build"]);
+    grunt.registerTask("default", ["newer:copy:build", "newer:shell:regexp",
+                                   "chmod"]);
 
     grunt.registerTask("copy_jsdoc_template",
                        ["copy:jsdoc_template_defaults",
@@ -130,5 +156,5 @@ module.exports = function(grunt) {
     grunt.registerTask("doc", ["create_jsdocs",
                                "newer:shell:readme"]);
     grunt.registerTask("test", ["default", "shell:semver", "mochaTest"]);
-//  grunt-contrib-clean is its own task: "grunt clean"
+    //  grunt-contrib-clean is its own task: "grunt clean"
 };

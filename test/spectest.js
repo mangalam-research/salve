@@ -44,16 +44,6 @@ var skips = {
     skips["test" + x] = {correct : true};
 });
 
-// No support yet for datatypeLibrary other than the builtin one.
-[380, 99, 378, 379].forEach(function (x) {
-    skips["test" + x] = {correct: true};
-});
-
-// Data support is buggy.
-[261, 281, 283, 260, 383, 384].forEach(function (x) {
-    skips["test" + x] = {correct: true};
-});
-
 var spectest_dir = path.join(__dirname, "spectest");
 
 var test_dirs = fs.readdirSync(spectest_dir);
@@ -65,6 +55,7 @@ function Test(test) {
     var correct = this.correct = [];
     var valid = this.valid = [];
     var invalid = this.invalid = [];
+    this.convert_args = [];
 
     var files = fs.readdirSync(p);
 
@@ -96,11 +87,16 @@ function Test(test) {
 var tests = test_dirs.filter(function (x) {
     return fs.statSync(path.join(spectest_dir, x)).isDirectory();
 }).map(function (x) {
-        return new Test(x);
+    var ret = new Test(x);
+    // test384 uses double
+    if (x === "test384")
+        ret.convert_args = ["--allow-incomplete-types=quiet"];
+    return ret;
+
 });
 
 function salve_convert(args, callback) {
-    var child = spawn("bin/salve-convert", args);
+    var child = spawn("build/dist/bin/salve-convert", args);
 
     child.on('exit', function (code, signal) {
         callback(code);
@@ -108,7 +104,7 @@ function salve_convert(args, callback) {
 }
 
 function parse(args, mute, callback) {
-    var child = spawn("node", ["lib/salve/parse.js"].concat(args),
+    var child = spawn("node", ["build/dist/bin/parse.js"].concat(args),
                       mute ? {} : {stdio: 'inherit'});
     child.on('exit', function (code, signal) {
         callback(code);
@@ -128,7 +124,8 @@ describe("spectest", function () {
         var skip = skips[t.test] || {};
         if (!skip.incorrect && t.incorrect) {
             it(t.incorrect, function (done) {
-                salve_convert([t.incorrect, outpath], function (code) {
+                salve_convert(t.convert_args.concat([t.incorrect, outpath]),
+                              function (code) {
                     assert.isFalse(code === 0, "salve-convert exit status");
                     clean();
                     done();
@@ -138,7 +135,8 @@ describe("spectest", function () {
 
         if (!skip.correct && t.correct) {
             it(t.correct, function (done) {
-                salve_convert([t.correct, outpath], function (code) {
+                salve_convert(t.convert_args.concat([t.correct, outpath]),
+                              function (code) {
                     assert.equal(code, 0, "salve-convert exit status");
                     clean();
                     done();
@@ -151,7 +149,9 @@ describe("spectest", function () {
             if (do_valid || do_invalid) {
                 describe("valid and invalid cases", function () {
                     before(function (done) {
-                        salve_convert([t.correct, outpath], function (code) {
+                        salve_convert(t.convert_args.concat([t.correct,
+                                                             outpath]),
+                                      function (code) {
                             assert.equal(code, 0, "salve-convert exit status");
                             done();
                         });

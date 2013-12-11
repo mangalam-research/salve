@@ -6,8 +6,8 @@
 
 'use strict';
 require("amd-loader");
-var validate = require("../build/lib/salve/validate");
-var oop = require("../build/lib/salve/oop");
+var validate = require("../build/dist/lib/salve/validate");
+var oop = require("../build/dist/lib/salve/oop");
 var util = require("util");
 var fs = require("fs");
 var path = require("path");
@@ -29,14 +29,12 @@ function getEventList(event_source) {
     return event_list;
 }
 
-function makeParser(er, walker, use_name_resolver) {
+function makeParser(er, walker) {
     var parser = sax.parser(true, {xmlns: true});
-    use_name_resolver = !!use_name_resolver;
 
     var tag_stack = [];
     parser.onopentag = function (node) {
-        if (use_name_resolver)
-            er.recordEvent(walker, "enterContext");
+        er.recordEvent(walker, "enterContext");
 
         var names = Object.keys(node.attributes);
         names.sort();
@@ -46,17 +44,13 @@ function makeParser(er, walker, use_name_resolver) {
                 (attr.local === "" && name === "xmlns") ||
                     // xmlns:...=...
                     (attr.prefix === "xmlns")) {
-                if (use_name_resolver)
-                    er.recordEvent(walker, "definePrefix",
-                                   attr.local, attr.value);
-                // else: the parser hadles all namespace issues
+                er.recordEvent(walker, "definePrefix",
+                               attr.local, attr.value);
             }
         });
 
-        if (use_name_resolver) {
-            var ename = walker.resolveName(node.prefix + ":" + node.local);
-            node.uri = ename.ns;
-        }
+        var ename = walker.resolveName(node.prefix + ":" + node.local);
+        node.uri = ename.ns;
 
         er.recordEvent(walker, "enterStartTag", node.uri, node.local);
         names.forEach(function (name) {
@@ -66,11 +60,9 @@ function makeParser(er, walker, use_name_resolver) {
                     // xmlns:...=...
                     (attr.prefix === "xmlns"))
                 return;
-            if (use_name_resolver) {
-                var ename = walker.resolveName(attr.prefix + ":" +
-                                               attr.local, true);
-                attr.uri = ename.ns;
-            }
+            var ename = walker.resolveName(attr.prefix + ":" +
+                                           attr.local, true);
+            attr.uri = ename.ns;
             er.recordEvent(walker, "attributeName", attr.uri, attr.local);
             er.recordEvent(walker, "attributeValue", attr.value);
         });
@@ -88,8 +80,7 @@ function makeParser(er, walker, use_name_resolver) {
     parser.onclosetag = function (node) {
         var tag_info = tag_stack.shift();
         er.recordEvent(walker, "endTag", tag_info[0], tag_info[1]);
-        if (use_name_resolver)
-            er.recordEvent(walker, "leaveContext");
+        er.recordEvent(walker, "leaveContext");
     };
 
     return parser;
@@ -180,8 +171,7 @@ function errorsToString(errs) {
     return errs.join(",").toString();
 }
 
-function makeValidTest(dir, use_name_resolver) {
-    use_name_resolver = !!use_name_resolver;
+function makeValidTest(dir) {
     return function () {
         // Read the RNG tree.
         var source = fileAsString("test/" + dir +
@@ -197,17 +187,12 @@ function makeValidTest(dir, use_name_resolver) {
             throw e;
         }
         var walker = tree.newWalker();
-        if (use_name_resolver)
-            walker.useNameResolver();
-
         var xml_source = fileAsString("test/" + dir +
                                       "/to_parse.xml");
 
         // Get the expected results
         var expected_source =
-                fileAsString("test/" + dir +
-                             (use_name_resolver ? "/nr_results.txt" :
-                             "/results.txt"));
+                fileAsString("test/" + dir + "/results.txt");
 
 
         var expected = expected_source.split("\n");
@@ -222,7 +207,7 @@ function makeValidTest(dir, use_name_resolver) {
                    validate.eventsToTreeString(walker.possible()),
                 new validate.Event(["initial"]));
 
-        var parser = makeParser(er, walker, use_name_resolver);
+        var parser = makeParser(er, walker);
         parser.write(xml_source).close();
 
         ce.compare("end returned " + walker.end(), "*final*");
@@ -242,7 +227,7 @@ function makeValidTest(dir, use_name_resolver) {
     };
 }
 
-describe("GrammarWalker.fireEvent reports no error on", function () {
+describe("GrammarWalker.fireEvent reports no errors on", function () {
     it("a simple test", makeValidTest("simple"));
 
     it("choice matching", makeValidTest("choice_matching"));
@@ -250,10 +235,6 @@ describe("GrammarWalker.fireEvent reports no error on", function () {
     it("a tei file", makeValidTest("tei"));
 
     it("a tei file, with namespaces", makeValidTest("namespaces"));
-
-    // Use the name resolver.
-    it("a tei file, with namespaces", makeValidTest("namespaces",
-                                                    true));
 
     it("a tei file using a more complex schema",
        makeValidTest("tei-with-modules"));

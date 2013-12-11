@@ -5,6 +5,12 @@ enterStartTag:
         TEI
         teiCorpus
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: definePrefix, , http://www.tei-c.org/ns/1.0
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, TEI
 fireEvent returned false
 possible events
@@ -37,6 +43,9 @@ possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         teiHeader
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, teiHeader
 fireEvent returned false
@@ -71,6 +80,9 @@ enterStartTag:
     http://www.tei-c.org/ns/1.0:
         fileDesc
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, fileDesc
 fireEvent returned false
 possible events
@@ -103,6 +115,9 @@ enterStartTag:
     http://www.tei-c.org/ns/1.0:
         titleStmt
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, titleStmt
 fireEvent returned false
 possible events
@@ -134,6 +149,9 @@ possible events
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         title
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, title
 fireEvent returned false
@@ -266,6 +284,9 @@ enterStartTag:
         sponsor
         title
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -292,6 +313,9 @@ enterStartTag:
         extent
         publicationStmt
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -300,6 +324,9 @@ enterStartTag:
         editionStmt
         extent
         publicationStmt
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, publicationStmt
 fireEvent returned false
@@ -349,6 +376,9 @@ enterStartTag:
         pubPlace
         publisher
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
@@ -470,6 +500,9 @@ enterStartTag:
     http://www.tei-c.org/ns/1.0:
         p
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -489,6 +522,9 @@ enterStartTag:
         seriesStmt
         sourceDesc
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -497,6 +533,9 @@ enterStartTag:
         notesStmt
         seriesStmt
         sourceDesc
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, sourceDesc
 fireEvent returned false
@@ -543,6 +582,9 @@ enterStartTag:
         p
         table
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
@@ -664,6 +706,9 @@ enterStartTag:
     http://www.tei-c.org/ns/1.0:
         p
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -683,6 +728,9 @@ endTag:
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         sourceDesc
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
 
 invoking fireEvent with Event: text,
 fireEvent returned false
@@ -706,6 +754,9 @@ enterStartTag:
         profileDesc
         revisionDesc
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -727,6 +778,9 @@ enterStartTag:
         sourceDoc
         text
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -735,6 +789,9 @@ enterStartTag:
         facsimile
         sourceDoc
         text
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, text
 fireEvent returned false
@@ -810,6 +867,9 @@ enterStartTag:
         pb
         space
         substJoin
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, body
 fireEvent returned false
@@ -940,6 +1000,9 @@ enterStartTag:
         substJoin
         table
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
@@ -1110,6 +1173,9 @@ enterStartTag:
         table
         trailer
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -1197,6 +1263,9 @@ enterStartTag:
         space
         substJoin
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -1232,6 +1301,9 @@ endTag:
     http://www.tei-c.org/ns/1.0:
         TEI
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -1242,6 +1314,9 @@ endTag:
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, TEI
 fireEvent returned false
 possible events
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
 
 invoking fireEvent with Event: text,
 fireEvent returned false
