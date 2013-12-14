@@ -46,7 +46,6 @@ module.exports = function(grunt) {
         }
 
         function validateParts(parts) {
-            console.log(parts.length);
             for (var i = 1 ; i < parts.length; i++) {
                 if (parts[i] === undefined) {
                     break;
@@ -63,7 +62,6 @@ module.exports = function(grunt) {
         }
         var required_re = /^(\d+)(?:\.(\d+)(?:\.(\d+))?)?$/;
         var req_version_match = config.required_jsdoc_version.match(required_re);
-        console.log(req_version_match);
         if (!req_version_match ||(!validateParts(req_version_match))) {
             grunt.fail.warn('Incorrect version specification: "' +
                                          config.required_jsdoc_version + '".');
@@ -71,14 +69,11 @@ module.exports = function(grunt) {
 
         var version_re = /(\d+)(?:\.(\d+)(?:\.(\d+))?)?/;
         var version_match_list = version_re.exec(stdout);
-        console.log(version_match_list);
         if (!version_match_list) {
             grunt.fail.warn("Could not determine local JSDoc version.");
         }
 
         for (i = 1; i < req_version_match.length; ++i) {
-            console.log(req_version_match[i]);
-            console.log(version_match_list[i]);
             if (req_version_match[i] === version_match_list[i]) {
                 continue;
             }
