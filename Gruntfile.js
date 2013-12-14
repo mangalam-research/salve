@@ -46,7 +46,11 @@ module.exports = function(grunt) {
         }
 
         function validateParts(parts) {
-            for (var i = 0 ; i < parts.length; i++) {
+            console.log(parts.length);
+            for (var i = 1 ; i < parts.length; i++) {
+                if (parts[i] === undefined) {
+                    break;
+                }
                 if (!isPositiveInteger(parts[i])) {
                     return false;
                 }
@@ -57,27 +61,31 @@ module.exports = function(grunt) {
         if (err) {
             grunt.fail.warn(err);
         }
-
-        var req_version_list = config.required_jsdoc_version.split(".");
-        if (!validateParts(req_version_list)) {
-            grunt.fail.warn("Incorrect version specification: " +
-                                         config.required_jsdoc_version + ".");
+        var required_re = /^(\d+)(?:\.(\d+)(?:\.(\d+))?)?$/;
+        var req_version_match = config.required_jsdoc_version.match(required_re);
+        console.log(req_version_match);
+        if (!req_version_match ||(!validateParts(req_version_match))) {
+            grunt.fail.warn('Incorrect version specification: "' +
+                                         config.required_jsdoc_version + '".');
         }
 
-        var re = /\s(\d+\.\d[\d\.]*)\s/;
-        var version_match_list = re.exec(stdout);
+        var version_re = /(\d+)(?:\.(\d+)(?:\.(\d+))?)?/;
+        var version_match_list = version_re.exec(stdout);
+        console.log(version_match_list);
         if (!version_match_list) {
             grunt.fail.warn("Could not determine local JSDoc version.");
         }
 
-        var local_version_list = version_match_list[1].split(".");
-        for (i = 0; i < req_version_list.length; ++i) {
-            if (req_version_list[i] === local_version_list[i]) {
+        for (i = 1; i < req_version_match.length; ++i) {
+            console.log(req_version_match[i]);
+            console.log(version_match_list[i]);
+            if (req_version_match[i] === version_match_list[i]) {
                 continue;
             }
-            if (req_version_list[i] > local_version_list[i]) {
+            if (req_version_match[i] > version_match_list[i]) {
                 grunt.fail.warn("Local JSDoc version is too old: " +
-                                             version_match_list[1] + ".");
+                                version_match_list[0] + " < " +
+                                req_version_match[0] + ".");
             }
         }
         callback();
