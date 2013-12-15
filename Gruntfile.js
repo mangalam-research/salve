@@ -101,31 +101,25 @@ module.exports = function(grunt) {
                 ]
             },
             publish_js: {
-                files: [
-                    { cwd: "misc/jsdoc_template/",
-                      src: "publish.js",
-                      dest: "build/jsdoc_template/",
-                      expand: true
-                    }
-                ]
+                files:
+                {
+                    "build/jsdoc_template/publish.js":
+                    "misc/jsdoc_template/publish.js"
+                }
             },
             layout_tmpl: {
-                files: [
-                    { cwd: "misc/jsdoc_template/",
-                      src: "layout.tmpl",
-                      dest: "build/jsdoc_template/tmpl/",
-                      expand: true
-                    }
-                ]
+                files:
+                {
+                    "build/jsdoc_template/tmpl/layout.tmpl":
+                    "misc/jsdoc_template/layout.tmpl"
+                }
             },
             mangalam_css: {
-                files: [
-                    { cwd: "misc/jsdoc_template/",
-                      src: "mangalam.css",
-                      dest: "build/jsdoc_template/static/styles/",
-                      expand: true
-                    }
-                ]
+                files:
+                {
+                    "build/jsdoc_template/static/styles/mangalam.css":
+                    "misc/jsdoc_template/mangalam.css"
+                }
             },
             gh_pages_build: {
                 files: [
@@ -144,12 +138,15 @@ module.exports = function(grunt) {
         jsdoc: {
             build: {
                 jsdoc: config.jsdoc3,
-                src: ["lib/**/*.js", "doc/api_intro.md", "package.json"],
-                dest: "build/api",
-                options: { private: config.jsdoc_private,
-                           config: "jsdoc.conf.json"
-                         }
+                files: {
+                    'build/api': ["lib/**/*.js", "doc/api_intro.md", "package.json"]
+                },
+                options:
+                {
+                    private: config.jsdoc_private,
+                    config: "jsdoc.conf.json"
                 }
+            }
         },
         shell: {
             readme: {
@@ -191,20 +188,26 @@ module.exports = function(grunt) {
         if (!config.jsdoc3_template_dir ||
             !grunt.file.exists(config.jsdoc3_template_dir, "publish.js")) {
             grunt.fail.warn("JSDoc default template directory " +
-                                     "invalid or not provided.");
+                            "invalid or not provided.");
         }
     });
     grunt.registerTask("copy_jsdoc_template",
                        ["jsdoc_template_exists",
-                        "copy:jsdoc_template_defaults",
-                        "copy:publish_js", "copy:layout_tmpl",
+                        "newer:copy:jsdoc_template_defaults",
+                        "newer:copy:publish_js", "newer:copy:layout_tmpl",
                         "copy:mangalam_css"]);
-    grunt.registerTask("create_jsdocs", ["shell:test_jsdoc","copy_jsdoc_template",
-                                        "newer:jsdoc:build"]);
+
+    // It would be nice to run newer on the jsdocs before running the
+    // shell:test_jsdoc command, because it would be unnecessary if
+    // docs are up to date and it can take a long time.
+
+    grunt.registerTask("create_jsdocs", ["shell:test_jsdoc",
+                                         "copy_jsdoc_template",
+                                         "newer:jsdoc:build"]);
     grunt.registerTask("doc", ["create_jsdocs",
                                "newer:shell:readme"]);
     grunt.registerTask("gh-pages-build", ["create_jsdocs",
-                                          "newer:copy:gh_pages_build"]);
+                                          "copy:gh_pages_build"]);
     grunt.registerTask("test", ["default", "shell:semver", "mochaTest"]);
 
 //  grunt-contrib-clean is its own task: "grunt clean"
