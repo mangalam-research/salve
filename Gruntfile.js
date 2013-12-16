@@ -8,8 +8,10 @@ module.exports = function(grunt) {
         rst2html: "rst2html",
         jsdoc3: "jsdoc",
         jsdoc_private: false,
-        jsdoc3_template_dir: "./"
+        jsdoc3_template_dir: undefined,
+        required_jsdoc_version: "3.2.2"
     };
+
     // Try to load a local configuration file.
     var local_config = {};
     try {
@@ -33,6 +35,57 @@ module.exports = function(grunt) {
             config[i] = local_config[i];
         }
     }
+
+    // Check that the local version of JSDoc is the same or better
+    // than the version deemed required for proper output.
+    // This is a callback used by the grunt-shell task.
+    function checkJSDocVersion(err, stdout, stderr, callback) {
+        function isPositiveInteger(x) {
+            // http://stackoverflow.com/a/1019526/11236
+            return /^\d+$/.test(x);
+        }
+
+        function validateParts(parts) {
+            for (var i = 1 ; i < parts.length; i++) {
+                if (parts[i] === undefined) {
+                    break;
+                }
+                if (!isPositiveInteger(parts[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        if (err) {
+            grunt.fail.warn(err);
+        }
+        var required_re = /^(\d+)(?:\.(\d+)(?:\.(\d+))?)?$/;
+        var req_version_match = config.required_jsdoc_version.match(required_re);
+        if (!req_version_match ||(!validateParts(req_version_match))) {
+            grunt.fail.warn('Incorrect version specification: "' +
+                                         config.required_jsdoc_version + '".');
+        }
+
+        var version_re = /(\d+)(?:\.(\d+)(?:\.(\d+))?)?/;
+        var version_match_list = version_re.exec(stdout);
+        if (!version_match_list) {
+            grunt.fail.warn("Could not determine local JSDoc version.");
+        }
+
+        for (i = 1; i < req_version_match.length; ++i) {
+            if (req_version_match[i] === version_match_list[i]) {
+                continue;
+            }
+            if (req_version_match[i] > version_match_list[i]) {
+                grunt.fail.warn("Local JSDoc version is too old: " +
+                                version_match_list[0] + " < " +
+                                req_version_match[0] + ".");
+            }
+        }
+        callback();
+    }
+
     grunt.initConfig({
         copy: {
             build: {
@@ -76,6 +129,15 @@ module.exports = function(grunt) {
                       expand: true
                     }
                 ]
+            },
+            gh_pages_build: {
+                files: [
+                    { cwd: "build/api/",
+                      src: ["**/*"],
+                      dest: "gh-pages-build",
+                      expand: true
+                    }
+                ]
             }
         },
         clean: {
@@ -110,6 +172,14 @@ module.exports = function(grunt) {
                     failOnError: true
                 },
                 command: "semver-sync -v"
+            },
+            test_jsdoc: {
+                command: config.jsdoc3 + " -v",
+                options: {
+                    failOnError: true,
+                    callback: checkJSDocVersion
+
+                }
             }
         },
         mochaTest: {
@@ -120,15 +190,26 @@ module.exports = function(grunt) {
         }
     });
     grunt.registerTask("default", ["newer:copy:build"]);
-
+    grunt.registerTask("jsdoc_template_exists", function() {
+        if (!config.jsdoc3_template_dir ||
+            !grunt.file.exists(config.jsdoc3_template_dir, "publish.js")) {
+            grunt.fail.warn("JSDoc default template directory " +
+                                     "invalid or not provided.");
+        }
+    });
     grunt.registerTask("copy_jsdoc_template",
-                       ["copy:jsdoc_template_defaults",
+                       ["jsdoc_template_exists",
+                        "copy:jsdoc_template_defaults",
                         "copy:publish_js", "copy:layout_tmpl",
                         "copy:mangalam_css"]);
-    grunt.registerTask("create_jsdocs", ["copy_jsdoc_template",
+    grunt.registerTask("create_jsdocs", ["shell:test_jsdoc","copy_jsdoc_template",
                                         "newer:jsdoc:build"]);
     grunt.registerTask("doc", ["create_jsdocs",
                                "newer:shell:readme"]);
+    grunt.registerTask("gh-pages-build", ["create_jsdocs",
+                                          "newer:copy:gh_pages_build"]);
     grunt.registerTask("test", ["default", "shell:semver", "mochaTest"]);
+
 //  grunt-contrib-clean is its own task: "grunt clean"
+
 };
