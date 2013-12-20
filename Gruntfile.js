@@ -1,4 +1,5 @@
 module.exports = function(grunt) {
+    var fs = require("fs");
     "use strict";
     // Load all grunt-* modules in package.json
     require("load-grunt-tasks")(grunt);
@@ -82,6 +83,13 @@ module.exports = function(grunt) {
                 ]
             }
         },
+        mkdir: {
+            build: {
+                options: {
+                    create: ['build/tmp']
+                }
+            }
+        },
         // When grunt 0.4.3 is released, verify that it can preserve
         // permissions when copying and get rid of this.
         chmod: {
@@ -125,7 +133,7 @@ module.exports = function(grunt) {
             },
             regexp: {
                 src: "lib/salve/datatypes/regexp.jison",
-                dest: "build/dist/lib/salve/datatypes/regexp.js",
+                dest: "build/tmp/regexp.js",
                 options: {
                     stdout: true,
                     stderr: true,
@@ -133,7 +141,7 @@ module.exports = function(grunt) {
                 },
                 command:
                 "node_modules/.bin/jison " +
-                    "-o build/dist/lib/salve/datatypes/regexp.js " +
+                    "-m amd -o build/tmp/regexp.js " +
                     "lib/salve/datatypes/regexp.jison"
             }
         },
@@ -142,10 +150,35 @@ module.exports = function(grunt) {
                 grep: config.mocha_grep
             },
             src: ["test/*.js"]
+        },
+        fix_jison: {
+            regexp: {
+                src: "build/tmp/regexp.js",
+                dest: "build/dist/lib/salve/datatypes/regexp.js"
+            }
         }
     });
-    grunt.registerTask("default", ["newer:copy:build", "newer:shell:regexp",
+    grunt.registerTask("default", ["newer:copy:build", "mkdir:build",
+                                   "newer:shell:regexp",
+                                   "newer:fix_jison:regexp",
                                    "chmod"]);
+
+    grunt.registerMultiTask("fix_jison", function () {
+        if (this.files.length !== 1 || this.files[0].src.length !== 1) {
+            grunt.log.error("needs exactly one source file.");
+            return false;
+        }
+
+        var src = this.files[0].src[0];
+        var dest = this.files[0].dest;
+        var data = fs.readFileSync(src).toString();
+
+        // This is enough to trigger RequireJS's CommonJS sugar handling.
+        data = data.replace(/^\s*define\(\[\], function\s*\(\s*\)\s*\{/m,
+                            "define(function (require) {");
+        fs.writeFileSync(dest, data);
+        return undefined;
+    });
 
     grunt.registerTask("copy_jsdoc_template",
                        ["copy:jsdoc_template_defaults",

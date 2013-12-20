@@ -1,3 +1,6 @@
+%{var xmlcharacters = require("./xmlcharacters");
+var XRegExp = require("xregexp").XRegExp;
+%}
 //
 // Terminology:
 //
@@ -138,9 +141,10 @@ function parseError(str, hash) {
 // Export this error.
 if (typeof exports !== 'undefined')
     exports.SalveParsingError = SalveParsingError;
+else
+    parser.SalveParsingError = SalveParsingError;
 
-var xmlcharacters = require("./xmlcharacters");
-var XRegExp = require("xregexp").XRegExp;
+
 var xml_Name_Char = xmlcharacters.xml_Name_Char;
 var xml_Letter = xmlcharacters.xml_Letter;
 
