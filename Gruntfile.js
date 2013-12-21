@@ -161,6 +161,7 @@ module.exports = function(grunt) {
     grunt.registerTask("default", ["newer:copy:build", "mkdir:build",
                                    "newer:shell:regexp",
                                    "newer:fix_jison:regexp",
+                                   "npmignore",
                                    "chmod"]);
 
     grunt.registerMultiTask("fix_jison", function () {
@@ -179,6 +180,12 @@ module.exports = function(grunt) {
         fs.writeFileSync(dest, data);
         return undefined;
     });
+
+    grunt.registerTask("npmignore", function () {
+        var data = "bin/parse.js";
+        fs.writeFileSync("build/dist/.npmignore", data);
+    });
+
 
     grunt.registerTask("copy_jsdoc_template",
                        ["copy:jsdoc_template_defaults",
