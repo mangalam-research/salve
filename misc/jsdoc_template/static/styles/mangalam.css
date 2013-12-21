@@ -1,4 +1,4 @@
- html
+html
 {
     margin: 0px;
     padding: 0px;
@@ -36,6 +36,11 @@ h4
 
 section {
     margin-right: 0;
+}
+
+code {
+    background-color:#eeeeee;
+    padding: 2px;
 }
 
 article h1, article h2, article h3, article h4
