@@ -16,7 +16,7 @@ module.exports = function(grunt) {
     // jsdoc template.
     var root_dir = process.cwd();
     process.chdir("misc/jsdoc_template/");
-    config.jsdoc_custom_template_files = grunt.file.expand(["**/*.*"]);
+    config.jsdoc_custom_template_files = grunt.file.expand({filter: "isFile"}, ["**/*"]);
     process.chdir(root_dir);
 
     // Try to load a local configuration file.
@@ -126,6 +126,7 @@ module.exports = function(grunt) {
                         cwd: "misc/jsdoc_template/",
                         src: config.jsdoc_custom_template_files,
                         dest: "build/jsdoc_template/",
+                        filter: "isFile",
                         expand: true
                     }
                 ]
