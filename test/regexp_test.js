@@ -39,6 +39,7 @@ var conversion_tests = [
     "ab[abcd-[bc]]cd", "^ab(?:(?![bc])[abcd])cd$",
     "ab[abcd-[bc-[c]]]cd", "^ab(?:(?!(?:(?![c])[bc]))[abcd])cd$",
     "(\\p{L}|\\p{N}|\\p{P}|\\p{S})+", "^(?:\\p{L}|\\p{N}|\\p{P}|\\p{S})+$",
+    "ab[a-d-[bc-[c]]]cd", "^ab(?:(?!(?:(?![c])[bc]))[a-d])cd$",
 ];
 
 var matching_tests = [

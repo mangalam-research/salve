@@ -158,7 +158,6 @@ function unshift_group_state(negative) {
                         });
 }
 
-
 var multi_char_escapes_in_group = {
     "\\s": " \\t\\n\\r",
     "\\S": "^ \\t\\n\\r",
@@ -183,7 +182,7 @@ for(var i in multi_char_escapes_in_group) {
 
 /* operator associations and precedence */
 
-%left '|' '-'
+%left '|'
 
 %start start
 %parse-param output_type
@@ -211,53 +210,42 @@ start
     ;
 
 input
-    : EOF
-        {$$ = '^$';}
-    | regexp EOF
-        {$$ = '^' + $1 + '$';}
+    : EOF -> '^$'
+    | regexp EOF -> '^' + $1 + '$'
     ;
 
 regexp
     : branch
-        {$$ = $1;}
-    | branch '|' regexp
-        {$$ = $1.concat($2, $3)}
+    | branch '|' regexp -> $1.concat($2, $3)
     ;
 
 branch
     : piece
-    | branch piece
-        {$$ = $1 + $2;}
+    | branch piece -> $1 + $2
     ;
 
 piece
     : atom
-        {$$ = $1;}
-    | atom quantifier
-        {$$ = $1 + $2;}
+    | atom quantifier -> $1 + $2
     ;
 
 quantifier
     : '?'
     | '*'
     | '+'
-    | '{' quantity '}'
-       {$$ = $1.concat($2, $3);}
+    | '{' quantity '}' -> $1.concat($2, $3)
     ;
 
 quantity
     : NUMBER
-    | NUMBER ',' NUMBER
-        {$$ = $1.concat(',', $3); }
-    | NUMBER ','
-        {$$ = $1.concat($2);}
+    | NUMBER ',' NUMBER -> $1.concat(',', $3)
+    | NUMBER ',' -> $1.concat($2)
     ;
 
 atom
     : CHAR
     | charClass
-    | '(' regexp ')'
-        {$$ = '(?:' + $2 + $3;}
+    | '(' regexp ')' -> '(?:' + $2 + $3
     ;
 
 charClass
@@ -321,8 +309,7 @@ charGroup
 
 posCharGroups
     : posCharGroup
-    | posCharGroups posCharGroup
-        {$$ = $1 + $2;}
+    | posCharGroups posCharGroup -> $1 + $2
     ;
 
 posCharGroup
@@ -343,8 +330,7 @@ charRange
     ;
 
 seRange
-    : charOrEsc '-' charOrEsc
-        { $$ = $1.concat($2, $3); }
+    : charOrEsc '-' charOrEsc -> $1.concat($2, $3)
     | charOrEsc
     ;
 
