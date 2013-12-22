@@ -123,9 +123,9 @@ validate against the RNG.
 Events
 ======
 
-The parser is responsible for calling ``fireEvent()`` on the walker returned
-by the tree created from the RNG. (See above.) The events currently
-supported are defined below:
+The parser is responsible for calling ``fireEvent()`` on the walker
+returned by the tree created from the RNG. (See above.) The events
+currently supported are defined below:
 
 ``Event("enterStartTag", uri, local-name)``
   Emitted when encountering the beginning of a start tag (the string
@@ -146,8 +146,9 @@ supported are defined below:
 ``Event("attributeValue", value)``
   Emitted when encountering an attribute value
 
-``Event("text")``
-  Emitted when encountering text.
+``Event("text", value)``
+  Emitted when encountering text. This event must be fired **even** for
+  all instances of text, including white space.
 
 ``Event("enterContext")``
   Emitted when entering a new namespace context.
@@ -226,6 +227,16 @@ state. If you have to use a name resolver that does not allow for
 recording validation state, you can call ``useNameResolver`` on your
 walker and use the facilities described here, or provide such
 functionality yourself.
+
+Salve's Internals and Events
+----------------------------
+
+If you ever look at salve's internals be aware that as an
+implementation convenience, patterns that accept ``text`` events also
+accept ``attributeValue`` events. That is, ``fireEvent`` will accept
+both. However, these elements will only return ``text`` as a possible
+event. ``AttributeWalker`` is responsible to convert it to
+``attributeValue``.
 
 Support for Guided Editing
 ==========================
@@ -408,20 +419,6 @@ work.
 Schema File Format
 ==================
 
-Before version 0.14, the schemas that salve would accept were saved in
-files presenting the following structure::
-
-    { "type": <object type>, "args": [...]}
-
-The ``<object type>`` would be a string like ``"Choice"`` or
-``"Group"`` indicating which constructor to use to build the
-object. The ``args`` field would be a list of arguments to pass to the
-constructor. These arguments were either primitive JSON objects
-(integers, strings, arrays, etc.) or objects of the same format as
-described above, with a ``type`` and ``args`` field. The problem with
-this format is that it wastes a lot of space. We could call this
-version 0 of salve's schema format.
-
 Version 0.14 introduces a new format. This format has version
 number 1. The new structure is::
 
@@ -447,9 +444,6 @@ of the array as its constructor's parameters. All the array's elements
 after ``<array type>`` can be JSON primitive types, or arrays to be
 interpreted as actual arrays or as objects as described above.
 
-It is likely that salve will always support version 0 of the format
-because it is useful for debugging.
-
 License
 =======
 
@@ -466,9 +460,10 @@ RNG Simplification Code
 The RNG simplification transformation files are adapted from `Nicolas
 Debeissat's code
 <https://code.google.com/p/jsrelaxngvalidator/>`_. They are covered by
-the `CeCILL license <http://www.cecill.info/index.en.html>`_. Some bugs have
-been corrected and some changes made for salve. For the sake of simplicity,
-these changes are also covered by the CeCILL license.
+the `CeCILL license <http://www.cecill.info/index.en.html>`_. Multiple
+bugs in them have been corrected, some minor and some major, and some
+changes have been made for salve. For the sake of simplicity, these
+changes are also covered by the CeCILL license.
 
 Credits
 =======

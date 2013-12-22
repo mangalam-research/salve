@@ -43,6 +43,13 @@ enterStartTag:
     http://www.tei-c.org/ns/1.0:
         teiHeader
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        teiHeader
+
 invoking fireEvent with Event: enterContext
 fireEvent returned false
 
@@ -70,6 +77,13 @@ attributeName:
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        fileDesc
+
+invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
@@ -108,6 +122,13 @@ enterStartTag:
     http://www.tei-c.org/ns/1.0:
         titleStmt
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        titleStmt
+
 invoking fireEvent with Event: enterContext
 fireEvent returned false
 
@@ -134,6 +155,13 @@ attributeName:
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        title
+
+invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
@@ -238,7 +266,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, title
 fireEvent returned false
@@ -260,6 +289,23 @@ enterStartTag:
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        titleStmt
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        author
+        editor
+        funder
+        meeting
+        principal
+        respStmt
+        sponsor
+        title
+
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, titleStmt
 fireEvent returned false
 possible events
@@ -271,6 +317,15 @@ enterStartTag:
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        editionStmt
+        extent
+        publicationStmt
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -298,6 +353,21 @@ attributeName:
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        address
+        authority
+        availability
+        date
+        distributor
+        idno
+        p
+        pubPlace
+        publisher
+
+invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
@@ -407,7 +477,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
@@ -422,6 +493,16 @@ enterStartTag:
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        publicationStmt
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, publicationStmt
 fireEvent returned false
 possible events
@@ -433,6 +514,15 @@ enterStartTag:
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        notesStmt
+        seriesStmt
+        sourceDesc
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -461,6 +551,18 @@ attributeName:
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        bibl
+        biblFull
+        biblStruct
+        list
+        listBibl
+        p
+
+invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
@@ -567,7 +669,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
@@ -582,6 +685,16 @@ enterStartTag:
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        sourceDesc
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        p
+
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, sourceDesc
 fireEvent returned false
 possible events
@@ -594,6 +707,16 @@ enterStartTag:
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        fileDesc
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        sourceDesc
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, fileDesc
 fireEvent returned false
@@ -610,6 +733,18 @@ enterStartTag:
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        teiHeader
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        encodingDesc
+        profileDesc
+        revisionDesc
+
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, teiHeader
 fireEvent returned false
 possible events
@@ -619,6 +754,13 @@ enterStartTag:
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        text
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -665,6 +807,23 @@ enterStartTag:
         note
         pb
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        body
+        cb
+        front
+        gap
+        gb
+        group
+        index
+        lb
+        milestone
+        note
+        pb
+
 invoking fireEvent with Event: enterContext
 fireEvent returned false
 
@@ -692,6 +851,94 @@ attributeName:
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        dateline
+        desc
+        div
+        div1
+        divGen
+        docAuthor
+        docDate
+        epigraph
+        floatingText
+        gap
+        gb
+        head
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        meeting
+        milestone
+        note
+        opener
+        p
+        pb
+        q
+        quote
+        said
+        salute
+        sp
+        stage
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        dateline
+        desc
+        div
+        div1
+        divGen
+        docAuthor
+        docDate
+        epigraph
+        floatingText
+        gap
+        gb
+        head
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        meeting
+        milestone
+        note
+        opener
+        p
+        pb
+        q
+        quote
+        said
+        salute
+        sp
+        stage
+
+invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
@@ -862,7 +1109,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -878,7 +1126,8 @@ possible events
 endTag:
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: endTag, uri:test2, emph
 fireEvent returned false
@@ -948,7 +1197,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -970,7 +1220,8 @@ endTag:
 enterStartTag:
     uri:test1:
         test1unique
-text
+text:
+    *
 
 invoking fireEvent with Event: endTag, uri:test1, emph
 fireEvent returned false
@@ -1040,7 +1291,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1095,6 +1347,102 @@ enterStartTag:
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        body
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        closer
+        dateline
+        desc
+        div
+        div1
+        docAuthor
+        docDate
+        epigraph
+        floatingText
+        gap
+        gb
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        meeting
+        milestone
+        note
+        p
+        pb
+        postscript
+        q
+        quote
+        said
+        salute
+        signed
+        sp
+        stage
+        trailer
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        body
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        closer
+        dateline
+        desc
+        div
+        div1
+        docAuthor
+        docDate
+        epigraph
+        floatingText
+        gap
+        gb
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        meeting
+        milestone
+        note
+        p
+        pb
+        postscript
+        q
+        quote
+        said
+        salute
+        signed
+        sp
+        stage
+        trailer
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -1194,7 +1542,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -1316,7 +1665,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, emph
 fireEvent returned false
@@ -1386,7 +1736,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1441,6 +1792,102 @@ enterStartTag:
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        body
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        closer
+        dateline
+        desc
+        div
+        div1
+        docAuthor
+        docDate
+        epigraph
+        floatingText
+        gap
+        gb
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        meeting
+        milestone
+        note
+        p
+        pb
+        postscript
+        q
+        quote
+        said
+        salute
+        signed
+        sp
+        stage
+        trailer
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        body
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        closer
+        dateline
+        desc
+        div
+        div1
+        docAuthor
+        docDate
+        epigraph
+        floatingText
+        gap
+        gb
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        meeting
+        milestone
+        note
+        p
+        pb
+        postscript
+        q
+        quote
+        said
+        salute
+        signed
+        sp
+        stage
+        trailer
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -1543,7 +1990,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -1562,7 +2010,8 @@ endTag:
 enterStartTag:
     uri:test1:
         test1unique
-text
+text:
+    *
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -1578,7 +2027,8 @@ possible events
 endTag:
     uri:test1:
         test1unique
-text
+text:
+    *
 
 invoking fireEvent with Event: endTag, uri:test1, test1unique
 fireEvent returned false
@@ -1658,7 +2108,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1680,7 +2131,8 @@ endTag:
 enterStartTag:
     uri:test1:
         test1unique
-text
+text:
+    *
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -1696,7 +2148,8 @@ possible events
 endTag:
     uri:test1:
         test1unique
-text
+text:
+    *
 
 invoking fireEvent with Event: endTag, uri:test1, test1unique
 fireEvent returned false
@@ -1776,7 +2229,8 @@ enterStartTag:
         emph
     uri:test2:
         emph
-text
+text:
+    *
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1832,6 +2286,54 @@ enterStartTag:
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        body
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        closer
+        dateline
+        desc
+        div
+        div1
+        docAuthor
+        docDate
+        epigraph
+        floatingText
+        gap
+        gb
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        meeting
+        milestone
+        note
+        p
+        pb
+        postscript
+        q
+        quote
+        said
+        salute
+        signed
+        sp
+        stage
+        trailer
+
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, body
 fireEvent returned false
 possible events
@@ -1853,6 +2355,24 @@ enterStartTag:
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        text
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        back
+        cb
+        gap
+        gb
+        index
+        lb
+        milestone
+        note
+        pb
+
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, text
 fireEvent returned false
 possible events
@@ -1863,10 +2383,21 @@ endTag:
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        TEI
+
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, TEI
 fireEvent returned false
 possible events
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
 end returned false

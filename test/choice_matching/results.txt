@@ -16,6 +16,13 @@ enterStartTag:
     :
         a
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    :
+        a
+
 invoking fireEvent with Event: enterStartTag, , a
 fireEvent returned false
 possible events
@@ -48,15 +55,17 @@ endTag:
 enterStartTag:
     :
         b
-text
+text:
+    *
 
-invoking fireEvent with Event: text
+invoking fireEvent with Event: text, tata
 fireEvent returned false
 possible events
 endTag:
     :
         a
-text
+text:
+    *
 
 invoking fireEvent with Event: endTag, , a
 fireEvent returned false
@@ -65,7 +74,18 @@ endTag:
     :
         test
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    :
+        test
+
 invoking fireEvent with Event: endTag, , test
+fireEvent returned false
+possible events
+
+invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 end returned false

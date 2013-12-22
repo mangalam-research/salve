@@ -24,43 +24,32 @@ describe("salve-convert", function () {
                           {stdio: "inherit"});
         child.on('exit', function (code, signal) {
             assert.equal(code, 0, "salve-convert exit status");
-            // The actual output from diff would not be that useful here.
-            spawn("diff", [outpath, expath], {stdio: 'ignore'})
+            if (expath) {
+                // The actual output from diff would not be that useful here.
+                spawn("diff", [outpath, expath], {stdio: 'ignore'})
                 .on('exit', function (code, signal) {
                     assert.equal(code, 0, "there was a difference");
                     done();
-            });
+                });
+            }
+            else
+                done();
         });
     }
 
-    it("when producing v0 outputs paths with output-paths turned on",
-       function (done) {
-        var inpath = "test/tei/simplified.rng";
-        var expath = "test/tei/simplified-rng.js";
+    var dir = "test/salve-convert/";
+    var tests = fs.readdirSync(dir);
 
-        salve_convert(inpath, expath, ["--simplified-input",
-                                       "--format-version", "0",
-                                       "--include-paths"], done);
-    });
-
-    it("when producing v0 does not output paths by default", function (done) {
-        var inpath = "test/tei/simplified.rng";
-        var expath = "test/tei/simplified-rng-nopaths.js";
-
-        salve_convert(inpath, expath, ["--simplified-input",
-                                       "--format-version", "0"], done);
+    tests.forEach(function (t) {
+        if (t.slice(-4) === ".rng") {
+            var expected = t.slice(0, -4) + ".js";
+            it("convert " + t, function (done) {
+                salve_convert(dir + t, dir + expected, [], done);
+            });
+        }
     });
 
     it("when producing v1 does not output paths by default", function (done) {
-        var inpath = "test/tei/simplified.rng";
-        var expath = "test/tei/simplified-rng-v1.js";
-
-        salve_convert(inpath, expath, ["--simplified-input",
-                                       "--no-optimize-ids",
-                                       "--format-version", "1"], done);
-    });
-
-    it("outputs v1 by default", function (done) {
         var inpath = "test/tei/simplified.rng";
         var expath = "test/tei/simplified-rng-v1.js";
 
@@ -80,5 +69,14 @@ describe("salve-convert", function () {
         var expath = "test/tei/simplified-rng-v1-optimized-ids.js";
 
         salve_convert(inpath, expath, [], done);
+    });
+
+    it("include paths", function (done) {
+        var inpath = "test/tei/myTEI.rng";
+        var expath = "test/tei/simplified-rng-v1-optimized-ids.js";
+
+        // Test created to deal with an internal error, so we don't
+        // check the output.
+        salve_convert(inpath, null, ["--include-paths"], done);
     });
 });

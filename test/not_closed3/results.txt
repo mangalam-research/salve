@@ -9,4 +9,8 @@ fireEvent returned false
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
 end returned tag not closed: {http://www.tei-c.org/ns/1.0}title,tag not closed: {http://www.tei-c.org/ns/1.0}titleStmt,tag not closed: {http://www.tei-c.org/ns/1.0}fileDesc,tag not closed: {http://www.tei-c.org/ns/1.0}teiHeader,tag not closed: {http://www.tei-c.org/ns/1.0}TEI

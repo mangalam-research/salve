@@ -4,6 +4,7 @@
 
 require("amd-loader");
 var temp = require("temp");
+var sax = require("sax");
 temp.track();
 
 //
@@ -28,8 +29,11 @@ process.on('uncaughtException', function (ex) {
         console.log(ex.message);
         process.exit(1);
     }
-    else
+    else {
+        if (!args || !args.keep_temp)
+            temp.cleanup(); // We need to do this ourselves...
         throw ex;
+    }
 });
 
 //
@@ -37,9 +41,10 @@ process.on('uncaughtException', function (ex) {
 //
 
 var salve = require("../");
-var formats = require("../lib/salve/formats");
 var patterns = require("../lib/salve/patterns");
 var oop = require("../lib/salve/oop");
+var conversion = require("../lib/salve/conversion");
+var Element = conversion.Element;
 var spawn = require("child_process").spawn;
 var path = require("path");
 var fs = require("fs");
@@ -65,6 +70,7 @@ parser.addArgument(["--include-paths"], {
 });
 parser.addArgument(["--format-version"], {
     help: "Version number of the JavaScript format that the tool must produce.",
+    type: Number,
     defaultValue: 1
 });
 parser.addArgument(["--simplify-only"], {
@@ -83,6 +89,14 @@ parser.addArgument(["-v", "--verbose"], {
     help: "Run verbosely.",
     action: "storeTrue"
 });
+parser.addArgument(["--timing"], {
+    help: "Output timing information. Implies --verbose.",
+    action: "storeTrue"
+});
+parser.addArgument(["--verbose-format"], {
+    help: "Outputs a verbose version of the data, with actual class names instead of numbers. Implies --no-optimize-ids. This format is cannot be read by salve. It is meant for debugging purposes only.",
+    action: "storeTrue"
+});
 
 
 parser.addArgument(["input_path"]);
@@ -90,19 +104,79 @@ parser.addArgument(["output_path"]);
 
 var args = parser.parseArgs();
 
-// We can't optimize ids when the version is less than 1.
-if (args.format_version < 1) {
-    if (args.verbose)
-        console.log("Cannot optimize ids for format version " +
-                    args.format_version + "; turning off id optimization.");
-    args.no_optimize_ids = true;
-}
+if (args.timing)
+    args.verbose = true;
 
+if (args.verbose_format)
+    args.no_optimize_ids = true;
+
+if (args.format_version < 1)
+    throw new Fatal("can't produce format version " + args.format_version);
+
+var temp_dir;
 if (args.simplified_input)
     convert(args.input_path);
 else {
+    if (args.verbose) {
+        console.log("Validating RNG...");
+        if (args.timing)
+            var start_time = new Date();
+    }
+
+    var relaxng_rng = path.resolve(__dirname,
+                                   path.join("..", "lib", "salve",
+                                             "relaxng.rng"));
+
+    // This is a bit of a hack. We want to make sure that the schema
+    // is a valid RNG schema as per RNG specs. Running an xmllint on
+    // the schema with a schema that defines what an RNG schema should
+    // look like does not trap import errors or errors that are not
+    // expressible in a schema language. The tools trang and jing
+    // could possibly be used but they are costly to run. So we run
+    // xmllint with our schema as the schema to use for validation and
+    // /dev/null as the document to validate. This does catch errors
+    // but there is no clean way to get xmllint to output only schema
+    // errors, hence what we have here.
+
+    var child = spawn("xmllint", ["--relaxng", args.input_path,
+                                  "/dev/null"],
+                      {stdio: ['ignore', 'ignore', 'pipe']});
+
+    var err = "";
+    child.stderr.on('data', function (data) {
+        err += data;
+    });
+
+    child.on('close', function (status) {
+        // Remove everything that has to do with /dev/null to avoid confusing
+        // the user.
+        err = err.replace(/\/dev\/null(.|[\r\n])*/, '');
+        if (args.verbose)
+            process.stderr.write(err);
+
+        // Search for an actual schema error.
+        if (err.search(/Relax-NG parser error/) !== -1) {
+            var msg = "error in schema";
+            if (!args.verbose)
+                msg += "; run with --verbose to see what the problem was";
+            throw new Fatal(msg);
+        }
+        if (args.timing)
+            console.log("Validation delta: " + (new Date() - start_time));
+        simplify();
+    });
+}
+
+var simplifying_start_time;
+function simplify() {
     // Grab the xsl files that form the simplification process, and store
     // these paths in ``steps``.
+    if (args.verbose) {
+        console.log("Simplifying...");
+        if (args.timing)
+            simplifying_start_time = new Date();
+    }
+
     var lib_path = path.resolve(__dirname, path.join("..", "lib", "salve",
                                                      "rng-simplification"));
     var steps = fs.readdirSync(lib_path);
@@ -118,20 +192,35 @@ else {
     });
 
     steps = steps.map(function (file) {
-        return path.join(lib_path, file);
+        var ret = { name: file, path: path.join(lib_path, file) };
+        if (file === "rng-simplification_step1.xsl") {
+            ret.repeatWhen = function (out_path) {
+                // We want to check whether we need to run the
+                // step again to include more files.
+                var parser = new IncludeParser(sax.parser(true, {xmlns: true}));
+                var data = fs.readFileSync(out_path).toString();
+                try {
+                    parser.sax_parser.write(data).close();
+                }
+                catch (ex) {
+                    if (!(ex instanceof Found))
+                        throw ex;
+                }
+                return parser.found;
+            };
+            ret.repeat_no = 0;
+        }
+        return ret;
     });
 
-    if (args.verbose)
-        console.log("Simplifying...");
-
-    var temp_dir = temp.mkdirSync({prefix: "salve-convert"});
+    temp_dir = temp.mkdirSync({prefix: "salve-convert"});
 
     if (args.keep_temp) {
         temp.track(false);
         console.log("Temporary files in: " + temp_dir);
     }
 
-    executeStep(0, args.input_path, convert);
+    executeStep(steps, 0, args.input_path, convert);
 }
 
 /**
@@ -140,21 +229,40 @@ else {
  * @param {String} in_path Path of the input file for this step.
  * @param {Function} after Callback to run after all steps.
  */
-function executeStep(step_no, in_path, after) {
+function executeStep(steps, step_no, in_path, after) {
     if (step_no >= steps.length)
         return after(in_path);
 
     var step = steps[step_no];
-    var out_path = path.join(temp_dir, "out" + (step_no + 1) + ".rng");
-    var child = spawn("xsltproc", ["-o", out_path, step, in_path],
+    var out_base = "out" + (step_no + 1) +
+            (step.repeatWhen ? ("." + (step.repeat_no + 1)) : "") +
+            ".rng";
+    var out_path = path.join(temp_dir, out_base);
+    var child = spawn("xsltproc", ["-o", out_path, "--stringparam",
+                                   "originalDir",
+                                   path.resolve(path.dirname(args.input_path))
+                                   + "/",
+                                   step.path, in_path],
                       {stdio: "inherit"});
     child.on('exit', function (status) {
         if (status)
             throw new Fatal("xsltproc terminated with status: " + status);
 
-        return executeStep(step_no + 1, out_path, after);
+        if (!fs.existsSync(out_path))
+            throw new Fatal("xsltproc step " + step_no +
+                            " failed to create output");
+
+        if (step.repeatWhen) {
+            if (step.repeatWhen(out_path)) {
+                step.repeat_no++;
+                return executeStep(steps, step_no, out_path, after);
+            }
+        }
+
+        return executeStep(steps, step_no + 1, out_path, after);
     });
 }
+
 
 /**
  * Meant to be used as the <code>after</code> call back for
@@ -164,6 +272,10 @@ function executeStep(step_no, in_path, after) {
  * simplification.
  */
 function convert(simplified_path) {
+    if (args.timing)
+        console.log("Simplification delta: " + (new Date() -
+                                                simplifying_start_time));
+
     if (args.simplify_only) {
         var child = spawn("xmllint",
                           ["--format", "--output", args.output_path,
@@ -173,124 +285,100 @@ function convert(simplified_path) {
         return;
     }
 
-    if (args.verbose)
+    if (args.verbose) {
         console.log("Transforming RNG to JavaScript...");
-    var xsltproc_args = ["--param", "output-version", args.format_version,
-                         "-o", args.output_path,
-                          path.resolve(__dirname,
-                                       path.join("..", "lib", "salve",
-                                                 "rng-to-js.xsl")),
-                simplified_path];
-
-    if (args.include_paths)
-        xsltproc_args = ["--param", "output-paths",
-                         "true()"].concat(xsltproc_args);
-
-    var xsltproc = spawn("xsltproc",
-                         xsltproc_args,
-                         {stdio: "inherit"});
-
-    var V1JSONWalker = formats.__protected.V1JSONWalker;
-    function NameGatherer() {
-        V1JSONWalker.apply(this, arguments);
-        this.names = {};
+        if (args.timing)
+            var conv_start_time = new Date();
     }
-    oop.inherit(NameGatherer, V1JSONWalker);
 
-    NameGatherer.prototype._processObject = function(array, ctor, args) {
-        if (ctor === patterns.__protected.Ref ||
-            ctor === patterns.__protected.Define) {
-            var name = args[1];
-            if (!(name in this.names))
-                this.names[name] = 0;
-
-            this.names[name]++;
-        }
-    };
-
-    var constructors = [];
-    (function () {
-        var name_to_constructor = formats.__protected.name_to_constructor;
-        var i = 0;
-        while(name_to_constructor[i]) {
-            constructors[i] = name_to_constructor[i];
-            i++;
-        }
-    })();
-
-
-    function Renamer(options, names) {
-        V1JSONWalker.apply(this, [options]);
-        this.names = names;
+    var parser = new conversion.ConversionParser(sax.parser(true,
+                                                            {xmlns: true}));
+    var walker;
+    debugger;
+    switch(args.format_version) {
+    case 1:
+        walker = new conversion.ConversionWalker1(args.include_paths,
+                                                  args.verbose_format);
+        break;
+    default:
+        throw new Error("unknown version: " + args.format_version);
     }
-    oop.inherit(Renamer, V1JSONWalker);
+    parser.sax_parser.write(
+        fs.readFileSync(simplified_path).toString()).close();
 
-    Renamer.prototype._processObject = function(array, ctor, args) {
-        if (ctor === patterns.__protected.Ref ||
-            ctor === patterns.__protected.Define) {
-            args[1] = this.names[args[1]];
+    if (args.no_optimize_ids) {
+        walker.walk(parser.stack[0].children[0]);
+        fs.writeFileSync(args.output_path, walker.output.join(""));
+    }
+    else {
+        if (args.format_version === 1) {
+            // Gather names
+            var g = new conversion.NameGatherer();
+            g.walk(parser.stack[0].children[0]);
+            var names = g.names;
+
+            // Now assign new names with shorter new names being
+            // assigned to those original names that are most
+            // frequent.
+            var sorted = Object.keys(names).map(function (key) {
+                return {key: key, freq: names[key]};
+            });
+            sorted.sort(function(a, b) {
+                // Yes, we want to sort in reverse order of frequency
+                return b.freq - a.freq;
+            });
+            var id = 1;
+            var new_names = {};
+            sorted.forEach(function (elem) {
+                new_names[elem.key] = id++;
+            });
+
+            // Perform the renaming.
+            var renamer = new conversion.Renamer(new_names);
+            renamer.walk(parser.stack[0].children[0]);
+
+            walker.walk(parser.stack[0].children[0]);
+            fs.writeFileSync(args.output_path, walker.output.join(""));
         }
+        else
+            throw new Fatal("unknown version: " + args.format_version);
+    }
 
-        if ((this.options & formats.__protected.OPTION_NO_PATHS) &&
-            ctor !== patterns.__protected.EName)
-            args = args.slice(1);
+    if (args.timing)
+        console.log("Conversion delta: " + (new Date() - conv_start_time));
 
-        return [constructors.indexOf(ctor)].concat(args);
-    };
-
-    Renamer.prototype._processArray = function(array) {
-        return this._walkArray(array);
-    };
-
-    xsltproc.on('exit', function (status) {
-        if (status)
-            throw new Fatal("xsltproc terminated with status: " + status);
-
-        if (!args.no_optimize_ids) {
-            if (args.verbose)
-                console.log("Optimizing ids...");
-            var parsed = JSON.parse(fs.readFileSync(args.output_path));
-
-            var version = parsed.v;
-            if (version === 1) {
-                // Gather names
-                var g = new NameGatherer(parsed.o);
-                g.walkObject(parsed.d);
-                var names = g.names;
-
-                // Now assign new names with shorter new names being
-                // assigned to those original names that are most
-                // frequent.
-                var sorted = Object.keys(names).map(function (key) {
-                    return {key: key, freq: names[key]};
-                });
-                sorted.sort(function(a, b) {
-                    // Yes, we want to sort in reverse order of frequency
-                    return b.freq - a.freq;
-                });
-                var id = 1;
-                var new_names = {};
-                sorted.forEach(function (elem) {
-                    new_names[elem.key] = id++;
-                });
-
-                // Perform the renaming.
-                var renamer = new Renamer(parsed.o, new_names);
-                parsed.d = renamer.walkObject(parsed.d);
-
-                // And save. We don't use ``JSON.stringify`` for the
-                // topmost object because it is nice to have *this*
-                // order when opening the file in an editor or using
-                // ``less``.
-                var to_write = '{"v":' + JSON.stringify(parsed.v) +
-                        ',"o":' + JSON.stringify(parsed.o) +
-                        ',"d":' + JSON.stringify(parsed.d) + '}';
-                fs.writeFileSync(args.output_path, to_write);
-            }
-            else
-                throw new Fatal("unknown converted version: " + version);
-        }
-
-        process.exit(0);
-    });
+    process.exit(0);
 }
+
+//
+//  Misc utilities
+//
+
+// Exception used to terminate the sax parser early.
+function Found() {
+    Error.call(this, arguments);
+}
+Found.prototype = new Error();
+
+function Parser(sax_parser) {
+    this.sax_parser = sax_parser;
+    for(var name in this) {
+        if (name.lastIndexOf("on", 0) === 0)
+            this.sax_parser[name] = this[name].bind(this);
+    }
+}
+
+function IncludeParser(sax_parser) {
+    Parser.call(this, sax_parser);
+    this.found = false;
+}
+
+IncludeParser.prototype = new Parser();
+
+IncludeParser.prototype.onopentag = function (node) {
+    if (node.uri === "http://relaxng.org/ns/structure/1.0" &&
+        (node.local === "include" || node.local === "externalRef")) {
+        this.found = true;
+        throw new Found();  // Stop early.
+    }
+};

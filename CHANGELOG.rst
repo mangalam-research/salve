@@ -1,5 +1,16 @@
 Only major changes are reported here.
 
+* 0.17.0:
+
+  - The ``rng-to-js.xsl`` stylesheet is gone. It's work has been taken
+    over by ``salve-convert``. This change yields a speed improvement
+    of an order of magnitude on large schemas.
+
+  - API change: ``text`` events now require a text value to be passed.
+
+  - API change: salve now expects all white space to be passed to
+    it. Previous versions did not.
+
 * 0.16.0:
 
   - Salve's build is now done with grunt rather than make.
