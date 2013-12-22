@@ -30,6 +30,7 @@
         "mocha": "1.9.x",
         "chai": "1.6.x",
         "semver-sync": ">=1.2.0",
+        "touch": "~0.0.2",
         "load-grunt-tasks": "~0.2.0",
         "grunt": "~0.4.1",
         "grunt-cli": "~0.1.9",

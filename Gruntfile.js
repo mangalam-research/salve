@@ -1,6 +1,7 @@
 module.exports = function(grunt) {
     "use strict";
     // Load all grunt-* modules in package.json
+    var touch = require("touch");
     require("load-grunt-tasks")(grunt);
     // Read in local environment variables
     var config = {
@@ -16,7 +17,8 @@ module.exports = function(grunt) {
     // jsdoc template.
     var root_dir = process.cwd();
     process.chdir("misc/jsdoc_template/");
-    config.jsdoc_custom_template_files = grunt.file.expand({filter: "isFile"}, ["**/*"]);
+    config.jsdoc_custom_template_files =
+        grunt.file.expand({filter: "isFile"}, ["**/*"]);
     process.chdir(root_dir);
 
     // Try to load a local configuration file.
@@ -118,18 +120,29 @@ module.exports = function(grunt) {
                       dest: "build/jsdoc_template/",
                       expand: true
                     }
-                ]
+                ],
+                options: {
+                    processContent: function(file) {
+                        touch("lib/salve/validate.js");
+                        return file;
+                    }
+                }
             },
             jsdoc_custom_template_files: {
                 files: [
-                    {
-                        cwd: "misc/jsdoc_template/",
+                    {   cwd: "misc/jsdoc_template/",
                         src: config.jsdoc_custom_template_files,
                         dest: "build/jsdoc_template/",
                         filter: "isFile",
                         expand: true
                     }
-                ]
+                ],
+                options: {
+                    processContent: function(file) {
+                        touch("lib/salve/validate.js");
+                        return file;
+                    }
+                }
             },
             gh_pages_build: {
                 files: [
