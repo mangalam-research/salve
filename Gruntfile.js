@@ -1,4 +1,5 @@
 module.exports = function(grunt) {
+    var fs = require("fs");
     "use strict";
     // Load all grunt-* modules in package.json
     require("load-grunt-tasks")(grunt);
@@ -90,8 +91,12 @@ module.exports = function(grunt) {
         copy: {
             build: {
                 files: [
-                    { src: ["lib/**/*.js", "!lib/salve/parse.js"],
-                      dest: "build/" }
+                    { src: ["package.json",
+                            "bin/*",
+                            "lib/**/*.js",
+                            "lib/**/*.xsl",
+                            "!lib/salve/parse.js"],
+                      dest: "build/dist/" }
                 ]
             },
             jsdoc_template_defaults: {
@@ -140,6 +145,21 @@ module.exports = function(grunt) {
                 ]
             }
         },
+        mkdir: {
+            build: {
+                options: {
+                    create: ['build/tmp']
+                }
+            }
+        },
+        // When grunt 0.4.3 is released, verify that it can preserve
+        // permissions when copying and get rid of this.
+        chmod: {
+            src: "build/dist/bin/*",
+            options: {
+                mode: "755"
+            }
+        },
         clean: {
             build: ["build/"],
             readme: ["README.html"]
@@ -180,6 +200,19 @@ module.exports = function(grunt) {
                     callback: checkJSDocVersion
 
                 }
+            },
+            regexp: {
+                src: "lib/salve/datatypes/regexp.jison",
+                dest: "build/tmp/regexp.js",
+                options: {
+                    stdout: true,
+                    stderr: true,
+                    failOnError: true
+                },
+                command:
+                "node_modules/.bin/jison " +
+                    "-m amd -o build/tmp/regexp.js " +
+                    "lib/salve/datatypes/regexp.jison"
             }
         },
         mochaTest: {
@@ -187,6 +220,12 @@ module.exports = function(grunt) {
                 grep: config.mocha_grep
             },
             src: ["test/*.js"]
+        },
+        fix_jison: {
+            regexp: {
+                src: "build/tmp/regexp.js",
+                dest: "build/dist/lib/salve/datatypes/regexp.js"
+            }
         }
     });
     grunt.registerTask("default", ["newer:copy:build"]);
@@ -197,19 +236,47 @@ module.exports = function(grunt) {
                                      "invalid or not provided.");
         }
     });
+    grunt.registerTask("default", ["newer:copy:build", "mkdir:build",
+                                   "newer:shell:regexp",
+                                   "newer:fix_jison:regexp",
+                                   "npmignore",
+                                   "chmod"]);
+
+    grunt.registerMultiTask("fix_jison", function () {
+        if (this.files.length !== 1 || this.files[0].src.length !== 1) {
+            grunt.log.error("needs exactly one source file.");
+            return false;
+        }
+
+        var src = this.files[0].src[0];
+        var dest = this.files[0].dest;
+        var data = fs.readFileSync(src).toString();
+
+        // This is enough to trigger RequireJS's CommonJS sugar handling.
+        data = data.replace(/^\s*define\(\[\], function\s*\(\s*\)\s*\{/m,
+                            "define(function (require) {");
+        fs.writeFileSync(dest, data);
+        return undefined;
+    });
+
+    grunt.registerTask("npmignore", function () {
+        var data = "bin/parse.js";
+        fs.writeFileSync("build/dist/.npmignore", data);
+    });
+
+
     grunt.registerTask("copy_jsdoc_template",
                        ["jsdoc_template_exists",
                         "copy:jsdoc_template_defaults",
                         "copy:publish_js", "copy:layout_tmpl",
                         "copy:mangalam_css"]);
-    grunt.registerTask("create_jsdocs", ["shell:test_jsdoc","copy_jsdoc_template",
-                                        "newer:jsdoc:build"]);
+    grunt.registerTask("create_jsdocs",
+                       ["shell:test_jsdoc","copy_jsdoc_template",
+                        "newer:jsdoc:build"]);
     grunt.registerTask("doc", ["create_jsdocs",
                                "newer:shell:readme"]);
     grunt.registerTask("gh-pages-build", ["create_jsdocs",
                                           "newer:copy:gh_pages_build"]);
     grunt.registerTask("test", ["default", "shell:semver", "mochaTest"]);
-
-//  grunt-contrib-clean is its own task: "grunt clean"
-
+    //  grunt-contrib-clean is its own task: "grunt clean"
 };

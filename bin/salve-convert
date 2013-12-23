@@ -5,7 +5,10 @@
 require("amd-loader");
 var temp = require("temp");
 var sax = require("sax");
+var path = require("path");
 temp.track();
+
+var prog = path.basename(process.argv[1]);
 
 //
 // Safety harness
@@ -26,7 +29,7 @@ process.on('uncaughtException', function (ex) {
 
     terminating = true;
     if (ex instanceof Fatal) {
-        console.log(ex.message);
+        process.stderr.write(prog + ": " + ex.message + "\n");
         process.exit(1);
     }
     else {
@@ -44,9 +47,9 @@ var salve = require("../");
 var patterns = require("../lib/salve/patterns");
 var oop = require("../lib/salve/oop");
 var conversion = require("../lib/salve/conversion");
+var datatypes = require("../lib/salve/datatypes");
 var Element = conversion.Element;
 var spawn = require("child_process").spawn;
-var path = require("path");
 var fs = require("fs");
 var ArgumentParser = require("argparse").ArgumentParser;
 
@@ -71,7 +74,7 @@ parser.addArgument(["--include-paths"], {
 parser.addArgument(["--format-version"], {
     help: "Version number of the JavaScript format that the tool must produce.",
     type: Number,
-    defaultValue: 1
+    defaultValue: 2
 });
 parser.addArgument(["--simplify-only"], {
     help: "Stop converting at the simplification stage.",
@@ -97,6 +100,9 @@ parser.addArgument(["--verbose-format"], {
     help: "Outputs a verbose version of the data, with actual class names instead of numbers. Implies --no-optimize-ids. This format is cannot be read by salve. It is meant for debugging purposes only.",
     action: "storeTrue"
 });
+parser.addArgument(["--allow-incomplete-types"], {
+    help: "Without this flag, the conversion process will stop upon encountering types that are not fully supported. Using this flag will allow the conversion to happen. Use --allow-incomplete-types=quiet to suppress all warnings about this."
+});
 
 
 parser.addArgument(["input_path"]);
@@ -110,7 +116,7 @@ if (args.timing)
 if (args.verbose_format)
     args.no_optimize_ids = true;
 
-if (args.format_version < 1)
+if (args.format_version < 2)
     throw new Fatal("can't produce format version " + args.format_version);
 
 var temp_dir;
@@ -138,12 +144,12 @@ else {
     // but there is no clean way to get xmllint to output only schema
     // errors, hence what we have here.
 
-    var child = spawn("xmllint", ["--relaxng", args.input_path,
+    var child = spawn("jing", [args.input_path,
                                   "/dev/null"],
-                      {stdio: ['ignore', 'ignore', 'pipe']});
+                      {stdio: ['ignore', 'pipe', 'ignore']});
 
     var err = "";
-    child.stderr.on('data', function (data) {
+    child.stdout.on('data', function (data) {
         err += data;
     });
 
@@ -155,7 +161,7 @@ else {
             process.stderr.write(err);
 
         // Search for an actual schema error.
-        if (err.search(/Relax-NG parser error/) !== -1) {
+        if (err.length) {
             var msg = "error in schema";
             if (!args.verbose)
                 msg += "; run with --verbose to see what the problem was";
@@ -294,11 +300,10 @@ function convert(simplified_path) {
     var parser = new conversion.ConversionParser(sax.parser(true,
                                                             {xmlns: true}));
     var walker;
-    debugger;
     switch(args.format_version) {
-    case 1:
-        walker = new conversion.ConversionWalker1(args.include_paths,
-                                                  args.verbose_format);
+    case 2:
+        walker = new conversion.ConversionWalkerV2(args.include_paths,
+                                                   args.verbose_format);
         break;
     default:
         throw new Error("unknown version: " + args.format_version);
@@ -311,7 +316,7 @@ function convert(simplified_path) {
         fs.writeFileSync(args.output_path, walker.output.join(""));
     }
     else {
-        if (args.format_version === 1) {
+        if (args.format_version === 2) {
             // Gather names
             var g = new conversion.NameGatherer();
             g.walk(parser.stack[0].children[0]);
@@ -336,6 +341,40 @@ function convert(simplified_path) {
             // Perform the renaming.
             var renamer = new conversion.Renamer(new_names);
             renamer.walk(parser.stack[0].children[0]);
+
+            var type_checker = new conversion.DatatypeProcessor();
+            try {
+                type_checker.walk(parser.stack[0].children[0]);
+            }
+            catch (ex) {
+                debugger;
+                if (ex instanceof datatypes.ValueValidationError)
+                    throw new Fatal(ex.message);
+
+                if (ex instanceof datatypes.ParameterParsingError)
+                    throw new Fatal(ex.message);
+
+                throw ex;
+            }
+
+            if (type_checker.warnings.length &&
+                args.allow_incomplete_types !== "quiet") {
+                process.stderr.write(prog + ": WARNING: the following incomplete types are used in the schema: ");
+                process.stderr.write(
+                    Object.keys(type_checker.incomplete_types_used).join(", "));
+                process.stderr.write("\n");
+                process.stderr.write(prog + ": details follow\n");
+
+                type_checker.warnings.forEach(function (x) {
+                    process.stderr.write(prog + ": " + x + "\n");
+                });
+                if (!args.allow_incomplete_types)
+                    throw new Fatal(
+                        "use --allow-incomplete-types to convert a file " +
+                            "using these types");
+                else
+                    process.stderr.write(prog + ": allowing as requested\n");
+            }
 
             walker.walk(parser.stack[0].children[0]);
             fs.writeFileSync(args.output_path, walker.output.join(""));

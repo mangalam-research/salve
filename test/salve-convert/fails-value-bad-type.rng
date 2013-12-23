@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<element xmlns:foo="http://foo.com" xmlns="http://relaxng.org/ns/structure/1.0" name="foo:foo">
+  <value type="blah" datatypeLibrary="">abc</value>
+</element>

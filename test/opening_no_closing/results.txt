@@ -1,4 +1,7 @@
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, , html
 fireEvent returned false
 

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<element xml:base="subdir/q" xmlns:foo="http://foo.com" xmlns="http://relaxng.org/ns/structure/1.0" name="foo:foo">
+  <!-- xml:base determines that sub.rng will be sought in ``subdir`` -->
+  <externalRef href="sub.rng"/>
+</element>

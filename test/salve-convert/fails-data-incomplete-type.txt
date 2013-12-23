@@ -1,0 +1,5 @@
+salve-convert: WARNING: the following incomplete types are used in the schema: double, float
+salve-convert: details follow
+salve-convert: WARNING: /grammar/define[@name='1']/element[@name='foo']/list/group/data uses the double type in library http://www.w3.org/2001/XMLSchema-datatypes
+salve-convert: WARNING: /grammar/define[@name='1']/element[@name='foo']/list/group/data uses the float type in library http://www.w3.org/2001/XMLSchema-datatypes
+salve-convert: use --allow-incomplete-types to convert a file using these types

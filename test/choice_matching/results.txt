@@ -4,6 +4,9 @@ enterStartTag:
     :
         test
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, , test
 fireEvent returned false
 possible events
@@ -22,6 +25,9 @@ possible events
 enterStartTag:
     :
         a
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, , a
 fireEvent returned false
@@ -74,6 +80,9 @@ endTag:
     :
         test
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -84,6 +93,9 @@ endTag:
 invoking fireEvent with Event: endTag, , test
 fireEvent returned false
 possible events
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
 
 invoking fireEvent with Event: text,
 fireEvent returned false

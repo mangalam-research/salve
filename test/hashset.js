@@ -7,7 +7,7 @@
 'use strict';
 require("amd-loader");
 var assert = require("chai").assert;
-var hashstructs = require("../build/lib/salve/hashstructs");
+var hashstructs = require("../build/dist/lib/salve/hashstructs");
 
 function id(x) { return x; }
 

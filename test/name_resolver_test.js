@@ -6,8 +6,8 @@
 
 'use strict';
 require('amd-loader');
-var name_resolver = require("../build/lib/salve/name_resolver")
-var EName = require("../build/lib/salve/validate").EName;
+var name_resolver = require("../build/dist/lib/salve/name_resolver")
+var EName = require("../build/dist/lib/salve/validate").EName;
 var assert = require("chai").assert;
 
 var resolver;

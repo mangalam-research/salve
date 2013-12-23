@@ -2,7 +2,19 @@ fireEvent returned false
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false
+fireEvent returned false
 fireEvent returned text not allowed here
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false

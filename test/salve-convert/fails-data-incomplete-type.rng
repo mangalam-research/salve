@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<element xmlns:foo="http://foo.com" xmlns="http://relaxng.org/ns/structure/1.0" name="foo:foo">
+  <list>
+    <data type="double" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"/>
+    <data type="float" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"/>
+  </list>
+</element>

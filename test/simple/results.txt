@@ -4,6 +4,9 @@ enterStartTag:
     :
         html
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, , html
 fireEvent returned false
 possible events
@@ -36,6 +39,9 @@ enterStartTag:
     :
         head
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, , head
 fireEvent returned false
 possible events
@@ -47,6 +53,9 @@ possible events
 enterStartTag:
     :
         title
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, , title
 fireEvent returned false
@@ -96,6 +105,9 @@ endTag:
     :
         head
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: endTag, , head
 fireEvent returned false
 possible events
@@ -103,12 +115,18 @@ enterStartTag:
     :
         body
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
     :
         body
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, , body
 fireEvent returned false
@@ -138,6 +156,9 @@ enterStartTag:
         em
 text:
     *
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, , em
 fireEvent returned false
@@ -180,6 +201,9 @@ enterStartTag:
 text:
     *
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, , em
 fireEvent returned false
 possible events
@@ -209,6 +233,9 @@ enterStartTag:
 text:
     *
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: endTag, , em
 fireEvent returned false
 possible events
@@ -220,6 +247,9 @@ enterStartTag:
         em
 text:
     *
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
 
 invoking fireEvent with Event: text,
 fireEvent returned false
@@ -240,6 +270,9 @@ endTag:
     :
         html
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
@@ -250,6 +283,9 @@ endTag:
 invoking fireEvent with Event: endTag, , html
 fireEvent returned false
 possible events
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
 
 invoking fireEvent with Event: text,
 fireEvent returned false
