@@ -157,6 +157,8 @@ else {
         // Remove everything that has to do with /dev/null to avoid confusing
         // the user.
         err = err.replace(/\/dev\/null(.|[\r\n])*/, '');
+        // Earlier versions would output this error instead of the above.
+        err = err.replace(/fatal: Premature end of file\.\s*/, '');
         if (args.verbose)
             process.stderr.write(err);
 
