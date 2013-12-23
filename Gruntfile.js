@@ -217,7 +217,7 @@ module.exports = function(grunt) {
         },
         mochaTest: {
             options:  {
-                grep: config.mocha_grep
+                grep: new RegExp(config.mocha_grep)
             },
             src: ["test/*.js"]
         },
