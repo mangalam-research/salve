@@ -1000,16 +1000,14 @@ var anyURI_program = {
     disallows: {
         NONE: {
             "false": [
-            ["'a:b'", "a:b"]
+                ["simple", "a:b"],
+                ["fragment", "a:/b#gaga"],
+                ["relative URI", "aaa"]
             ],
             "true": [
-                ["+", "+",
-                 ["not a valid anyURI"]
-                ],
-                ["aaa", "aaa",
+                [":", ":",
                  ["not a valid anyURI"]
                 ]
-
             ]
         }
     }
