@@ -1,16 +1,22 @@
 module.exports = function(grunt) {
     "use strict";
     // Load all grunt-* modules in package.json
+    var touch = require("touch");
     require("load-grunt-tasks")(grunt);
     // Read in local environment variables
     var config = {
-        mocha_grep: "",
-        rst2html: "rst2html",
-        jsdoc3: "jsdoc",
+        jsdoc: "jsdoc",
         jsdoc_private: false,
-        jsdoc3_template_dir: undefined,
-        required_jsdoc_version: "3.2.2"
+        jsdoc_required_version: "3.2.2",
+        jsdoc_template_dir: undefined,
+        mocha_grep: "",
+        rst2html: "rst2html"
     };
+
+    // Set the files that will overwrite or supplement files in the
+    // jsdoc template.
+    config.jsdoc_custom_template_files =
+        grunt.file.expand({filter: "isFile", cwd: "misc/jsdoc_template"}, ["**/*"]);
 
     // Try to load a local configuration file.
     var local_config = {};
@@ -36,6 +42,14 @@ module.exports = function(grunt) {
         }
     }
 
+    // Set up a list of strings for excluding files when grunt-copy
+    // copies jsdoc template defaults (for correct grunt-newer
+    // operation)
+    var jsdoc_template_exclude_files = [];
+    config.jsdoc_custom_template_files.forEach(
+        function (element, index, array) {
+            jsdoc_template_exclude_files.push("!" + element);
+        });
     // Check that the local version of JSDoc is the same or better
     // than the version deemed required for proper output.
     // This is a callback used by the grunt-shell task.
@@ -61,7 +75,8 @@ module.exports = function(grunt) {
             grunt.fail.warn(err);
         }
         var required_re = /^(\d+)(?:\.(\d+)(?:\.(\d+))?)?$/;
-        var req_version_match = config.required_jsdoc_version.match(required_re);
+        var req_version_match =
+                config.jsdoc_required_version.match(required_re);
         if (!req_version_match ||(!validateParts(req_version_match))) {
             grunt.fail.warn('Incorrect version specification: "' +
                                          config.required_jsdoc_version + '".');
@@ -94,41 +109,36 @@ module.exports = function(grunt) {
                       dest: "build/" }
                 ]
             },
-            jsdoc_template_defaults: {
+            jsdoc_default_template_files: {
                 files: [
-                    { cwd: config.jsdoc3_template_dir,
-                      src: ["**/*"],
+                    { cwd: config.jsdoc_template_dir,
+                      src: ["**/*"].concat(jsdoc_template_exclude_files),
                       dest: "build/jsdoc_template/",
                       expand: true
                     }
-                ]
-            },
-            publish_js: {
-                files: [
-                    { cwd: "misc/jsdoc_template/",
-                      src: "publish.js",
-                      dest: "build/jsdoc_template/",
-                      expand: true
+                ],
+                options: {
+                    processContent: function(file) {
+                        touch("lib/salve/validate.js");
+                        return file;
                     }
-                ]
+                }
             },
-            layout_tmpl: {
+            jsdoc_custom_template_files: {
                 files: [
-                    { cwd: "misc/jsdoc_template/",
-                      src: "layout.tmpl",
-                      dest: "build/jsdoc_template/tmpl/",
-                      expand: true
+                    {   cwd: "misc/jsdoc_template/",
+                        src: config.jsdoc_custom_template_files,
+                        dest: "build/jsdoc_template/",
+                        filter: "isFile",
+                        expand: true
                     }
-                ]
-            },
-            mangalam_css: {
-                files: [
-                    { cwd: "misc/jsdoc_template/",
-                      src: "mangalam.css",
-                      dest: "build/jsdoc_template/static/styles/",
-                      expand: true
+                ],
+                options: {
+                    processContent: function(file) {
+                        touch("lib/salve/validate.js");
+                        return file;
                     }
-                ]
+                }
             },
             gh_pages_build: {
                 files: [
@@ -146,13 +156,15 @@ module.exports = function(grunt) {
         },
         jsdoc: {
             build: {
-                jsdoc: config.jsdoc3,
+                jsdoc: config.jsdoc,
                 src: ["lib/**/*.js", "doc/api_intro.md", "package.json"],
                 dest: "build/api",
-                options: { private: config.jsdoc_private,
-                           config: "jsdoc.conf.json"
-                         }
+                options: {
+//                    destination: "build/api",
+                    private: config.jsdoc_private,
+                    config: "jsdoc.conf.json"
                 }
+            }
         },
         shell: {
             readme: {
@@ -174,7 +186,7 @@ module.exports = function(grunt) {
                 command: "semver-sync -v"
             },
             test_jsdoc: {
-                command: config.jsdoc3 + " -v",
+                command: config.jsdoc + " -v",
                 options: {
                     failOnError: true,
                     callback: checkJSDocVersion
@@ -191,18 +203,19 @@ module.exports = function(grunt) {
     });
     grunt.registerTask("default", ["newer:copy:build"]);
     grunt.registerTask("jsdoc_template_exists", function() {
-        if (!config.jsdoc3_template_dir ||
-            !grunt.file.exists(config.jsdoc3_template_dir, "publish.js")) {
+        if (!config.jsdoc_template_dir ||
+            !grunt.file.exists(config.jsdoc_template_dir, "publish.js")) {
             grunt.fail.warn("JSDoc default template directory " +
                                      "invalid or not provided.");
         }
     });
     grunt.registerTask("copy_jsdoc_template",
                        ["jsdoc_template_exists",
-                        "copy:jsdoc_template_defaults",
-                        "copy:publish_js", "copy:layout_tmpl",
-                        "copy:mangalam_css"]);
-    grunt.registerTask("create_jsdocs", ["shell:test_jsdoc","copy_jsdoc_template",
+                        "newer:copy:jsdoc_default_template_files",
+                        "newer:copy:jsdoc_custom_template_files"
+                       ]);
+    grunt.registerTask("create_jsdocs", ["shell:test_jsdoc",
+                                         "copy_jsdoc_template",
                                         "newer:jsdoc:build"]);
     grunt.registerTask("doc", ["create_jsdocs",
                                "newer:shell:readme"]);
