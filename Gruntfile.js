@@ -15,11 +15,8 @@ module.exports = function(grunt) {
 
     // Set the files that will overwrite or supplement files in the
     // jsdoc template.
-    var root_dir = process.cwd();
-    process.chdir("misc/jsdoc_template/");
     config.jsdoc_custom_template_files =
-        grunt.file.expand({filter: "isFile"}, ["**/*"]);
-    process.chdir(root_dir);
+        grunt.file.expand({filter: "isFile", cwd: "misc/jsdoc_template"}, ["**/*"]);
 
     // Try to load a local configuration file.
     var local_config = {};
@@ -53,7 +50,6 @@ module.exports = function(grunt) {
         function (element, index, array) {
             jsdoc_template_exclude_files.push("!" + element);
         });
-
     // Check that the local version of JSDoc is the same or better
     // than the version deemed required for proper output.
     // This is a callback used by the grunt-shell task.
@@ -163,10 +159,12 @@ module.exports = function(grunt) {
                 jsdoc: config.jsdoc,
                 src: ["lib/**/*.js", "doc/api_intro.md", "package.json"],
                 dest: "build/api",
-                options: { private: config.jsdoc_private,
-                           config: "jsdoc.conf.json"
-                         }
+                options: {
+//                    destination: "build/api",
+                    private: config.jsdoc_private,
+                    config: "jsdoc.conf.json"
                 }
+            }
         },
         shell: {
             readme: {
