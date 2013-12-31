@@ -71,10 +71,7 @@ module.exports = function(grunt) {
             grunt.fail.warn("Could not determine local JSDoc version.");
 
         for (i = 1; i < req_version_match.length; ++i) {
-            if (req_version_match[i] === version_match_list[i])
-                continue;
-
-            if (req_version_match[i] > version_match_list[i])
+            if (Number(req_version_match[i]) > Number(version_match_list[i]))
                 grunt.fail.warn("Local JSDoc version is too old: " +
                                 version_match_list[0] + " < " +
                                 req_version_match[0] + ".");
