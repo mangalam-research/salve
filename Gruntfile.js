@@ -2,7 +2,6 @@ module.exports = function(grunt) {
     var fs = require("fs");
     "use strict";
     // Load all grunt-* modules in package.json
-    var touch = require("touch");
     require("load-grunt-tasks")(grunt);
     // Read in local environment variables
     var config = {
@@ -102,6 +101,12 @@ module.exports = function(grunt) {
         callback();
     }
 
+    var meta_jsdoc = {
+            src: ["lib/**/*.js", "doc/api_intro.md", "package.json"],
+            template_src: ["build/jsdoc_template/**"],
+            dest: "build/api"
+    };
+
     grunt.initConfig({
         copy: {
             build: {
@@ -121,13 +126,7 @@ module.exports = function(grunt) {
                       dest: "build/jsdoc_template/",
                       expand: true
                     }
-                ],
-                options: {
-                    processContent: function(file) {
-                        touch("lib/salve/validate.js");
-                        return file;
-                    }
-                }
+                ]
             },
             jsdoc_custom_template_files: {
                 files: [
@@ -137,13 +136,7 @@ module.exports = function(grunt) {
                         filter: "isFile",
                         expand: true
                     }
-                ],
-                options: {
-                    processContent: function(file) {
-                        touch("lib/salve/validate.js");
-                        return file;
-                    }
-                }
+                ]
             },
             gh_pages_build: {
                 files: [
@@ -174,11 +167,21 @@ module.exports = function(grunt) {
             build: ["build/"],
             readme: ["README.html"]
         },
+        // This is a task created purely for the sake of running jsdoc
+        // if either of the following is true: the files composing the
+        // source of the documentation changed, or the template
+        // changed.
+        meta_jsdoc_task: {
+            build: {
+                src: meta_jsdoc.src.concat(meta_jsdoc.template_src),
+                dest: meta_jsdoc.dest
+            }
+        },
         jsdoc: {
             build: {
                 jsdoc: config.jsdoc,
-                src: ["lib/**/*.js", "doc/api_intro.md", "package.json"],
-                dest: "build/api",
+                src: meta_jsdoc.src,
+                dest: meta_jsdoc.dest,
                 options: {
 //                    destination: "build/api",
                     private: config.jsdoc_private,
@@ -284,7 +287,12 @@ module.exports = function(grunt) {
                        ]);
     grunt.registerTask("create_jsdocs", ["shell:test_jsdoc",
                                          "copy_jsdoc_template",
-                                        "newer:jsdoc:build"]);
+                                         "newer:meta_jsdoc_task:build"]);
+
+    grunt.registerMultiTask("meta_jsdoc_task", function () {
+        grunt.task.run("jsdoc:build");
+    });
+
     grunt.registerTask("doc", ["create_jsdocs",
                                "newer:shell:readme"]);
     grunt.registerTask("gh-pages-build", ["create_jsdocs",
