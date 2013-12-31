@@ -14,7 +14,6 @@ var template = require('jsdoc/template'),
     view,
     outdir = env.opts.destination;
 
-
 function find(spec) {
     return helper.find(data, spec);
 }

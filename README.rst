@@ -362,20 +362,22 @@ configuration variables from three sources:
 
 The variables that can be set are:
 
-+-------------------+----------------------------------------------------------+
-|Name               | Meaning                                                  |
-+===================+==========================================================+
-|mocha_grep         | --grep parameter for Mocha                               |
-+-------------------+----------------------------------------------------------+
-|rst2html           | rst2html command to run                                  |
-+-------------------+----------------------------------------------------------+
-|jsdoc3             |jsdoc3 command to run                                     |
-+-------------------+----------------------------------------------------------+
-|jsdoc_private      |jsdoc should produce documentation for private entities.  |
-|                   |true by default.                                          |
-+-------------------+----------------------------------------------------------+
-|jsdoc3_template_dir|Location of the jsdoc default template                    |
-+-------------------+----------------------------------------------------------+
++-----------------------+------------------------------------------------------+
+|Name                   | Meaning                                              |
++=======================+======================================================+
+|jsdoc                  | jsdoc command to run                                 |
++-----------------------+------------------------------------------------------+
+|jsdoc_private          | jsdoc should produce documentation for private       |
+|                       | entities. true by default.                           |
++-----------------------+------------------------------------------------------+
+|jsdoc_required_version | The jsdoc version required by the project's docs     |
++-----------------------+------------------------------------------------------+
+|jsdoc_template_dir     | Location of the jsdoc default template               |
++-----------------------+------------------------------------------------------+
+|mocha_grep             | --grep parameter for Mocha                           |
++-----------------------+------------------------------------------------------+
+|rst2html               | rst2html command to run                              |
++-----------------------+------------------------------------------------------+
 
 Note that when used on the command line, underscores become dashes, thus
 ``--mocha-grep`` and ``--jsdoc-private``.
