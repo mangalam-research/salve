@@ -54,18 +54,18 @@ module.exports = function(grunt) {
     // Check that the local version of JSDoc is the same or better
     // than the version deemed required for proper output.
     // This is a callback used by the grunt-shell task.
+    var version_re = /(\d+)(?:\.(\d+)(?:\.(\d+))?)?/;
+    var required_re = new RegExp("^" + version_re.source + "$");
     function checkJSDocVersion(err, stdout, stderr, callback) {
         if (err)
             grunt.fail.warn(err);
 
-        var required_re = /^(\d+)(?:\.(\d+)(?:\.(\d+))?)?$/;
         var req_version_match =
                 config.jsdoc_required_version.match(required_re);
         if (!req_version_match)
             grunt.fail.warn('Incorrect version specification: "' +
                             config.required_jsdoc_version + '".');
 
-        var version_re = /(\d+)(?:\.(\d+)(?:\.(\d+))?)?/;
         var version_match_list = version_re.exec(stdout);
         if (!version_match_list)
             grunt.fail.warn("Could not determine local JSDoc version.");
