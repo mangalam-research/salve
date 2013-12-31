@@ -1,6 +1,6 @@
+"use strict";
 module.exports = function(grunt) {
     var fs = require("fs");
-    "use strict";
     // Load all grunt-* modules in package.json
     require("load-grunt-tasks")(grunt);
     // Read in local environment variables
