@@ -244,7 +244,6 @@ module.exports = function(grunt) {
             }
         }
     });
-    grunt.registerTask("default", ["newer:copy:build"]);
     grunt.registerTask("jsdoc_template_exists", function() {
         if (!config.jsdoc_template_dir ||
             !grunt.file.exists(config.jsdoc_template_dir, "publish.js")) {
