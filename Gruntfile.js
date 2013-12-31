@@ -13,11 +13,6 @@ module.exports = function(grunt) {
         rst2html: "rst2html"
     };
 
-    // Set the files that will overwrite or supplement files in the
-    // jsdoc template.
-    config.jsdoc_custom_template_files =
-        grunt.file.expand({filter: "isFile", cwd: "misc/jsdoc_template"}, ["**/*"]);
-
     // Try to load a local configuration file.
     var local_config = {};
     try {
@@ -42,14 +37,20 @@ module.exports = function(grunt) {
         }
     }
 
+    // Set the files that will overwrite or supplement files in the
+    // jsdoc template.
+    var jsdoc_custom_template_files =
+            grunt.file.expand({filter: "isFile", cwd: "misc/jsdoc_template"},
+                              ["**/*"]);
+
     // Set up a list of strings for excluding files when grunt-copy
     // copies jsdoc template defaults (for correct grunt-newer
     // operation)
-    var jsdoc_template_exclude_files = [];
-    config.jsdoc_custom_template_files.forEach(
-        function (element, index, array) {
-            jsdoc_template_exclude_files.push("!" + element);
-        });
+    var jsdoc_template_exclude_files = jsdoc_custom_template_files.map(
+        function (element) {
+        return "!" + element;
+    });
+
     // Check that the local version of JSDoc is the same or better
     // than the version deemed required for proper output.
     // This is a callback used by the grunt-shell task.
@@ -131,7 +132,7 @@ module.exports = function(grunt) {
             jsdoc_custom_template_files: {
                 files: [
                     {   cwd: "misc/jsdoc_template/",
-                        src: config.jsdoc_custom_template_files,
+                        src: jsdoc_custom_template_files,
                         dest: "build/jsdoc_template/",
                         filter: "isFile",
                         expand: true
