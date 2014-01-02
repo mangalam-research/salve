@@ -151,8 +151,7 @@ module.exports = function(grunt) {
         // changed.
         meta_jsdoc_task: {
             build: {
-                src: meta_jsdoc.src.concat(meta_jsdoc.template_src),
-                dest: meta_jsdoc.dest
+                src: meta_jsdoc.src.concat(meta_jsdoc.template_src)
             }
         },
         jsdoc: {
