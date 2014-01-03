@@ -131,6 +131,11 @@ module.exports = function(grunt) {
                 options: {
                     create: ['build/tmp']
                 }
+            },
+            install_test: {
+                options: {
+                    create: ["build/install_test"]
+                }
             }
         },
         // When grunt 0.4.3 is released, verify that it can preserve
@@ -143,7 +148,8 @@ module.exports = function(grunt) {
         },
         clean: {
             build: ["build/"],
-            readme: ["README.html"]
+            readme: ["README.html"],
+            install_test: ["build/install_test/"]
         },
         // This is a task created purely for the sake of running jsdoc
         // if either of the following is true: the files composing the
@@ -205,6 +211,44 @@ module.exports = function(grunt) {
                 "node_modules/.bin/jison " +
                     "-m amd -o build/tmp/regexp.js " +
                     "lib/salve/datatypes/regexp.jison"
+            },
+            pack: {
+                options: {
+                    stdout: false,
+                    stderr: true,
+                    failOnError: true,
+                    execOptions: {
+                        cwd: "build"
+                    },
+                    callback: function (err, stdout, stderr, cb) {
+                        if (err)
+                            grunt.fail.warn(err);
+
+                        grunt.config.set("pack_name", stdout.trim());
+                        cb();
+                    }
+                },
+                command: "npm pack dist"
+            },
+            install_test: {
+                options: {
+                    stderr: true,
+                    failOnError: true,
+                    execOptions: {
+                        cwd: "build/install_test"
+                    }
+                },
+                command: "npm install ../<%= pack_name %>"
+            },
+            publish: {
+                options: {
+                    stderr: true,
+                    failOnError: true,
+                    execOptions: {
+                        cwd: "build"
+                    }
+                },
+                command: "npm publish <%= pack_name %>"
             }
         },
         mochaTest: {
@@ -232,6 +276,14 @@ module.exports = function(grunt) {
                                    "newer:fix_jison:regexp",
                                    "npmignore",
                                    "chmod"]);
+
+    grunt.registerTask("install_test", ["shell:pack",
+                                        "clean:install_test",
+                                        "mkdir:install_test",
+                                        "shell:install_test",
+                                        "clean:install_test"]);
+
+    grunt.registerTask("publish", ["install_test", "shell:publish"]);
 
     grunt.registerMultiTask("fix_jison", function () {
         if (this.files.length !== 1 || this.files[0].src.length !== 1) {
