@@ -2,6 +2,8 @@ fireEvent returned false
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false
+fireEvent returned false
+fireEvent returned false
 fireEvent returned tag not allowed here: {}x
 fireEvent returned false
 fireEvent returned false
@@ -13,7 +15,25 @@ fireEvent returned false
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
 fireEvent returned text not allowed here
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false

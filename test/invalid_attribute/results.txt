@@ -1,4 +1,7 @@
 
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, , html
 fireEvent returned false
 
@@ -11,10 +14,19 @@ fireEvent returned false
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned attribute missing: {}style
 
+invoking fireEvent with Event: text,
+fireEvent returned false
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, , head
 fireEvent returned false
 
 invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+
+invoking fireEvent with Event: enterContext
 fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, , title
@@ -23,19 +35,31 @@ fireEvent returned false
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 
-invoking fireEvent with Event: text
+invoking fireEvent with Event: text, ab
 fireEvent returned false
 
-invoking fireEvent with Event: text
+invoking fireEvent with Event: text, cd
 fireEvent returned false
 
-invoking fireEvent with Event: text
+invoking fireEvent with Event: text, ef
 fireEvent returned false
 
 invoking fireEvent with Event: endTag, , title
 fireEvent returned false
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
 invoking fireEvent with Event: endTag, , head
+fireEvent returned false
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+
+invoking fireEvent with Event: enterContext
 fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, , body
@@ -44,12 +68,24 @@ fireEvent returned false
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 
-invoking fireEvent with Event: text
+invoking fireEvent with Event: text, abc
 fireEvent returned false
 
 invoking fireEvent with Event: endTag, , body
 fireEvent returned false
 
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+
 invoking fireEvent with Event: endTag, , html
+fireEvent returned false
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
 fireEvent returned false
 end returned false

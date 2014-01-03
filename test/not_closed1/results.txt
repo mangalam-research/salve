@@ -1,3 +1,6 @@
 fireEvent returned false
 fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
 end returned tag required: {http://www.tei-c.org/ns/1.0}teiHeader,tag not closed: {http://www.tei-c.org/ns/1.0}TEI

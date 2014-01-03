@@ -1,5 +1,41 @@
 Only major changes are reported here.
 
+* 0.17.0:
+
+  - Feature: The ``rng-to-js.xsl`` stylesheet is gone. It's work has been taken
+    over by ``salve-convert``. This change yields a speed improvement
+    of an order of magnitude on large schemas.
+
+  - Feature: salve now supports RNG's <value> and <data> elements. It
+    supports the two types from RNG's builtin library and supports a
+    great deal of XML Schema's
+    http://www.w3.org/2001/XMLSchema-datatypes. See the README file
+    for details about limitations. This means that salve no longer
+    allows everything and anything in attributes.
+
+  - To support this salve now requires the use of file format 2. This
+    version of salve won't load any earlier file formats. (In general,
+    we would like to support previous formats for at least a little
+    while but in this case, there were problems with format 1 that
+    would result in serious breakage so the safe thing to do is to
+    upgrade.)
+
+  - API change: if a file has namespaces, using namespace events is
+    now **mandatory**. Previously, you could manage namespaces
+    yourself, and not use namespace events. However, support for
+    datatypes ``QName`` and ``NOTATION`` requires that salve know
+    exactly the state of namespaces. So it has to use an internal
+    resolver, which needs these events.
+
+  - API change: the ``useNameResolver`` method is gone, for the same
+    reasons as above.
+
+  - API change: ``text`` events now require the actual text value to
+    be passed.
+
+  - API change: salve now expects all white space to be passed to
+    it. Previous versions did not.
+
 * 0.16.0:
 
   - Salve's build is now done with grunt rather than make.

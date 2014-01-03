@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<element xmlns="http://relaxng.org/ns/structure/1.0" name="&#xA;&#xD; &#x9;foo&#xA;&#xD; &#x9;">
+  <attribute name="&#xA;&#xD; &#x9;bar&#xA;&#xD; &#x9;"/>
+</element>

@@ -1,8 +1,15 @@
 .. image:: https://travis-ci.org/mangalam-research/salve.png
 
-Please note that Github currently does not implement all
-reStructuredText directives, so some links in this readme
-may not work correctly when viewed there.
+.. note:: Github currently does not implement all reStructuredText
+          directives, so some links in this readme may not work
+          correctly when viewed there.
+
+.. note:: If you are reading this file from the set of files installed
+          by ``npm install``, please keep in mind that the npm package
+          only includes what is strictly necessary to *use* salve. For
+          instance, the test suite is not included in the npm package
+          package. This documentation, however, covers *all* of
+          salve. Consequently, it may refer to items you do not have.
 
 Introduction
 ============
@@ -13,29 +20,52 @@ XML document on the basis of a subset of Relax NG (RNG). It is developed
 as part of the Buddhist Translators Workbench. It can be seen in
 action in `wed <https://github.com/mangalam-research/wed>`_.
 
-Plans are to support as much Relax NG as possible but for now salve
-has, by conscious design, the following limitations:
+Salve is currently used to validate schemas generated from the `TEI
+standard <http://www.tei-c.org/>`_ and schemas derived from this
+standard. Plans are to support as much Relax NG as possible but for
+now salve has, by conscious design, the following limitations:
+
+* Support for XML Schema ``float`` and ``double`` types is not
+  thorough. Simple value comparisons work but if you put ``NaN`` or
+  ``INF`` or ``-INF`` in parameters like ``maxInclusive``, etc., it is
+  likely that salve won't behave correctly. Salve furthermore does not
+  verify that the numerical values fit within the limits of ``float``
+  or ``double``.
+
+* XML Schema types ``ENTITY`` and ``ENTITIES`` are treated as ``string``.
+
+* None of the XML Schema types that deal with time allow the
+  parameters ``minInclusive``, ``minExclusive``, ``maxInclusive`` and
+  ``maxExclusive``.
 
 * Does not support ``<interleave>`` or ``<mixed>``.
+
 * Does not support ``<anyName>``.
+
 * Does not support ``<except>``.
+
 * Does not support ``<nsName>``.
-* Treats all attributes as if they were specified to contain text of
-  any length, format, etc. (All attributes accept any text
-  whatsoever.)
+
+* Text meant to be contiguous must be passed to salve in one event. In
+  particular, comments and processing instructions are invisible. Take
+  for instance, this XML:
+
+      ab&lt;!-- blah -->cd
+
+  In a DOM interpretation, you'd have two text nodes separated by a
+  comment node. For the purpose of Relax NG validation, this is a
+  single string "abcd" and should be passed to salve as "abcd" and not
+  as "ab" and "cd".
 
 At the moment the library is able to know that a document is valid
-according to the schema it has received. (But keep in mind the
-provision above regarding attributes.)
-
-A full validation solution has the following components:
+according to the schema it has. A full validation solution has the
+following components:
 
 * A tokenizer: responsible for recognizing XML tokens, tag names, tag
   delimiters, attribute names, attribute values, etc.
 
 * A parser: responsible for converting tokens to validation events
-  (see below) and optionally managing the mapping between namespace
-  prefixes and namespace URIs.
+  (see below).
 
 * A validator: responsible for checking that validation events are
   valid against a schema, telling the parser what is possible at the
@@ -43,8 +73,14 @@ A full validation solution has the following components:
   generally speaking (e.g., what namespace uris are used in the
   schema). This is what salve offers, **and only this!**
 
+.. note:: If you are looking at the source from github, executables
+          cannot be executed from `<bin>`__. They can be executed
+          after a build from `<build/dist/bin>`_. If you are looking
+          at the npm installation, then the files in `<bin>`__ are
+          those you want to execute.
+
 A good example of this division of labor can be found in
-`<lib/salve/parse.js>`_ and in the test suite. In both cases the
+`<bin/parse.js>`_ and in the test suite. In both cases the
 tokenizer function is performed by ``sax``, and the parser function is
 performed by a parser object that ``sax`` creates, customized to call
 salve's ``Walker.fireEvent()``.
@@ -53,7 +89,7 @@ Basic Usage
 ===========
 
 A Relax NG schema must be prepared before it can be used by salve. The
-``bin`` subdirectory contains a shell script which can be used to
+``bin/`` subdirectory contains a shell script which can be used to
 convert a Relax NG schema to the format salve wants. You can use the
 ``--help`` option to see the entire list of options available. Typical
 usage is::
@@ -61,8 +97,8 @@ usage is::
     $ salve-convert [input] [output]
 
 The ``[input]`` parameter should be the Relax NG schema to
-convert. The ``[output]`` parameter should be where to save schema
-once converted to JavaScript. (Actually, the simplified RNG is
+convert. The ``[output]`` parameter should be where to save the schema
+once it is converted to JavaScript. (Actually, the simplified RNG is
 converted to JSON. Generally speaking JSON is not a subset of
 JavaScript but in this instance, the JSON produced is a subset, so
 calling it JavaScript is not incorrect.)
@@ -84,7 +120,7 @@ reduces the size of a JavaScript file created for a vanilla TEI schema
 by a factor of more than 4.
 
 Version 0.14 also changes the structure of the file format that salve
-uses by default. See `File Format`_ for more details.
+uses by default. See `Schema File Format`_ for more details.
 
 Version 0.15 further reduces the size of the generated files by
 optimizing the size of the identifiers used by references and
@@ -111,8 +147,9 @@ Then the code that parses the XML file to be validated should call
 method on your walker at the end of validation to make sure that there
 are no unclosed tags, etc.
 
-The file `<lib/salve/parse.js>`_ contains an example of a rudimentary
-parser runnable in Node.js::
+The file `<bin/parse.js>`_ (included in salve's source but not in the
+npm module) contains an example of a rudimentary parser runnable in
+Node.js::
 
     $ node parse.js [rng as js] [xml to validate]
 
@@ -123,9 +160,9 @@ validate against the RNG.
 Events
 ======
 
-The parser is responsible for calling ``fireEvent()`` on the walker returned
-by the tree created from the RNG. (See above.) The events currently
-supported are defined below:
+The parser is responsible for calling ``fireEvent()`` on the walker
+returned by the tree created from the RNG. (See above.) The events
+currently supported are defined below:
 
 ``Event("enterStartTag", uri, local-name)``
   Emitted when encountering the beginning of a start tag (the string
@@ -146,8 +183,9 @@ supported are defined below:
 ``Event("attributeValue", value)``
   Emitted when encountering an attribute value
 
-``Event("text")``
-  Emitted when encountering text.
+``Event("text", value)``
+  Emitted when encountering text. This event must be fired **even** for
+  all instances of text, including white space.
 
 ``Event("enterContext")``
   Emitted when entering a new namespace context.
@@ -177,13 +215,7 @@ buffer is an ``enterStartTag`` event with an empty uri and the
 local-name "html". The parser will not see a ``leaveStartTag`` event
 until the user enters the greater-than symbol ending the start tag.
 
-If there is already functionality allowing the resolution of namespace
-prefixes that allows you to resolve names to their uri/local-name
-parts, you can use salve without ever emitting ``enterContext``,
-``leaveContext`` and ``definePrefix``. However, if you want to have
-salve keep track of namespace prefixes, you must first call
-``useNameResolver()`` on the walker you get from ``newWalker()``. Then
-you must issue an ``enterContext`` event each time you encounter a
+You must issue an ``enterContext`` event each time you encounter a
 start tag that defines namespaces and issue ``leaveContext`` when you
 encounter its corresponding end tag. You must also issue
 ``definePrefix`` for each prefix defined by the element. Example::
@@ -195,12 +227,14 @@ would require issuing::
     Event("enterContext")
     Event("definePrefix", "", "q")
     Event("definePrefix", "foo", "foons")
-    (Presumably, your code here would call resolveName("p") to determine
-     what namespace p is in, which would yield the result "q".)
+
+Presumably, your code here would call resolveName("p") to determine
+what namespace p is in, which would yield the result "q". ::
+
     Event("enterStartTag", "q", "p")
 
 Note the order of the events. The new context must start before salve
-sees the ``enterStartTag`` event because the way namespace works, a
+sees the ``enterStartTag`` event because the way namespaces work, a
 start tag can declare its own namespace. So by the time
 ``enterStartTag`` is issued, salve must know what namespaces are
 declared by the tag. If the events were not issued this way, then the
@@ -215,15 +249,6 @@ not the start tag declares new namespaces. The test suite does it this way.
 Note, however, that performance will be affected somewhat because name
 resolution will have to potentially search a deeper stack of contexts than
 would be strictly necessary.
-
-What determines whether or not you would want to use the name resolver
-included with salve is whether or not you need to use salve's cloning
-facilities to record validation state. The namespaces that are in
-effect at the point a walker is cloned are also part of the validation
-state. If you have to use a name resolver that does not allow for
-recording validation state, you can call ``useNameResolver`` on your
-walker and use the facilities described here, or provide such
-functionality yourself.
 
 Support for Guided Editing
 ==========================
@@ -270,8 +295,8 @@ generate the documentation::
 
 You may need to create a ``local.grunt`` module to tell grunt where to
 get jsdoc3 and rst2html. (Defaults are such that grunt will use a
-jsdoc shipped with grunt-jsdoc, and will use your ``PATH`` to execute
-them rst2html.) The formatted jsdoc3 will appear in the `<build/doc>`_
+jsdoc shipped with grunt-jsdoc, and will use your ``PATH`` to locate
+rst2html.) The formatted jsdoc3 will appear in the `<build/api/>`_
 subdirectory, and the `<README.html>`_ in the root of the source tree.
 
 .. warning:: All the public interfaces of salve are available through
@@ -293,19 +318,20 @@ Salve is packaged as a RequireJS module. So to use it in a browser
 environment, you need to first load RequireJS and pass to RequireJS a
 configuration that will allow it to find salve's code.
 
-Loading salve in a Node.js environment requires installing the
-following node package:
+Loading salve in a Node.js environment requires installing the modules
+listed in the ``dependencies`` section of the `<package.json>`_ file.
 
-* node-amd-loader
+Running ``salve-convert`` additionally requires that ``xmllint``,
+``xsltproc`` and ``jing`` be installed on your system.
 
-Running ``salve-convert`` requires a Node.js environment and the
-following node modules:
-
-* argparse
-* temp
-
-This script also requires that ``xmllint`` and ``xsltproc`` be
-installed on your system.
+.. note:: Using ``jing`` makes the test suite take twice as long to
+          complete. So why, oh why, use ``jing``? It is used to
+          validate the RNG file before salve's conversion code gets to
+          it. It helps keep salve small. A previous version of
+          ``salve-convert`` used ``xmllint`` for this task but
+          ``xmllint`` would sometimes hang while validating the
+          RNG. It would hang on run-of-the-mill TEI files. Not
+          acceptable.
 
 Running salve's tests **additionally** requires that the development
 dependencies be installed. Please see the `<package.json>`_ file for
@@ -314,6 +340,7 @@ must be installed so that their executables are in your path:
 
 * grunt-cli (to launch grunt)
 * semver-sync
+* jison
 
 If you want to contribute to salve, your code will have to pass the
 checks listed in `<.glerbl/repo_conf.py>`_. So you either have to
@@ -323,7 +350,7 @@ through other means. See Contributing_.
 Build System
 ============
 
-Salve uses grunt. `<Gruntfile.js>`_ gets the values for its
+Salve uses grunt. Salve's `<Gruntfile.js>`_ gets the values for its
 configuration variables from three sources:
 
 * Internal default values.
@@ -335,55 +362,95 @@ configuration variables from three sources:
 
 The variables that can be set are:
 
-============== =================================================================
-Name           Meaning
-============== =================================================================
-mocha_grep     --grep parameter for Mocha
-rst2html       rst2html command to run
-jsdoc3         jsdoc3 command to run
-jsdoc_private  Whether jsdoc3 should produce documentation for private entities.
-============== =================================================================
++-----------------------+------------------------------------------------------+
+|Name                   | Meaning                                              |
++=======================+======================================================+
+|jsdoc                  | jsdoc command to run                                 |
++-----------------------+------------------------------------------------------+
+|jsdoc_private          | jsdoc should produce documentation for private       |
+|                       | entities. true by default.                           |
++-----------------------+------------------------------------------------------+
+|jsdoc_required_version | The jsdoc version required by the project's docs     |
++-----------------------+------------------------------------------------------+
+|jsdoc_template_dir     | Location of the jsdoc default template               |
++-----------------------+------------------------------------------------------+
+|mocha_grep             | --grep parameter for Mocha                           |
++-----------------------+------------------------------------------------------+
+|rst2html               | rst2html command to run                              |
++-----------------------+------------------------------------------------------+
 
-Note that when used on the command line, underscores become dashes so
+Note that when used on the command line, underscores become dashes, thus
 ``--mocha-grep`` and ``--jsdoc-private``.
 
-The ``local.grunt.js`` file is a module. So you must export values
+The ``local.grunt.js`` file is a module. You must export values
 like this::
 
     exports.jsdoc3 = "/usr/local/blah/jsdoc"
 
-Testing
-=======
-
-Running the following command from the root of salve will install the
-dependencies required for testing and will run the tests::
-
-    $ npm test
-
-Or you may bypass npm with this command::
-
-    $ grunt test
-
-Running ``mocha`` directly also works but you may run the test against
-stale code whereas ``grunt test`` always runs a build first.
-
 Building
 ========
-
-If you are using salve in Node, there is no need to build. Building is
-necessary only to create a deployable file tree, or if you want to run
-tests.
 
 Run::
 
     $ grunt
 
-This will create a `<build>`_ subdirectory in which the JavaScript
-necessary to validate XML files against a prepared Relax NG
-schema. You could copy what is in `<build>`_ to a server to serve
+This will create a `<build/dist/>`_ subdirectory in which the
+JavaScript necessary to validate XML files against a prepared Relax NG
+schema. You could copy what is in `<build/dist>`_ to a server to serve
 these files to a client that would then perform validation. Future
 releases will include automatic support for minified versions of
 salve.
+
+Deploying
+=========
+
+Node
+----
+
+Salve is ready to be used in an environment able to load AMD-style
+modules. Node.js is one such environment, provided you include a
+loader able to process AMD-style modules. When you install salve using
+``npm``, everything is already installed for you.
+
+RequireJS
+---------
+
+RequireJS can load salve in a browser. There are two external
+libraries that salve must have available in the browser:
+
+* underscore
+* xregexp
+
+Besides setting appropriate ``paths`` values for these two libraries,
+you must shim them as follows::
+
+    shim: {
+      underscore: {
+        exports: "_"
+      },
+      xregexp: {
+        exports: "XRegExp",
+        init: function () { return {XRegExp: XRegExp}; }
+      },
+    }
+
+The seemingly superfluous ``init`` for xregexp is to make it look
+exactly the same when used with RequireJS as it does when used in
+Node.js.
+
+The shim configuration above is valid as of underscore 1.5.2 and
+xregexp 2.0.0. Future versions of these libraries might need different
+shim configurations or no shim configuration at all.
+
+Testing
+=======
+
+Running the following command from the root of salve will run the tests::
+
+    $ grunt test
+
+Running ``mocha`` directly also works, but this may run the test against
+stale code, whereas ``grunt test`` always runs a build first.
 
 Contributing
 ============
@@ -398,22 +465,10 @@ work.
 Schema File Format
 ==================
 
-Before version 0.14, the schemas that salve would accept were saved in
-files presenting the following structure::
-
-    { "type": <object type>, "args": [...]}
-
-The ``<object type>`` would be a string like ``"Choice"`` or
-``"Group"`` indicating which constructor to use to build the
-object. The ``args`` field would be a list of arguments to pass to the
-constructor. These arguments were either primitive JSON objects
-(integers, strings, arrays, etc.) or objects of the same format as
-described above, with a ``type`` and ``args`` field. The problem with
-this format is that it wastes a lot of space. We could call this
-version 0 of salve's schema format.
-
-Version 0.14 introduces a new format. This format has version
-number 1. The new structure is::
+``salve-convert`` converts a Relax NG file formatted in XML into a
+more compact format used by salve at validation time. Salve supports
+version 2 of this file format. Versions 0 and 1 are now obsolete. The
+structure is::
 
     {"v":<version>,"o":<options>,"d":[...]}
 
@@ -426,7 +481,7 @@ schema. Each item in it is of the form::
 
    [<array type>, ...]
 
-The first element ``<array type>`` determines how to interpret the
+The first element, ``<array type>``, determines how to interpret the
 array. The array type could indicate that the array should be
 interpreted as an actual array or that it should be interpreted as an
 object of type ``Group`` or ``Choice``, etc. If it is an array, then
@@ -436,9 +491,6 @@ converted array. If it is another type of object then again the
 of the array as its constructor's parameters. All the array's elements
 after ``<array type>`` can be JSON primitive types, or arrays to be
 interpreted as actual arrays or as objects as described above.
-
-It is likely that salve will always support version 0 of the format
-because it is useful for debugging.
 
 License
 =======
@@ -456,9 +508,10 @@ RNG Simplification Code
 The RNG simplification transformation files are adapted from `Nicolas
 Debeissat's code
 <https://code.google.com/p/jsrelaxngvalidator/>`_. They are covered by
-the `CeCILL license <http://www.cecill.info/index.en.html>`_. Some bugs have
-been corrected and some changes made for salve. For the sake of simplicity,
-these changes are also covered by the CeCILL license.
+the `CeCILL license <http://www.cecill.info/index.en.html>`_. Multiple
+bugs in them have been corrected, some minor and some major, and some
+changes have been made for salve. For the sake of simplicity, these
+changes are also covered by the CeCILL license.
 
 Credits
 =======
@@ -492,4 +545,8 @@ the Humanities.
 ..  LocalWords:  definePrefix useNameResolver foons resolveName HD NG
 ..  LocalWords:  args param TEI glerbl Github reStructuredText readme
 ..  LocalWords:  validator namespace RequireJS subdirectory DOM cli
-..  LocalWords:  Dubeau Mangalam argparse Gruntfile Bethel
+..  LocalWords:  Dubeau Mangalam argparse Gruntfile Bethel unclosed
+..  LocalWords:  runnable namespaces reparsing amd executables usr lt
+..  LocalWords:  deployable schemas LocalWords api dir maxInclusive
+..  LocalWords:  minInclusive minExclusive maxExclusive cd abcd jing
+..  LocalWords:  github jison NaN

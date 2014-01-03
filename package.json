@@ -1,7 +1,7 @@
 {
     "name": "salve",
     "description": "Salve is a Javascript library which implements a validator able to validate an XML document on the basis of a subset of RelaxNG.",
-    "version": "0.16.0",
+    "version": "0.17.0",
     "versionedSources": "lib/salve/validate.js",
     "keywords": ["RelaxNG", "rng", "XML", "validation"],
     "homepage" : "https://github.com/mangalam-research/salve",
@@ -23,12 +23,14 @@
     "dependencies": {
         "amd-loader": "~0.0.4",
         "argparse": "~0.1.15",
-        "temp": "~0.6.0"
+        "temp": "~0.6.0",
+        "sax": "~0.5.7",
+        "underscore": "~1.5.2",
+        "xregexp": "2.0.0"
     },
     "devDependencies": {
         "mocha": "1.9.x",
         "chai": "1.6.x",
-        "sax": "0.5.x",
         "semver-sync": ">=1.2.0",
         "load-grunt-tasks": "~0.2.0",
         "grunt": "~0.4.1",
@@ -37,13 +39,13 @@
         "grunt-contrib-copy": "~0.4.1",
         "grunt-jsdoc": "~0.4.1",
         "grunt-mocha-test": "~0.7.0",
-        "grunt-newer": "~0.5.4",
-        "grunt-shell": "~0.5.0"
+        "grunt-newer": "~0.6.0",
+        "grunt-shell": "~0.5.0",
+        "grunt-chmod": ">=1.0.3 <=2",
+        "grunt-mkdir": "~0.1.1",
+        "jison": "~0.4.13"
     },
     "bin": {
         "salve-convert": "./bin/salve-convert"
-    },
-    "scripts": {
-        "test": "grunt test"
     }
 }

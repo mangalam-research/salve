@@ -1,7 +1,15 @@
 fireEvent returned false
+fireEvent returned false
 fireEvent returned attribute missing: {}style
 fireEvent returned false
 fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
 fireEvent returned tag required: {}title
+fireEvent returned false
+fireEvent returned false
 fireEvent returned tag required: {}body
+fireEvent returned false
+fireEvent returned false
 end returned false

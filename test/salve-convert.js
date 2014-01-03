@@ -16,39 +16,64 @@ describe("salve-convert", function () {
     var outpath = ".tmp_rng_to_js_test";
 
     afterEach(function () {
-        fs.unlinkSync(outpath);
+        if (fs.exists(outpath))
+            fs.unlinkSync(outpath);
     });
 
-    function salve_convert(inpath, expath, params, done) {
-        var child = spawn("bin/salve-convert", params.concat([inpath, outpath]),
-                          {stdio: "inherit"});
+    function salve_convert(inpath, exp, params, done, exp_status) {
+        if (exp_status === undefined)
+            exp_status = 0;
+
+        var child = spawn("build/dist/bin/salve-convert",
+                          params.concat([inpath, outpath]),
+                          (!exp_status) ? {stdio: "inherit"} :
+                          {stdio: ["ignore", 1, "pipe"]});
+
+        var stderr = [];
+        if (exp_status) {
+            child.stderr.on('data', function (data) {
+                stderr.push(data);
+            });
+        }
+
         child.on('exit', function (code, signal) {
-            assert.equal(code, 0, "salve-convert exit status");
-            // The actual output from diff would not be that useful here.
-            spawn("diff", [outpath, expath], {stdio: 'ignore'})
+            assert.equal(code, exp_status, "salve-convert exit status");
+            if (!exp_status && exp) {
+                // The actual output from diff would not be that useful here.
+                spawn("diff", [outpath, exp], {stdio: 'ignore'})
                 .on('exit', function (code, signal) {
                     assert.equal(code, 0, "there was a difference");
                     done();
-            });
+                });
+            }
+            else {
+                if (exp_status)
+                    assert.equal(stderr.join(""),
+                                 fs.readFileSync(exp).toString());
+                done();
+            }
         });
     }
 
-    it("when producing v0 outputs paths with output-paths turned on",
-       function (done) {
-        var inpath = "test/tei/simplified.rng";
-        var expath = "test/tei/simplified-rng.js";
+    var dir = "test/salve-convert/";
+    var tests = fs.readdirSync(dir);
 
-        salve_convert(inpath, expath, ["--simplified-input",
-                                       "--format-version", "0",
-                                       "--include-paths"], done);
-    });
+    tests.forEach(function (t) {
+        if (t.slice(-4) !== ".rng")
+            return;
 
-    it("when producing v0 does not output paths by default", function (done) {
-        var inpath = "test/tei/simplified.rng";
-        var expath = "test/tei/simplified-rng-nopaths.js";
-
-        salve_convert(inpath, expath, ["--simplified-input",
-                                       "--format-version", "0"], done);
+        if (t.lastIndexOf("fails", 0) === -1) {
+            var expected = t.slice(0, -4) + ".js";
+            it("convert " + t, function (done) {
+                salve_convert(dir + t, dir + expected, [], done);
+            });
+        }
+        else {
+            it("convert fails on " + t, function (done) {
+                salve_convert(dir + t, dir + t.slice(0, -4) + ".txt",
+                              ["--include-paths"], done, 1);
+            });
+        }
     });
 
     it("when producing v1 does not output paths by default", function (done) {
@@ -56,15 +81,7 @@ describe("salve-convert", function () {
         var expath = "test/tei/simplified-rng-v1.js";
 
         salve_convert(inpath, expath, ["--simplified-input",
-                                       "--no-optimize-ids",
-                                       "--format-version", "1"], done);
-    });
-
-    it("outputs v1 by default", function (done) {
-        var inpath = "test/tei/simplified.rng";
-        var expath = "test/tei/simplified-rng-v1.js";
-
-        salve_convert(inpath, expath, ["--simplified-input",
+                                       "--allow-incomplete-types=quiet",
                                        "--no-optimize-ids"], done);
     });
 
@@ -72,13 +89,25 @@ describe("salve-convert", function () {
         var inpath = "test/tei/simplified.rng";
         var expath = "test/tei/simplified-rng-v1-optimized-ids.js";
 
-        salve_convert(inpath, expath, ["--simplified-input"], done);
+        salve_convert(inpath, expath, ["--simplified-input",
+                                       "--allow-incomplete-types=quiet",
+                                      ], done);
     });
 
     it("default execution", function (done) {
         var inpath = "test/tei/myTEI.rng";
         var expath = "test/tei/simplified-rng-v1-optimized-ids.js";
 
-        salve_convert(inpath, expath, [], done);
+        salve_convert(inpath, expath, ["--allow-incomplete-types=quiet"], done);
+    });
+
+    it("include paths", function (done) {
+        var inpath = "test/tei/myTEI.rng";
+        var expath = "test/tei/simplified-rng-v1-optimized-ids.js";
+
+        // Test created to deal with an internal error, so we don't
+        // check the output.
+        salve_convert(inpath, null, ["--allow-incomplete-types=quiet",
+                                     "--include-paths"], done);
     });
 });
