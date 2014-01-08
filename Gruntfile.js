@@ -92,8 +92,7 @@ module.exports = function(grunt) {
                     { src: ["package.json",
                             "bin/*",
                             "lib/**/*.js",
-                            "lib/**/*.xsl",
-                            "!lib/salve/parse.js"],
+                            "lib/**/*.xsl"],
                       dest: "build/dist/" }
                 ]
             },

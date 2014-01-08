@@ -5,12 +5,18 @@
  */
 
 'use strict';
+require("amd-loader");
 var chai = require("chai");
 var spawn = require("child_process").spawn;
+var salve_parse = require("../build/dist/lib/salve/parse");
 var fs = require("fs");
 var path = require("path");
 var assert = chai.assert;
 var mocha = require("mocha");
+
+function fileAsString(p) {
+    return fs.readFileSync(path.resolve(p), "utf8").toString();
+}
 
 var skips = {
     "test56": {
@@ -103,12 +109,9 @@ function salve_convert(args, callback) {
     });
 }
 
-function parse(args, mute, callback) {
-    var child = spawn("node", ["build/dist/bin/parse.js"].concat(args),
-                      mute ? {} : {stdio: 'inherit'});
-    child.on('exit', function (code, signal) {
-        callback(code);
-    });
+function parse(rng, xml, mute, callback) {
+    var code = salve_parse(fileAsString(rng), fileAsString(xml), mute);
+    callback(code);
 }
 
 describe("spectest", function () {
@@ -134,15 +137,6 @@ describe("spectest", function () {
         }
 
         if (!skip.correct && t.correct) {
-            it(t.correct, function (done) {
-                salve_convert(t.convert_args.concat([t.correct, outpath]),
-                              function (code) {
-                    assert.equal(code, 0, "salve-convert exit status");
-                    clean();
-                    done();
-                });
-            });
-
             var do_valid = !skip.valid && t.valid.length;
             var do_invalid = !skip.invalid && t.invalid.length;
 
@@ -159,7 +153,7 @@ describe("spectest", function () {
 
                     t.valid.forEach(function (vfile) {
                         it(vfile, function (done) {
-                            parse([outpath, vfile], false, function (code) {
+                            parse(outpath, vfile, false, function (code) {
                                 assert.equal(code, 0, "parse exit status");
                                 done();
                             });
@@ -168,7 +162,7 @@ describe("spectest", function () {
 
                     t.invalid.forEach(function (vfile) {
                         it(vfile, function (done) {
-                            parse([outpath, vfile], true, function (code) {
+                            parse(outpath, vfile, true, function (code) {
                                 assert.equal(code, 1, "parse exit status");
                                 done();
                             });
