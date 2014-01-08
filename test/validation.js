@@ -240,6 +240,8 @@ describe("GrammarWalker.fireEvent reports no errors on", function () {
 
     it("a tei file using a more complex schema",
        makeValidTest("tei-with-modules"));
+
+    it("an old error case (1)", makeValidTest("old-error-case-1"));
 });
 
 describe("GrammarWalker.fireEvent",  function () {

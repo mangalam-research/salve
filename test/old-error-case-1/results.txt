@@ -1,0 +1,76 @@
+wholly context-independent true
+possible events
+enterStartTag:
+    foo:
+        a
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: definePrefix, , foo
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, foo, a
+fireEvent returned false
+possible events
+attributeName:
+    :
+        c
+
+invoking fireEvent with Event: attributeName, , c
+fireEvent returned false
+possible events
+
+invoking fireEvent with Event: attributeValue,
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    foo:
+        a
+enterStartTag:
+    foo:
+        b
+text:
+    *
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, foo, b
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    foo:
+        b
+
+invoking fireEvent with Event: endTag, foo, b
+fireEvent returned false
+possible events
+endTag:
+    foo:
+        a
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: endTag, foo, a
+fireEvent returned false
+possible events
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+end returned false
