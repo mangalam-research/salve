@@ -60,9 +60,11 @@ function makeParser(er, walker) {
                     // xmlns:...=...
                     (attr.prefix === "xmlns"))
                 return;
-            var ename = walker.resolveName(attr.prefix + ":" +
-                                           attr.local, true);
-            attr.uri = ename.ns;
+            if (attr.prefix !== "") {
+                var ename = walker.resolveName(attr.prefix + ":" +
+                                               attr.local, true);
+                attr.uri = ename.ns;
+            }
             er.recordEvent(walker, "attributeName", attr.uri, attr.local);
             er.recordEvent(walker, "attributeValue", attr.value);
         });
