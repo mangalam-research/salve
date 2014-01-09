@@ -4,3 +4,9 @@ node_js:
   - "0.8"
 before_install: sudo apt-get install xsltproc jing
 script: grunt test
+branches:
+  except:
+    # A change to master has an identical corresponding change on develop
+    # so if develop is tested (and it is), then it is redundant to *also*
+    # test master. Let's be nice and minimize our use of Travis' resources.
+    - master
