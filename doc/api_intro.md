@@ -44,9 +44,9 @@ of the project's source.
 
 #License
 
-Salve is released under the
-[Mozilla Public License version 2.0](http://www.mozilla.org/MPL/2.0/). Copyright
-Mangalam Research Center for Buddhist Languages, Berkeley, CA.
+Salve is released under the [Mozilla Public License version
+2.0](http://www.mozilla.org/MPL/2.0/). Copyright 2013, 2014 Mangalam
+Research Center for Buddhist Languages, Berkeley, CA.
 
 #Credits
 
