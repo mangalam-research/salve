@@ -10,7 +10,7 @@ var datatypes = require("../build/dist/lib/salve/datatypes");
 var name_resolver = require("../build/dist/lib/salve/name_resolver");
 var chai = require("chai");
 var assert = chai.assert;
-var _ = require("underscore");
+var _ = require("lodash");
 
 var decimal_program = {
     equal: {
