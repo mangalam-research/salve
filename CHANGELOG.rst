@@ -1,4 +1,16 @@
-Only major changes are reported here.
+Only major changes are reported here. Releases that only bump the
+patch part of the version number (i.e. the number after the 2nd dot)
+are generally not listed here unless they include a fix to a specific
+issue reported on github.
+
+* 0.18.0:
+
+  - The dependency on underscore has been replaced by a dependency on
+    lodash. This does not change any of salve's API but if you load
+    salve in a RequireJS environment, you may have to change the
+    configuration of RequireJS to load lodash. This is not a major
+    change in salve but it is big enough to warrant a new minor
+    release rather than a patch release.
 
 * 0.17.0:
 
