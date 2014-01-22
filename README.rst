@@ -418,16 +418,13 @@ RequireJS
 RequireJS can load salve in a browser. There are two external
 libraries that salve must have available in the browser:
 
-* underscore
+* lodash
 * xregexp
 
-Besides setting appropriate ``paths`` values for these two libraries,
-you must shim them as follows::
+Besides setting appropriate ``paths`` values for these libraries,
+the following shim is required::
 
     shim: {
-      underscore: {
-        exports: "_"
-      },
       xregexp: {
         exports: "XRegExp",
         init: function () { return {XRegExp: XRegExp}; }
@@ -438,9 +435,9 @@ The seemingly superfluous ``init`` for xregexp is to make it look
 exactly the same when used with RequireJS as it does when used in
 Node.js.
 
-The shim configuration above is valid as of underscore 1.5.2 and
-xregexp 2.0.0. Future versions of these libraries might need different
-shim configurations or no shim configuration at all.
+The shim configuration above is valid as of xregexp 2.0.0. Future
+versions of this library might need different shim configurations or
+no shim configuration at all.
 
 Testing
 =======
