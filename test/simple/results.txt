@@ -163,6 +163,9 @@ fireEvent returned false
 invoking fireEvent with Event: enterStartTag, , em
 fireEvent returned false
 possible events
+attributeName:
+    :
+        test
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
@@ -205,6 +208,20 @@ invoking fireEvent with Event: enterContext
 fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, , em
+fireEvent returned false
+possible events
+attributeName:
+    :
+        test
+leaveStartTag
+
+invoking fireEvent with Event: attributeName, , test
+fireEvent returned false
+possible events
+attributeValue:
+    /^.*$/
+
+invoking fireEvent with Event: attributeValue,
 fireEvent returned false
 possible events
 leaveStartTag
