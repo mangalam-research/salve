@@ -276,7 +276,8 @@ module.exports = function(grunt) {
                                    "npmignore",
                                    "chmod"]);
 
-    grunt.registerTask("install_test", ["shell:pack",
+    grunt.registerTask("install_test", ["default",
+                                        "shell:pack",
                                         "clean:install_test",
                                         "mkdir:install_test",
                                         "shell:install_test",
