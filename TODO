@@ -1,5 +1,3 @@
-* Better build system.
-
 * Support for verifying that the removal of a node would yield a valid
    structure.
 
