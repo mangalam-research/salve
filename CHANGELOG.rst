@@ -3,6 +3,11 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 0.19.0:
+
+  - Many performance improvements that are extensive enough that a new
+    minor number is warranted.
+
 * 0.18.0:
 
   - The dependency on underscore has been replaced by a dependency on

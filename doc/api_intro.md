@@ -22,6 +22,18 @@ URI under which the local-name in the &lt;value> element should be
 interpreted, and the contents of &lt;value> is turned in to a local
 name.
 
+## Attributes vs Elements
+
+There's a bit of a disconnect between how Relax NG specifies
+attributes and elements and how these are represented in XML. In Relax
+NG, it is perfectly doable and normal to mix attributes and elements
+in patterns. In XML, however, attributes appear within an opening tag
+and elements appear between opening and closing tags, outside of any
+tags. This complicates validation somewhat. ``Pattern`` objects have
+two methods that take an ``attribute`` argument telling them whether
+they've been called in a context where only attributes are valid, or
+not. These are ``canEnd`` and ``end``.
+
 ##Events
 
 If you ever look at salve's internals be aware that as an
