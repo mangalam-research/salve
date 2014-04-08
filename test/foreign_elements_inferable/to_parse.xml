@@ -1,0 +1,13 @@
+<html style="toto">
+<body>
+abc<em>def&amp;
+gh<em></em></em>
+</body>
+  <head><title>ab&amp;
+cd&amp;
+ef</title></head>
+<body>
+abc<em>def&amp;
+gh<em></em></em>
+</body>
+</html>

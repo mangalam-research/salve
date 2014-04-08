@@ -336,6 +336,11 @@ describe("GrammarWalker.fireEvent",  function () {
                    check_fireEvent_invocation: true,
                    check_possible: true
                }));
+            it("which has inferable foreign elements",
+               makeErrorTest("foreign_elements_inferable",   {
+                   check_fireEvent_invocation: true,
+                   check_possible: true
+               }));
         });
 
         describe("ad hoc schema", function () {
