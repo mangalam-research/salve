@@ -1,59 +1,353 @@
+
+invoking fireEvent with Event: enterContext
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , html
 fireEvent returned false
+possible events
+attributeName:
+    :
+        style
+
+invoking fireEvent with Event: attributeName, , style
 fireEvent returned false
+possible events
+attributeValue:
+    *
+
+invoking fireEvent with Event: attributeValue, toto
 fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+possible events
+enterStartTag:
+    :
+        head
+
+invoking fireEvent with Event: enterContext
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , x
 fireEvent returned tag not allowed here: {}x
+possible events
+
+invoking fireEvent with Event: attributeName, , a
 fireEvent returned false
+possible events
+
+invoking fireEvent with Event: attributeValue, q
 fireEvent returned false
+possible events
+
+invoking fireEvent with Event: attributeName, , b
 fireEvent returned false
+possible events
+
+invoking fireEvent with Event: attributeValue, c
 fireEvent returned false
+possible events
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+possible events
+
+invoking fireEvent with Event: enterContext
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , z
 fireEvent returned false
+possible events
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+possible events
+
+invoking fireEvent with Event: text, ttt
 fireEvent returned false
+possible events
+
+invoking fireEvent with Event: endTag, , z
 fireEvent returned false
+possible events
+
+invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: endTag, , x
 fireEvent returned false
+possible events
+enterStartTag:
+    :
+        head
+
+invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text, gaga
 fireEvent returned text not allowed here
+possible events
+enterStartTag:
+    :
+        head
+
+invoking fireEvent with Event: enterContext
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , head
 fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+possible events
+enterStartTag:
+    :
+        title
+
+invoking fireEvent with Event: enterContext
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , title
 fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+possible events
+endTag:
+    :
+        title
+text:
+    *
+
+invoking fireEvent with Event: text, ab
 fireEvent returned false
+possible events
+endTag:
+    :
+        title
+text:
+    *
+
+invoking fireEvent with Event: text, cd
 fireEvent returned false
+possible events
+endTag:
+    :
+        title
+text:
+    *
+
+invoking fireEvent with Event: text, ef
 fireEvent returned false
+possible events
+endTag:
+    :
+        title
+text:
+    *
+
+invoking fireEvent with Event: endTag, , title
 fireEvent returned false
+possible events
+endTag:
+    :
+        head
+
+invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: endTag, , head
 fireEvent returned false
+possible events
+enterStartTag:
+    :
+        body
+
+invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text,
 fireEvent returned false
+possible events
+enterStartTag:
+    :
+        body
+
+invoking fireEvent with Event: enterContext
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , body
 fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+possible events
+endTag:
+    :
+        body
+enterStartTag:
+    :
+        em
+text:
+    *
+
+invoking fireEvent with Event: text, abc
 fireEvent returned false
+possible events
+endTag:
+    :
+        body
+enterStartTag:
+    :
+        em
+text:
+    *
+
+invoking fireEvent with Event: enterContext
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , em
 fireEvent returned false
+possible events
+attributeName:
+    :
+        test
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+possible events
+endTag:
+    :
+        em
+enterStartTag:
+    :
+        em
+text:
+    *
+
+invoking fireEvent with Event: text, def
 fireEvent returned false
+possible events
+endTag:
+    :
+        em
+enterStartTag:
+    :
+        em
+text:
+    *
+
+invoking fireEvent with Event: text, gh
 fireEvent returned false
+possible events
+endTag:
+    :
+        em
+enterStartTag:
+    :
+        em
+text:
+    *
+
+invoking fireEvent with Event: enterContext
 fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , em
 fireEvent returned false
+possible events
+attributeName:
+    :
+        test
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
+possible events
+endTag:
+    :
+        em
+enterStartTag:
+    :
+        em
+text:
+    *
+
+invoking fireEvent with Event: endTag, , em
 fireEvent returned false
+possible events
+endTag:
+    :
+        em
+enterStartTag:
+    :
+        em
+text:
+    *
+
+invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: endTag, , em
 fireEvent returned false
+possible events
+endTag:
+    :
+        body
+enterStartTag:
+    :
+        em
+text:
+    *
+
+invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text,
 fireEvent returned false
+possible events
+endTag:
+    :
+        body
+enterStartTag:
+    :
+        em
+text:
+    *
+
+invoking fireEvent with Event: endTag, , body
 fireEvent returned false
+possible events
+endTag:
+    :
+        html
+
+invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text,
 fireEvent returned false
+possible events
+endTag:
+    :
+        html
+
+invoking fireEvent with Event: endTag, , html
 fireEvent returned false
+possible events
+
+invoking fireEvent with Event: leaveContext
 fireEvent returned false
+
+invoking fireEvent with Event: text,
 fireEvent returned false
+possible events
 end returned false
