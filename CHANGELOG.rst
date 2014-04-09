@@ -3,6 +3,10 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 0.20.0:
+
+  - Better handling of misplaced elements. See the README for details.
+
 * 0.19.0:
 
   - Many performance improvements that are extensive enough that a new

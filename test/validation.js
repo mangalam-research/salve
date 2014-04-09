@@ -332,7 +332,15 @@ describe("GrammarWalker.fireEvent",  function () {
             it("which has misplaced text",
                makeErrorTest("misplaced_text"));
             it("which has foreign elements followed by misplaced text",
-               makeErrorTest("foreign_elements"));
+               makeErrorTest("foreign_elements",   {
+                   check_fireEvent_invocation: true,
+                   check_possible: true
+               }));
+            it("which has inferable foreign elements",
+               makeErrorTest("foreign_elements_inferable",   {
+                   check_fireEvent_invocation: true,
+                   check_possible: true
+               }));
         });
 
         describe("ad hoc schema", function () {

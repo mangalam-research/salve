@@ -67,6 +67,9 @@ following components:
 * A parser: responsible for converting tokens to validation events
   (see below).
 
+* A well-formedness checker. Please check the `Events`_ section for
+  more information about what this concretely means.
+
 * A validator: responsible for checking that validation events are
   valid against a schema, telling the parser what is possible at the
   current point in validation, and telling the parser what is possible
@@ -160,6 +163,25 @@ validate against the RNG.
 Events
 ======
 
+Salve expects that the events it receives are those that would be
+emitted when validating a **well-formed document**. That is, passing
+the events of a document that is malformed will cause salve to behave
+in an undefined manner. (It may crash. It may generate misleading
+errors. It may not report any errors.) This situation is due to the
+fact that salve is currently developed in a context where the
+documents it validates cannot be malformed (because they are
+represented as DOM trees). So salve contains no functionality to
+handle problems with well-formedness. Multiple strategies are possible
+for using salve in a context where well-formedness is not
+guaranteed. A primitive parser could abort as soon as evidence
+surfaces that the document is malformed. A more sophisticated parser
+could process the problematic structure so as to generate an error but
+give salve something well-formed. For instance if parsing
+``<foo></baz>``, such parser could emit an error on encountering
+``</baz>`` and replace the event that would be emitted for ``</baz>``
+with what would be emitted for ``</foo>``, and salve will happily
+validate it.
+
 The parser is responsible for calling ``fireEvent()`` on the walker
 returned by the tree created from the RNG. (See above.) The events
 currently supported are defined below:
@@ -204,7 +226,7 @@ document **can** be modeled using DOM there cannot ever be an
 event? The reason for the set of events supported is that salve is
 designed to handle not only XML modeled as a DOM tree but also XML
 parsed as a text string being dynamically edited. The best and closest
-example of this would be what nxml-mode does in Emacs. If the user
+example of this would be what ``nxml-mode`` does in Emacs. If the user
 starts a new document and types only the following into their editing
 buffer::
 
@@ -228,8 +250,8 @@ would require issuing::
     Event("definePrefix", "", "q")
     Event("definePrefix", "foo", "foons")
 
-Presumably, your code here would call resolveName("p") to determine
-what namespace p is in, which would yield the result "q". ::
+Presumably, your code here would call ``resolveName("p")`` to
+determine what namespace p is in, which would yield the result ``"q"``.::
 
     Event("enterStartTag", "q", "p")
 
@@ -260,11 +282,11 @@ which contains only the text::
 
     <html
 
-and hits a function key which makes the editor call ``possible()``, then
-the editor can tell the user what attributes would be possible to add
-to this element. In editing facilities like nxml-mode in Emacs this is
-called completion. Similarly, once the start tag is ended by adding
-the greater-than symbol::
+and hits a function key which makes the editor call ``possible()``,
+then the editor can tell the user what attributes would be possible to
+add to this element. In editing facilities like ``nxml-mode`` in Emacs
+this is called completion. Similarly, once the start tag is ended by
+adding the greater-than symbol::
 
    <html>
 
@@ -284,6 +306,39 @@ method and the code it depends on has been optimized since early
 versions of salve, but it is possible to call it too often, resulting
 in a slower validation speed than could be attainable with less
 aggressive cloning.
+
+Misplaced Elements
+==================
+
+A problem occurs when validating an XML document that contains an
+unexpected element. In such case, salve will issue an error but then
+what should it do with the contents of the misplaced element? Salve
+handles this in two ways:
+
+1. If the unexpected element is known in the schema and has only one
+   definition, then salve will assume that the user meant to use the
+   element defined in the schema and will validate it as such.
+
+2. Otherwise, salve will turn off validation until the element is
+   closed.
+
+Consider the following case::
+
+    <p>Here we have a <name><first>John</first><last>Doe</last></name>
+    because the <emph>person's name</emph> is not known.</p>
+
+If ``name`` cannot appear in ``p`` but ``name`` has only one
+definition in the schema, then salve will emit an error upon
+encountering the ``enterStartTag`` event for ``name``, and then
+validate ``name`` as if it had been found in a valid place. If it
+turns out that the schema defines one ``name`` element which can
+appear in side a ``person`` element and another ``name`` element which
+can appear inside a ``location`` element (which would be possible with
+Relax NG), then salve will emit an error but won't perform any
+validation inside ``name``. Validation will resume after the
+``endTag`` event for ``name``. (Future versions of salve may implement
+logic to figure out ambiguous cases such as this one.) This latter
+scenario also occurs if ``name`` is not defined at all by the schema.
 
 Documentation
 =============
@@ -547,4 +602,5 @@ the Humanities.
 ..  LocalWords:  runnable namespaces reparsing amd executables usr lt
 ..  LocalWords:  deployable schemas LocalWords api dir maxInclusive
 ..  LocalWords:  minInclusive minExclusive maxExclusive cd abcd jing
-..  LocalWords:  github jison NaN
+..  LocalWords:  github jison NaN baz emph lodash xregexp XRegExp
+..  LocalWords:  init
