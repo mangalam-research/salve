@@ -871,6 +871,10 @@ fireEvent returned false
 possible events
 attributeValue:
     F
+    I
+    M
+    N
+    Y
 
 invoking fireEvent with Event: attributeValue, F
 fireEvent returned false
