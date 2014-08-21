@@ -3,6 +3,12 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 0.21.0:
+
+  - Salve is no longer tested on Node 0.8 and no attempt is made to
+    support it anymore.
+  - Bug fixes.
+
 * 0.20.0:
 
   - Better handling of misplaced elements. See the README for details.

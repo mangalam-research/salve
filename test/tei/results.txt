@@ -845,6 +845,154 @@ enterStartTag:
 invoking fireEvent with Event: enterContext
 fireEvent returned false
 
+invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, div
+fireEvent returned false
+possible events
+attributeName:
+    :
+        decls
+        n
+        org
+        part
+        rend
+        rendition
+        sample
+        subtype
+        type
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: attributeName, , part
+fireEvent returned false
+possible events
+attributeValue:
+    F
+    I
+    M
+    N
+    Y
+
+invoking fireEvent with Event: attributeValue, F
+fireEvent returned false
+possible events
+attributeName:
+    :
+        decls
+        n
+        org
+        rend
+        rendition
+        sample
+        subtype
+        type
+    http://www.w3.org/XML/1998/namespace:
+        base
+        id
+        lang
+        space
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        div
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        dateline
+        desc
+        div
+        divGen
+        docAuthor
+        docDate
+        epigraph
+        figure
+        floatingText
+        gap
+        head
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        meeting
+        milestone
+        note
+        opener
+        p
+        pb
+        q
+        quote
+        said
+        salute
+        sp
+        stage
+        table
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        div
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        bibl
+        biblFull
+        biblStruct
+        byline
+        cb
+        cit
+        dateline
+        desc
+        div
+        divGen
+        docAuthor
+        docDate
+        epigraph
+        figure
+        floatingText
+        gap
+        head
+        index
+        l
+        label
+        lb
+        lg
+        list
+        listBibl
+        meeting
+        milestone
+        note
+        opener
+        p
+        pb
+        q
+        quote
+        said
+        salute
+        sp
+        stage
+        table
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
@@ -932,7 +1080,7 @@ fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
-        body
+        div
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         argument
@@ -946,7 +1094,7 @@ enterStartTag:
         dateline
         desc
         div
-        div1
+        divGen
         docAuthor
         docDate
         epigraph
@@ -984,7 +1132,7 @@ fireEvent returned false
 possible events
 endTag:
     http://www.tei-c.org/ns/1.0:
-        body
+        div
 enterStartTag:
     http://www.tei-c.org/ns/1.0:
         argument
@@ -998,7 +1146,7 @@ enterStartTag:
         dateline
         desc
         div
-        div1
+        divGen
         docAuthor
         docDate
         epigraph
@@ -1026,6 +1174,71 @@ enterStartTag:
         sp
         stage
         table
+        trailer
+
+invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, div
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        body
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        byline
+        cb
+        closer
+        dateline
+        div
+        divGen
+        docAuthor
+        docDate
+        epigraph
+        figure
+        gap
+        index
+        lb
+        meeting
+        milestone
+        note
+        pb
+        postscript
+        salute
+        signed
+        trailer
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    http://www.tei-c.org/ns/1.0:
+        body
+enterStartTag:
+    http://www.tei-c.org/ns/1.0:
+        argument
+        byline
+        cb
+        closer
+        dateline
+        div
+        divGen
+        docAuthor
+        docDate
+        epigraph
+        figure
+        gap
+        index
+        lb
+        meeting
+        milestone
+        note
+        pb
+        postscript
+        salute
+        signed
         trailer
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, body
