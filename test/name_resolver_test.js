@@ -14,7 +14,6 @@ var resolver;
 var mapping = {
     "btw": "http://lddubeau.com/ns/btw-storage",
     "tei": "http://www.tei-c.org/ns/1.0",
-    "xml": "http://www.w3.org/XML/1998/namespace",
     "": "http://www.tei-c.org/ns/1.0"
 };
 
@@ -33,6 +32,18 @@ describe("NameResolver", function () {
            function () {
             resolver = new name_resolver.NameResolver();
             assert.equal(resolver.resolveName("blah").toString(), "{}blah");
+        });
+        it("resolves xml",
+           function () {
+            resolver = new name_resolver.NameResolver();
+            assert.equal(resolver.resolveName("xml:lang", true).toString(),
+                         "{http://www.w3.org/XML/1998/namespace}lang");
+        });
+        it("resolves xmlns",
+           function () {
+            resolver = new name_resolver.NameResolver();
+            assert.equal(resolver.resolveName("xmlns:foo", true).toString(),
+                         "{http://www.w3.org/2000/xmlns/}foo");
         });
         it("returns undefined when resolving an unknown prefix",
            function () {
@@ -76,6 +87,32 @@ describe("NameResolver", function () {
             assert.equal(resolver.resolveName("btw:blah", false).toString(),
                          new EName("http://lddubeau.com/ns/btw-storage",
                                    "blah").toString());
+        });
+    });
+
+    describe("definePrefix", function () {
+        var resolver;
+        before(function () {
+            resolver = new name_resolver.NameResolver();
+        });
+        it("fails if trying to define xmlns", function () {
+            assert.Throw(resolver.definePrefix.bind(
+                resolver, "xmlns", "http://www.w3.org/2000/xmlns/"),
+                         Error,
+                         "trying to define 'xmlns' but the XML Namespaces " +
+                         "standard stipulates that 'xmlns' cannot be " +
+                         "declared (= \"defined\")");
+        });
+        it("fails if trying to define xml to an invalid URI", function () {
+            assert.Throw(resolver.definePrefix.bind(
+                resolver, "xml", "foo"),
+                         Error,
+                         "trying to define 'xml' to an incorrect URI");
+        });
+        it("allows defining xml", function () {
+            // The lack of error thrown is what we are looking for.
+            resolver.definePrefix("xml",
+                                  "http://www.w3.org/XML/1998/namespace");
         });
     });
 
@@ -139,6 +176,18 @@ describe("NameResolver", function () {
             assert.equal(resolver.unresolveName("http://www.tei-c.org/ns/1.0",
                                                 "blah"),
                          "blah");
+        });
+        it("knows the XML namespace",
+           function () {
+            assert.equal(resolver.unresolveName(
+                "http://www.w3.org/XML/1998/namespace", "lang"),
+                        "xml:lang");
+        });
+        it("knows the xmlns namespace",
+           function () {
+            assert.equal(resolver.unresolveName(
+                "http://www.w3.org/2000/xmlns/", "foo"),
+                        "xmlns:foo");
         });
         it("knows the uri of other namespaces that were defined",
            function () {

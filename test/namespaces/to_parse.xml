@@ -1,4 +1,4 @@
-<TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:a="uri:test1">
+<TEI xmlns="http://www.tei-c.org/ns/1.0" xmlns:a="uri:test1" xmlns:xml="http://www.w3.org/XML/1998/namespace">
   <teiHeader>
     <fileDesc>
       <titleStmt>

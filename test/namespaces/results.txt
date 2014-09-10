@@ -13,6 +13,9 @@ fireEvent returned false
 invoking fireEvent with Event: definePrefix, a, uri:test1
 fireEvent returned false
 
+invoking fireEvent with Event: definePrefix, xml, http://www.w3.org/XML/1998/namespace
+fireEvent returned false
+
 invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, TEI
 fireEvent returned false
 possible events
