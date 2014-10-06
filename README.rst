@@ -600,7 +600,7 @@ Salve is designed and developed by Louis-Dominique Dubeau, Director of
 Software Development for the Buddhist Translators Workbench project,
 Mangalam Research Center for Buddhist Languages.
 
-Jesse Bethel maintains salve's documentation, and migrated salve's
+Jesse Bethel has contributed to salve's documentation, and migrated salve's
 build system from Make to Grunt.
 
 .. image:: https://secure.gravatar.com/avatar/7fc4e7a64d9f789a90057e7737e39b2a
