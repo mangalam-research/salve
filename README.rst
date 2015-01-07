@@ -42,8 +42,6 @@ design, the following limitations:
   parameters ``minInclusive``, ``minExclusive``, ``maxInclusive`` and
   ``maxExclusive``.
 
-* Does not support ``<interleave>`` or ``<mixed>``.
-
 * Does not support ``<anyName>``.
 
 * Does not support ``<except>``.
@@ -64,13 +62,7 @@ design, the following limitations:
 If someone wishes to use salve but needs support for any of the
 features that are missing, they may ask for the feature to be
 added. Submit an issue on github for it. If you do submit an issue to
-add a feature please make a case for it. Take a request
-that goes "Please add support for ``<interleave>``, because when one
-generates a TEI schema with options A, B, C then the schema uses
-``<interleave>``." If the options are likely to be generally used,
-this gives a good reason to add support. TEI is a major standard, and
-we happen to use it in the project in which salve is being
-developed.
+add a feature please make a case for it.
 
 Even better, if someone wishes for a feature to be added, they can
 contribute code to salve that will add the feature they want. A solid

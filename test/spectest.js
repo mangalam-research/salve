@@ -29,14 +29,8 @@ var skips = {
     }
 };
 
-// No support for interleave yet.
-[139, 147, 151, 194, 195, 244, 250, 251, 252, 253, 263,
- 368, 369].forEach(function (x) {
-    skips["test" + x] = { correct: true };
-});
-
 // No anyname support yet.
-[141, 215, 216, 217, 332, 333, 345, 353].forEach(function (x) {
+[141, 215, 216, 217, 332, 333, 345, 353, 368].forEach(function (x) {
     skips["test" + x] = {correct : true};
 });
 

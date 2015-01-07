@@ -3,6 +3,10 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 0.23.0:
+
+  - Added support for ``<interleave>``, and consequently ``<mixed>``.
+
 * 0.22.0:
 
   - API change: export the ``Grammar`` and ``Walker`` classes so that

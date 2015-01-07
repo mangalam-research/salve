@@ -51,6 +51,8 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
 
@@ -63,6 +65,8 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
 
@@ -160,6 +164,8 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
 
@@ -175,6 +181,8 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
 
@@ -298,6 +306,8 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
 
@@ -310,6 +320,8 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
 
@@ -407,6 +419,8 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
 
@@ -422,6 +436,8 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
 

@@ -5,5 +5,7 @@ ef</title></head>
 <body>
 abc<em>def&amp;
 gh<em test=""></em></em>
+<int><foo/><bar/><baz><baz/></baz></int>
+<mix>a<foo/>b<baz><baz/></baz>c<foo/>d</mix>
 </body>
 </html>
