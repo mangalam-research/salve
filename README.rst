@@ -22,8 +22,12 @@ action in `wed <https://github.com/mangalam-research/wed>`_.
 
 Salve is currently used to validate schemas generated from the `TEI
 standard <http://www.tei-c.org/>`_ and schemas derived from this
-standard. Plans are to support as much Relax NG as possible but for
-now salve has, by conscious design, the following limitations:
+standard. We've used salve with multiple different schemas generated
+from the TEI standard and never ran into a problem caused by the
+limitations that salve has. It is possible, however, that using a TEI
+module that *we* do not use, could cause issues. Plans are to support
+as much Relax NG as possible but for now salve has, by conscious
+design, the following limitations:
 
 * Support for XML Schema ``float`` and ``double`` types is not
   thorough. Simple value comparisons work but if you put ``NaN`` or
@@ -47,15 +51,32 @@ now salve has, by conscious design, the following limitations:
 * Does not support ``<nsName>``.
 
 * Text meant to be contiguous must be passed to salve in one event. In
-  particular, comments and processing instructions are invisible. Take
-  for instance, this XML:
+  particular, comments and processing instructions are invisible to
+  salve. (There are no events for them.) Take for instance, this XML:
 
       ab&lt;!-- blah -->cd
 
   In a DOM interpretation, you'd have two text nodes separated by a
   comment node. For the purpose of Relax NG validation, this is a
   single string "abcd" and should be passed to salve as "abcd" and not
-  as "ab" and "cd".
+  as the two strings "ab" and "cd".
+
+If someone wishes to use salve but needs support for any of the
+features that are missing, they may ask for the feature to be
+added. Submit an issue on github for it. If you do submit an issue to
+add a feature please make a case for it. Take a request
+that goes "Please add support for ``<interleave>``, because when one
+generates a TEI schema with options A, B, C then the schema uses
+``<interleave>``." If the options are likely to be generally used,
+this gives a good reason to add support. TEI is a major standard, and
+we happen to use it in the project in which salve is being
+developed.
+
+Even better, if someone wishes for a feature to be added, they can
+contribute code to salve that will add the feature they want. A solid
+contribution is more likely to result in the feature being speedily
+added to salve than asking for us to add the feature, and waiting
+until we have time for it.
 
 At the moment the library is able to know that a document is valid
 according to the schema it has. A full validation solution has the
@@ -74,7 +95,7 @@ following components:
   valid against a schema, telling the parser what is possible at the
   current point in validation, and telling the parser what is possible
   generally speaking (e.g., what namespace uris are used in the
-  schema). This is what salve offers, **and only this!**
+  schema). **This is what salve offers, and only this!**
 
 .. note:: If you are looking at the source from github, executables
           cannot be executed from `<bin>`__. They can be executed
@@ -206,8 +227,8 @@ currently supported are defined below:
   Emitted when encountering an attribute value
 
 ``Event("text", value)``
-  Emitted when encountering text. This event must be fired **even** for
-  all instances of text, including white space.
+  Emitted when encountering text. This event must be fired for
+  all instances of text, **including** white space.
 
 ``Event("enterContext")``
   Emitted when entering a new namespace context.
@@ -250,8 +271,11 @@ would require issuing::
     Event("definePrefix", "", "q")
     Event("definePrefix", "foo", "foons")
 
-Presumably, your code here would call ``resolveName("p")`` to
-determine what namespace p is in, which would yield the result ``"q"``.::
+Presumably, after firing the events above your code would call
+``resolveName("p")`` on your walker to determine what namespace ``p``
+is in, which would yield the result ``"q"``. And then it would fire
+the ``enterStartTag`` event with ``q`` as the namespace and ``p`` as
+the local name of the tag::
 
     Event("enterStartTag", "q", "p")
 
@@ -386,7 +410,11 @@ Running ``salve-convert`` additionally requires that ``xmllint``,
           ``salve-convert`` used ``xmllint`` for this task but
           ``xmllint`` would sometimes hang while validating the
           RNG. It would hang on run-of-the-mill TEI files. Not
-          acceptable.
+          acceptable, and debugging ``xmllint`` is just not an option
+          right now. (If you think that debugging ``xmllint`` *is* an
+          option, you are welcome to debug it. We're sure the folks
+          responsible for ``xmllint`` will appreciate your
+          contribution.)
 
 Running salve's tests **additionally** requires that the development
 dependencies be installed. Please see the `<package.json>`_ file for
@@ -524,11 +552,10 @@ structure is::
 
     {"v":<version>,"o":<options>,"d":[...]}
 
-The ``v`` field gives the version number of the data. Only version 1
-exists for now. The ``o`` field is a bit field of options indicating
-how the file was created. Right now the only thing it records is
-whether or not `element paths`_ are present in the generated
-file. More on this later. The ``d`` field contains the actual
+The ``v`` field gives the version number of the data. The ``o`` field
+is a bit field of options indicating how the file was created. Right
+now the only thing it records is whether or not `element paths`_ are
+present in the generated file. The ``d`` field contains the actual
 schema. Each item in it is of the form::
 
    [<array type>, ...]
@@ -573,7 +600,7 @@ Salve is designed and developed by Louis-Dominique Dubeau, Director of
 Software Development for the Buddhist Translators Workbench project,
 Mangalam Research Center for Buddhist Languages.
 
-Jesse Bethel maintains salve's documentation, and migrated salve's
+Jesse Bethel has contributed to salve's documentation, and migrated salve's
 build system from Make to Grunt.
 
 .. image:: https://secure.gravatar.com/avatar/7fc4e7a64d9f789a90057e7737e39b2a
