@@ -3,6 +3,13 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 0.22.0:
+
+  - API change: export the ``Grammar`` and ``Walker`` classes so that
+    they can be used by client code. (0.21.3 was released to export
+    ``Walker`` but it should really have a) also included ``Grammar``
+    and b) bumped the minor version rather than be a patch.)
+
 * 0.21.0:
 
   - Salve is no longer tested on Node 0.8 and no attempt is made to
