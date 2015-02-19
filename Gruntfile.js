@@ -93,7 +93,10 @@ module.exports = function(grunt) {
                             "bin/*",
                             "lib/**/*.js",
                             "lib/**/*.xsl"],
-                      dest: "build/dist/" }
+                      dest: "build/dist/"
+                    },
+                    { src: "NPM_README.md",
+                      dest:"build/dist/README.md"}
                 ]
             },
             jsdoc_default_template_files: {
