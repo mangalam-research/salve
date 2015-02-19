@@ -25,7 +25,7 @@ standard <http://www.tei-c.org/>`_ and schemas derived from this
 standard. We've used salve with multiple different schemas generated
 from the TEI standard and never ran into a problem caused by the
 limitations that salve has. It is possible, however, that using a TEI
-module that *we* do not use, could cause issues. Plans are to support
+module that *we* do not use could cause issues. Plans are to support
 as much Relax NG as possible but for now salve has, by conscious
 design, the following limitations:
 
@@ -41,8 +41,6 @@ design, the following limitations:
 * None of the XML Schema types that deal with time allow the
   parameters ``minInclusive``, ``minExclusive``, ``maxInclusive`` and
   ``maxExclusive``.
-
-* Does not support ``<interleave>`` or ``<mixed>``.
 
 * Does not support ``<anyName>``.
 
@@ -64,19 +62,12 @@ design, the following limitations:
 If someone wishes to use salve but needs support for any of the
 features that are missing, they may ask for the feature to be
 added. Submit an issue on github for it. If you do submit an issue to
-add a feature please make a case for it. Take a request
-that goes "Please add support for ``<interleave>``, because when one
-generates a TEI schema with options A, B, C then the schema uses
-``<interleave>``." If the options are likely to be generally used,
-this gives a good reason to add support. TEI is a major standard, and
-we happen to use it in the project in which salve is being
-developed.
-
-Even better, if someone wishes for a feature to be added, they can
-contribute code to salve that will add the feature they want. A solid
-contribution is more likely to result in the feature being speedily
-added to salve than asking for us to add the feature, and waiting
-until we have time for it.
+add a feature please make a case for it. Even better, if someone
+wishes for a feature to be added, they can contribute code to salve
+that will add the feature they want. A solid contribution is more
+likely to result in the feature being speedily added to salve than
+asking for us to add the feature, and waiting until we have time for
+it.
 
 At the moment the library is able to know that a document is valid
 according to the schema it has. A full validation solution has the
@@ -113,7 +104,7 @@ Basic Usage
 ===========
 
 A Relax NG schema must be prepared before it can be used by salve. The
-``bin/`` subdirectory contains a shell script which can be used to
+``bin/`` subdirectory contains a JavaScript script which can be used to
 convert a Relax NG schema to the format salve wants. You can use the
 ``--help`` option to see the entire list of options available. Typical
 usage is::
@@ -320,6 +311,15 @@ it is the responsibility of the editor to translate what salve returns
 into something the user can use. The ``possible()`` function returns
 only ``Event`` objects, in the exact same form as what must be passed to
 ``fireEvent()``.
+
+Note that ``possible()`` may at times allow for possibilities that are
+in fact invalid. This could happen, for instance, where the Relax NG
+schema uses ``data`` to specify that the document should contain a
+``positiveInteger`` between 1 and 10. The ``possible()`` method will
+report that a string matching the regular expression ``/^\+?\d+$/`` is
+possible, when in fact the number ``11`` would match the expression
+but be invalid. The software that uses salve should be prepared to
+handle such situation.
 
 Editors that would depend on salve for guided editing would most
 likely need to use the ``clone()`` method on the walker to record the
@@ -630,4 +630,4 @@ the Humanities.
 ..  LocalWords:  deployable schemas LocalWords api dir maxInclusive
 ..  LocalWords:  minInclusive minExclusive maxExclusive cd abcd jing
 ..  LocalWords:  github jison NaN baz emph lodash xregexp XRegExp
-..  LocalWords:  init
+..  LocalWords:  init positiveInteger

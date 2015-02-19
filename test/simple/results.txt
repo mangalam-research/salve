@@ -142,6 +142,8 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
 
@@ -154,6 +156,8 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
 
@@ -262,6 +266,8 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
 
@@ -277,8 +283,374 @@ endTag:
 enterStartTag:
     :
         em
+        int
+        mix
 text:
     *
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , int
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    :
+        bar
+        baz
+        foo
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , foo
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    :
+        foo
+
+invoking fireEvent with Event: endTag, , foo
+fireEvent returned false
+possible events
+enterStartTag:
+    :
+        bar
+        baz
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , bar
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    :
+        bar
+
+invoking fireEvent with Event: endTag, , bar
+fireEvent returned false
+possible events
+enterStartTag:
+    :
+        baz
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , baz
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    :
+        baz
+enterStartTag:
+    :
+        baz
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , baz
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    :
+        baz
+enterStartTag:
+    :
+        baz
+
+invoking fireEvent with Event: endTag, , baz
+fireEvent returned false
+possible events
+endTag:
+    :
+        baz
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: endTag, , baz
+fireEvent returned false
+possible events
+endTag:
+    :
+        int
+enterStartTag:
+    :
+        baz
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: endTag, , int
+fireEvent returned false
+possible events
+endTag:
+    :
+        body
+enterStartTag:
+    :
+        mix
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    :
+        body
+enterStartTag:
+    :
+        mix
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , mix
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    :
+        mix
+enterStartTag:
+    :
+        baz
+        foo
+text:
+    *
+
+invoking fireEvent with Event: text, a
+fireEvent returned false
+possible events
+endTag:
+    :
+        mix
+enterStartTag:
+    :
+        baz
+        foo
+text:
+    *
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , foo
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    :
+        foo
+
+invoking fireEvent with Event: endTag, , foo
+fireEvent returned false
+possible events
+endTag:
+    :
+        mix
+enterStartTag:
+    :
+        baz
+        foo
+text:
+    *
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text, b
+fireEvent returned false
+possible events
+endTag:
+    :
+        mix
+enterStartTag:
+    :
+        baz
+        foo
+text:
+    *
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , baz
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    :
+        baz
+enterStartTag:
+    :
+        baz
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , baz
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    :
+        baz
+enterStartTag:
+    :
+        baz
+
+invoking fireEvent with Event: endTag, , baz
+fireEvent returned false
+possible events
+endTag:
+    :
+        baz
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: endTag, , baz
+fireEvent returned false
+possible events
+endTag:
+    :
+        mix
+enterStartTag:
+    :
+        baz
+        foo
+text:
+    *
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text, c
+fireEvent returned false
+possible events
+endTag:
+    :
+        mix
+enterStartTag:
+    :
+        baz
+        foo
+text:
+    *
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , foo
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    :
+        foo
+
+invoking fireEvent with Event: endTag, , foo
+fireEvent returned false
+possible events
+endTag:
+    :
+        mix
+enterStartTag:
+    :
+        baz
+        foo
+text:
+    *
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text, d
+fireEvent returned false
+possible events
+endTag:
+    :
+        mix
+enterStartTag:
+    :
+        baz
+        foo
+text:
+    *
+
+invoking fireEvent with Event: endTag, , mix
+fireEvent returned false
+possible events
+endTag:
+    :
+        body
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    :
+        body
 
 invoking fireEvent with Event: endTag, , body
 fireEvent returned false
