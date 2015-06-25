@@ -35,13 +35,9 @@ fireEvent returned false
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 
-invoking fireEvent with Event: text, ab
-fireEvent returned false
-
-invoking fireEvent with Event: text, cd
-fireEvent returned false
-
-invoking fireEvent with Event: text, ef
+invoking fireEvent with Event: text, ab&
+cd&
+ef
 fireEvent returned false
 
 invoking fireEvent with Event: endTag, , title

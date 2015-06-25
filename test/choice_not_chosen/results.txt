@@ -38,12 +38,6 @@ fireEvent returned false
 invoking fireEvent with Event: text, ab
 fireEvent returned false
 
-invoking fireEvent with Event: text, cd
-fireEvent returned false
-
-invoking fireEvent with Event: text, ef
-fireEvent returned false
-
 invoking fireEvent with Event: endTag, , title
 fireEvent returned false
 

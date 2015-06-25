@@ -74,10 +74,7 @@ function makeParser(er, walker) {
     };
 
     parser.ontext = function (text) {
-        text = text.trim();
-        var chunk = text.split(/&/);
-        for(var x = 0; x < chunk.length; ++x)
-            er.recordEvent(walker, "text", chunk[x].trim());
+        er.recordEvent(walker, "text", text.trim());
     };
 
     parser.onclosetag = function (node) {

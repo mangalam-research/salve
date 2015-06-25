@@ -93,16 +93,6 @@ enterStartTag:
 text:
     *
 
-invoking fireEvent with Event: text, gh
-fireEvent returned false
-possible events
-endTag:
-    {"ns":"","name":"em"}
-enterStartTag:
-    {"ns":"","name":"em"}
-text:
-    *
-
 invoking fireEvent with Event: enterContext
 fireEvent returned false
 
@@ -216,22 +206,6 @@ endTag:
 text:
     *
 
-invoking fireEvent with Event: text, cd
-fireEvent returned false
-possible events
-endTag:
-    {"ns":"","name":"title"}
-text:
-    *
-
-invoking fireEvent with Event: text, ef
-fireEvent returned false
-possible events
-endTag:
-    {"ns":"","name":"title"}
-text:
-    *
-
 invoking fireEvent with Event: endTag, , title
 fireEvent returned false
 possible events
@@ -309,16 +283,6 @@ text:
     *
 
 invoking fireEvent with Event: text, def
-fireEvent returned false
-possible events
-endTag:
-    {"ns":"","name":"em"}
-enterStartTag:
-    {"ns":"","name":"em"}
-text:
-    *
-
-invoking fireEvent with Event: text, gh
 fireEvent returned false
 possible events
 endTag:
