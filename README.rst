@@ -42,11 +42,8 @@ design, the following limitations:
   parameters ``minInclusive``, ``minExclusive``, ``maxInclusive`` and
   ``maxExclusive``.
 
-* Does not support ``<anyName>``.
-
-* Does not support ``<except>``.
-
-* Does not support ``<nsName>``.
+* Does not support ``<except>`` outside of name classes. (``<except>``
+  **in** name classes is supported.)
 
 * Text meant to be contiguous must be passed to salve in one event. In
   particular, comments and processing instructions are invisible to
@@ -292,8 +289,8 @@ Support for Guided Editing
 
 Calling the ``possible()`` method on a walker will return the list of
 valid ``Event`` objects that could be fired on the walker, given what
-the walker has seen so far. Again, if the user is editing a document
-which contains only the text::
+the walker has seen so far.  If the user is editing a document which
+contains only the text::
 
     <html
 
@@ -309,17 +306,7 @@ and the user again asks for possibilities, calling ``possible()`` will
 return the list of ``Event`` objects that could be fired. Note here that
 it is the responsibility of the editor to translate what salve returns
 into something the user can use. The ``possible()`` function returns
-only ``Event`` objects, in the exact same form as what must be passed to
-``fireEvent()``.
-
-Note that ``possible()`` may at times allow for possibilities that are
-in fact invalid. This could happen, for instance, where the Relax NG
-schema uses ``data`` to specify that the document should contain a
-``positiveInteger`` between 1 and 10. The ``possible()`` method will
-report that a string matching the regular expression ``/^\+?\d+$/`` is
-possible, when in fact the number ``11`` would match the expression
-but be invalid. The software that uses salve should be prepared to
-handle such situation.
+only ``Event`` objects.
 
 Editors that would depend on salve for guided editing would most
 likely need to use the ``clone()`` method on the walker to record the
@@ -330,6 +317,163 @@ method and the code it depends on has been optimized since early
 versions of salve, but it is possible to call it too often, resulting
 in a slower validation speed than could be attainable with less
 aggressive cloning.
+
+Overbroad Possibilities
+-----------------------
+
+``possible()`` may at times report possibilities that allow for a
+document structure that is ultimately invalid. This could happen, for
+instance, where the Relax NG schema uses ``data`` to specify that the
+document should contain a ``positiveInteger`` between 1 and 10. The
+``possible()`` method will report that a string matching the regular
+expression ``/^\+?\d+$/`` is possible, when in fact the number ``11``
+would match the expression but be invalid. The software that uses
+salve should be prepared to handle such situation.
+
+Name Classes
+------------
+
+.. note:: The symbol ``ns`` used in this section corresponds to
+          ``uri`` elsewhere in this document and ``name`` corresponds
+          to ``local-name`` elsewhere. We find the ``uri``,
+          ``local-name`` pair to be clearer than ``ns``, ``name``. Is
+          ``ns`` meant to be a namespace prefix? A URI? Is ``name`` a
+          qualified name, a local name, something else? So for the
+          purpose of documentation, we use ``uri``, ``local-name``
+          wherever we can. However, the Relax NG specification uses
+          the ``ns``, ``name`` nomenclature, which salve also follows
+          internally. The name class support is designed to be a close
+          representation of what is described in the Relax NG
+          specification. Hence the choice of nomenclature in this
+          section.
+
+The term "name class" is defined in the Relax NG specification, please
+refer to the specification for details.
+
+Support for Relax NG's name classes introduces a few peculiarities in
+how possibilities are reported to clients using salve. The three
+events that accept names are affected: ``enterStartTag``, ``endTag``,
+and ``attributeName``. When salve returns these events as
+possibilities, their lone parameter is a instance of
+``name_patterns.Base`` class. This object has a ``.match`` method that
+takes a namespace and a name and will return ``true`` if the namespace
+and name match the pattern, or ``false`` if not.
+
+Client code that wants to provide a sophisticated analysis of what a
+name class does could use the ``.toObject()`` method to get a plain
+JavaScript object from such an object. The returned object is
+essentially a syntax tree representing the name class. Each pattern
+has a unique structure. The possible patterns are:
+
+* ``Name``, a pattern with fields ``ns`` and ``name`` which
+  respectively record the namespace URL and local name that this
+  object matches. (Corresponds to the ``<name>`` element in the
+  simplified Relax NG syntax.)
+
+* ``NameChoice``, a pattern with fields ``a`` and ``b`` which are two
+  name classes. (Corresponds to a ``<choice>`` element appearing
+  inside a name class in the simplified Relax NG syntax.)
+
+* ``NsName``, a pattern with the field ``ns`` which is the namespace
+  that this object would match. The object matches any name. May have
+  an optional ``except`` field that contains a name class for patterns
+  that it should not match. The lack of ``name`` field distinguishes
+  it from ``Name``.  (Corresponds to an ``<nsName>`` element in the
+  simplified Relax NG syntax.)
+
+* ``AnyName``, a pattern. It has the ``pattern`` field set to
+  ``AnyName``. We use this ``pattern`` field because ``AnyName`` does
+  not require any other fields so ``{}`` would be its
+  representation. This representation would too easily mask possible
+  coding errors. ``AnyName`` matches any combination of namespace and
+  name. May have an optional ``except`` field that contains a name
+  class for patterns it should not match. It corresponds to an
+  ``<anyName>`` element in the simplified Relax NG syntax.
+
+.. note:: We do not use the ``pattern`` field for all patterns above
+          because the only reason to do so would be to distinguish
+          ambiguous structures. For instance, if Relax NG were to
+          introduce a ``<superName>`` element that also needs ``ns``
+          and ``name`` fields then it would look the same as
+          ``<name>`` and we would not be able to distinguish one from
+          the other. However, Relax NG is stable. In the unlikely
+          event a new version of Relax NG is released, we'll cross
+          whatever bridge needs to be crossed.
+
+Note that the ``<except>`` element from Relax NG does not have a
+corresponding object because the presence of ``<except>`` in a name
+class is recorded in the ``except`` field of the patterns above.
+
+Here are a couple of examples. The name class for::
+
+    element (foo | bar | foo:foo) { ... }
+
+would be recorded as (after partial beautification)::
+
+    {
+        a: {
+            a: {ns: "", name: "foo"},
+            b: {ns: "", name: "bar"}
+        },
+        b: {ns: "foo:foo", name: "foo"}
+    }
+
+The name class for::
+
+    element * - (foo:* - foo:a) { ... }
+
+would be recorded as (after partial beautification)::
+
+    {
+        pattern: "AnyName",
+        except: {
+            ns: "foo:foo",
+            except: {ns: "foo:foo", name: "a"}
+        }
+    }
+
+Clients may want to call the ``.simple()`` method on a name pattern to
+determine whether it is simple or not. A pattern is deemed "simple" if
+it is composed only of ``Name`` and ``NameChoice`` objects. Such a
+pattern could be presented to a user as a finite list of
+possibilities. Otherwise, if the pattern is not simple, then either
+the number of choices is unbounded or it not a discrete list of
+items. In such case, the client code may instead present to the user a
+field in which to enter the name of the element or attribute to be
+created and validate the name against the pattern. The method
+``.toArray()`` can be used to reduce a pattern which is simple to an
+array of ``Name`` objects.
+
+Event Asymmetry
+---------------
+
+**Note that the events returned by ``possible()`` are *not identical*
+to the events that ``fireEvent()`` expects.** Most events returned are
+exactly those that would be passed to ``fireEvent()`` however, there
+are three exceptions: the ``enterStartTag``, ``endTag`` and
+``attributeName`` events returned by ``possible()`` will have a single
+parameter after the event name which is an object of
+``name_patterns.Base`` class. However, when passing a corresponding
+event to ``fireEvent()``, the same events take two string parameters
+after the event name: a namespace URL and a local name. To spell it out, they
+are of this form::
+
+    Event(event_name, uri, local-name)
+
+where ``event_name`` is the string which is the name of the event to
+fire, ``uri`` is the namespace URI and ``local-name`` is the local
+name of the element or attribute.
+
+Error Messages
+--------------
+
+Error messages that report attribute or element names use the
+``name_patterns.Name`` class to record names, even in cases where
+``patterns.EName`` would do. This is for consistency purposes, because
+some error messages **must** use ``name_patterns`` objects to report
+their errors. Rather than have some error messages use ``EName`` and
+some use the object in ``name_patterns`` they all use the objects in
+``name_patterns``, with the simple cases using ``name_patterns.Name``.
 
 Misplaced Elements
 ==================
@@ -629,5 +773,6 @@ the Humanities.
 ..  LocalWords:  runnable namespaces reparsing amd executables usr lt
 ..  LocalWords:  deployable schemas LocalWords api dir maxInclusive
 ..  LocalWords:  minInclusive minExclusive maxExclusive cd abcd jing
-..  LocalWords:  github jison NaN baz emph lodash xregexp XRegExp
-..  LocalWords:  init positiveInteger
+..  LocalWords:  github jison NaN baz emph lodash xregexp XRegExp ns
+..  LocalWords:  init positiveInteger NCName NameChoice superName
+..  LocalWords:  EName

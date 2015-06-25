@@ -1,0 +1,5 @@
+<top xmlns:q="q" xmlns:bar="foo:foo" q:blah="foo">
+  <q:a>
+    <q:b></q:b>
+  </q:a>
+</top>

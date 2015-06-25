@@ -19,4 +19,4 @@ fireEvent returned false
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false
-end returned tag not closed: {http://www.tei-c.org/ns/1.0}title,tag not closed: {http://www.tei-c.org/ns/1.0}titleStmt,tag not closed: {http://www.tei-c.org/ns/1.0}fileDesc,tag not closed: {http://www.tei-c.org/ns/1.0}teiHeader,tag not closed: {http://www.tei-c.org/ns/1.0}TEI
+end returned tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"title"},tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"titleStmt"},tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"fileDesc"},tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"teiHeader"},tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"TEI"}

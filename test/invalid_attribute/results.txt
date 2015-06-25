@@ -6,13 +6,13 @@ invoking fireEvent with Event: enterStartTag, , html
 fireEvent returned false
 
 invoking fireEvent with Event: attributeName, , invalid
-fireEvent returned attribute not allowed here: {}invalid
+fireEvent returned attribute not allowed here: {"ns":"","name":"invalid"}
 
 invoking fireEvent with Event: attributeValue, toto
 fireEvent returned false
 
 invoking fireEvent with Event: leaveStartTag
-fireEvent returned attribute missing: {}style
+fireEvent returned attribute missing: {"ns":"","name":"style"}
 
 invoking fireEvent with Event: text,
 fireEvent returned false

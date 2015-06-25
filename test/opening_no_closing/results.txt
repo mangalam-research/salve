@@ -7,4 +7,4 @@ fireEvent returned false
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
-end returned tag required: {}q,tag not closed: {}html
+end returned tag required: {"ns":"","name":"q"},tag not closed: {"ns":"","name":"html"}

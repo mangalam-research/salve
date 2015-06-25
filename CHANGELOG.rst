@@ -3,6 +3,32 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 0.24.0:
+
+  - Added support for ``<nsName>``, ``<anyName>`` and ``<except>`` in
+    names. (``<except>`` is supported **only** in names for now.)
+
+  - This version is a major departure from previous versions. Code
+    that worked with older versions will **not** work with this
+    version without being modified.
+
+  - API change: the ``attributeName``, ``enterStartTag`` and
+    ``endTag`` events returned by ``possible()`` now have a
+    ``name_patterns.Base`` object as the parameter after the event
+    name. When the object is an instance of ``name_patterns.Name``,
+    this is a situation equivalent to the namespace and name that used
+    to be in the same event after the event name in previous versions
+    of salve. Other cases can represent really complex validation
+    scenarios.
+
+  - API change: validation errors now use objects of any subclass of
+    ``name_patterns.Base`` to represent names. See the comment above
+    regarding ``name_patterns.Name``.
+
+  - API change: salve now requires the converted schema files to be
+    version 3 of the format. This means you have to reconvert your old
+    schemas with ``salve-convert`` for them to work with 0.24.0.
+
 * 0.23.0:
 
   - Added support for ``<interleave>``, and consequently ``<mixed>``.

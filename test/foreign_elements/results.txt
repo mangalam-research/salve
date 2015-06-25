@@ -6,8 +6,7 @@ invoking fireEvent with Event: enterStartTag, , html
 fireEvent returned false
 possible events
 attributeName:
-    :
-        style
+    {"ns":"","name":"style"}
 
 invoking fireEvent with Event: attributeName, , style
 fireEvent returned false
@@ -24,14 +23,13 @@ invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
-    :
-        head
+    {"ns":"","name":"head"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
 
 invoking fireEvent with Event: enterStartTag, , x
-fireEvent returned tag not allowed here: {}x
+fireEvent returned tag not allowed here: {"ns":"","name":"x"}
 possible events
 
 invoking fireEvent with Event: attributeName, , a
@@ -80,8 +78,7 @@ invoking fireEvent with Event: endTag, , x
 fireEvent returned false
 possible events
 enterStartTag:
-    :
-        head
+    {"ns":"","name":"head"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -90,8 +87,7 @@ invoking fireEvent with Event: text, gaga
 fireEvent returned text not allowed here
 possible events
 enterStartTag:
-    :
-        head
+    {"ns":"","name":"head"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -105,8 +101,7 @@ invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
-    :
-        title
+    {"ns":"","name":"title"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -120,8 +115,7 @@ invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    :
-        title
+    {"ns":"","name":"title"}
 text:
     *
 
@@ -129,8 +123,7 @@ invoking fireEvent with Event: text, ab
 fireEvent returned false
 possible events
 endTag:
-    :
-        title
+    {"ns":"","name":"title"}
 text:
     *
 
@@ -138,8 +131,7 @@ invoking fireEvent with Event: text, cd
 fireEvent returned false
 possible events
 endTag:
-    :
-        title
+    {"ns":"","name":"title"}
 text:
     *
 
@@ -147,8 +139,7 @@ invoking fireEvent with Event: text, ef
 fireEvent returned false
 possible events
 endTag:
-    :
-        title
+    {"ns":"","name":"title"}
 text:
     *
 
@@ -156,8 +147,7 @@ invoking fireEvent with Event: endTag, , title
 fireEvent returned false
 possible events
 endTag:
-    :
-        head
+    {"ns":"","name":"head"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -166,8 +156,7 @@ invoking fireEvent with Event: endTag, , head
 fireEvent returned false
 possible events
 enterStartTag:
-    :
-        body
+    {"ns":"","name":"body"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -176,8 +165,7 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    :
-        body
+    {"ns":"","name":"body"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -191,13 +179,11 @@ invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    :
-        body
+    {"ns":"","name":"body"}
 enterStartTag:
-    :
-        em
-        int
-        mix
+    {"ns":"","name":"em"}
+    {"ns":"","name":"int"}
+    {"ns":"","name":"mix"}
 text:
     *
 
@@ -205,13 +191,11 @@ invoking fireEvent with Event: text, abc
 fireEvent returned false
 possible events
 endTag:
-    :
-        body
+    {"ns":"","name":"body"}
 enterStartTag:
-    :
-        em
-        int
-        mix
+    {"ns":"","name":"em"}
+    {"ns":"","name":"int"}
+    {"ns":"","name":"mix"}
 text:
     *
 
@@ -222,19 +206,16 @@ invoking fireEvent with Event: enterStartTag, , em
 fireEvent returned false
 possible events
 attributeName:
-    :
-        test
+    {"ns":"","name":"test"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    :
-        em
+    {"ns":"","name":"em"}
 enterStartTag:
-    :
-        em
+    {"ns":"","name":"em"}
 text:
     *
 
@@ -242,11 +223,9 @@ invoking fireEvent with Event: text, def
 fireEvent returned false
 possible events
 endTag:
-    :
-        em
+    {"ns":"","name":"em"}
 enterStartTag:
-    :
-        em
+    {"ns":"","name":"em"}
 text:
     *
 
@@ -254,11 +233,9 @@ invoking fireEvent with Event: text, gh
 fireEvent returned false
 possible events
 endTag:
-    :
-        em
+    {"ns":"","name":"em"}
 enterStartTag:
-    :
-        em
+    {"ns":"","name":"em"}
 text:
     *
 
@@ -269,19 +246,16 @@ invoking fireEvent with Event: enterStartTag, , em
 fireEvent returned false
 possible events
 attributeName:
-    :
-        test
+    {"ns":"","name":"test"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    :
-        em
+    {"ns":"","name":"em"}
 enterStartTag:
-    :
-        em
+    {"ns":"","name":"em"}
 text:
     *
 
@@ -289,11 +263,9 @@ invoking fireEvent with Event: endTag, , em
 fireEvent returned false
 possible events
 endTag:
-    :
-        em
+    {"ns":"","name":"em"}
 enterStartTag:
-    :
-        em
+    {"ns":"","name":"em"}
 text:
     *
 
@@ -304,13 +276,11 @@ invoking fireEvent with Event: endTag, , em
 fireEvent returned false
 possible events
 endTag:
-    :
-        body
+    {"ns":"","name":"body"}
 enterStartTag:
-    :
-        em
-        int
-        mix
+    {"ns":"","name":"em"}
+    {"ns":"","name":"int"}
+    {"ns":"","name":"mix"}
 text:
     *
 
@@ -321,13 +291,11 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    :
-        body
+    {"ns":"","name":"body"}
 enterStartTag:
-    :
-        em
-        int
-        mix
+    {"ns":"","name":"em"}
+    {"ns":"","name":"int"}
+    {"ns":"","name":"mix"}
 text:
     *
 
@@ -335,8 +303,7 @@ invoking fireEvent with Event: endTag, , body
 fireEvent returned false
 possible events
 endTag:
-    :
-        html
+    {"ns":"","name":"html"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -345,8 +312,7 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    :
-        html
+    {"ns":"","name":"html"}
 
 invoking fireEvent with Event: endTag, , html
 fireEvent returned false

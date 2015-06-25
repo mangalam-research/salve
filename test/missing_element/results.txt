@@ -29,7 +29,7 @@ fireEvent returned false
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false
-fireEvent returned must choose either {http://www.tei-c.org/ns/1.0}p or {http://www.tei-c.org/ns/1.0}address, {http://www.tei-c.org/ns/1.0}date, {http://www.tei-c.org/ns/1.0}publisher, {http://www.tei-c.org/ns/1.0}pubPlace, {http://www.tei-c.org/ns/1.0}distributor, {http://www.tei-c.org/ns/1.0}authority, {http://www.tei-c.org/ns/1.0}idno, {http://www.tei-c.org/ns/1.0}availability
+fireEvent returned must choose either {"ns":"http://www.tei-c.org/ns/1.0","name":"p"} or {"ns":"http://www.tei-c.org/ns/1.0","name":"address"}, {"ns":"http://www.tei-c.org/ns/1.0","name":"date"}, {"ns":"http://www.tei-c.org/ns/1.0","name":"publisher"}, {"ns":"http://www.tei-c.org/ns/1.0","name":"pubPlace"}, {"ns":"http://www.tei-c.org/ns/1.0","name":"distributor"}, {"ns":"http://www.tei-c.org/ns/1.0","name":"authority"}, {"ns":"http://www.tei-c.org/ns/1.0","name":"idno"}, {"ns":"http://www.tei-c.org/ns/1.0","name":"availability"}
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false

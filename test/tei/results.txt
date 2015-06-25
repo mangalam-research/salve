@@ -1,8 +1,7 @@
 wholly context-independent true
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        TEI
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"TEI"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -14,31 +13,27 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, TEI
 fireEvent returned false
 possible events
 attributeName:
-    :
-        n
-        rend
-        rendition
-        version
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"n"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"","name":"version"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        teiHeader
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"teiHeader"}
 
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        teiHeader
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"teiHeader"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -47,31 +42,27 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, teiHe
 fireEvent returned false
 possible events
 attributeName:
-    :
-        n
-        rend
-        rendition
-        type
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"n"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"","name":"type"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        fileDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"fileDesc"}
 
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        fileDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"fileDesc"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -80,30 +71,26 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, fileD
 fireEvent returned false
 possible events
 attributeName:
-    :
-        n
-        rend
-        rendition
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"n"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        titleStmt
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"titleStmt"}
 
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        titleStmt
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"titleStmt"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -112,30 +99,26 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, title
 fireEvent returned false
 possible events
 attributeName:
-    :
-        n
-        rend
-        rendition
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"n"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        title
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"title"}
 
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        title
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"title"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -144,84 +127,80 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, title
 fireEvent returned false
 possible events
 attributeName:
-    :
-        key
-        level
-        n
-        ref
-        rend
-        rendition
-        type
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"key"}
+    {"ns":"","name":"level"}
+    {"ns":"","name":"n"}
+    {"ns":"","name":"ref"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"","name":"type"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        title
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"title"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        abbr
-        add
-        address
-        bibl
-        biblFull
-        biblStruct
-        binaryObject
-        cb
-        choice
-        cit
-        corr
-        date
-        del
-        desc
-        distinct
-        email
-        emph
-        expan
-        figure
-        foreign
-        formula
-        gap
-        gloss
-        graphic
-        hi
-        idno
-        index
-        label
-        lb
-        list
-        listBibl
-        measure
-        measureGrp
-        mentioned
-        milestone
-        name
-        note
-        num
-        orig
-        pb
-        ptr
-        q
-        quote
-        ref
-        reg
-        rs
-        said
-        sic
-        soCalled
-        stage
-        table
-        term
-        time
-        title
-        unclear
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"abbr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"add"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"address"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"binaryObject"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"choice"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cit"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"corr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"date"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"del"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"desc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"distinct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"email"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"emph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"expan"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"foreign"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"formula"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gloss"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"graphic"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"hi"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"idno"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"label"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"measure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"measureGrp"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"mentioned"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"name"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"num"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"orig"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"ptr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"q"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"quote"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"ref"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"reg"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"rs"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"said"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sic"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"soCalled"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"stage"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"table"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"term"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"time"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"title"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"unclear"}
 text:
     *
 
@@ -229,18 +208,16 @@ invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, title
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        titleStmt
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"titleStmt"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        author
-        editor
-        funder
-        meeting
-        principal
-        respStmt
-        sponsor
-        title
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"author"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"editor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"funder"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"meeting"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"principal"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"respStmt"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sponsor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"title"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -249,27 +226,24 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        titleStmt
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"titleStmt"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        author
-        editor
-        funder
-        meeting
-        principal
-        respStmt
-        sponsor
-        title
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"author"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"editor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"funder"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"meeting"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"principal"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"respStmt"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sponsor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"title"}
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, titleStmt
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        editionStmt
-        extent
-        publicationStmt
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"editionStmt"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"extent"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"publicationStmt"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -278,10 +252,9 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        editionStmt
-        extent
-        publicationStmt
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"editionStmt"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"extent"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"publicationStmt"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -290,46 +263,42 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, publi
 fireEvent returned false
 possible events
 attributeName:
-    :
-        n
-        rend
-        rendition
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"n"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        address
-        authority
-        availability
-        date
-        distributor
-        idno
-        p
-        pubPlace
-        publisher
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"address"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"authority"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"availability"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"date"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"distributor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"idno"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pubPlace"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"publisher"}
 
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        address
-        authority
-        availability
-        date
-        distributor
-        idno
-        p
-        pubPlace
-        publisher
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"address"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"authority"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"availability"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"date"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"distributor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"idno"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pubPlace"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"publisher"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -338,81 +307,77 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 attributeName:
-    :
-        decls
-        n
-        rend
-        rendition
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"decls"}
+    {"ns":"","name":"n"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        p
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        abbr
-        add
-        address
-        bibl
-        biblFull
-        biblStruct
-        binaryObject
-        cb
-        choice
-        cit
-        corr
-        date
-        del
-        desc
-        distinct
-        email
-        emph
-        expan
-        figure
-        foreign
-        formula
-        gap
-        gloss
-        graphic
-        hi
-        idno
-        index
-        label
-        lb
-        list
-        listBibl
-        measure
-        measureGrp
-        mentioned
-        milestone
-        name
-        note
-        num
-        orig
-        pb
-        ptr
-        q
-        quote
-        ref
-        reg
-        rs
-        said
-        sic
-        soCalled
-        stage
-        table
-        term
-        time
-        title
-        unclear
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"abbr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"add"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"address"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"binaryObject"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"choice"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cit"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"corr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"date"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"del"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"desc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"distinct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"email"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"emph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"expan"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"foreign"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"formula"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gloss"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"graphic"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"hi"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"idno"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"label"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"measure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"measureGrp"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"mentioned"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"name"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"num"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"orig"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"ptr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"q"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"quote"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"ref"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"reg"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"rs"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"said"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sic"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"soCalled"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"stage"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"table"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"term"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"time"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"title"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"unclear"}
 text:
     *
 
@@ -420,11 +385,9 @@ invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        publicationStmt
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"publicationStmt"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        p
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -433,20 +396,17 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        publicationStmt
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"publicationStmt"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        p
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, publicationStmt
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        notesStmt
-        seriesStmt
-        sourceDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"notesStmt"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"seriesStmt"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sourceDesc"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -455,10 +415,9 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        notesStmt
-        seriesStmt
-        sourceDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"notesStmt"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"seriesStmt"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sourceDesc"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -467,41 +426,37 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, sourc
 fireEvent returned false
 possible events
 attributeName:
-    :
-        default
-        n
-        rend
-        rendition
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"default"}
+    {"ns":"","name":"n"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        bibl
-        biblFull
-        biblStruct
-        list
-        listBibl
-        p
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
 
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        bibl
-        biblFull
-        biblStruct
-        list
-        listBibl
-        p
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -510,81 +465,77 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 attributeName:
-    :
-        decls
-        n
-        rend
-        rendition
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"decls"}
+    {"ns":"","name":"n"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        p
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        abbr
-        add
-        address
-        bibl
-        biblFull
-        biblStruct
-        binaryObject
-        cb
-        choice
-        cit
-        corr
-        date
-        del
-        desc
-        distinct
-        email
-        emph
-        expan
-        figure
-        foreign
-        formula
-        gap
-        gloss
-        graphic
-        hi
-        idno
-        index
-        label
-        lb
-        list
-        listBibl
-        measure
-        measureGrp
-        mentioned
-        milestone
-        name
-        note
-        num
-        orig
-        pb
-        ptr
-        q
-        quote
-        ref
-        reg
-        rs
-        said
-        sic
-        soCalled
-        stage
-        table
-        term
-        time
-        title
-        unclear
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"abbr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"add"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"address"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"binaryObject"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"choice"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cit"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"corr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"date"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"del"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"desc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"distinct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"email"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"emph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"expan"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"foreign"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"formula"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gloss"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"graphic"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"hi"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"idno"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"label"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"measure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"measureGrp"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"mentioned"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"name"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"num"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"orig"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"ptr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"q"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"quote"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"ref"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"reg"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"rs"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"said"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sic"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"soCalled"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"stage"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"table"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"term"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"time"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"title"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"unclear"}
 text:
     *
 
@@ -592,11 +543,9 @@ invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        sourceDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sourceDesc"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        p
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -605,21 +554,17 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        sourceDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sourceDesc"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        p
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, sourceDesc
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        fileDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"fileDesc"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        sourceDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sourceDesc"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -628,23 +573,19 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        fileDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"fileDesc"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        sourceDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sourceDesc"}
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, fileDesc
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        teiHeader
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"teiHeader"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        encodingDesc
-        profileDesc
-        revisionDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"encodingDesc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"profileDesc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"revisionDesc"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -653,20 +594,17 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        teiHeader
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"teiHeader"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        encodingDesc
-        profileDesc
-        revisionDesc
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"encodingDesc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"profileDesc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"revisionDesc"}
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, teiHeader
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        text
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"text"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -675,8 +613,7 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        text
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"text"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -685,53 +622,49 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, text
 fireEvent returned false
 possible events
 attributeName:
-    :
-        decls
-        n
-        rend
-        rendition
-        subtype
-        type
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"decls"}
+    {"ns":"","name":"n"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"","name":"subtype"}
+    {"ns":"","name":"type"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        body
-        cb
-        figure
-        front
-        gap
-        group
-        index
-        lb
-        milestone
-        note
-        pb
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"body"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"front"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"group"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
 
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        body
-        cb
-        figure
-        front
-        gap
-        group
-        index
-        lb
-        milestone
-        note
-        pb
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"body"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"front"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"group"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -740,107 +673,103 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, body
 fireEvent returned false
 possible events
 attributeName:
-    :
-        decls
-        n
-        rend
-        rendition
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"decls"}
+    {"ns":"","name":"n"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        argument
-        bibl
-        biblFull
-        biblStruct
-        byline
-        cb
-        cit
-        dateline
-        desc
-        div
-        div1
-        divGen
-        docAuthor
-        docDate
-        epigraph
-        figure
-        floatingText
-        gap
-        head
-        index
-        l
-        label
-        lb
-        lg
-        list
-        listBibl
-        meeting
-        milestone
-        note
-        opener
-        p
-        pb
-        q
-        quote
-        said
-        salute
-        sp
-        stage
-        table
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"argument"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"byline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cit"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"dateline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"desc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div1"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"divGen"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docAuthor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docDate"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"epigraph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"floatingText"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"head"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"l"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"label"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lg"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"meeting"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"opener"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"q"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"quote"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"said"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"salute"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sp"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"stage"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"table"}
 
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        argument
-        bibl
-        biblFull
-        biblStruct
-        byline
-        cb
-        cit
-        dateline
-        desc
-        div
-        div1
-        divGen
-        docAuthor
-        docDate
-        epigraph
-        figure
-        floatingText
-        gap
-        head
-        index
-        l
-        label
-        lb
-        lg
-        list
-        listBibl
-        meeting
-        milestone
-        note
-        opener
-        p
-        pb
-        q
-        quote
-        said
-        salute
-        sp
-        stage
-        table
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"argument"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"byline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cit"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"dateline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"desc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div1"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"divGen"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docAuthor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docDate"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"epigraph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"floatingText"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"head"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"l"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"label"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lg"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"meeting"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"opener"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"q"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"quote"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"said"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"salute"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sp"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"stage"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"table"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -849,21 +778,19 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, div
 fireEvent returned false
 possible events
 attributeName:
-    :
-        decls
-        n
-        org
-        part
-        rend
-        rendition
-        sample
-        subtype
-        type
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"decls"}
+    {"ns":"","name":"n"}
+    {"ns":"","name":"org"}
+    {"ns":"","name":"part"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"","name":"sample"}
+    {"ns":"","name":"subtype"}
+    {"ns":"","name":"type"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: attributeName, , part
@@ -880,115 +807,109 @@ invoking fireEvent with Event: attributeValue, F
 fireEvent returned false
 possible events
 attributeName:
-    :
-        decls
-        n
-        org
-        rend
-        rendition
-        sample
-        subtype
-        type
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"decls"}
+    {"ns":"","name":"n"}
+    {"ns":"","name":"org"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"","name":"sample"}
+    {"ns":"","name":"subtype"}
+    {"ns":"","name":"type"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        div
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        argument
-        bibl
-        biblFull
-        biblStruct
-        byline
-        cb
-        cit
-        dateline
-        desc
-        div
-        divGen
-        docAuthor
-        docDate
-        epigraph
-        figure
-        floatingText
-        gap
-        head
-        index
-        l
-        label
-        lb
-        lg
-        list
-        listBibl
-        meeting
-        milestone
-        note
-        opener
-        p
-        pb
-        q
-        quote
-        said
-        salute
-        sp
-        stage
-        table
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"argument"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"byline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cit"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"dateline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"desc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"divGen"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docAuthor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docDate"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"epigraph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"floatingText"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"head"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"l"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"label"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lg"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"meeting"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"opener"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"q"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"quote"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"said"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"salute"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sp"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"stage"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"table"}
 
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        div
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        argument
-        bibl
-        biblFull
-        biblStruct
-        byline
-        cb
-        cit
-        dateline
-        desc
-        div
-        divGen
-        docAuthor
-        docDate
-        epigraph
-        figure
-        floatingText
-        gap
-        head
-        index
-        l
-        label
-        lb
-        lg
-        list
-        listBibl
-        meeting
-        milestone
-        note
-        opener
-        p
-        pb
-        q
-        quote
-        said
-        salute
-        sp
-        stage
-        table
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"argument"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"byline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cit"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"dateline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"desc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"divGen"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docAuthor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docDate"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"epigraph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"floatingText"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"head"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"l"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"label"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lg"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"meeting"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"opener"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"q"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"quote"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"said"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"salute"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sp"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"stage"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"table"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -997,81 +918,77 @@ invoking fireEvent with Event: enterStartTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 attributeName:
-    :
-        decls
-        n
-        rend
-        rendition
-    http://www.w3.org/XML/1998/namespace:
-        base
-        id
-        lang
-        space
+    {"ns":"","name":"decls"}
+    {"ns":"","name":"n"}
+    {"ns":"","name":"rend"}
+    {"ns":"","name":"rendition"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"base"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"id"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"lang"}
+    {"ns":"http://www.w3.org/XML/1998/namespace","name":"space"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        p
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        abbr
-        add
-        address
-        bibl
-        biblFull
-        biblStruct
-        binaryObject
-        cb
-        choice
-        cit
-        corr
-        date
-        del
-        desc
-        distinct
-        email
-        emph
-        expan
-        figure
-        foreign
-        formula
-        gap
-        gloss
-        graphic
-        hi
-        idno
-        index
-        label
-        lb
-        list
-        listBibl
-        measure
-        measureGrp
-        mentioned
-        milestone
-        name
-        note
-        num
-        orig
-        pb
-        ptr
-        q
-        quote
-        ref
-        reg
-        rs
-        said
-        sic
-        soCalled
-        stage
-        table
-        term
-        time
-        title
-        unclear
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"abbr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"add"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"address"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"binaryObject"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"choice"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cit"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"corr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"date"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"del"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"desc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"distinct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"email"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"emph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"expan"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"foreign"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"formula"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gloss"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"graphic"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"hi"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"idno"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"label"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"measure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"measureGrp"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"mentioned"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"name"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"num"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"orig"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"ptr"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"q"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"quote"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"ref"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"reg"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"rs"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"said"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sic"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"soCalled"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"stage"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"table"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"term"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"time"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"title"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"unclear"}
 text:
     *
 
@@ -1079,50 +996,48 @@ invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        div
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        argument
-        bibl
-        biblFull
-        biblStruct
-        byline
-        cb
-        cit
-        closer
-        dateline
-        desc
-        div
-        divGen
-        docAuthor
-        docDate
-        epigraph
-        figure
-        floatingText
-        gap
-        index
-        l
-        label
-        lb
-        lg
-        list
-        listBibl
-        meeting
-        milestone
-        note
-        p
-        pb
-        postscript
-        q
-        quote
-        said
-        salute
-        signed
-        sp
-        stage
-        table
-        trailer
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"argument"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"byline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cit"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"closer"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"dateline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"desc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"divGen"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docAuthor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docDate"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"epigraph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"floatingText"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"l"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"label"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lg"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"meeting"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"postscript"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"q"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"quote"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"said"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"salute"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"signed"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sp"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"stage"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"table"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"trailer"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1131,81 +1046,77 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        div
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        argument
-        bibl
-        biblFull
-        biblStruct
-        byline
-        cb
-        cit
-        closer
-        dateline
-        desc
-        div
-        divGen
-        docAuthor
-        docDate
-        epigraph
-        figure
-        floatingText
-        gap
-        index
-        l
-        label
-        lb
-        lg
-        list
-        listBibl
-        meeting
-        milestone
-        note
-        p
-        pb
-        postscript
-        q
-        quote
-        said
-        salute
-        signed
-        sp
-        stage
-        table
-        trailer
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"argument"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"bibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblFull"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"biblStruct"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"byline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cit"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"closer"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"dateline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"desc"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"divGen"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docAuthor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docDate"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"epigraph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"floatingText"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"l"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"label"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lg"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"list"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"listBibl"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"meeting"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"p"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"postscript"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"q"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"quote"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"said"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"salute"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"signed"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"sp"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"stage"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"table"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"trailer"}
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, div
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        body
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"body"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        argument
-        byline
-        cb
-        closer
-        dateline
-        div
-        divGen
-        docAuthor
-        docDate
-        epigraph
-        figure
-        gap
-        index
-        lb
-        meeting
-        milestone
-        note
-        pb
-        postscript
-        salute
-        signed
-        trailer
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"argument"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"byline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"closer"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"dateline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"divGen"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docAuthor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docDate"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"epigraph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"meeting"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"postscript"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"salute"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"signed"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"trailer"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1214,50 +1125,46 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        body
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"body"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        argument
-        byline
-        cb
-        closer
-        dateline
-        div
-        divGen
-        docAuthor
-        docDate
-        epigraph
-        figure
-        gap
-        index
-        lb
-        meeting
-        milestone
-        note
-        pb
-        postscript
-        salute
-        signed
-        trailer
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"argument"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"byline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"closer"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"dateline"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"div"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"divGen"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docAuthor"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"docDate"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"epigraph"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"meeting"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"postscript"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"salute"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"signed"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"trailer"}
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, body
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        text
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"text"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        back
-        cb
-        figure
-        gap
-        index
-        lb
-        milestone
-        note
-        pb
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"back"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1266,26 +1173,23 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        text
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"text"}
 enterStartTag:
-    http://www.tei-c.org/ns/1.0:
-        back
-        cb
-        figure
-        gap
-        index
-        lb
-        milestone
-        note
-        pb
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"back"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"cb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"figure"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"gap"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"index"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"lb"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"milestone"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"note"}
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"pb"}
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, text
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        TEI
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"TEI"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1294,8 +1198,7 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    http://www.tei-c.org/ns/1.0:
-        TEI
+    {"ns":"http://www.tei-c.org/ns/1.0","name":"TEI"}
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, TEI
 fireEvent returned false

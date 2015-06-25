@@ -74,7 +74,7 @@ parser.addArgument(["--include-paths"], {
 parser.addArgument(["--format-version"], {
     help: "Version number of the JavaScript format that the tool must produce.",
     type: Number,
-    defaultValue: 2
+    defaultValue: 3
 });
 parser.addArgument(["--simplify-only"], {
     help: "Stop converting at the simplification stage.",
@@ -116,7 +116,7 @@ if (args.timing)
 if (args.verbose_format)
     args.no_optimize_ids = true;
 
-if (args.format_version < 2)
+if (args.format_version < 3)
     throw new Fatal("can't produce format version " + args.format_version);
 
 var temp_dir;
@@ -129,23 +129,16 @@ else {
             var start_time = new Date();
     }
 
-    var relaxng_rng = path.resolve(__dirname,
-                                   path.join("..", "lib", "salve",
-                                             "relaxng.rng"));
-
     // This is a bit of a hack. We want to make sure that the schema
-    // is a valid RNG schema as per RNG specs. Running an xmllint on
-    // the schema with a schema that defines what an RNG schema should
-    // look like does not trap import errors or errors that are not
-    // expressible in a schema language. The tools trang and jing
-    // could possibly be used but they are costly to run. So we run
-    // xmllint with our schema as the schema to use for validation and
-    // /dev/null as the document to validate. This does catch errors
-    // but there is no clean way to get xmllint to output only schema
-    // errors, hence what we have here.
+    // is a valid RNG schema as per RNG specs. Running validation on
+    // our schema with a schema that defines a valid schema sctructure
+    // does not trap import errors or errors that are not expressible
+    // in a schema language. So we run jing with our schema as the
+    // schema to use for validation and /dev/null as the document to
+    // validate. This does catch errors but there is no clean way to
+    // get jing to output only schema errors, hence what we have here.
 
-    var child = spawn("jing", [args.input_path,
-                                  "/dev/null"],
+    var child = spawn("jing", [args.input_path, "/dev/null"],
                       {stdio: ['ignore', 'pipe', 'ignore']});
 
     var err = "";
@@ -303,9 +296,9 @@ function convert(simplified_path) {
                                                             {xmlns: true}));
     var walker;
     switch(args.format_version) {
-    case 2:
-        walker = new conversion.ConversionWalkerV2(args.include_paths,
-                                                   args.verbose_format);
+    case 3:
+        walker = new conversion.DefaultConversionWalker(
+            args.format_version, args.include_paths, args.verbose_format);
         break;
     default:
         throw new Error("unknown version: " + args.format_version);
@@ -318,7 +311,7 @@ function convert(simplified_path) {
         fs.writeFileSync(args.output_path, walker.output.join(""));
     }
     else {
-        if (args.format_version === 2) {
+        if (args.format_version === 3) {
             // Gather names
             var g = new conversion.NameGatherer();
             g.walk(parser.stack[0].children[0]);

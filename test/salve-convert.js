@@ -76,9 +76,9 @@ describe("salve-convert", function () {
         }
     });
 
-    it("when producing v1 does not output paths by default", function (done) {
+    it("allows not optimizing ids", function (done) {
         var inpath = "test/tei/simplified.rng";
-        var expath = "test/tei/simplified-rng-v1.js";
+        var expath = "test/tei/simplified-rng-not-optimized.js";
 
         salve_convert(inpath, expath, ["--simplified-input",
                                        "--allow-incomplete-types=quiet",
@@ -87,7 +87,7 @@ describe("salve-convert", function () {
 
     it("optimizes ids", function (done) {
         var inpath = "test/tei/simplified.rng";
-        var expath = "test/tei/simplified-rng-v1-optimized-ids.js";
+        var expath = "test/tei/simplified-rng.js";
 
         salve_convert(inpath, expath, ["--simplified-input",
                                        "--allow-incomplete-types=quiet",
@@ -96,14 +96,14 @@ describe("salve-convert", function () {
 
     it("default execution", function (done) {
         var inpath = "test/tei/myTEI.rng";
-        var expath = "test/tei/simplified-rng-v1-optimized-ids.js";
+        var expath = "test/tei/simplified-rng.js";
 
         salve_convert(inpath, expath, ["--allow-incomplete-types=quiet"], done);
     });
 
     it("include paths", function (done) {
         var inpath = "test/tei/myTEI.rng";
-        var expath = "test/tei/simplified-rng-v1-optimized-ids.js";
+        var expath = "test/tei/simplified-rng.js";
 
         // Test created to deal with an internal error, so we don't
         // check the output.

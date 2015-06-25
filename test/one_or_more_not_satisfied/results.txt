@@ -81,7 +81,7 @@ invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 
 invoking fireEvent with Event: endTag, , em
-fireEvent returned tag required: {}b
+fireEvent returned tag required: {"ns":"","name":"b"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false

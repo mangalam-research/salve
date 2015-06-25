@@ -1,0 +1,330 @@
+wholly context-independent true
+possible events
+enterStartTag:
+    {"ns":"","name":"top"}
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: definePrefix, bar, foo:foo
+fireEvent returned false
+
+invoking fireEvent with Event: definePrefix, q, q
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , top
+fireEvent returned false
+possible events
+attributeName:
+    {"pattern":"AnyName"}
+
+invoking fireEvent with Event: attributeName, q, blah
+fireEvent returned false
+possible events
+attributeValue:
+    *
+
+invoking fireEvent with Event: attributeValue, foo
+fireEvent returned false
+possible events
+attributeName:
+    {"pattern":"AnyName"}
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    {"ns":"foo:foo"}
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    {"ns":"foo:foo"}
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, foo:foo, a
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+enterStartTag:
+    {"pattern":"AnyName"}
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    {"pattern":"AnyName"}
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, q, b
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"q","name":"b"}
+enterStartTag:
+    {"pattern":"AnyName"}
+
+invoking fireEvent with Event: endTag, q, b
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"foo:foo","name":"a"}
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"foo:foo","name":"a"}
+
+invoking fireEvent with Event: endTag, foo:foo, a
+fireEvent returned false
+possible events
+enterStartTag:
+    {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , foo
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"","name":"foo"}
+enterStartTag:
+    {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"","name":"foo"}
+enterStartTag:
+    {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , bar
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"","name":"bar"}
+enterStartTag:
+    {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"","name":"bar"}
+enterStartTag:
+    {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, , foo
+fireEvent returned false
+possible events
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"","name":"foo"}
+enterStartTag:
+    {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+
+invoking fireEvent with Event: endTag, , foo
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"","name":"bar"}
+enterStartTag:
+    {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"","name":"bar"}
+enterStartTag:
+    {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+
+invoking fireEvent with Event: endTag, , bar
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"","name":"foo"}
+enterStartTag:
+    {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"","name":"foo"}
+enterStartTag:
+    {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+
+invoking fireEvent with Event: endTag, , foo
+fireEvent returned false
+possible events
+enterStartTag:
+    {"pattern":"AnyName","except":{"ns":"foo:foo","except":{"ns":"foo:foo","name":"a"}}}
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+enterStartTag:
+    {"pattern":"AnyName","except":{"ns":"foo:foo","except":{"ns":"foo:foo","name":"a"}}}
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, foo:foo, a
+fireEvent returned false
+possible events
+attributeName:
+    {"pattern":"AnyName","except":{"ns":"foo:foo","except":{"ns":"foo:foo","name":"a"}}}
+leaveStartTag
+
+invoking fireEvent with Event: attributeName, foo:foo, a
+fireEvent returned false
+possible events
+attributeValue:
+    *
+
+invoking fireEvent with Event: attributeValue, x
+fireEvent returned false
+possible events
+attributeName:
+    {"pattern":"AnyName","except":{"ns":"foo:foo","except":{"ns":"foo:foo","name":"a"}}}
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"foo:foo","name":"a"}
+enterStartTag:
+    {"pattern":"AnyName","except":{"ns":"foo:foo","except":{"ns":"foo:foo","name":"a"}}}
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"foo:foo","name":"a"}
+enterStartTag:
+    {"pattern":"AnyName","except":{"ns":"foo:foo","except":{"ns":"foo:foo","name":"a"}}}
+
+invoking fireEvent with Event: enterContext
+fireEvent returned false
+
+invoking fireEvent with Event: enterStartTag, q, a
+fireEvent returned false
+possible events
+attributeName:
+    {"pattern":"AnyName","except":{"ns":"foo:foo","except":{"ns":"foo:foo","name":"a"}}}
+leaveStartTag
+
+invoking fireEvent with Event: leaveStartTag
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"q","name":"a"}
+enterStartTag:
+    {"pattern":"AnyName","except":{"ns":"foo:foo","except":{"ns":"foo:foo","name":"a"}}}
+
+invoking fireEvent with Event: endTag, q, a
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"foo:foo","name":"a"}
+enterStartTag:
+    {"pattern":"AnyName","except":{"ns":"foo:foo","except":{"ns":"foo:foo","name":"a"}}}
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"foo:foo","name":"a"}
+enterStartTag:
+    {"pattern":"AnyName","except":{"ns":"foo:foo","except":{"ns":"foo:foo","name":"a"}}}
+
+invoking fireEvent with Event: endTag, foo:foo, a
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"","name":"top"}
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+endTag:
+    {"ns":"","name":"top"}
+
+invoking fireEvent with Event: endTag, , top
+fireEvent returned false
+possible events
+
+invoking fireEvent with Event: leaveContext
+fireEvent returned false
+
+invoking fireEvent with Event: text,
+fireEvent returned false
+possible events
+end returned false

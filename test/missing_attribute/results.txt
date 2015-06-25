@@ -1,15 +1,15 @@
 fireEvent returned false
 fireEvent returned false
-fireEvent returned attribute missing: {}style
+fireEvent returned attribute missing: {"ns":"","name":"style"}
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false
 fireEvent returned false
-fireEvent returned tag required: {}title
+fireEvent returned tag required: {"ns":"","name":"title"}
 fireEvent returned false
 fireEvent returned false
-fireEvent returned tag required: {}body
+fireEvent returned tag required: {"ns":"","name":"body"}
 fireEvent returned false
 fireEvent returned false
 end returned false
