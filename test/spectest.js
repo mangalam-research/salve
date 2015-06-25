@@ -25,11 +25,6 @@ var skips = {
     }
 };
 
-// No except support yet.
-[142, 264, 267].forEach(function (x) {
-    skips["test" + x] = {correct : true};
-});
-
 var spectest_dir = path.join(__dirname, "spectest");
 
 var test_dirs = fs.readdirSync(spectest_dir);

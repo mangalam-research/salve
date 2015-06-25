@@ -42,9 +42,6 @@ design, the following limitations:
   parameters ``minInclusive``, ``minExclusive``, ``maxInclusive`` and
   ``maxExclusive``.
 
-* Does not support ``<except>`` outside of name classes. (``<except>``
-  **in** name classes is supported.)
-
 * Text meant to be contiguous must be passed to salve in one event. In
   particular, comments and processing instructions are invisible to
   salve. (There are no events for them.) Take for instance, this XML:

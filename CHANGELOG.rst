@@ -5,12 +5,14 @@ issue reported on github.
 
 * 0.24.0:
 
-  - Added support for ``<nsName>``, ``<anyName>`` and ``<except>`` in
-    names. (``<except>`` is supported **only** in names for now.)
 
   - This version is a major departure from previous versions. Code
     that worked with older versions will **not** work with this
     version without being modified.
+
+  - Added support for ``<nsName>`` and ``<anyName>``.
+
+  - Added support for ``<except>``.
 
   - API change: the ``attributeName``, ``enterStartTag`` and
     ``endTag`` events returned by ``possible()`` now have a
