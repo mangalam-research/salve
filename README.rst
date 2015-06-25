@@ -89,10 +89,14 @@ following components:
           those you want to execute.
 
 A good example of this division of labor can be found in
-`<bin/parse.js>`_ and in the test suite. In both cases the
-tokenizer function is performed by ``sax``, and the parser function is
-performed by a parser object that ``sax`` creates, customized to call
-salve's ``Walker.fireEvent()``.
+`<bin/parse.js>`_ and in the test suite. In both cases the tokenizer
+function is performed by ``sax``, and the parser function is performed
+by a parser object that ``sax`` creates, customized to call salve's
+``Walker.fireEvent()``. Developers should keep in mind that ``sax`` is
+a bit limited in the kind of validation it performs. In particular,
+given the string ``<foo></bar></foo>``, ``sax`` will detect the
+problem with ``</bar>`` but will *also* pass it as text to the code
+that uses the ``sax`` parser.
 
 Basic Usage
 ===========
