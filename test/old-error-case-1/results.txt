@@ -32,7 +32,7 @@ endTag:
 enterStartTag:
     {"ns":"foo","name":"b"}
 text:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false

@@ -38,7 +38,7 @@ invoking fireEvent with Event: attributeName, , colibri
 fireEvent returned false
 possible events
 attributeValue:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: attributeValue, a
 fireEvent returned false
@@ -55,7 +55,7 @@ endTag:
 enterStartTag:
     {"ns":"","name":"b"}
 text:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: text, tata
 fireEvent returned false
@@ -63,7 +63,7 @@ possible events
 endTag:
     {"ns":"","name":"a"}
 text:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: endTag, , a
 fireEvent returned false

@@ -244,7 +244,7 @@ enterStartTag:
     {"ns":"http://www.tei-c.org/ns/1.0","name":"unclear"}
     {"ns":"http://www.tei-c.org/ns/1.0","name":"undo"}
 text:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, title
 fireEvent returned false
@@ -453,7 +453,7 @@ enterStartTag:
     {"ns":"http://www.tei-c.org/ns/1.0","name":"unclear"}
     {"ns":"http://www.tei-c.org/ns/1.0","name":"undo"}
 text:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
@@ -645,7 +645,7 @@ enterStartTag:
     {"ns":"http://www.tei-c.org/ns/1.0","name":"unclear"}
     {"ns":"http://www.tei-c.org/ns/1.0","name":"undo"}
 text:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
@@ -1037,7 +1037,7 @@ enterStartTag:
     {"ns":"http://www.tei-c.org/ns/1.0","name":"unclear"}
     {"ns":"http://www.tei-c.org/ns/1.0","name":"undo"}
 text:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false

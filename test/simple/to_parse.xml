@@ -4,5 +4,6 @@
 abc<em>def<em test=""></em></em>
 <int><foo/><bar/><baz><baz/></baz></int>
 <mix>a<foo/>b<baz><baz/></baz>c<foo/>d</mix>
+<bat test="*"/>
 </body>
 </html>

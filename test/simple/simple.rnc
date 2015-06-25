@@ -9,7 +9,7 @@ html =
   }
 head = element head { title }
 title = element title { text }
-body = element body { (empty | (text | em)+), int?, mix? }
+body = element body { (empty | (text | em)+), int?, mix?, bat? }
 em = element em {
    (empty | (text | em)+),
    attribute test { xsd:string }?
@@ -20,4 +20,5 @@ int = element int {
 foo = element foo { empty }
 bar = element bar { empty }
 baz = element baz { baz? }
+bat = element bat { attribute test { "*" }? }
 mix = element mix { mixed { (foo | baz)* } }

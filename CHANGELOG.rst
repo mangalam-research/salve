@@ -5,7 +5,6 @@ issue reported on github.
 
 * 0.24.0:
 
-
   - This version is a major departure from previous versions. Code
     that worked with older versions will **not** work with this
     version without being modified.
@@ -30,6 +29,13 @@ issue reported on github.
   - API change: salve now requires the converted schema files to be
     version 3 of the format. This means you have to reconvert your old
     schemas with ``salve-convert`` for them to work with 0.24.0.
+
+  - Bug fix and API change: previous versions of salve would indicate
+    that ``<text/>`` was possible by returning an event with
+    ``"text"`` as the first parameter and ``"*"`` as the second. This
+    was ambiguous because a ``<value>`` that allows only an asterisk
+    would also return the same event. ``<text/>`` is now indicated by
+    the regular expression ``/^.*$/`` in the second position.
 
 * 0.23.0:
 

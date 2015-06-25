@@ -22,7 +22,7 @@ invoking fireEvent with Event: attributeName, q, blah
 fireEvent returned false
 possible events
 attributeValue:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: attributeValue, foo
 fireEvent returned false
@@ -240,7 +240,7 @@ invoking fireEvent with Event: attributeName, foo:foo, a
 fireEvent returned false
 possible events
 attributeValue:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: attributeValue, x
 fireEvent returned false
