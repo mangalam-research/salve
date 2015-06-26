@@ -89,7 +89,8 @@ module.exports = function(grunt) {
         copy: {
             build: {
                 files: [
-                    { src: ["package.json",
+                    { expand: true,
+                      src: ["package.json",
                             "bin/*",
                             "lib/**/*.js",
                             "lib/**/*.xsl"],
