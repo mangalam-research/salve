@@ -53,6 +53,21 @@ article h1, article h2, article h3, article h4
     color: black;
 }
 
+article h1 {
+    font-size: xx-large;
+    font-weight: bold;
+    margin-left: 0px;
+}
+
+article h2 {
+    font-size: x-large;
+    font-weight: bold;
+}
+
+article h3 {
+    font-size: large;
+}
+
 .class-description {
     font-style: normal;
 }
@@ -75,7 +90,7 @@ nav h2 a, nav h2 a:visited {
     color: white;
 }
 
-nav h3, nav li, nav a, nav a:visited, nav a:active {
+nav h3, nav ul a, nav ul a:visited, nav ul a:active {
     color: #98dbcc;
 }
 

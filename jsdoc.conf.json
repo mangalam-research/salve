@@ -9,6 +9,6 @@
     },
     "opts": {
         "template": "build/jsdoc_template",
-        "lenient": false
+        "pedantic": true
     }
 }
