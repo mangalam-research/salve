@@ -256,6 +256,7 @@ module.exports = function(grunt) {
         },
         mochaTest: {
             options:  {
+                reporter: 'dot',
                 grep: new RegExp(config.mocha_grep)
             },
             src: ["test/*.js"]
