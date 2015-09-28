@@ -515,13 +515,13 @@ Documentation
 The code is documented using jsdoc3. The following command will
 generate the documentation::
 
-    $ grunt doc
+    $ gulp doc
 
-You may need to create a ``local.grunt`` module to tell grunt where to
-get jsdoc3 and rst2html. (Defaults are such that grunt will use a
-jsdoc shipped with grunt-jsdoc, and will use your ``PATH`` to locate
-rst2html.) The formatted jsdoc3 will appear in the `<build/api/>`_
-subdirectory, and the `<README.html>`_ in the root of the source tree.
+You may need to create a ``gulp.local`` module to tell ``gulp`` where
+to get ``jsdoc`` and ``rst2html``. (Defaults are such that ``gulp``
+will use your ``PATH`` to locate them.) The formatted jsdoc3 will
+appear in the `<build/api/>`_ subdirectory, and the `<README.html>`_
+in the root of the source tree.
 
 .. warning:: All the public interfaces of salve are available through
              the ``validate`` module. However, ``validate`` is a
@@ -563,12 +563,9 @@ Running ``salve-convert`` additionally requires that ``xmllint``,
 
 Running salve's tests **additionally** requires that the development
 dependencies be installed. Please see the `<package.json>`_ file for
-details regarding these dependencies. Note that the following packages
-must be installed so that their executables are in your path:
-
-* grunt-cli (to launch grunt)
-* semver-sync
-* jison
+details regarding these dependencies. Note that ``gulp`` should be
+installed so that its executable is in your path.  Either this, or you
+will have to execute ``./node_modules/.bin/gulp``
 
 If you want to contribute to salve, your code will have to pass the
 checks listed in `<.glerbl/repo_conf.py>`_. So you either have to
@@ -578,12 +575,12 @@ through other means. See Contributing_.
 Build System
 ============
 
-Salve uses grunt. Salve's `<Gruntfile.js>`_ gets the values for its
+Salve uses gulp. Salve's `<gulpfile.js>`_ gets the values for its
 configuration variables from three sources:
 
 * Internal default values.
 
-* From an optional ``local.grunt.js`` module that can override the
+* From an optional ``gulp.local.js`` module that can override the
   internal defaults.
 
 * From command line options that can override everything above.
@@ -610,7 +607,7 @@ The variables that can be set are:
 Note that when used on the command line, underscores become dashes, thus
 ``--mocha-grep`` and ``--jsdoc-private``.
 
-The ``local.grunt.js`` file is a module. You must export values
+The ``gulp.local.js`` file is a module. You must export values
 like this::
 
     exports.jsdoc3 = "/usr/local/blah/jsdoc"
@@ -620,7 +617,7 @@ Building
 
 Run::
 
-    $ grunt
+    $ gulp
 
 This will create a `<build/dist/>`_ subdirectory in which the
 JavaScript necessary to validate XML files against a prepared Relax NG
@@ -672,10 +669,10 @@ Testing
 
 Running the following command from the root of salve will run the tests::
 
-    $ grunt test
+    $ gulp test
 
 Running ``mocha`` directly also works, but this may run the test against
-stale code, whereas ``grunt test`` always runs a build first.
+stale code, whereas ``gulp test`` always runs a build first.
 
 Contributing
 ============
