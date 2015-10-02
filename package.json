@@ -44,7 +44,8 @@
         "del": ">=2.0.2 <3",
         "touch": ">=1.0.0 <2",
         "bluebird": ">=2.10.1 <3",
-        "jison": "~0.4.15"
+        "jison": "~0.4.15",
+        "babel-core": ">= 5.8.25, <6"
     },
     "bin": {
         "salve-convert": "./bin/salve-convert"
