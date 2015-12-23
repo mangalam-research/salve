@@ -1,15 +1,15 @@
-#API Documentation
+# API Documentation
 
 Welcome to documentation for the salve project's JavaScript API.
 
-##Note
+## Note
 
 By default, this documentation generated for salve includes only the
 public API. You should consider any function at the top level of a
 module that is marked `<inner>` to be public. These functions appear
 as `<inner>` due to a limitation of jsdoc3.
 
-#Salve's Internals
+# Salve's Internals
 
 ## Context Cheats
 
@@ -34,7 +34,7 @@ two methods that take an ``attribute`` argument telling them whether
 they've been called in a context where only attributes are valid, or
 not. These are ``canEnd`` and ``end``.
 
-##Events
+## Events
 
 If you ever look at salve's internals be aware that as an
 implementation convenience, patterns that accept ``text`` events also
@@ -43,7 +43,7 @@ both. However, these elements will only return ``text`` as a possible
 event. ``AttributeWalker`` is responsible to convert it to
 ``attributeValue``.
 
-#Getting salve
+# Getting salve
 
 Please see the project
 [README](https://github.com/mangalam-research/salve/tree/develop#readme)
@@ -54,13 +54,13 @@ Download a [zip](https://github.com/mangalam-research/salve/zipball/master)
 or a [tarball](https://github.com/mangalam-research/salve/tarball/master)
 of the project's source.
 
-#License
+# License
 
 Salve is released under the [Mozilla Public License version
-2.0](http://www.mozilla.org/MPL/2.0/). Copyright 2013, 2014 Mangalam
+2.0](http://www.mozilla.org/MPL/2.0/). Copyright 2013-2015 Mangalam
 Research Center for Buddhist Languages, Berkeley, CA.
 
-#Credits
+# Credits
 
 Wed is designed and developed by Louis-Dominique Dubeau
 ([@lddubeau](https://github.com/lddubeau)), Director of Software

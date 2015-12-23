@@ -56,7 +56,7 @@ parser.addArgument(['target'], {
 
 parser.addArgument(['--jsdoc'], {
     help: "Set which jsdoc executable to use.",
-    defaultValue: local_config.jsdoc || "jsdoc"
+    defaultValue: local_config.jsdoc || "./node_modules/.bin/jsdoc"
 });
 
 parser.addArgument(["--jsdoc-private"], {
@@ -68,11 +68,6 @@ parser.addArgument(["--jsdoc-private"], {
 parser.addArgument(["--jsdoc-required-version"], {
     help: "The version of jsdoc needed to generate the documentation.",
     defaultValue: local_config.jsdoc_required_version || "3.2.2"
-});
-
-parser.addArgument(["--jsdoc-template-dir"], {
-    help: "The path to jsdoc's default template.",
-    defaultValue: local_config.jsdoc_template_dir
 });
 
 parser.addArgument(["--mocha-grep"], {
@@ -139,46 +134,9 @@ gulp.task('install_test', ["default"], Promise.coroutine(function *() {
 gulp.task('publish', ['install_test'],
           () => execFileAsync("npm", ["publish", packname], { cwd: "build" } ));
 
-gulp.task("jsdoc-template-exists", () => {
-    if (!options.jsdoc_template_dir ||
-        !fs.existsSync(path.join(options.jsdoc_template_dir, "publish.js"))) {
-        throw new Error(
-            "JSDoc default template directory invalid or not provided.");
-    }
-});
-
-const jsdoc_template_exclude_files = [];
-
-gulp.task("copy-jsdoc-custom-template-files", () => {
-    const dest = "build/jsdoc_template/";
-    // Set the files that will overwrite or supplement files in the
-    // jsdoc template.
-    return gulp.src("**/*", { cwd: "misc/jsdoc_template"})
-        .pipe(tap(file => {
-            jsdoc_template_exclude_files.push(
-                "!" + path.relative(file.base, file.path));
-        }))
-    // Yes, newer goes *after* we get the tap...
-        .pipe(newer(dest))
-        .pipe(gulp.dest(dest));
-});
-
-gulp.task("copy-jsdoc-template",
-          ["jsdoc-template-exists", "copy-jsdoc-custom-template-files"],
-          () => {
-    const dest = "build/jsdoc_template/";
-    // The concat excludes those files that are to be overwritten by
-    // our custom template.
-    return gulp.src(["**/*"].concat(jsdoc_template_exclude_files),
-                    { cwd: options.jsdoc_template_dir})
-        .pipe(newer(dest))
-        .pipe(gulp.dest(dest));
-});
-
 gulp.task("check-jsdoc-version", (callback) => {
     // Check that the local version of JSDoc is the same or better
     // than the version deemed required for proper output.
-    // This is a callback used by the grunt-shell task.
     child_process.execFile(
         options.jsdoc, ["-v"], (err, stdout, stderr) => {
         if (err)
@@ -212,17 +170,13 @@ gulp.task("check-jsdoc-version", (callback) => {
     });
 });
 
-gulp.task("jsdoc", ["check-jsdoc-version", "copy-jsdoc-template"],
-          (callback) => {
+gulp.task("jsdoc", ["check-jsdoc-version"], (callback) => {
     const src = ["lib/**/*.js", "doc/api_intro.md", "package.json"];
-    const template_src = ["build/jsdoc_template/**"];
 
     const dest = "build/api";
-    const filter = gulpFilter(src);
     const stamp = "build/api.stamp";
-    gulp.src(src.concat(template_src), { read: false, base: '.' })
+    gulp.src(src, { read: false, base: '.' })
         .pipe(newer(stamp))
-        .pipe(filter)
         .pipe(reduce( (acc, data) => {
             acc.push(data);
             return acc;
