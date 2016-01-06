@@ -231,7 +231,7 @@ gulp.task("semver",
 //               grep: options.mocha_grep
 //           })));
 
-gulp.task("mocha", (callback) => {
+gulp.task("mocha", ["default"], (callback) => {
     const child = child_process.spawn(
         "./node_modules/.bin/mocha",
         options.mocha_grep ? ["--grep", options.mocha_grep]: [],
