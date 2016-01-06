@@ -3,7 +3,7 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
-* 0.24.0:
+* 1.0.0:
 
   - This version is a major departure from previous versions. Code
     that worked with older versions will **not** work with this
@@ -36,6 +36,8 @@ issue reported on github.
     was ambiguous because a ``<value>`` that allows only an asterisk
     would also return the same event. ``<text/>`` is now indicated by
     the regular expression ``/^.*$/`` in the second position.
+
+  - The build system now uses Gulp rather than Grunt.
 
 * 0.23.0:
 
