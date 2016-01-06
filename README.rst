@@ -721,7 +721,7 @@ Original Code
 
 Code completely original to salve is released under the `Mozilla
 Public License version 2.0
-<http://www.mozilla.org/MPL/2.0/>`_. Copyright 2013, 2014 Mangalam
+<http://www.mozilla.org/MPL/2.0/>`_. Copyright 2013-2015 Mangalam
 Research Center for Buddhist Languages, Berkeley, CA.
 
 RNG Simplification Code

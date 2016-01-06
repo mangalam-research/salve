@@ -57,7 +57,7 @@ of the project's source.
 # License
 
 Salve is released under the [Mozilla Public License version
-2.0](http://www.mozilla.org/MPL/2.0/). Copyright 2013-2015 Mangalam
+2.0](http://www.mozilla.org/MPL/2.0/). Copyright 2013-2016 Mangalam
 Research Center for Buddhist Languages, Berkeley, CA.
 
 # Credits
