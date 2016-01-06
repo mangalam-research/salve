@@ -4,12 +4,12 @@
     "version": "1.0.0",
     "versionedSources": "lib/salve/validate.js",
     "keywords": ["RelaxNG", "rng", "XML", "validation"],
-    "homepage" : "https://github.com/mangalam-research/salve",
+    "homepage": "https://github.com/mangalam-research/salve",
     "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
     "main": "lib/salve/validate.js",
-    "repository" : {
-        "type" : "git",
-        "url" : "https://github.com/mangalam-research/salve.git"
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mangalam-research/salve.git"
     },
     "licenses": [ {
         "type": "MPL",
@@ -18,8 +18,8 @@
     {
         "type": "CeCILL",
         "url": "http://www.cecill.info"
-    }],
-    "engines" : { "node" : ">=0.10.0 <6" },
+    } ],
+    "engines": { "node": ">=0.12.0 <6" },
     "dependencies": {
         "amd-loader": "~0.0.4",
         "argparse": ">=1 <2",
@@ -29,24 +29,27 @@
         "xregexp": "2.0.0"
     },
     "devDependencies": {
-        "mocha": ">=2 <3",
+        "babel-core": ">= 5.8.25, <6",
+        "bluebird": ">=2.10.1 <3",
         "chai": ">=3 <4",
-        "semver-sync": ">=1.2.0",
-        "load-grunt-tasks": ">=0.6.0 <4",
+        "del": ">=2.0.2 <3",
+        "event-stream": ">=3.3.2 <4",
         "gulp": ">=3.9.0 <4",
+        "gulp-debug": ">=2.1.2 <3",
+        "gulp-filter": ">=3.0.1 <4",
+        "gulp-jison": ">=1.2.0 <2",
+        "gulp-mocha": ">=2.1.3 <3",
         "gulp-newer": ">=0.3.4 <1",
         "gulp-rename": ">=1.2.2 < 2",
-        "gulp-jison": ">=1.2.0 <2",
         "gulp-replace": ">=0.5.4 <1",
         "gulp-tap": ">=0.1.3 <1",
-        "gulp-mocha": ">=2.1.3 <3",
-        "stream-reduce": ">=1.0.3 <2",
-        "del": ">=2.0.2 <3",
-        "touch": ">=1.0.0 <2",
-        "bluebird": ">=2.10.1 <3",
         "jison": "~0.4.15",
         "jsdoc": "3.4.0",
-        "babel-core": ">= 5.8.25, <6"
+        "load-grunt-tasks": ">=0.6.0 <4",
+        "mocha": ">=2 <3",
+        "semver-sync": ">=1.2.0",
+        "stream-reduce": ">=1.0.3 <2",
+        "touch": ">=1.0.0 <2"
     },
     "bin": {
         "salve-convert": "./bin/salve-convert"
