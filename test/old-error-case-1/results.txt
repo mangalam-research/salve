@@ -1,8 +1,7 @@
 wholly context-independent true
 possible events
 enterStartTag:
-    foo:
-        a
+    {"ns":"foo","name":"a"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -14,8 +13,7 @@ invoking fireEvent with Event: enterStartTag, foo, a
 fireEvent returned false
 possible events
 attributeName:
-    :
-        c
+    {"ns":"","name":"c"}
 
 invoking fireEvent with Event: attributeName, , c
 fireEvent returned false
@@ -30,13 +28,11 @@ invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    foo:
-        a
+    {"ns":"foo","name":"a"}
 enterStartTag:
-    foo:
-        b
+    {"ns":"foo","name":"b"}
 text:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -50,15 +46,13 @@ invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    foo:
-        b
+    {"ns":"foo","name":"b"}
 
 invoking fireEvent with Event: endTag, foo, b
 fireEvent returned false
 possible events
 endTag:
-    foo:
-        a
+    {"ns":"foo","name":"a"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false

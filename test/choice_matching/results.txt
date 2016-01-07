@@ -1,8 +1,7 @@
 wholly context-independent false
 possible events
 enterStartTag:
-    :
-        test
+    {"ns":"","name":"test"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -16,15 +15,13 @@ invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 enterStartTag:
-    :
-        a
+    {"ns":"","name":"a"}
 
 invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 enterStartTag:
-    :
-        a
+    {"ns":"","name":"a"}
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -33,52 +30,46 @@ invoking fireEvent with Event: enterStartTag, , a
 fireEvent returned false
 possible events
 attributeName:
-    :
-        blip
-        colibri
-        hamster
+    {"ns":"","name":"blip"}
+    {"ns":"","name":"colibri"}
+    {"ns":"","name":"hamster"}
 
 invoking fireEvent with Event: attributeName, , colibri
 fireEvent returned false
 possible events
 attributeValue:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: attributeValue, a
 fireEvent returned false
 possible events
 attributeName:
-    :
-        blip
+    {"ns":"","name":"blip"}
 leaveStartTag
 
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 possible events
 endTag:
-    :
-        a
+    {"ns":"","name":"a"}
 enterStartTag:
-    :
-        b
+    {"ns":"","name":"b"}
 text:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: text, tata
 fireEvent returned false
 possible events
 endTag:
-    :
-        a
+    {"ns":"","name":"a"}
 text:
-    *
+    /^.*$/
 
 invoking fireEvent with Event: endTag, , a
 fireEvent returned false
 possible events
 endTag:
-    :
-        test
+    {"ns":"","name":"test"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -87,8 +78,7 @@ invoking fireEvent with Event: text,
 fireEvent returned false
 possible events
 endTag:
-    :
-        test
+    {"ns":"","name":"test"}
 
 invoking fireEvent with Event: endTag, , test
 fireEvent returned false

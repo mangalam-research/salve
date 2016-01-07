@@ -22,27 +22,8 @@ var skips = {
     "test56": {
         // There is a bug in libxml2 which lets this one pass through.
         incorrect: true
-    },
-    "test224": {
-        // We don't support complex name classes yet.
-        correct: true
     }
 };
-
-// No anyname support yet.
-[141, 215, 216, 217, 332, 333, 345, 353, 368].forEach(function (x) {
-    skips["test" + x] = {correct : true};
-});
-
-// No nsname support yet.
-[218, 219, 220, 221, 248, 354].forEach(function (x) {
-    skips["test" + x] = {correct : true};
-});
-
-// No except support yet.
-[142, 264, 267].forEach(function (x) {
-    skips["test" + x] = {correct : true};
-});
 
 var spectest_dir = path.join(__dirname, "spectest");
 

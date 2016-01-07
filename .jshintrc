@@ -1,6 +1,7 @@
 {
     "globalstrict": true,
     "maxlen": 80,
+    "esnext": true,
     "globals":
   { "define": false,
     "require": false,

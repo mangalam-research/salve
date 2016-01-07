@@ -1,13 +1,14 @@
 /**
  * @author Louis-Dominique Dubeau
  * @license MPL 2.0
- * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
+ * @copyright 2013-2015 Mangalam Research Center for Buddhist Languages
  */
 
 'use strict';
 require("amd-loader");
 var validate = require("../build/dist/lib/salve/validate");
 var oop = require("../build/dist/lib/salve/oop");
+var name_patterns = require("../build/dist/lib/salve/name_patterns");
 var util = require("util");
 var fs = require("fs");
 var path = require("path");
@@ -73,10 +74,7 @@ function makeParser(er, walker) {
     };
 
     parser.ontext = function (text) {
-        text = text.trim();
-        var chunk = text.split(/&/);
-        for(var x = 0; x < chunk.length; ++x)
-            er.recordEvent(walker, "text", chunk[x].trim());
+        er.recordEvent(walker, "text", text.trim());
     };
 
     parser.onclosetag = function (node) {
@@ -160,8 +158,8 @@ ComparisonEngine.prototype.compare =  function (msg, ev)
     msg = lines.join("\n");
     var to = this.expected.slice(this.exp_ix, this.exp_ix + lines.length);
 
-            assert.equal(msg, to.join("\n"), "at line: " +
-                         (this.exp_ix + 1) + " event " + ev.toString());
+    assert.equal(msg, to.join("\n"), "at line: " +
+                 (this.exp_ix + 1) + " event " + ev.toString());
     this.exp_ix += lines.length;
 };
 
@@ -242,6 +240,8 @@ describe("GrammarWalker.fireEvent reports no errors on", function () {
        makeValidTest("tei-with-modules"));
 
     it("an old error case (1)", makeValidTest("old-error-case-1"));
+
+    it("a schema using anyName, etc.", makeValidTest("names"));
 });
 
 describe("GrammarWalker.fireEvent",  function () {
@@ -289,9 +289,9 @@ describe("GrammarWalker.fireEvent",  function () {
             };
         }
 
-        describe("a tei-based file (using v1)", function () {
+        describe("a tei-based file", function () {
             before(function () {
-                rng = "test/tei/simplified-rng-v1.js";
+                rng = "test/tei/simplified-rng.js";
             });
             it("which is empty", makeErrorTest("empty"));
             it("which has an unclosed element",
@@ -306,9 +306,9 @@ describe("GrammarWalker.fireEvent",  function () {
                makeErrorTest("missing_element"));
         });
 
-        describe("a tei-based file (using v1, optimized ids)", function () {
+        describe("a tei-based file (optimized ids)", function () {
             before(function () {
-                rng = "test/tei/simplified-rng-v1-optimized-ids.js";
+                rng = "test/tei/simplified-rng.js";
             });
             it("which is empty", makeErrorTest("empty"));
             it("which has an unclosed element",
@@ -375,6 +375,16 @@ describe("GrammarWalker.fireEvent",  function () {
                    check_fireEvent_invocation: true,
                    check_possible: false
                }));
+
+            it("NsName fails a match",
+               makeErrorTest("name_error1"));
+
+            it("NameChoice fails a match",
+               makeErrorTest("name_error2"));
+
+            it("Except fails a match",
+               makeErrorTest("name_error3"));
+
         });
 
         it("an attribute without value", function () {
@@ -394,8 +404,10 @@ describe("GrammarWalker.fireEvent",  function () {
             ret = walker.fireEvent(
                 new validate.Event("attributeName", "", "style"));
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(),
-                         "attribute not allowed here: {}style");
+            assert.equal(
+                ret[0].toString(),
+                'attribute not allowed here: ' +
+                    '{"ns":"","name":"style"}');
         });
     });
 
@@ -425,8 +437,7 @@ describe("GrammarWalker.fireEvent",  function () {
             ];
             var stub =
                 "attributeName:\n" +
-                "    :\n" +
-                "        ";
+                "    ";
             permutations.forEach(function (perm) {
                 var ret = walker.fireEvent(
                     new validate.Event("enterStartTag", "", "em"));
@@ -434,13 +445,14 @@ describe("GrammarWalker.fireEvent",  function () {
 
                 var possible = [];
                 perm.forEach(function (attr) {
-                    possible.push(attr);
+                    possible.push('{"ns":"","name":"' +
+                                  attr + '"}');
                 });
                 perm.forEach(function (attr) {
                     var sorted = possible.slice().sort();
                     assert.equal(
                         validate.eventsToTreeString(walker.possible()),
-                        stub + sorted.join("\n        ") + "\n");
+                        stub + sorted.join("\n    ") + "\n");
 
                     ret = walker.fireEvent(
                         new validate.Event("attributeName", "", attr));
@@ -574,11 +586,15 @@ describe("GrammarWalker.fireEvent",  function () {
             ret = walker.fireEvent(
                 new validate.Event("endTag", "", "html"));
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(), "tag required: {}head");
+            assert.equal(
+                ret[0].toString(),
+                'tag required: {"ns":"","name":"head"}');
             ret = walker.fireEvent(
                 new validate.Event("endTag", "", "html"));
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(), "unexpected end tag: {}html");
+            assert.equal(
+                ret[0].toString(),
+                'unexpected end tag: {"ns":"","name":"html"}');
         });
 
 
@@ -590,7 +606,7 @@ describe("error objects", function () {
                             first, second) {
         names = names || [new validate.EName("a", "b")];
         fake_names = fake_names || ["a"];
-        first = first || "blah: {a}b";
+        first = first || 'blah: {a}b';
         second = second || "blah: a";
 
         it(ctor_name, function () {
@@ -627,7 +643,7 @@ describe("Grammar", function () {
     describe("getNamespaces", function () {
         it("returns the namespaces", function () {
             // Read the RNG tree.
-            var source = fileAsString("test/tei/simplified-rng-v1.js");
+            var source = fileAsString("test/tei/simplified-rng.js");
 
             var tree = validate.constructTree(source);
             assert.sameMembers(
@@ -635,19 +651,31 @@ describe("Grammar", function () {
                 ["http://www.tei-c.org/ns/1.0",
                  "http://www.w3.org/XML/1998/namespace"]);
         });
-    });
-    describe("getNamespaces", function () {
+
         it("returns an empty namespace when there are no namespaces",
            function () {
-               // Read the RNG tree.
-               var source = fileAsString(
-                   "test/simple/simplified-rng.js");
+            // Read the RNG tree.
+            var source = fileAsString("test/simple/simplified-rng.js");
 
-               var tree = validate.constructTree(source);
-               assert.sameMembers(tree.getNamespaces(), [""]);
-           });
+            var tree = validate.constructTree(source);
+            assert.sameMembers(tree.getNamespaces(), [""]);
+        });
+
+        it("returns * when anyName is used and ::except when except is used",
+           function () {
+            // Read the RNG tree.
+            var source = fileAsString("test/names/simplified-rng.js");
+
+            var tree = validate.constructTree(source);
+            assert.sameMembers(tree.getNamespaces(), [
+                "",
+                "foo:foo",
+                "*",
+                "::except"
+            ]);
+        });
+
     });
-
 });
 
 
@@ -656,5 +684,140 @@ describe("Misc", function () {
         var t1 = new test.Text("a");
         var t2 = new test.Text("b");
         assert.equal(t1, t2);
+    });
+});
+
+describe("Name pattern", function () {
+    describe("Name", function () {
+        var np;
+
+        before(function () {
+            np = new name_patterns.Name("", "a", "b");
+        });
+
+        it("is simple", function () {
+            assert.isTrue(np.simple());
+        });
+
+        it("converts to an array", function () {
+            assert.sameMembers(np.toArray(), [np]);
+        });
+
+        it("matches a matching namespace and name", function () {
+            assert.isTrue(np.match("a", "b"));
+        });
+
+        it("converts to an object", function () {
+            assert.deepEqual(np.toObject(), {ns: 'a', name: 'b'});
+        });
+    });
+
+    describe("NameChoice", function () {
+        var simple, complex, a_simple, a_complex, b;
+
+        before(function () {
+            a_simple = new name_patterns.Name("", "a", "b");
+            a_complex = new name_patterns.AnyName("");
+            b = new name_patterns.Name("", "c", "d");
+            simple = new name_patterns.NameChoice("", [a_simple, b]);
+            complex = new name_patterns.NameChoice("", [a_complex, b]);
+        });
+
+        it("is simple or complex depending on contents", function () {
+            assert.isTrue(simple.simple());
+            assert.isFalse(complex.simple());
+        });
+
+        it("converts to an array, if simple", function () {
+            assert.sameMembers(simple.toArray(), [a_simple, b]);
+            assert.isNull(complex.toArray());
+        });
+
+        it("matches a matching namespace and name", function () {
+            // Will match on the first element.
+            assert.isTrue(simple.match("a", "b"));
+            // Will match on the second.
+            assert.isTrue(simple.match("c", "d"));
+        });
+
+        it("converts to an object", function () {
+            assert.deepEqual(simple.toObject(), {a: {ns: 'a', name: 'b'},
+                                                 b: {ns: 'c', name: 'd'}});
+        });
+    });
+
+    describe("NsName", function () {
+        var np, with_except;
+
+        before(function () {
+            np = new name_patterns.NsName("", "a");
+            with_except = new name_patterns.NsName(
+                "", "a",
+                new name_patterns.Name("", "a", "b"));
+        });
+
+        it("is not simple", function () {
+            assert.isFalse(np.simple());
+        });
+
+        it("does not convert to an array", function () {
+            assert.isNull(np.toArray());
+        });
+
+        it("matches a matching namespace and name", function () {
+            assert.isTrue(np.match("a", "b"));
+            assert.isTrue(np.match("a", "c"));
+        });
+
+        it("does not match an exception", function () {
+            assert.isFalse(with_except.match("a", "b"));
+        });
+
+        it("converts to an object", function () {
+            assert.deepEqual(np.toObject(), {ns: 'a'});
+            assert.deepEqual(with_except.toObject(),
+                             {
+                                 ns: 'a',
+                                 except: { ns: 'a', name: 'b' }
+                             });
+        });
+    });
+
+
+    describe("AnyName", function () {
+        var np, with_except;
+
+        before(function () {
+            np = new name_patterns.AnyName("");
+            with_except = new name_patterns.AnyName(
+                "",
+                new name_patterns.Name("", "a", "b"));
+        });
+
+        it("is not simple", function () {
+            assert.isFalse(np.simple());
+        });
+
+        it("does not convert to an array", function () {
+            assert.isNull(np.toArray());
+        });
+
+        it("matches anything", function () {
+            assert.isTrue(np.match("a", "b"));
+            assert.isTrue(np.match("q", "c"));
+        });
+
+        it("does not match an exception", function () {
+            assert.isFalse(with_except.match("a", "b"));
+        });
+
+        it("converts to an object", function () {
+            assert.deepEqual(np.toObject(), {pattern: 'AnyName'});
+            assert.deepEqual(with_except.toObject(),
+                             {
+                                 pattern: 'AnyName',
+                                 except: {ns: "a", name: "b"}
+                             });
+        });
     });
 });

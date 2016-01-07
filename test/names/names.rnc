@@ -1,0 +1,18 @@
+default namespace = ""
+namespace rng = "http://relaxng.org/ns/structure/1.0"
+namespace foo = "foo:foo"
+
+start = top
+top = element top {
+    a,
+    b,
+    c,
+    (attribute * { text })+
+}
+a = element foo:* { any }
+b = element (foo | bar | foo:foo) { b* }
+c = element * - (foo:* - foo:a) {
+  c*,
+  (attribute * - (foo:* - foo:a) { text })*
+}
+any = element * { any* }

@@ -1,0 +1,32 @@
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned tag not allowed here: {"ns":"","name":"baz"}
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned false
+fireEvent returned tag required: {"a":{"a":{"ns":"","name":"foo"},"b":{"ns":"","name":"bar"}},"b":{"ns":"foo:foo","name":"foo"}}
+fireEvent returned false
+fireEvent returned false
+end returned false

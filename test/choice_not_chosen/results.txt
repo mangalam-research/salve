@@ -38,12 +38,6 @@ fireEvent returned false
 invoking fireEvent with Event: text, ab
 fireEvent returned false
 
-invoking fireEvent with Event: text, cd
-fireEvent returned false
-
-invoking fireEvent with Event: text, ef
-fireEvent returned false
-
 invoking fireEvent with Event: endTag, , title
 fireEvent returned false
 
@@ -81,7 +75,7 @@ invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 
 invoking fireEvent with Event: endTag, , em
-fireEvent returned must choose either {}b or {}em
+fireEvent returned must choose either {"ns":"","name":"b"} or {"ns":"","name":"em"}
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false

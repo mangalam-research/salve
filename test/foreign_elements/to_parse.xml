@@ -1,9 +1,6 @@
 <html style="toto"><x a="q" b="c"><z>ttt</z></x>gaga
-  <head><title>ab&amp;
-cd&amp;
-ef</title></head>
+  <head><title>ab</title></head>
 <body>
-abc<em>def&amp;
-gh<em></em></em>
+abc<em>def<em></em></em>
 </body>
 </html>
