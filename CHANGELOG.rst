@@ -3,6 +3,11 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 1.1.0:
+
+  - Improved the documentation: removed some old stuff, rephrased some
+    explanations, etc.
+
 * 1.0.0:
 
   - This version is a major departure from previous versions. Code

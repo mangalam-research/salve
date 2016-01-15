@@ -25,9 +25,9 @@ standard <http://www.tei-c.org/>`_ and schemas derived from this
 standard. We've used salve with multiple different schemas generated
 from the TEI standard and never ran into a problem caused by the
 limitations that salve has. It is possible, however, that using a TEI
-module that *we* do not use could cause issues. Plans are to support
-as much Relax NG as possible but for now salve has, by conscious
-design, the following limitations:
+module that *we* do not use could cause issues. We want to support as
+much Relax NG as reasonably possible. For now salve has the following
+limitations:
 
 * Support for XML Schema ``float`` and ``double`` types is not
   thorough. Simple value comparisons work but if you put ``NaN`` or
@@ -63,9 +63,7 @@ likely to result in the feature being speedily added to salve than
 asking for us to add the feature, and waiting until we have time for
 it.
 
-At the moment the library is able to know that a document is valid
-according to the schema it has. A full validation solution has the
-following components:
+A full validation solution has the following components:
 
 * A tokenizer: responsible for recognizing XML tokens, tag names, tag
   delimiters, attribute names, attribute values, etc.
@@ -82,12 +80,6 @@ following components:
   generally speaking (e.g., what namespace uris are used in the
   schema). **This is what salve offers, and only this!**
 
-.. note:: If you are looking at the source from github, executables
-          cannot be executed from `<bin>`__. They can be executed
-          after a build from `<build/dist/bin>`_. If you are looking
-          at the npm installation, then the files in `<bin>`__ are
-          those you want to execute.
-
 A good example of this division of labor can be found in
 `<bin/parse.js>`_ and in the test suite. In both cases the tokenizer
 function is performed by ``sax``, and the parser function is performed
@@ -97,6 +89,15 @@ a bit limited in the kind of validation it performs. In particular,
 given the string ``<foo></bar></foo>``, ``sax`` will detect the
 problem with ``</bar>`` but will *also* pass it as text to the code
 that uses the ``sax`` parser.
+
+.. note:: If you are looking at the source tree of salve as cloned
+          from github, know that executables cannot be executed from
+          `<bin>`__. They can be executed after a build, from the
+          `<build/dist/bin>`_ directory.
+
+          If you are looking at the files installed by ``npm`` when
+          you install salve as a *package*, the files in `<bin>`__
+          *are* those you want to execute.
 
 Basic Usage
 ===========
@@ -115,31 +116,6 @@ once it is converted to JavaScript. (Actually, the simplified RNG is
 converted to JSON. Generally speaking JSON is not a subset of
 JavaScript but in this instance, the JSON produced is a subset, so
 calling it JavaScript is not incorrect.)
-
-.. note:: If you've ever used salve prior to version 0.15, know that
-          ``salve-convert`` replaces both ``salve-simplify`` and the
-          need to use ``rng-to-js.xsl`` manually.
-
-.. _element paths:
-
-Before version 0.14, the conversion process by default included
-information which made it easy to determine where each JavaScript
-object modeling the original RNG came from. (Each object had path
-information pointing to the location of the corresponding element in
-the simplified RNG.) However, this information is useful only for
-debugging salve and its associated software. Starting with version
-0.14 such information is no longer included by default. This change
-reduces the size of a JavaScript file created for a vanilla TEI schema
-by a factor of more than 4.
-
-Version 0.14 also changes the structure of the file format that salve
-uses by default. See `Schema File Format`_ for more details.
-
-Version 0.15 further reduces the size of the generated files by
-optimizing the size of the identifiers used by references and
-definitions. With this optimization, the size of a run-of-the-mill TEI
-schema used in testing was reduced by 35% compared to the same schema
-in previous versions.
 
 Turning to actual code, a typical usage scenario would be as follows::
 
@@ -175,26 +151,33 @@ Events
 
 Salve expects that the events it receives are those that would be
 emitted when validating a **well-formed document**. That is, passing
-the events of a document that is malformed will cause salve to behave
-in an undefined manner. (It may crash. It may generate misleading
-errors. It may not report any errors.) This situation is due to the
-fact that salve is currently developed in a context where the
-documents it validates cannot be malformed (because they are
-represented as DOM trees). So salve contains no functionality to
-handle problems with well-formedness. Multiple strategies are possible
-for using salve in a context where well-formedness is not
-guaranteed. A primitive parser could abort as soon as evidence
+to salve the events emitted from a document that is malformed will
+cause salve to behave in an undefined manner. (It may crash. It may
+generate misleading errors. It may not report any errors.) This
+situation is due to the fact that salve is currently developed in a
+context where the documents it validates cannot be malformed (because
+they are represented as DOM trees). So salve contains no functionality
+to handle problems with well-formedness. Salve **can be used on
+malformed documents**, provided you take care of reporting
+malformedness issues yourself and strategize how you will pass events
+to salve.
+
+Multiple strategies are possible for using salve in a context where
+well-formedness is not guaranteed. There is no one-size-fits-all
+solution here. A primitive parser could abort as soon as evidence
 surfaces that the document is malformed. A more sophisticated parser
 could process the problematic structure so as to generate an error but
 give salve something well-formed. For instance if parsing
 ``<foo></baz>``, such parser could emit an error on encountering
 ``</baz>`` and replace the event that would be emitted for ``</baz>``
-with what would be emitted for ``</foo>``, and salve will happily
-validate it.
+with the event that would be emitted for ``</foo>``, and salve will
+happily validate it. The user will still get the error produced by the
+parser, and the parser will still be able to continue validating the
+document with salve.
 
 The parser is responsible for calling ``fireEvent()`` on the walker
 returned by the tree created from the RNG. (See above.) The events
-currently supported are defined below:
+currently supported by ``fireEvent()`` are defined below:
 
 ``Event("enterStartTag", uri, local-name)``
   Emitted when encountering the beginning of a start tag (the string
@@ -217,7 +200,7 @@ currently supported are defined below:
 
 ``Event("text", value)``
   Emitted when encountering text. This event must be fired for
-  all instances of text, **including** white space.
+  all instances of text, **including white space.**
 
 ``Event("enterContext")``
   Emitted when entering a new namespace context.
@@ -228,14 +211,9 @@ currently supported are defined below:
 ``Event("definePrefix", prefix, uri)``
   Emitted when defining a namespace prefix.
 
-Looking at an XML document as a set of DOM nodes, the set of events
-supported by salve might seem strange. Why would one need an
-``enterStartTag`` event and a ``leaveStartTag`` event given that if the
-document **can** be modeled using DOM there cannot ever be an
-``enterStartTag`` event without a corresponding ``leaveStartTag``
-event? The reason for the set of events supported is that salve is
-designed to handle not only XML modeled as a DOM tree but also XML
-parsed as a text string being dynamically edited. The best and closest
+The reason for the set of events supported is that salve is designed
+to handle **not only** XML modeled as a DOM tree but also XML parsed
+as a text string being dynamically edited. The best and closest
 example of this would be what ``nxml-mode`` does in Emacs. If the user
 starts a new document and types only the following into their editing
 buffer::
@@ -689,14 +667,14 @@ Schema File Format
 
 ``salve-convert`` converts a Relax NG file formatted in XML into a
 more compact format used by salve at validation time. Salve supports
-version 2 of this file format. Versions 0 and 1 are now obsolete. The
+version 3 of this file format. Versions 0 to 2 are now obsolete. The
 structure is::
 
     {"v":<version>,"o":<options>,"d":[...]}
 
 The ``v`` field gives the version number of the data. The ``o`` field
 is a bit field of options indicating how the file was created. Right
-now the only thing it records is whether or not `element paths`_ are
+now the only thing it records is whether or not element paths are
 present in the generated file. The ``d`` field contains the actual
 schema. Each item in it is of the form::
 
