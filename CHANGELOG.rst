@@ -8,6 +8,8 @@ issue reported on github.
   - Improved the documentation: removed some old stuff, rephrased some
     explanations, etc.
 
+  - Moved the test suite to ES6.
+
 * 1.0.0:
 
   - This version is a major departure from previous versions. Code

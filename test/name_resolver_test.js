@@ -5,13 +5,13 @@
  */
 
 'use strict';
-require('amd-loader');
-var name_resolver = require("../build/dist/lib/salve/name_resolver")
-var EName = require("../build/dist/lib/salve/validate").EName;
-var assert = require("chai").assert;
+import 'amd-loader';
+import name_resolver from "../build/dist/lib/salve/name_resolver";
+import { EName } from "../build/dist/lib/salve/validate";
+import { assert } from "chai";
 
-var resolver;
-var mapping = {
+let resolver;
+const mapping = {
     "btw": "http://lddubeau.com/ns/btw-storage",
     "tei": "http://www.tei-c.org/ns/1.0",
     "": "http://www.tei-c.org/ns/1.0"
@@ -19,11 +19,11 @@ var mapping = {
 
 describe("NameResolver", function () {
     describe("resolveName", function () {
-        beforeEach(function () {
+        beforeEach(() => {
             resolver = new name_resolver.NameResolver();
-            Object.keys(mapping).forEach(function (k) {
+            for (let k of Object.keys(mapping)) {
                 resolver.definePrefix(k, mapping[k]);
-            });
+            }
         });
 
         it("returns a name in the default namespace when trying "+
@@ -91,10 +91,8 @@ describe("NameResolver", function () {
     });
 
     describe("definePrefix", function () {
-        var resolver;
-        before(function () {
-            resolver = new name_resolver.NameResolver();
-        });
+        let resolver;
+        before(() => { resolver = new name_resolver.NameResolver(); });
         it("fails if trying to define xmlns", function () {
             assert.Throw(resolver.definePrefix.bind(
                 resolver, "xmlns", "http://www.w3.org/2000/xmlns/"),
@@ -165,11 +163,11 @@ describe("NameResolver", function () {
     });
 
     describe("unresolveName", function () {
-        beforeEach(function () {
+        beforeEach(() => {
             resolver = new name_resolver.NameResolver();
-            Object.keys(mapping).forEach(function (k) {
+            for (let k of Object.keys(mapping)) {
                 resolver.definePrefix(k, mapping[k]);
-            });
+            }
         });
         it("knows the uri for the default namespace",
            function () {
@@ -225,11 +223,11 @@ describe("NameResolver", function () {
     });
 
     describe("prefixFromURI", function () {
-        beforeEach(function () {
+        beforeEach(() => {
             resolver = new name_resolver.NameResolver();
-            Object.keys(mapping).forEach(function (k) {
+            for (let k of Object.keys(mapping)) {
                 resolver.definePrefix(k, mapping[k]);
-            });
+            }
         });
         it("knows the uri for the default namespace",
            function () {
@@ -263,15 +261,15 @@ describe("NameResolver", function () {
     });
 
     describe("clone", function () {
-        beforeEach(function () {
+        beforeEach(() => {
             resolver = new name_resolver.NameResolver();
-            Object.keys(mapping).forEach(function (k) {
+            for (let k of Object.keys(mapping)) {
                 resolver.definePrefix(k, mapping[k]);
-            });
+            }
         });
 
         it("creates a clone", function () {
-            var cloned = resolver.clone();
+            const cloned = resolver.clone();
             Object.keys(mapping).forEach(function (k) {
                 assert.equal(cloned.resolveName(k + ":x").toString(),
                              resolver.resolveName(k + ":x").toString());
@@ -280,7 +278,7 @@ describe("NameResolver", function () {
 
         it("creates a clone that is independent from the original",
            function () {
-            var cloned = resolver.clone();
+            const cloned = resolver.clone();
             resolver.enterContext();
             resolver.definePrefix("X", "uri:original");
 
