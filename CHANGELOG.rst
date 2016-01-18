@@ -5,6 +5,11 @@ issue reported on github.
 
 * 1.1.0:
 
+  - Name patterns now support a ``getNamespace`` method that allows
+    getting the list of namespaces in the pattern.
+
+  - Name patterns now support a ``wildcardMatch`` method.
+
   - Improved the documentation: removed some old stuff, rephrased some
     explanations, etc.
 

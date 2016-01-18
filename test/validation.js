@@ -661,8 +661,21 @@ describe("Name pattern", function () {
             assert.isTrue(np.match("a", "b"));
         });
 
+        it("does not match a non-matching namespace and name", function () {
+            assert.isFalse(np.match("foo", "bar"));
+        });
+
+        it("never matches as a wildcard", function () {
+            assert.isFalse(np.wildcardMatch("a", "b"));
+            assert.isFalse(np.wildcardMatch("foo", "bar"));
+        });
+
         it("converts to an object", function () {
             assert.deepEqual(np.toObject(), {ns: 'a', name: 'b'});
+        });
+
+        it("holds one namespace", function () {
+            assert.sameMembers(np.getNamespaces(), ["a"]);
         });
     });
 
@@ -694,10 +707,39 @@ describe("Name pattern", function () {
             assert.isTrue(simple.match("c", "d"));
         });
 
+        it("does not match a non-matching namespace and name", function () {
+            assert.isFalse(simple.match("foo", "bar"));
+        });
+
+        it("matches as a wildcard if one option does", function () {
+            assert.isFalse(simple.wildcardMatch("a", "b"));
+            assert.isFalse(simple.wildcardMatch("c", "d"));
+            assert.isTrue(complex.wildcardMatch("a", "b"));
+            // We get true here because anyName matches anything.
+            assert.isTrue(complex.wildcardMatch("c", "d"));
+
+            var x = new name_patterns.NameChoice(
+                "",
+                [new name_patterns.AnyName(
+                    "",
+                    new name_patterns.Name("", "c", "d")),
+                 b]);
+            // This is false because our AnyName explicitly excludes {c}d.
+            assert.isFalse(x.wildcardMatch("c", "d"));
+            assert.isTrue(x.wildcardMatch("a", "b"));
+
+        });
+
         it("converts to an object", function () {
             assert.deepEqual(simple.toObject(), {a: {ns: 'a', name: 'b'},
                                                  b: {ns: 'c', name: 'd'}});
         });
+
+        it("holds multiple namespaces", function () {
+            assert.sameMembers(simple.getNamespaces(), ["a", "c"]);
+            assert.sameMembers(complex.getNamespaces(), ["c", "*"]);
+        });
+
     });
 
     describe("NsName", function () {
@@ -723,8 +765,17 @@ describe("Name pattern", function () {
             assert.isTrue(np.match("a", "c"));
         });
 
+        it("does not match a non-matching namespace", function () {
+            assert.isFalse(np.match("foo", "b"));
+        });
+
         it("does not match an exception", function () {
             assert.isFalse(with_except.match("a", "b"));
+        });
+
+        it("matches as a wildcard if it matches at all", function () {
+            assert.isTrue(np.wildcardMatch("a", "b"));
+            assert.isFalse(with_except.wildcardMatch("a", "b"));
         });
 
         it("converts to an object", function () {
@@ -734,6 +785,11 @@ describe("Name pattern", function () {
                                  ns: 'a',
                                  except: { ns: 'a', name: 'b' }
                              });
+        });
+
+        it("holds a single namespace", function () {
+            assert.sameMembers(np.getNamespaces(), ["a"]);
+            assert.sameMembers(with_except.getNamespaces(), ["a", "::except"]);
         });
     });
 
@@ -765,6 +821,11 @@ describe("Name pattern", function () {
             assert.isFalse(with_except.match("a", "b"));
         });
 
+        it("matches as a wildcard if it matches at all", function () {
+            assert.isTrue(np.wildcardMatch("a", "b"));
+            assert.isFalse(with_except.wildcardMatch("a", "b"));
+        });
+
         it("converts to an object", function () {
             assert.deepEqual(np.toObject(), {pattern: 'AnyName'});
             assert.deepEqual(with_except.toObject(),
@@ -772,6 +833,11 @@ describe("Name pattern", function () {
                                  pattern: 'AnyName',
                                  except: {ns: "a", name: "b"}
                              });
+        });
+
+        it("holds all namespaces", function () {
+            assert.sameMembers(np.getNamespaces(), ["*"]);
+            assert.sameMembers(with_except.getNamespaces(), ["*", "::except"]);
         });
     });
 });
