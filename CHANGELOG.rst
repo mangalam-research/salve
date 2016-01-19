@@ -3,6 +3,18 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 1.1.0:
+
+  - Name patterns now support a ``getNamespace`` method that allows
+    getting the list of namespaces in the pattern.
+
+  - Name patterns now support a ``wildcardMatch`` method.
+
+  - Improved the documentation: removed some old stuff, rephrased some
+    explanations, etc.
+
+  - Moved the test suite to ES6.
+
 * 1.0.0:
 
   - This version is a major departure from previous versions. Code
@@ -28,7 +40,7 @@ issue reported on github.
 
   - API change: salve now requires the converted schema files to be
     version 3 of the format. This means you have to reconvert your old
-    schemas with ``salve-convert`` for them to work with 0.24.0.
+    schemas with ``salve-convert`` for them to work with 1.0.
 
   - Bug fix and API change: previous versions of salve would indicate
     that ``<text/>`` was possible by returning an event with

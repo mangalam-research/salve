@@ -1,5 +1,6 @@
 "use strict";
 
+import "babel-polyfill";
 import fs_ from "fs";
 import path from "path";
 import child_process_ from "child_process";
@@ -124,7 +125,7 @@ gulp.task('install_test', ["default"], Promise.coroutine(function *() {
     yield del(test_dir);
     const _packname = yield execFileAsync("npm", ["pack", "dist"],
                                           { cwd: "build" });
-    packname = _packname[0].trim();
+    packname = _packname.trim();
     yield fs.mkdirAsync(test_dir);
     yield execFileAsync("npm", ["install", `../${packname}`],
                         { cwd: test_dir});

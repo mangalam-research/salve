@@ -5,12 +5,11 @@
  */
 
 'use strict';
-require("amd-loader");
-var regexp = require("../build/dist/lib/salve/datatypes/regexp");
-var chai = require("chai");
-var assert = chai.assert;
+import "amd-loader";
+import regexp from "../build/dist/lib/salve/datatypes/regexp";
+import { assert } from "chai";
 
-var conversion_tests = [
+const conversion_tests = [
     "", "^$",
     "abc", "^abc$",
     "abc|def", "^abc|def$",
@@ -42,7 +41,7 @@ var conversion_tests = [
     "ab[a-d-[bc-[c]]]cd", "^ab(?:(?!(?:(?![c])[bc]))[a-d])cd$",
 ];
 
-var matching_tests = [
+const matching_tests = [
     true, "ab[abcd-[bc]]cd", "abdcd",
     false, "ab[abcd-[bc]]cd", "abbcd",
     false, "ab[abcd-[bc]]cd", "ab1cd",
@@ -59,28 +58,26 @@ var matching_tests = [
 ];
 
 describe("XML Schema regexp", function () {
-    var i, re;
-    for(i = 0; i < conversion_tests.length; i += 2) {
-        re = conversion_tests[i];
-        var expected = conversion_tests[i + 1];
-        it("'" + re + "' becomes '" + expected + "'", function (re, expected) {
+    for(let i = 0; i < conversion_tests.length; i += 2) {
+        const re = conversion_tests[i];
+        const expected = conversion_tests[i + 1];
+        it(`'${re}' becomes '${expected}'`, () => {
             assert.equal(regexp.parse(re, "string"), expected);
-        }.bind(undefined, re, expected));
+        });
     }
 
-    for(i = 0; i < matching_tests.length; i += 3) {
-        var matches = matching_tests[i];
-        re = matching_tests[i + 1];
-        var text = matching_tests[i + 2];
+    for(let i = 0; i < matching_tests.length; i += 3) {
+        const matches = matching_tests[i];
+        const re = matching_tests[i + 1];
+        const text = matching_tests[i + 2];
         if (matches)
-            it("'" + re + "' matches '" + text + "'", function (re, text) {
+            it(`'${re}' matches '${text}'`, () => {
                 assert.isTrue(new RegExp(regexp.parse(re)).test(text));
-            }.bind(undefined, re, text));
+            });
         else
-            it("'" + re + "' does not match '" + text + "'",
-               function (re, text) {
+            it(`'${re}' does not match '${text}'`, () =>  {
                 assert.isFalse(new RegExp(regexp.parse(re)).test(text));
-            }.bind(undefined, re, text));
+            });
     }
 
 });

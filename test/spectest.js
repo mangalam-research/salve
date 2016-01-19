@@ -5,14 +5,13 @@
  */
 
 'use strict';
-require("amd-loader");
-var chai = require("chai");
-var spawn = require("child_process").spawn;
-var salve_parse = require("../build/dist/lib/salve/parse");
-var fs = require("fs");
-var path = require("path");
-var assert = chai.assert;
-var mocha = require("mocha");
+import "amd-loader";
+import { assert } from "chai";
+import { spawn } from "child_process";
+import salve_parse from "../build/dist/lib/salve/parse";
+import fs from "fs";
+import path from "path";
+import mocha from "mocha";
 
 function fileAsString(p) {
     return fs.readFileSync(path.resolve(p), "utf8").toString();
@@ -31,16 +30,14 @@ var test_dirs = fs.readdirSync(spectest_dir);
 
 function Test(test) {
     this.test = test;
-    var p = this.path = path.join(spectest_dir, test);
-    var incorrect = this.incorrect = [];
-    var correct = this.correct = [];
-    var valid = this.valid = [];
-    var invalid = this.invalid = [];
+    const p = this.path = path.join(spectest_dir, test);
+    const incorrect = this.incorrect = [];
+    const correct = this.correct = [];
+    const valid = this.valid = [];
+    const invalid = this.invalid = [];
     this.convert_args = [];
 
-    var files = fs.readdirSync(p);
-
-    files.forEach(function (f) {
+    for (let f of fs.readdirSync(p)) {
         if (f.lastIndexOf("incorrect", 0) === 0)
             incorrect.push(path.join(p, f));
         if (f.lastIndexOf("correct", 0) === 0)
@@ -49,7 +46,7 @@ function Test(test) {
             valid.push(path.join(p, f));
         if (f.lastIndexOf("invalid", 0) === 0)
             invalid.push(path.join(p, f));
-    });
+    }
 
     // More than 1 such case per test does not happen right now, so
     // simplify.
@@ -65,45 +62,41 @@ function Test(test) {
     this.incorrect = incorrect[0];
 }
 
-var tests = test_dirs.filter(function (x) {
-    return fs.statSync(path.join(spectest_dir, x)).isDirectory();
-}).map(function (x) {
-    var ret = new Test(x);
+const tests = test_dirs.filter(
+    x => fs.statSync(path.join(spectest_dir, x)).isDirectory())
+        .map(x => {
+    const ret = new Test(x);
     // test384 uses double
     if (x === "test384")
         ret.convert_args = ["--allow-incomplete-types=quiet"];
     return ret;
-
 });
 
 function salve_convert(args, callback) {
-    var child = spawn("build/dist/bin/salve-convert", args);
+    const child = spawn("build/dist/bin/salve-convert", args);
 
-    child.on('exit', function (code, signal) {
-        callback(code);
-    });
+    child.on('exit', (code, signal) => callback(code));
 }
 
 function parse(rng, xml, mute, callback) {
-    var code = salve_parse(fileAsString(rng), fileAsString(xml), mute);
-    callback(code);
+    callback(salve_parse(fileAsString(rng), fileAsString(xml), mute));
 }
 
 describe("spectest", function () {
     this.timeout(0);
-    var outpath = ".tmp_rng_to_js_test";
+    const outpath = ".tmp_rng_to_js_test";
 
     function clean() {
         if (fs.existsSync(outpath))
             fs.unlinkSync(outpath);
     }
 
-    tests.forEach(function (t) {
-        var skip = skips[t.test] || {};
+    for (let t of tests) {
+        const skip = skips[t.test] || {};
         if (!skip.incorrect && t.incorrect) {
-            it(t.incorrect, function (done) {
+            it(t.incorrect, done => {
                 salve_convert(t.convert_args.concat([t.incorrect, outpath]),
-                              function (code) {
+                              code => {
                     assert.isFalse(code === 0, "salve-convert exit status");
                     clean();
                     done();
@@ -112,41 +105,41 @@ describe("spectest", function () {
         }
 
         if (!skip.correct && t.correct) {
-            var do_valid = !skip.valid && t.valid.length;
-            var do_invalid = !skip.invalid && t.invalid.length;
+            const do_valid = !skip.valid && t.valid.length;
+            const do_invalid = !skip.invalid && t.invalid.length;
 
             if (do_valid || do_invalid) {
-                describe("valid and invalid cases", function () {
-                    before(function (done) {
+                describe("valid and invalid cases", () => {
+                    before(done => {
                         salve_convert(t.convert_args.concat([t.correct,
                                                              outpath]),
-                                      function (code) {
+                                      code => {
                             assert.equal(code, 0, "salve-convert exit status");
                             done();
                         });
                     });
 
-                    t.valid.forEach(function (vfile) {
-                        it(vfile, function (done) {
-                            parse(outpath, vfile, false, function (code) {
+                    for (let vfile of t.valid) {
+                        it(vfile, done => {
+                            parse(outpath, vfile, false, code => {
                                 assert.equal(code, 0, "parse exit status");
                                 done();
                             });
                         });
-                    });
+                    }
 
-                    t.invalid.forEach(function (vfile) {
-                        it(vfile, function (done) {
-                            parse(outpath, vfile, true, function (code) {
+                    for (let vfile of t.invalid) {
+                        it(vfile, done => {
+                            parse(outpath, vfile, true, code => {
                                 assert.equal(code, 1, "parse exit status");
                                 done();
                             });
                         });
-                    });
+                    }
 
                     after(clean);
                 });
             }
         }
-    });
+    }
 });

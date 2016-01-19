@@ -5,14 +5,13 @@
  */
 
 'use strict';
-require("amd-loader");
-var datatypes = require("../build/dist/lib/salve/datatypes");
-var name_resolver = require("../build/dist/lib/salve/name_resolver");
-var chai = require("chai");
-var assert = chai.assert;
-var _ = require("lodash");
+import "amd-loader";
+import datatypes from "../build/dist/lib/salve/datatypes";
+import name_resolver  from "../build/dist/lib/salve/name_resolver";
+import { assert } from "chai";
+import _ from "lodash";
 
-var decimal_program = {
+const decimal_program = {
     equal: {
         // Tests that return true.
         "true":
@@ -147,7 +146,7 @@ var decimal_program = {
     }
 };
 
-var integer_program = {
+const integer_program = {
     equal: {
         "true":
         [
@@ -254,7 +253,7 @@ var integer_program = {
 
 };
 
-var nonPositiveInteger_program = {
+const nonPositiveInteger_program = {
     equal: {
         "true":
         [
@@ -364,7 +363,7 @@ var nonPositiveInteger_program = {
     }
 };
 
-var negativeInteger_program = _.clone(nonPositiveInteger_program);
+const negativeInteger_program = _.clone(nonPositiveInteger_program);
 
 negativeInteger_program.disallows = _.clone(negativeInteger_program.disallows);
 negativeInteger_program.disallows.NONE = {
@@ -384,7 +383,7 @@ negativeInteger_program.disallows.NONE = {
     ]
 };
 
-var nonNegativeInteger_program = {
+const nonNegativeInteger_program = {
     equal: {
         "true":
         [
@@ -494,7 +493,7 @@ var nonNegativeInteger_program = {
     }
 };
 
-var positiveInteger_program = _.clone(nonNegativeInteger_program);
+const positiveInteger_program = _.clone(nonNegativeInteger_program);
 
 positiveInteger_program.disallows =
     _.clone(positiveInteger_program.disallows);
@@ -516,7 +515,7 @@ positiveInteger_program.disallows.NONE = {
 };
 
 
-var long_program = _.clone(integer_program);
+const long_program = _.clone(integer_program);
 long_program.disallows = _.clone(long_program.disallows);
 long_program.disallows.NONE = {
     "false": [
@@ -529,7 +528,7 @@ long_program.disallows.NONE = {
     ]
 };
 
-var int_program = _.clone(long_program);
+const int_program = _.clone(long_program);
 int_program.disallows = _.clone(int_program.disallows);
 int_program.disallows.NONE = {
     "false": [
@@ -548,7 +547,7 @@ int_program.disallows.NONE = {
     ]
 };
 
-var short_program = _.clone(long_program);
+const short_program = _.clone(long_program);
 short_program.disallows = _.clone(short_program.disallows);
 short_program.disallows.NONE = {
     "false": [
@@ -567,7 +566,7 @@ short_program.disallows.NONE = {
     ]
 };
 
-var byte_program = _.clone(long_program);
+const byte_program = _.clone(long_program);
 byte_program.disallows = _.clone(byte_program.disallows);
 byte_program.disallows.NONE = {
     "false": [
@@ -587,7 +586,7 @@ byte_program.disallows.NONE = {
 };
 
 
-var unsignedLong_program = _.clone(integer_program);
+const unsignedLong_program = _.clone(integer_program);
 unsignedLong_program.disallows = _.clone(unsignedLong_program.disallows);
 unsignedLong_program.disallows.NONE = {
     "false": [
@@ -600,7 +599,7 @@ unsignedLong_program.disallows.NONE = {
     ]
 };
 
-var unsignedInt_program = _.clone(integer_program);
+const unsignedInt_program = _.clone(integer_program);
 unsignedInt_program.disallows = _.clone(unsignedInt_program.disallows);
 unsignedInt_program.disallows.NONE = {
     "false": [
@@ -616,7 +615,7 @@ unsignedInt_program.disallows.NONE = {
     ]
 };
 
-var unsignedShort_program = _.clone(integer_program);
+const unsignedShort_program = _.clone(integer_program);
 unsignedShort_program.disallows = _.clone(unsignedShort_program.disallows);
 unsignedShort_program.disallows.NONE = {
     "false": [
@@ -633,7 +632,7 @@ unsignedShort_program.disallows.NONE = {
 };
 
 
-var unsignedByte_program = _.clone(integer_program);
+const unsignedByte_program = _.clone(integer_program);
 unsignedByte_program.disallows = _.clone(unsignedByte_program.disallows);
 unsignedByte_program.disallows.NONE = {
     "false": [
@@ -649,7 +648,7 @@ unsignedByte_program.disallows.NONE = {
     ]
 };
 
-var float_program = _.clone(decimal_program);
+const float_program = _.clone(decimal_program);
 float_program.parseParams = [
     // title, array to parse, expected object
     ["all except minInclusive and maxInclusive",
@@ -691,7 +690,7 @@ float_program.disallows.NONE = {
 delete float_program.disallows.totalDigits;
 delete float_program.disallows.fractionDigits;
 
-var double_program = _.clone(float_program);
+const double_program = _.clone(float_program);
 double_program.disallows = _.clone(double_program.disallows);
 double_program.disallows.NONE = _.clone(double_program.disallows.NONE);
 double_program.disallows.NONE["true"] = [
@@ -700,7 +699,7 @@ double_program.disallows.NONE["true"] = [
          ]
 ];
 
-var dateTime_program = {
+const dateTime_program = {
     equal: {
         "true": [
             ["for two equal values",
@@ -740,7 +739,7 @@ var dateTime_program = {
     }
 };
 
-var time_program = {
+const time_program = {
     equal: {
         "true": [
             ["for two equal values", "10:10:10.111-01:30",
@@ -769,7 +768,7 @@ var time_program = {
     }
 };
 
-var date_program = {
+const date_program = {
     equal: {
         "true": [
             ["for two equal values", "1901-01-01-01:30", "1901-01-01-01:30"]
@@ -802,7 +801,7 @@ var date_program = {
     }
 };
 
-var gYearMonth_program = {
+const gYearMonth_program = {
     equal: {
         "true": [
             ["for two equal values", "1901-01-01:30", "1901-01-01:30"]
@@ -835,7 +834,7 @@ var gYearMonth_program = {
     }
 };
 
-var gYear_program = {
+const gYear_program = {
     equal: {
         "true": [
             ["for two equal values", "1901-01:30", "1901-01:30"]
@@ -868,7 +867,7 @@ var gYear_program = {
     }
 };
 
-var gMonthDay_program = {
+const gMonthDay_program = {
     equal: {
         "true": [
             ["for two equal values", "01-01-01:30", "01-01-01:30"]
@@ -901,7 +900,7 @@ var gMonthDay_program = {
     }
 };
 
-var gDay_program = {
+const gDay_program = {
     equal: {
         "true": [
             ["for two equal values", "31-01:30", "31-01:30"]
@@ -934,7 +933,7 @@ var gDay_program = {
     }
 };
 
-var gMonth_program = {
+const gMonth_program = {
     equal: {
         "true": [
             ["for two equal values", "01-01:30", "01-01:30"]
@@ -967,7 +966,7 @@ var gMonth_program = {
     }
 };
 
-var anyURI_program = {
+const anyURI_program = {
     equal: {
         "true": [
             ["for two equal values", "a:b", "a:b"]
@@ -1014,15 +1013,15 @@ var anyURI_program = {
 };
 
 
-var doc_nr = new name_resolver.NameResolver();
+const doc_nr = new name_resolver.NameResolver();
 doc_nr.definePrefix("a", "http://aaaaa.com");
 doc_nr.definePrefix("", "http://qqqqqq.com");
 
-var schema_nr = new name_resolver.NameResolver();
+const schema_nr = new name_resolver.NameResolver();
 schema_nr.definePrefix("aaa", "http://aaaaa.com");
 schema_nr.definePrefix("z", "http://qqqqqq.com");
 
-var QName_program = {
+const QName_program = {
     doc_context: {resolver: doc_nr},
     schema_context: {resolver: schema_nr},
     // Reminder: in equal tests the first parameter is from the
@@ -1087,7 +1086,7 @@ var QName_program = {
     }
 };
 
-var NOTATION_program = _.clone(QName_program);
+const NOTATION_program = _.clone(QName_program);
 NOTATION_program.disallows = _.clone(NOTATION_program.disallows);
 NOTATION_program.disallows.NONE = _.clone(NOTATION_program.disallows.NONE);
 NOTATION_program.disallows.NONE["true"] = [
@@ -1106,41 +1105,41 @@ NOTATION_program.disallows.NONE["true"] = [
 ];
 
 function testProgram(name, lib, program, disallows) {
-    var type = lib.types[name];
-    var schema_context = program.schema_context;
-    var doc_context = program.doc_context;
+    const type = lib.types[name];
+    const schema_context = program.schema_context;
+    const doc_context = program.doc_context;
     describe(name, function () {
         describe("equal", function () {
-            _.each(program.equal["true"], function (x) {
-                it("returns true " + x[0], function () {
+            for (let x of program.equal["true"]) {
+                it(`returns true ${x[0]}`, () => {
                     assert.isTrue(type.equal(x[1],
                                              type.parseValue(x[2],
                                                              schema_context),
                                              doc_context));
                 });
-            });
+            }
 
-            _.each(program.equal["false"], function (x) {
-                it("returns false " + x[0], function () {
+            for (let x of program.equal["false"]) {
+                it(`returns false ${x[0]}`, () => {
                     assert.isFalse(type.equal(x[1],
                                               type.parseValue(x[2],
                                                               schema_context),
                                               doc_context));
                 });
-            });
+            }
 
         });
 
         describe("parseParams", function () {
-            _.each(program.parseParams, function (x) {
-                it(x[0], function () {
+            for (let x of program.parseParams) {
+                it(x[0], () => {
                     assert.deepEqual(type.parseParams(undefined, x[1]), x[2]);
                 });
-            });
+            }
         });
 
         describe("disallows", function () {
-            var none = program.disallows && program.disallows.NONE;
+            const none = program.disallows && program.disallows.NONE;
             if (disallows || none) {
                 describe("without parameters", function () {
                     if (disallows)
@@ -1149,70 +1148,62 @@ function testProgram(name, lib, program, disallows) {
                     if (!none)
                         return;
 
-                    _.each(none["false"], function (x) {
-                        it("allows " + x[0], function () {
+                    for (let x of none["false"]) {
+                        it(`allows ${x[0]}`, () => {
                             assert.isFalse(type.disallows(x[1], {},
                                                          doc_context));
                         });
-                    });
+                    }
 
-                    _.each(none["true"], function (x) {
-                        it("disallows " + x[0], function () {
-                            var ret = type.disallows(x[1], {},
-                                                    doc_context);
+                    for (let x of none["true"]) {
+                        it(`disallows ${x[0]}`, () => {
+                            var ret = type.disallows(x[1], {}, doc_context);
                             assert.equal(ret.length, x[2].length);
                             assert.equal(ret[0].toString(), x[2][0]);
                         });
-                    });
+                    }
                 });
             }
 
-            function makeParameterTest(param) {
+            function makeParameterTest(i, param) {
                 return function () {
-                    _.each(param["false"], function (x) {
-                        it("allows " + x[0], (function (i) {
-                            return function () {
-                                var params = type.parseParams(undefined,
-                                    [{name: i, value: x[2]}]);
-                                assert.isFalse(type.disallows(x[1], params,
-                                                             doc_context));
-                            };
-                        })(i));
-                    });
+                    for (let x of param["false"]) {
+                        it(`allows ${x[0]}`, () => {
+                            const params = type.parseParams(
+                                undefined, [{name: i, value: x[2]}]);
+                            assert.isFalse(type.disallows(x[1], params,
+                                                          doc_context));
+                        });
+                    }
 
-                    _.each(param["true"], function (x) {
-                        it("disallows " + x[0], (function (i) {
-                            return function () {
-                                var params = type.parseParams(undefined,
-                                    [{name: i, value: x[2]}]);
-                                var ret = type.disallows(x[1], params,
-                                                        doc_context);
-                                assert.equal(ret.length, x[3].length);
-                                assert.equal(ret[0].toString(), x[3][0]);
-                            };
-                        })(i));
-
-                    });
+                    for (let x of param["true"]) {
+                        it(`disallows ${x[0]}`, () => {
+                            const params = type.parseParams(
+                                undefined, [{name: i, value: x[2]}]);
+                            const ret = type.disallows(x[1], params,
+                                                       doc_context);
+                            assert.equal(ret.length, x[3].length);
+                            assert.equal(ret[0].toString(), x[3][0]);
+                        });
+                    }
                 };
             }
 
-            var program_disallows = program.disallows;
-            for(var i in program_disallows) {
+            const program_disallows = program.disallows;
+            for(let i in program_disallows) {
                 if (i === "NONE" || !program_disallows.hasOwnProperty(i))
                     continue;
                 describe("with a " + i + " parameter",
-                         makeParameterTest(program_disallows[i]));
+                         makeParameterTest(i, program_disallows[i]));
             }
         });
     });
 }
 
 function testString(name, lib, disallows_noparams, disallows_params) {
-    var type = lib.types[name];
+    const type = lib.types[name];
     describe(name, function () {
-        before(function () {
-            assert.isFalse(type.needs_context);
-        });
+        before(() => { assert.isFalse(type.needs_context); });
         describe("equal", function () {
             it("returns true for two equal values", function () {
                 assert.isTrue(type.equal("foo", {value: "foo"}));
@@ -1226,7 +1217,7 @@ function testString(name, lib, disallows_noparams, disallows_params) {
         describe("parseParams", function () {
             it("empty array", function () {
                 assert.deepEqual(type.parseParams(undefined, []), {});
-                });
+            });
 
             it("all, except minLength and maxLength", function () {
                 assert.deepEqual(
@@ -1301,7 +1292,7 @@ function testString(name, lib, disallows_noparams, disallows_params) {
 
                 });
                 it("disallows other lengths", function () {
-                    var ret = type.disallows("foobar", {"length": 3});
+                    const ret = type.disallows("foobar", {"length": 3});
                     assert.equal(ret.length, 1);
                     assert.equal(ret[0].toString(),
                                  "length of value should be 3");
@@ -1318,7 +1309,7 @@ function testString(name, lib, disallows_noparams, disallows_params) {
 
                 });
                 it("disallows less than the length", function () {
-                    var ret = type.disallows("f", {"minLength": 3});
+                    const ret = type.disallows("f", {"minLength": 3});
                     assert.equal(ret.length, 1);
                     assert.equal(ret[0].toString(),
                                  "length of value should be greater than " +
@@ -1336,7 +1327,7 @@ function testString(name, lib, disallows_noparams, disallows_params) {
 
                 });
                 it("disallows more than the length", function () {
-                    var ret = type.disallows("foobar", {"maxLength": 3});
+                    const ret = type.disallows("foobar", {"maxLength": 3});
                     assert.equal(ret.length, 1);
                     assert.equal(ret[0].toString(),
                                  "length of value should be less than " +
@@ -1346,7 +1337,7 @@ function testString(name, lib, disallows_noparams, disallows_params) {
 
             describe("with a pattern parameter", function () {
                 // Extract the pattern processor from the type.
-                var pattern = type.param_name_to_obj.pattern;
+                const pattern = type.param_name_to_obj.pattern;
                 it("allows the pattern", function () {
                     assert.isFalse(
                         type.disallows("foo",
@@ -1355,9 +1346,9 @@ function testString(name, lib, disallows_noparams, disallows_params) {
                 });
                 it("disallows what does not match the pattern",
                    function () {
-                    var ret = type.disallows("afoo",
-                                             {"pattern":
-                                              pattern.convert("[fb].*")});
+                    const ret = type.disallows("afoo",
+                                               {"pattern":
+                                                pattern.convert("[fb].*")});
                     assert.equal(ret.length, 1);
                     assert.equal(ret[0].toString(),
                                  "value does not match the pattern [fb].*");
@@ -1365,10 +1356,10 @@ function testString(name, lib, disallows_noparams, disallows_params) {
 
                 it("disallows what does not match multiple patterns",
                    function () {
-                    var parsed = type.parseParams(undefined,
+                    const parsed = type.parseParams(undefined,
                         [{name: "pattern", value: ".*"},
                          {name: "pattern", value: "[fb].*"}]);
-                    var ret = type.disallows("afoo", parsed);
+                    const ret = type.disallows("afoo", parsed);
                     assert.equal(ret.length, 1);
                     assert.equal(ret[0].toString(),
                                  "value does not match the pattern [fb].*");
@@ -1384,10 +1375,10 @@ function testString(name, lib, disallows_noparams, disallows_params) {
 
 describe("datatypes", function () {
     describe("Builtin library", function () {
-        var lib = datatypes.registry.get("");
+        const lib = datatypes.registry.get("");
 
         describe("string", function () {
-            var type = lib.types.string;
+            const type = lib.types.string;
 
             describe("equal", function () {
                 it("returns true for two equal values", function () {
@@ -1407,7 +1398,7 @@ describe("datatypes", function () {
         });
 
         describe("token", function () {
-            var type = lib.types.token;
+            const type = lib.types.token;
 
             describe("equal", function () {
                 it("returns true for two equal values", function () {
@@ -1441,13 +1432,13 @@ describe("datatypes", function () {
     });
 
     describe("XMLSchema library", function () {
-        var lib = datatypes.registry.get(
+        const lib = datatypes.registry.get(
             "http://www.w3.org/2001/XMLSchema-datatypes");
 
         describe("disallowed combinations of parameters",
                  function () {
             it("minLength must be <= maxLength", function () {
-                var type = lib.types.string;
+                const type = lib.types.string;
 
                 assert.Throw(
                     type.parseParams.bind(type, undefined, [
@@ -1459,7 +1450,7 @@ describe("datatypes", function () {
             });
 
             it("combining length and minLength is invalid", function () {
-                var type = lib.types.string;
+                const type = lib.types.string;
                 assert.Throw(
                     type.parseParams.bind(type, undefined, [
                         {name: "length", value: "1"},
@@ -1470,7 +1461,7 @@ describe("datatypes", function () {
             });
 
             it("combining length and maxLength is invalid", function () {
-                var type = lib.types.string;
+                const type = lib.types.string;
                 assert.Throw(
                     type.parseParams.bind(type, undefined, [
                         {name: "length", value: "1"},
@@ -1482,7 +1473,7 @@ describe("datatypes", function () {
 
             it("combining maxInclusive and maxExclusive is invalid",
                function () {
-                var type = lib.types.decimal;
+                const type = lib.types.decimal;
                 assert.Throw(
                     type.parseParams.bind(type, undefined, [
                         {name: "maxInclusive", value: "1"},
@@ -1494,7 +1485,7 @@ describe("datatypes", function () {
 
             it("combining minInclusive and minExclusive is invalid",
                function () {
-                var type = lib.types.decimal;
+                const type = lib.types.decimal;
                 assert.Throw(
                     type.parseParams.bind(type, undefined, [
                         {name: "minInclusive", value: "1"},
@@ -1505,7 +1496,7 @@ describe("datatypes", function () {
             });
 
             it("minInclusive must be <= maxInclusive", function () {
-                var type = lib.types.decimal;
+                const type = lib.types.decimal;
 
                 assert.Throw(
                     type.parseParams.bind(type, undefined, [
@@ -1517,7 +1508,7 @@ describe("datatypes", function () {
             });
 
             it("minExclusive must be < maxInclusive", function () {
-                var type = lib.types.decimal;
+                const type = lib.types.decimal;
 
                 assert.Throw(
                     type.parseParams.bind(type, undefined, [
@@ -1529,7 +1520,7 @@ describe("datatypes", function () {
             });
 
             it("minInclusive must be < maxExclusive", function () {
-                var type = lib.types.decimal;
+                const type = lib.types.decimal;
 
                 assert.Throw(
                     type.parseParams.bind(type, undefined, [
@@ -1541,7 +1532,7 @@ describe("datatypes", function () {
             });
 
             it("minExclusive must be <= maxExclusive", function () {
-                var type = lib.types.decimal;
+                const type = lib.types.decimal;
 
                 assert.Throw(
                     type.parseParams.bind(type, undefined, [
@@ -1566,7 +1557,7 @@ describe("datatypes", function () {
             });
 
             it("disallows tabs", function () {
-                var ret = type.disallows("foo\tbar");
+                const ret = type.disallows("foo\tbar");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "string contains a tab, carriage return "+
@@ -1574,7 +1565,7 @@ describe("datatypes", function () {
             });
 
             it("disallows newlines", function () {
-                var ret = type.disallows("foo\nbar");
+                const ret = type.disallows("foo\nbar");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "string contains a tab, carriage return "+
@@ -1582,7 +1573,7 @@ describe("datatypes", function () {
             });
 
             it("disallows carriage returns", function () {
-                var ret = type.disallows("foo\rbar");
+                const ret = type.disallows("foo\rbar");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "string contains a tab, carriage return "+
@@ -1602,14 +1593,14 @@ describe("datatypes", function () {
             });
 
             it("disallows newlines", function () {
-                var ret = type.disallows("foo\nbar");
+                const ret = type.disallows("foo\nbar");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "not a valid token");
             });
 
             it("disallows carriage returns", function () {
-                var ret = type.disallows("foo\rbar");
+                const ret = type.disallows("foo\rbar");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "not a valid token");
@@ -1668,7 +1659,7 @@ describe("datatypes", function () {
             });
 
             it("disallows spaces between letters", function () {
-                var ret = type.disallows("en zh");
+                const ret = type.disallows("en zh");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "not a valid Name");
@@ -1699,7 +1690,7 @@ describe("datatypes", function () {
             });
 
             it("disallows colons", function () {
-                var ret = type.disallows("en:zh");
+                const ret = type.disallows("en:zh");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "not a valid NCName");
@@ -1725,7 +1716,7 @@ describe("datatypes", function () {
             });
 
             it("disallows spaces", function () {
-                var ret = type.disallows("en zh");
+                const ret = type.disallows("en zh");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "not a valid NMTOKEN");
@@ -1776,14 +1767,14 @@ describe("datatypes", function () {
             });
 
             it("disallows spaces", function () {
-                var ret = type.disallows("en zh");
+                const ret = type.disallows("en zh");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "not a valid ID");
             });
 
             it("disallows colons", function () {
-                var ret = type.disallows("en:zh");
+                const ret = type.disallows("en:zh");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "not a valid ID");
@@ -1809,14 +1800,14 @@ describe("datatypes", function () {
             });
 
             it("disallows spaces", function () {
-                var ret = type.disallows("en zh");
+                const ret = type.disallows("en zh");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "not a valid IDREF");
             });
 
             it("disallows colons", function () {
-                var ret = type.disallows("en:zh");
+                const ret = type.disallows("en:zh");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "not a valid IDREF");
@@ -1846,7 +1837,7 @@ describe("datatypes", function () {
             });
 
             it("disallows colons", function () {
-                var ret = type.disallows("en:zh");
+                const ret = type.disallows("en:zh");
                 assert.equal(ret.length, 1);
                 assert.equal(ret[0].toString(),
                              "not a valid IDREFS");
@@ -1878,7 +1869,7 @@ describe("datatypes", function () {
         testProgram("double", lib, double_program);
 
         describe("boolean", function () {
-            var type = lib.types["boolean"];
+            const type = lib.types["boolean"];
             describe("equal", function () {
                 it("returns true for two equal values", function () {
                     assert.isTrue(type.equal("1",
@@ -1960,7 +1951,7 @@ describe("datatypes", function () {
                     });
 
                     it("disallows 'yes'", function () {
-                        var ret = type.disallows("yes");
+                        const ret = type.disallows("yes");
                         assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
                                      "not a valid boolean");
@@ -1973,7 +1964,7 @@ describe("datatypes", function () {
         });
 
         describe("base64Binary", function () {
-            var type = lib.types.base64Binary;
+            const type = lib.types.base64Binary;
             describe("equal", function () {
                 it("returns true for two equal values", function () {
                     assert.isTrue(type.equal("AAAA",
@@ -2037,28 +2028,28 @@ describe("datatypes", function () {
                     });
 
                     it("disallows badly padded (1)", function () {
-                        var ret = type.disallows("AAA");
+                        const ret = type.disallows("AAA");
                         assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
                                      "not a valid base64Binary");
                     });
 
                     it("disallows badly padded (2)", function () {
-                        var ret = type.disallows("AA");
+                        const ret = type.disallows("AA");
                         assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
                                      "not a valid base64Binary");
                     });
 
                     it("disallows badly padded (3)", function () {
-                        var ret = type.disallows("A");
+                        const ret = type.disallows("A");
                         assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
                                      "not a valid base64Binary");
                     });
 
                     it("disallows badly padded (4)", function () {
-                        var ret = type.disallows("A=");
+                        const ret = type.disallows("A=");
                         assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
                                      "not a valid base64Binary");
@@ -2072,7 +2063,7 @@ describe("datatypes", function () {
 
                     });
                     it("disallows other lengths", function () {
-                        var ret = type.disallows("dGVzdCttb3JlCg==",
+                        const ret = type.disallows("dGVzdCttb3JlCg==",
                                                  {"length": 4});
                         assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
@@ -2093,7 +2084,7 @@ describe("datatypes", function () {
                     });
 
                     it("disallows less than the length", function () {
-                        var ret = type.disallows("Zm9v", {"minLength": 4});
+                        const ret = type.disallows("Zm9v", {"minLength": 4});
                         assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
                                      "length of value should be greater than " +
@@ -2113,7 +2104,7 @@ describe("datatypes", function () {
 
                     });
                     it("disallows more than the length", function () {
-                        var ret = type.disallows("dGVzdHM=", {"maxLength": 4});
+                        const ret = type.disallows("dGVzdHM=", {"maxLength": 4});
                     assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
                                      "length of value should be less than " +
@@ -2124,7 +2115,7 @@ describe("datatypes", function () {
         });
 
         describe("hexBinary", function () {
-            var type = lib.types.hexBinary;
+            const type = lib.types.hexBinary;
             describe("equal", function () {
                 it("returns true for two equal values", function () {
                     assert.isTrue(type.equal("AAAA",
@@ -2178,14 +2169,14 @@ describe("datatypes", function () {
                     });
 
                     it("disallows 'A'", function () {
-                        var ret = type.disallows("A");
+                        const ret = type.disallows("A");
                         assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
                                      "not a valid hexBinary");
                     });
 
                     it("disallows 'A A A A'", function () {
-                        var ret = type.disallows("A A A A");
+                        const ret = type.disallows("A A A A");
                         assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
                                      "not a valid hexBinary");
@@ -2199,7 +2190,7 @@ describe("datatypes", function () {
 
                     });
                     it("disallows other lengths", function () {
-                        var ret = type.disallows("AA",
+                        const ret = type.disallows("AA",
                                                  {"length": 2});
                         assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
@@ -2220,7 +2211,7 @@ describe("datatypes", function () {
                     });
 
                     it("disallows less than the length", function () {
-                        var ret = type.disallows("AA", {"minLength": 2});
+                        const ret = type.disallows("AA", {"minLength": 2});
                         assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
                                      "length of value should be greater than " +
@@ -2240,7 +2231,7 @@ describe("datatypes", function () {
 
                     });
                     it("disallows more than the length", function () {
-                        var ret = type.disallows("AAAAAA", {"maxLength": 2});
+                        const ret = type.disallows("AAAAAA", {"maxLength": 2});
                     assert.equal(ret.length, 1);
                         assert.equal(ret[0].toString(),
                                      "length of value should be less than " +
@@ -2252,7 +2243,7 @@ describe("datatypes", function () {
 
 
         describe("duration", function () {
-            var type = lib.types.duration;
+            const type = lib.types.duration;
             describe("equal", function () {
                 it("returns true for two equal values", function () {
                     assert.isTrue(type.equal("P3Y",
