@@ -125,7 +125,7 @@ gulp.task('install_test', ["default"], Promise.coroutine(function *() {
     yield del(test_dir);
     const _packname = yield execFileAsync("npm", ["pack", "dist"],
                                           { cwd: "build" });
-    packname = _packname[0].trim();
+    packname = _packname.trim();
     yield fs.mkdirAsync(test_dir);
     yield execFileAsync("npm", ["install", `../${packname}`],
                         { cwd: test_dir});
