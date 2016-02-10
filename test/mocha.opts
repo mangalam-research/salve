@@ -1,2 +1,4 @@
 --reporter dot
 --require babel-core/register
+test/*.js
+test/lib/**/*.js
