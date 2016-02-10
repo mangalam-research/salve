@@ -3,6 +3,14 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 2.0.0:
+
+  - Upgraded to lodash 4. Salve won't work with an earlier version of
+    lodash. This is enough of a disruption to warrant new major
+    number. 2.0.0 is functionally equivalent to 1.1.0, so people who
+    want to stay with lodash 3 can use 1.1.0. Note however that the
+    1.x line won't receive any further updates.
+
 * 1.1.0:
 
   - Name patterns now support a ``getNamespace`` method that allows
