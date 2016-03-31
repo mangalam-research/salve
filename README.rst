@@ -565,7 +565,7 @@ through other means. See Contributing_.
 Build System
 ============
 
-Salve uses gulp. Salve's `<gulpfile.js>`_ gets the values for its
+Salve uses gulp. Salve's `<gulpfile.babel.js>`_ gets the values for its
 configuration variables from three sources:
 
 * Internal default values.
