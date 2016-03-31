@@ -24,10 +24,9 @@ Salve is currently used to validate schemas generated from the `TEI
 standard <http://www.tei-c.org/>`_ and schemas derived from this
 standard. We've used salve with multiple different schemas generated
 from the TEI standard and never ran into a problem caused by the
-limitations that salve has. It is possible, however, that using a TEI
-module that *we* do not use could cause issues. We want to support as
-much Relax NG as reasonably possible. For now salve has the following
-limitations:
+limitations that salve has. We've also validated files that use the
+DocBook v5.0 schema. We want to support as much Relax NG as reasonably
+possible. For now salve has the following limitations:
 
 * Support for XML Schema ``float`` and ``double`` types is not
   thorough. Simple value comparisons work but if you put ``NaN`` or
