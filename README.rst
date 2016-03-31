@@ -664,6 +664,17 @@ Running the following command from the root of salve will run the tests::
 Running ``mocha`` directly also works, but this may run the test against
 stale code, whereas ``gulp test`` always runs a build first.
 
+JavaScript
+==========
+
+Take note that as of version 2.0.0, the code of the library itself is
+coded using ES5. However, auxiliary files are coded using ES6. These
+are files that are not part of the library proper. Examples of the
+latter: the files that contain build code, and the test files.
+
+Eventually the entire code base will be moved to ES6 but constraints
+prevent this from happening now.
+
 Contributing
 ============
 
