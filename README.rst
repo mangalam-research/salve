@@ -7,9 +7,9 @@
 .. note:: If you are reading this file from the set of files installed
           by ``npm install``, please keep in mind that the npm package
           only includes what is strictly necessary to *use* salve. For
-          instance, the test suite is not included in the npm package
-          package. This documentation, however, covers *all* of
-          salve. Consequently, it may refer to items you do not have.
+          instance, the test suite is not included in the npm package.
+          This documentation, however, covers *all* of salve.
+          Consequently, it may refer to items you do not have.
 
 Introduction
 ============
@@ -35,7 +35,7 @@ possible. For now salve has the following limitations:
   verify that the numerical values fit within the limits of ``float``
   or ``double``.
 
-* XML Schema types ``ENTITY`` and ``ENTITIES`` are treated as ``string``.
+* XML Schema types ``ENTITY`` and ``ENTITIES`` are treated as a ``string``.
 
 * None of the XML Schema types that deal with time allow the
   parameters ``minInclusive``, ``minExclusive``, ``maxInclusive`` and
@@ -54,8 +54,8 @@ possible. For now salve has the following limitations:
 
 If someone wishes to use salve but needs support for any of the
 features that are missing, they may ask for the feature to be
-added. Submit an issue on github for it. If you do submit an issue to
-add a feature please make a case for it. Even better, if someone
+added. Submit an issue on GitHub for it. If you do submit an issue to
+add a feature, please make a case for it. Even better, if someone
 wishes for a feature to be added, they can contribute code to salve
 that will add the feature they want. A solid contribution is more
 likely to result in the feature being speedily added to salve than
@@ -76,7 +76,7 @@ A full validation solution has the following components:
 * A validator: responsible for checking that validation events are
   valid against a schema, telling the parser what is possible at the
   current point in validation, and telling the parser what is possible
-  generally speaking (e.g., what namespace uris are used in the
+  in general (e.g., what namespace uris are used in the
   schema). **This is what salve offers, and only this!**
 
 A good example of this division of labor can be found in
@@ -90,7 +90,7 @@ problem with ``</bar>`` but will *also* pass it as text to the code
 that uses the ``sax`` parser.
 
 .. note:: If you are looking at the source tree of salve as cloned
-          from github, know that executables cannot be executed from
+          from GitHub, know that executables cannot be executed from
           `<bin>`__. They can be executed after a build, from the
           `<build/dist/bin>`_ directory.
 
@@ -114,7 +114,7 @@ convert. The ``[output]`` parameter should be where to save the schema
 once it is converted to JavaScript. (Actually, the simplified RNG is
 converted to JSON. Generally speaking JSON is not a subset of
 JavaScript but in this instance, the JSON produced is a subset, so
-calling it JavaScript is not incorrect.)
+calling it JavaScript is correct.)
 
 Turning to actual code, a typical usage scenario would be as follows::
 
@@ -158,7 +158,7 @@ context where the documents it validates cannot be malformed (because
 they are represented as DOM trees). So salve contains no functionality
 to handle problems with well-formedness. Salve **can be used on
 malformed documents**, provided you take care of reporting
-malformedness issues yourself and strategize how you will pass events
+malformation issues yourself and strategize how you will pass events
 to salve.
 
 Multiple strategies are possible for using salve in a context where
@@ -167,8 +167,8 @@ solution here. A primitive parser could abort as soon as evidence
 surfaces that the document is malformed. A more sophisticated parser
 could process the problematic structure so as to generate an error but
 give salve something well-formed. For instance if parsing
-``<foo></baz>``, such parser could emit an error on encountering
-``</baz>`` and replace the event that would be emitted for ``</baz>``
+``<foo></bar>``, such parser could emit an error on encountering
+``</bar>`` and replace the event that would be emitted for ``</bar>``
 with the event that would be emitted for ``</foo>``, and salve will
 happily validate it. The user will still get the error produced by the
 parser, and the parser will still be able to continue validating the
@@ -237,7 +237,7 @@ would require issuing::
     Event("definePrefix", "", "q")
     Event("definePrefix", "foo", "foons")
 
-Presumably, after firing the events above your code would call
+Presumably, after firing the events above, your code would call
 ``resolveName("p")`` on your walker to determine what namespace ``p``
 is in, which would yield the result ``"q"``. And then it would fire
 the ``enterStartTag`` event with ``q`` as the namespace and ``p`` as
@@ -250,7 +250,7 @@ sees the ``enterStartTag`` event because the way namespaces work, a
 start tag can declare its own namespace. So by the time
 ``enterStartTag`` is issued, salve must know what namespaces are
 declared by the tag. If the events were not issued this way, then the
-start tag ``p`` in the example would be interpreted to be in the
+start tag ``p`` in the example would be interpreted as in the
 default namespace in effect **before** it started, which could be
 other than ``q``. Similarly, ``leaveContext`` must be issued after the
 corresponding ``endTag`` event.
@@ -293,7 +293,7 @@ edited. This is to avoid needless reparsing. How frequently this
 should happen depends on the structure of the editor. The ``clone()``
 method and the code it depends on has been optimized since early
 versions of salve, but it is possible to call it too often, resulting
-in a slower validation speed than could be attainable with less
+in a slower validation speed than could be attained with less
 aggressive cloning.
 
 Overbroad Possibilities
@@ -306,7 +306,7 @@ document should contain a ``positiveInteger`` between 1 and 10. The
 ``possible()`` method will report that a string matching the regular
 expression ``/^\+?\d+$/`` is possible, when in fact the number ``11``
 would match the expression but be invalid. The software that uses
-salve should be prepared to handle such situation.
+salve should be prepared to handle such a situation.
 
 Name Classes
 ------------
@@ -332,7 +332,7 @@ Support for Relax NG's name classes introduces a few peculiarities in
 how possibilities are reported to clients using salve. The three
 events that accept names are affected: ``enterStartTag``, ``endTag``,
 and ``attributeName``. When salve returns these events as
-possibilities, their lone parameter is a instance of
+possibilities, their lone parameter is an instance of
 ``name_patterns.Base`` class. This object has a ``.match`` method that
 takes a namespace and a name and will return ``true`` if the namespace
 and name match the pattern, or ``false`` if not.
@@ -353,7 +353,7 @@ has a unique structure. The possible patterns are:
   inside a name class in the simplified Relax NG syntax.)
 
 * ``NsName``, a pattern with the field ``ns`` which is the namespace
-  that this object would match. The object matches any name. May have
+  that this object would match. The object matches any name. It may have
   an optional ``except`` field that contains a name class for patterns
   that it should not match. The lack of ``name`` field distinguishes
   it from ``Name``.  (Corresponds to an ``<nsName>`` element in the
@@ -416,7 +416,7 @@ it is composed only of ``Name`` and ``NameChoice`` objects. Such a
 pattern could be presented to a user as a finite list of
 possibilities. Otherwise, if the pattern is not simple, then either
 the number of choices is unbounded or it not a discrete list of
-items. In such case, the client code may instead present to the user a
+items. In such a case, the client code may instead present to the user a
 field in which to enter the name of the element or attribute to be
 created and validate the name against the pattern. The method
 ``.toArray()`` can be used to reduce a pattern which is simple to an
@@ -426,8 +426,8 @@ Event Asymmetry
 ---------------
 
 **Note that the events returned by ``possible()`` are *not identical*
-to the events that ``fireEvent()`` expects.** Most events returned are
-exactly those that would be passed to ``fireEvent()`` however, there
+to the events that ``fireEvent()`` expects.** While most events returned are
+exactly those that would be passed to ``fireEvent()``, there
 are three exceptions: the ``enterStartTag``, ``endTag`` and
 ``attributeName`` events returned by ``possible()`` will have a single
 parameter after the event name which is an object of
@@ -463,7 +463,7 @@ preference, and there may be many ways to decide how to associate a
 namespace prefix with a URI, salve does not take a position in this
 matter and lets the application that uses it decide how it wants to
 present URIs to users. The application also has to determine what
-strategy to use to present complex (i.e. non-simple) name patterns to
+strategy to use to present complex (i.e., non-simple) name patterns to
 the user. Again, there is no one-size-fits-all solution.
 
 Misplaced Elements
@@ -491,7 +491,7 @@ definition in the schema, then salve will emit an error upon
 encountering the ``enterStartTag`` event for ``name``, and then
 validate ``name`` as if it had been found in a valid place. If it
 turns out that the schema defines one ``name`` element which can
-appear in side a ``person`` element and another ``name`` element which
+appear inside a ``person`` element and another ``name`` element which
 can appear inside a ``location`` element (which would be possible with
 Relax NG), then salve will emit an error but won't perform any
 validation inside ``name``. Validation will resume after the
@@ -544,8 +544,8 @@ Running ``salve-convert`` additionally requires that ``xmllint``,
           it. It helps keep salve small. A previous version of
           ``salve-convert`` used ``xmllint`` for this task but
           ``xmllint`` would sometimes hang while validating the
-          RNG. It would hang on run-of-the-mill TEI files. Not
-          acceptable, and debugging ``xmllint`` is just not an option
+          RNG. It would hang on run-of-the-mill TEI files. This is
+          unacceptable, and debugging ``xmllint`` is just not an option
           right now. (If you think that debugging ``xmllint`` *is* an
           option, you are welcome to debug it. We're sure the folks
           responsible for ``xmllint`` will appreciate your
@@ -583,7 +583,7 @@ The variables that can be set are:
 |jsdoc                  | jsdoc command to run                                 |
 +-----------------------+------------------------------------------------------+
 |jsdoc_private          | jsdoc should produce documentation for private       |
-|                       | entities. true by default.                           |
+|                       | entities. True by default.                           |
 +-----------------------+------------------------------------------------------+
 |jsdoc_required_version | The jsdoc version required by the project's docs     |
 +-----------------------+------------------------------------------------------+
