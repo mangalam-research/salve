@@ -158,7 +158,7 @@ context where the documents it validates cannot be malformed (because
 they are represented as DOM trees). So salve contains no functionality
 to handle problems with well-formedness. Salve **can be used on
 malformed documents**, provided you take care of reporting
-malformation issues yourself and strategize how you will pass events
+malformedness issues yourself and strategize how you will pass events
 to salve.
 
 Multiple strategies are possible for using salve in a context where
@@ -167,8 +167,8 @@ solution here. A primitive parser could abort as soon as evidence
 surfaces that the document is malformed. A more sophisticated parser
 could process the problematic structure so as to generate an error but
 give salve something well-formed. For instance if parsing
-``<foo></bar>``, such parser could emit an error on encountering
-``</bar>`` and replace the event that would be emitted for ``</bar>``
+``<foo></baz>``, such parser could emit an error on encountering
+``</baz>`` and replace the event that would be emitted for ``</baz>``
 with the event that would be emitted for ``</foo>``, and salve will
 happily validate it. The user will still get the error produced by the
 parser, and the parser will still be able to continue validating the
@@ -250,7 +250,7 @@ sees the ``enterStartTag`` event because the way namespaces work, a
 start tag can declare its own namespace. So by the time
 ``enterStartTag`` is issued, salve must know what namespaces are
 declared by the tag. If the events were not issued this way, then the
-start tag ``p`` in the example would be interpreted as in the
+start tag ``p`` in the example would be interpreted to be in the
 default namespace in effect **before** it started, which could be
 other than ``q``. Similarly, ``leaveContext`` must be issued after the
 corresponding ``endTag`` event.
