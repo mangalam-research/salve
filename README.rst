@@ -585,6 +585,9 @@ The variables that can be set are:
 |jsdoc_private          | jsdoc should produce documentation for private       |
 |                       | entities. True by default.                           |
 +-----------------------+------------------------------------------------------+
+|no_jsdoc_private       | jsdoc should not produce documentation for private   |
+|                       | entities. False by default.                          |
++-----------------------+------------------------------------------------------+
 |jsdoc_required_version | The jsdoc version required by the project's docs     |
 +-----------------------+------------------------------------------------------+
 |jsdoc_template_dir     | Location of the jsdoc default template               |

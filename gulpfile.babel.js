@@ -71,7 +71,8 @@ parser.addArgument(["--no-jsdoc-private"], {
     help: "Jsdoc will not document private functions.",
     type: Boolean,
     action: 'storeFalse',
-    defaultValue: local_config.jsdoc_private
+    dest: 'jsdoc_private',
+    defaultValue: local_config.no_jsdoc_private
 });
 
 parser.addArgument(["--jsdoc-required-version"], {
