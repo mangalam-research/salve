@@ -72,7 +72,7 @@ parser.addArgument(["--no-jsdoc-private"], {
     type: Boolean,
     action: 'storeFalse',
     dest: 'jsdoc_private',
-    defaultValue: local_config.no_jsdoc_private
+    defaultValue: local_config.jsdoc_private
 });
 
 parser.addArgument(["--jsdoc-required-version"], {

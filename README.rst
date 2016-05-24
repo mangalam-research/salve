@@ -583,10 +583,8 @@ The variables that can be set are:
 |jsdoc                  | jsdoc command to run                                 |
 +-----------------------+------------------------------------------------------+
 |jsdoc_private          | jsdoc should produce documentation for private       |
-|                       | entities. True by default.                           |
-+-----------------------+------------------------------------------------------+
-|no_jsdoc_private       | jsdoc should not produce documentation for private   |
-|                       | entities. False by default.                          |
+|                       | entities. True by default. Set jsdoc_private to      |
+|                       | false using no_jsdoc_private.                        |
 +-----------------------+------------------------------------------------------+
 |jsdoc_required_version | The jsdoc version required by the project's docs     |
 +-----------------------+------------------------------------------------------+
