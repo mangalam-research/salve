@@ -1,5 +1,5 @@
 %{var xmlcharacters = require("./xmlcharacters");
-var XRegExp = require("xregexp").XRegExp;
+var XRegExp = require("xregexp");
 %}
 //
 // Terminology:
