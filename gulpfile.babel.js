@@ -62,7 +62,7 @@ parser.addArgument(['--jsdoc'], {
 
 parser.addArgument(["--jsdoc-private"], {
     help: "jsdoc will document private functions.",
-
+    type: Boolean,
     action: 'storeTrue',
     defaultValue: local_config.jsdoc_private
 });

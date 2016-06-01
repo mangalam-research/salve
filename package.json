@@ -12,11 +12,16 @@
   ],
   "homepage": "https://github.com/mangalam-research/salve",
   "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
+  "contributors": [
+    "Jesse Bethel <keisetsu@gmail.com>",
+    "Bennett Buchanan <buchanan.3rd@gmail.com>"
+  ],
   "main": "lib/salve/validate.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/mangalam-research/salve.git"
   },
+  "bugs": "https://github.com/mangalam-research/salve/issues",
   "licenses": [
     {
       "type": "MPL",
