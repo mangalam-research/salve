@@ -9,7 +9,9 @@ import "amd-loader";
 import { assert } from "chai";
 import hashstructs from "../build/dist/lib/salve/hashstructs";
 
-function id(x) { return x; }
+function id(x) {
+  return x;
+}
 
 describe("HashSet", function () {
   describe("integers with id hash", function () {
@@ -65,7 +67,9 @@ describe("HashSet", function () {
     it("forEach", function () {
       var hs = new hashstructs.HashSet(id, init);
       var t = {};
-      hs.forEach(x => { t[x] = x; });
+      hs.forEach(x => {
+        t[x] = x;
+      });
       for (let x = 0, q; q = init[x]; ++x) {
         assert.equal(t[q], q);
       }

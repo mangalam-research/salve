@@ -14,7 +14,7 @@ let resolver;
 const mapping = {
   "btw": "http://lddubeau.com/ns/btw-storage",
   "tei": "http://www.tei-c.org/ns/1.0",
-  "": "http://www.tei-c.org/ns/1.0"
+  "": "http://www.tei-c.org/ns/1.0",
 };
 
 describe("NameResolver", function () {
@@ -26,8 +26,8 @@ describe("NameResolver", function () {
       }
     });
 
-    it("returns a name in the default namespace when trying "+
-       "to resolve an unprefixed name even when no default "+
+    it("returns a name in the default namespace when trying " +
+       "to resolve an unprefixed name even when no default " +
        "namespace has been defined",
        function () {
          resolver = new nameResolver.NameResolver();
@@ -49,7 +49,7 @@ describe("NameResolver", function () {
        function () {
          assert.equal(resolver.resolveName("garbage:blah", true), undefined);
        });
-    it("throws an error when trying to resolve a badly "+
+    it("throws an error when trying to resolve a badly " +
        "formed name",
        function () {
          assert.Throw(
@@ -149,12 +149,12 @@ describe("NameResolver", function () {
                       "trying to leave the default context");
        });
 
-    it("does away with the definitions in the context "+
+    it("does away with the definitions in the context " +
        "previously entered", enterLeaveTest);
   });
 
   describe("enterContext", function () {
-    it("allows definitions in the new context to override "+
+    it("allows definitions in the new context to override " +
        "those in the upper contexts", enterLeaveTest);
   });
 
