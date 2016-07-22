@@ -20,8 +20,8 @@ function fileAsString(p) {
 var skips = {
   "test56": {
     // There is a bug in libxml2 which lets this one pass through.
-    incorrect: true
-  }
+    incorrect: true,
+  },
 };
 
 var spectestDir = path.join(__dirname, "spectest");

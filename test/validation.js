@@ -20,9 +20,9 @@ function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();
 }
 
-function getEventList(event_source) {
+function getEventList(eventSource) {
   const eventList = [];
-  for (let x of event_source.split("\n")) {
+  for (let x of eventSource.split("\n")) {
     if (!x.match(/^\s*$/)) {
       eventList.push(new validate.Event(x.split(/,\s*/)));
     }
@@ -34,7 +34,7 @@ function makeParser(er, walker) {
   const parser = sax.parser(true, { xmlns: true });
 
   const tagStack = [];
-  parser.onopentag = function (node) {
+  parser.onopentag = function onopentag(node) {
     er.recordEvent(walker, "enterContext");
 
     const names = Object.keys(node.attributes);
@@ -73,13 +73,13 @@ function makeParser(er, walker) {
     tagStack.unshift([node.uri, node.local]);
   };
 
-  parser.ontext = function (text) {
+  parser.ontext = function ontext(text) {
     er.recordEvent(walker, "text", text.trim());
   };
 
-  parser.onclosetag = function (node) {
-    const tag_info = tagStack.shift();
-    er.recordEvent(walker, "endTag", tag_info[0], tag_info[1]);
+  parser.onclosetag = function onclosetag(_node) {
+    const tagInfo = tagStack.shift();
+    er.recordEvent(walker, "endTag", tagInfo[0], tagInfo[1]);
     er.recordEvent(walker, "leaveContext");
   };
 
@@ -90,7 +90,7 @@ class EventRecorder {
   constructor(ComparisonEngine, options) {
     options = options || {
       check_fireEvent_invocation: true,
-      check_possible: true
+      check_possible: true,
     };
 
     this.events = [];
@@ -224,7 +224,7 @@ function makeValidTest(dir) {
 
     er.dont_record_state = true; // stop recording.
     let more = true;
-    while(more) {
+    while (more) {
       more = er.issueEventAt(walker, evIx++);
     }
 
@@ -249,14 +249,14 @@ describe("GrammarWalker.fireEvent reports no errors on", function () {
   it("a schema using anyName, etc.", makeValidTest("names"));
 });
 
-describe("GrammarWalker.fireEvent",  function () {
+describe("GrammarWalker.fireEvent", function () {
   describe("reports errors on", function () {
     let walker;
     let rng;
     function makeErrorTest(dir, recorderOptions) {
       recorderOptions = recorderOptions || {
         check_fireEvent_invocation: false,
-        check_possible: false
+        check_possible: false,
       };
       return function () {
         let myrng = rng || `test/${dir}/simplified-rng.js`;
@@ -328,14 +328,14 @@ describe("GrammarWalker.fireEvent",  function () {
       it("which has misplaced text",
          makeErrorTest("misplaced_text"));
       it("which has foreign elements followed by misplaced text",
-         makeErrorTest("foreign_elements",   {
+         makeErrorTest("foreign_elements", {
            check_fireEvent_invocation: true,
-           check_possible: true
+           check_possible: true,
          }));
       it("which has inferable foreign elements",
-         makeErrorTest("foreign_elements_inferable",   {
+         makeErrorTest("foreign_elements_inferable", {
            check_fireEvent_invocation: true,
-           check_possible: true
+           check_possible: true,
          }));
     });
 
@@ -344,30 +344,30 @@ describe("GrammarWalker.fireEvent",  function () {
       it("which has a choice not chosen",
          makeErrorTest("choice_not_chosen", {
            check_fireEvent_invocation: true,
-           check_possible: false
+           check_possible: false,
          }));
       it("which has a choice ended by a subsequent item",
          makeErrorTest("choice_ended_by_following_item", {
            check_fireEvent_invocation: true,
-           check_possible: false
+           check_possible: false,
          }));
 
       it("which has a one-or-more prematurely ended",
          makeErrorTest("one_or_more_not_satisfied", {
            check_fireEvent_invocation: true,
-           check_possible: false
+           check_possible: false,
          }));
 
       it("top-level opening tag without closing",
          makeErrorTest("opening_no_closing", {
            check_fireEvent_invocation: true,
-           check_possible: false
+           check_possible: false,
          }));
 
       it("invalid attribute",
          makeErrorTest("invalid_attribute", {
            check_fireEvent_invocation: true,
-           check_possible: false
+           check_possible: false,
          }));
 
       it("NsName fails a match", makeErrorTest("name_error1"));
@@ -395,7 +395,7 @@ describe("GrammarWalker.fireEvent",  function () {
       assert.equal(ret.length, 1);
       assert.equal(
         ret[0].toString(),
-        'attribute not allowed here: {"ns":"","name":"style"}');
+        "attribute not allowed here: {\"ns\":\"\",\"name\":\"style\"}");
     });
   });
 
@@ -420,7 +420,7 @@ describe("GrammarWalker.fireEvent",  function () {
         ["attr-b", "attr-a", "attr-c"],
         ["attr-b", "attr-c", "attr-a"],
         ["attr-c", "attr-a", "attr-b"],
-        ["attr-c", "attr-b", "attr-a"]
+        ["attr-c", "attr-b", "attr-a"],
       ];
       const stub =
               "attributeName:\n" +
@@ -558,11 +558,11 @@ describe("GrammarWalker.fireEvent",  function () {
       ret = walker.fireEvent(new validate.Event("endTag", "", "html"));
       assert.equal(ret.length, 1);
       assert.equal(ret[0].toString(),
-                   'tag required: {"ns":"","name":"head"}');
+                   "tag required: {\"ns\":\"\",\"name\":\"head\"}");
       ret = walker.fireEvent(new validate.Event("endTag", "", "html"));
       assert.equal(ret.length, 1);
       assert.equal(ret[0].toString(),
-                   'unexpected end tag: {"ns":"","name":"html"}');
+                   "unexpected end tag: {\"ns\":\"\",\"name\":\"html\"}");
     });
   });
 });
@@ -635,15 +635,14 @@ describe("Grammar", function () {
            "",
            "foo:foo",
            "*",
-           "::except"
+           "::except",
          ]);
        });
   });
 });
 
-
 describe("Misc", function () {
-  it("Text singleton", function() {
+  it("Text singleton", function () {
     const t1 = new test.Text("a");
     const t2 = new test.Text("b");
     assert.equal(t1, t2);
@@ -678,7 +677,7 @@ describe("Name pattern", function () {
     });
 
     it("converts to an object", function () {
-      assert.deepEqual(np.toObject(), {ns: 'a', name: 'b'});
+      assert.deepEqual(np.toObject(), { ns: "a", name: "b" });
     });
 
     it("holds one namespace", function () {
@@ -737,8 +736,8 @@ describe("Name pattern", function () {
     });
 
     it("converts to an object", function () {
-      assert.deepEqual(simple.toObject(), {a: {ns: 'a', name: 'b'},
-                                           b: {ns: 'c', name: 'd'}});
+      assert.deepEqual(simple.toObject(), { a: { ns: "a", name: "b" },
+                                           b: { ns: "c", name: "d" } });
     });
 
     it("holds multiple namespaces", function () {
@@ -784,12 +783,12 @@ describe("Name pattern", function () {
     });
 
     it("converts to an object", function () {
-      assert.deepEqual(np.toObject(), {ns: 'a'});
+      assert.deepEqual(np.toObject(), { ns: "a" });
       assert.deepEqual(withExcept.toObject(),
-                       {
-                         ns: 'a',
-                         except: { ns: 'a', name: 'b' }
-                       });
+        {
+          ns: "a",
+          except: { ns: "a", name: "b" },
+        });
     });
 
     it("holds a single namespace", function () {
@@ -832,12 +831,12 @@ describe("Name pattern", function () {
     });
 
     it("converts to an object", function () {
-      assert.deepEqual(np.toObject(), {pattern: 'AnyName'});
+      assert.deepEqual(np.toObject(), { pattern: "AnyName" });
       assert.deepEqual(withExcept.toObject(),
-                       {
-                         pattern: 'AnyName',
-                         except: {ns: "a", name: "b"}
-                       });
+        {
+          pattern: "AnyName",
+          except: { ns: "a", name: "b" },
+        });
     });
 
     it("holds all namespaces", function () {
