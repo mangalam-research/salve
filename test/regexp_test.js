@@ -4,6 +4,7 @@
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
 
+/* global it, describe */
 "use strict";
 import "amd-loader";
 import regexp from "../build/dist/lib/salve/datatypes/regexp";

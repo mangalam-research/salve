@@ -4,6 +4,7 @@
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
 
+/* global it, describe */
 "use strict";
 import "amd-loader";
 import { assert } from "chai";
@@ -65,8 +66,8 @@ describe("HashSet", function () {
     });
 
     it("forEach", function () {
-      var hs = new hashstructs.HashSet(id, init);
-      var t = {};
+      const hs = new hashstructs.HashSet(id, init);
+      const t = {};
       hs.forEach(x => {
         t[x] = x;
       });

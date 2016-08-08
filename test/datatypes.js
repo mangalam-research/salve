@@ -4,6 +4,7 @@
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
 
+/* global it, describe, before */
 "use strict";
 import "amd-loader";
 import datatypes from "../build/dist/lib/salve/datatypes";
@@ -1110,7 +1111,7 @@ function testProgram(name, lib, program, disallows) {
   const doc_context = program.doc_context;
   describe(name, function () {
     describe("equal", function () {
-      for (let x of program.equal["true"]) {
+      for (const x of program.equal["true"]) {
         it(`returns true ${x[0]}`, () => {
           assert.isTrue(type.equal(x[1],
                                    type.parseValue(x[2],
@@ -1119,7 +1120,7 @@ function testProgram(name, lib, program, disallows) {
         });
       }
 
-      for (let x of program.equal["false"]) {
+      for (const x of program.equal["false"]) {
         it(`returns false ${x[0]}`, () => {
           assert.isFalse(type.equal(x[1],
                                     type.parseValue(x[2],
@@ -1127,11 +1128,10 @@ function testProgram(name, lib, program, disallows) {
                                     doc_context));
         });
       }
-
     });
 
     describe("parseParams", function () {
-      for (let x of program.parseParams) {
+      for (const x of program.parseParams) {
         it(x[0], () => {
           assert.deepEqual(type.parseParams(undefined, x[1]), x[2]);
         });
@@ -1149,16 +1149,16 @@ function testProgram(name, lib, program, disallows) {
             return;
           }
 
-          for (let x of none["false"]) {
+          for (const x of none["false"]) {
             it(`allows ${x[0]}`, () => {
               assert.isFalse(type.disallows(x[1], {},
                                             doc_context));
             });
           }
 
-          for (let x of none["true"]) {
+          for (const x of none["true"]) {
             it(`disallows ${x[0]}`, () => {
-              var ret = type.disallows(x[1], {}, doc_context);
+              const ret = type.disallows(x[1], {}, doc_context);
               assert.equal(ret.length, x[2].length);
               assert.equal(ret[0].toString(), x[2][0]);
             });
@@ -1168,7 +1168,7 @@ function testProgram(name, lib, program, disallows) {
 
       function makeParameterTest(i, param) {
         return function () {
-          for (let x of param["false"]) {
+          for (const x of param["false"]) {
             it(`allows ${x[0]}`, () => {
               const params = type.parseParams(
                 undefined, [{ name: i, value: x[2] }]);
@@ -1177,7 +1177,7 @@ function testProgram(name, lib, program, disallows) {
             });
           }
 
-          for (let x of param["true"]) {
+          for (const x of param["true"]) {
             it(`disallows ${x[0]}`, () => {
               const params = type.parseParams(
                 undefined, [{ name: i, value: x[2] }]);
@@ -1191,11 +1191,11 @@ function testProgram(name, lib, program, disallows) {
       }
 
       const programDisallows = program.disallows;
-      for (let i in programDisallows) {
+      for (const i in programDisallows) {
         if (i === "NONE" || !programDisallows.hasOwnProperty(i)) {
           continue;
         }
-        describe("with a " + i + " parameter",
+        describe(`with a ${i} parameter`,
                  makeParameterTest(i, programDisallows[i]));
       }
     });
@@ -1247,7 +1247,7 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
       });
 
       it("repeatables", function () {
-        var parsed = type.parseParams(undefined, [
+        const parsed = type.parseParams(undefined, [
           { name: "pattern", value: "abc" },
           { name: "pattern", value: "def" },
         ]);
@@ -1282,7 +1282,6 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
       describe("without parameters", function () {
         it("allows 'foo'", function () {
           assert.isFalse(type.disallows("foo"));
-
         });
 
         disallowsNoparams(type);
@@ -1290,8 +1289,7 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
 
       describe("with a length parameter", function () {
         it("allows the length", function () {
-          assert.isFalse(type.disallows("foo", { "length": 3 }));
-
+          assert.isFalse(type.disallows("foo", { "length": 3 }))
         });
         it("disallows other lengths", function () {
           const ret = type.disallows("foobar", { "length": 3 });
@@ -1304,11 +1302,9 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
       describe("with a minLength parameter", function () {
         it("allows the length", function () {
           assert.isFalse(type.disallows("foo", { "minLength": 3 }));
-
         });
         it("allows more than the length", function () {
           assert.isFalse(type.disallows("foobar", { "minLength": 3 }));
-
         });
         it("disallows less than the length", function () {
           const ret = type.disallows("f", { "minLength": 3 });
@@ -1322,11 +1318,9 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
       describe("with a maxLength parameter", function () {
         it("allows the length", function () {
           assert.isFalse(type.disallows("foo", { "maxLength": 3 }));
-
         });
         it("allows less than the length", function () {
           assert.isFalse(type.disallows("f", { "maxLength": 3 }));
-
         });
         it("disallows more than the length", function () {
           const ret = type.disallows("foobar", { "maxLength": 3 });
@@ -1344,7 +1338,6 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
           assert.isFalse(
             type.disallows("foo",
                            { "pattern": pattern.convert("[fb].*") }));
-
         });
         it("disallows what does not match the pattern",
            function () {
@@ -1581,7 +1574,6 @@ describe("datatypes", function () {
                                 "string contains a tab, carriage return " +
                                 "or newline");
                  });
-
                });
 
     testString("token", lib,
@@ -1611,7 +1603,6 @@ describe("datatypes", function () {
                  it("allows spaces", function () {
                    assert.isFalse(type.disallows("foo  bar"));
                  });
-
                });
 
     testString("language", lib,
@@ -1635,7 +1626,6 @@ describe("datatypes", function () {
                  it("allows spaces", function () {
                    assert.isFalse(type.disallows("en "));
                  });
-
                });
 
     testString("Name", lib,
@@ -1666,7 +1656,6 @@ describe("datatypes", function () {
                    assert.equal(ret[0].toString(),
                                 "not a valid Name");
                  });
-
                });
 
     testString("NCName", lib,
@@ -1723,7 +1712,6 @@ describe("datatypes", function () {
                    assert.equal(ret[0].toString(),
                                 "not a valid NMTOKEN");
                  });
-
                });
 
     testString("NMTOKENS", lib,
@@ -1734,7 +1722,6 @@ describe("datatypes", function () {
 
                  it("allows spaces", function () {
                    assert.isFalse(type.disallows("en zh"));
-
                  });
 
                  it("allows tabs", function () {
@@ -1907,13 +1894,11 @@ describe("datatypes", function () {
         it("returns false for two unequal values", function () {
           assert.isFalse(type.equal("false",
                                     type.parseValue("1")));
-
         });
 
         it("returns false for two unequal values", function () {
           assert.isFalse(type.equal("true",
                                     type.parseValue("0")));
-
         });
       });
 
@@ -1934,22 +1919,18 @@ describe("datatypes", function () {
         describe("without parameters", function () {
           it("allows 'true'", function () {
             assert.isFalse(type.disallows("true"));
-
           });
 
           it("allows 'false'", function () {
             assert.isFalse(type.disallows("false"));
-
           });
 
           it("allows 1", function () {
             assert.isFalse(type.disallows("1"));
-
           });
 
           it("allows 0", function () {
             assert.isFalse(type.disallows("0"));
-
           });
 
           it("disallows 'yes'", function () {
@@ -1957,11 +1938,8 @@ describe("datatypes", function () {
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(),
                          "not a valid boolean");
-
           });
-
         });
-
       });
     });
 
@@ -2011,22 +1989,18 @@ describe("datatypes", function () {
         describe("without parameters", function () {
           it("allows 'AAAA'", function () {
             assert.isFalse(type.disallows("AAAA"));
-
           });
 
           it("allows 'A A A A'", function () {
             assert.isFalse(type.disallows("A A A A"));
-
           });
 
           it("allows an empty string", function () {
             assert.isFalse(type.disallows(""));
-
           });
 
           it("allows 'test' coded in base64", function () {
             assert.isFalse(type.disallows("dGVzdA=="));
-
           });
 
           it("disallows badly padded (1)", function () {
@@ -2062,7 +2036,6 @@ describe("datatypes", function () {
           it("allows the length", function () {
             assert.isFalse(type.disallows("dGVzdA==",
                                           { "length": 4 }));
-
           });
           it("disallows other lengths", function () {
             const ret = type.disallows("dGVzdCttb3JlCg==",
@@ -2077,12 +2050,10 @@ describe("datatypes", function () {
           it("allows the length", function () {
             assert.isFalse(type.disallows("dGVzdA==",
                                           { "minLength": 4 }));
-
           });
           it("allows more than the length", function () {
             assert.isFalse(type.disallows("dGVzdCttb3JlCg==",
                                           { "minLength": 4 }));
-
           });
 
           it("disallows less than the length", function () {
@@ -2098,12 +2069,10 @@ describe("datatypes", function () {
           it("allows the length", function () {
             assert.isFalse(type.disallows("dGVzdA==",
                                           { "maxLength": 4 }));
-
           });
           it("allows less than the length", function () {
             assert.isFalse(type.disallows("Zm9v",
                                           { "maxLength": 4 }));
-
           });
           it("disallows more than the length", function () {
             const ret = type.disallows("dGVzdHM=", { "maxLength": 4 });
@@ -2162,12 +2131,10 @@ describe("datatypes", function () {
         describe("without parameters", function () {
           it("allows 'AAAA'", function () {
             assert.isFalse(type.disallows("AAAA"));
-
           });
 
           it("allows an empty string", function () {
             assert.isFalse(type.disallows(""));
-
           });
 
           it("disallows 'A'", function () {
@@ -2189,7 +2156,6 @@ describe("datatypes", function () {
           it("allows the length", function () {
             assert.isFalse(type.disallows("AAAA",
                                           { "length": 2 }));
-
           });
           it("disallows other lengths", function () {
             const ret = type.disallows("AA",
@@ -2204,12 +2170,10 @@ describe("datatypes", function () {
           it("allows the length", function () {
             assert.isFalse(type.disallows("AAAA",
                                           { "minLength": 2 }));
-
           });
           it("allows more than the length", function () {
             assert.isFalse(type.disallows("AAAAAA",
                                           { "minLength": 2 }));
-
           });
 
           it("disallows less than the length", function () {
@@ -2225,12 +2189,10 @@ describe("datatypes", function () {
           it("allows the length", function () {
             assert.isFalse(type.disallows("AAAA",
                                           { "maxLength": 2 }));
-
           });
           it("allows less than the length", function () {
             assert.isFalse(type.disallows("AA",
                                           { "maxLength": 2 }));
-
           });
           it("disallows more than the length", function () {
             const ret = type.disallows("AAAAAA", { "maxLength": 2 });
@@ -2275,7 +2237,6 @@ describe("datatypes", function () {
         describe("without parameters", function () {
           it("allows 'P2Y3M1DT12H3M23.123S'", function () {
             assert.isFalse(type.disallows("P2Y3M1DT12H3M23.123S"));
-
           });
         });
       });
@@ -2290,6 +2251,5 @@ describe("datatypes", function () {
     testProgram("gDay", lib, gDayProgram);
     testProgram("gMonth", lib, gMonthProgram);
     testProgram("anyURI", lib, anyURIProgram);
-
   });
 });

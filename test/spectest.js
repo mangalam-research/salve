@@ -4,6 +4,7 @@
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
 
+/* global it, describe, before */
 "use strict";
 import "amd-loader";
 import { assert } from "chai";
@@ -17,16 +18,16 @@ function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();
 }
 
-var skips = {
+const skips = {
   "test56": {
     // There is a bug in libxml2 which lets this one pass through.
     incorrect: true,
   },
 };
 
-var spectestDir = path.join(__dirname, "spectest");
+const spectestDir = path.join(__dirname, "spectest");
 
-var testDirs = fs.readdirSync(spectestDir);
+const testDirs = fs.readdirSync(spectestDir);
 
 function Test(test) {
   this.test = test;
@@ -37,7 +38,7 @@ function Test(test) {
   const invalid = this.invalid = [];
   this.convert_args = [];
 
-  for (let f of fs.readdirSync(p)) {
+  for (const f of fs.readdirSync(p)) {
     if (f.lastIndexOf("incorrect", 0) === 0) {
       incorrect.push(path.join(p, f));
     }
@@ -99,7 +100,7 @@ describe("spectest", function () {
     }
   }
 
-  for (let t of tests) {
+  for (const t of tests) {
     const skip = skips[t.test] || {};
     if (!skip.incorrect && t.incorrect) {
       it(t.incorrect, done => {
@@ -127,7 +128,7 @@ describe("spectest", function () {
                           });
           });
 
-          for (let vfile of t.valid) {
+          for (const vfile of t.valid) {
             it(vfile, done => {
               parse(outpath, vfile, false, code => {
                 assert.equal(code, 0, "parse exit status");
@@ -136,7 +137,7 @@ describe("spectest", function () {
             });
           }
 
-          for (let vfile of t.invalid) {
+          for (const vfile of t.invalid) {
             it(vfile, done => {
               parse(outpath, vfile, true, code => {
                 assert.equal(code, 1, "parse exit status");

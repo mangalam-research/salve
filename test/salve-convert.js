@@ -4,6 +4,7 @@
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
 
+/* global it, describe */
 "use strict";
 import "amd-loader";
 import { assert } from "chai";
@@ -60,20 +61,20 @@ describe("salve-convert", function () {
   const dir = "test/salve-convert/";
   const tests = fs.readdirSync(dir);
 
-  for (let t of tests) {
+  for (const t of tests) {
     if (t.slice(-4) !== ".rng") {
       continue;
     }
 
     if (t.lastIndexOf("fails", 0) === -1) {
-      const expected = t.slice(0, -4) + ".js";
-      it("convert " + t, (done) => {
+      const expected = `${t.slice(0, -4)}.js`;
+      it(`convert ${t}`, (done) => {
         salveConvert(dir + t, dir + expected, [], done);
       });
     }
     else {
-      it("convert fails on " + t, (done) => {
-        salveConvert(dir + t, dir + t.slice(0, -4) + ".txt",
+      it(`convert fails on ${t}`, (done) => {
+        salveConvert(dir + t, `${dir}${t.slice(0, -4)}.txt`,
                       ["--include-paths"], done, 1);
       });
     }

@@ -19,6 +19,7 @@ import touch from "touch";
 import reduce from "stream-reduce";
 import es from "event-stream";
 import { ArgumentParser } from "argparse";
+import eslint from "gulp-eslint";
 
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
@@ -93,6 +94,18 @@ parser.addArgument(["--rst2html"], {
 
 const options = parser.parseArgs(process.argv.slice(2));
 
+gulp.task("lint", () =>
+  gulp.src(["*.js",
+            "bin/**/*.js",
+            "lib/**/*.js",
+            "gulptasks/**/*.js",
+            "test/**/*.js",
+            "misc/**/*.js"])
+      .pipe(eslint())
+      .pipe(eslint.format())
+      .pipe(eslint.failAfterError())
+);
+
 gulp.task("copy-src", () => {
   const dest = "build/dist/";
   return gulp.src(["package.json",
@@ -117,7 +130,7 @@ gulp.task("copy-readme", () => {
 gulp.task("jison", () => {
   const dest = "build/dist/lib/salve/datatypes";
   return gulp.src("lib/salve/datatypes/regexp.jison")
-        .pipe(newer(dest + "/regexp.js"))
+        .pipe(newer(`${dest}/regexp.js`))
         .pipe(jison({ moduleType: "amd" }))
         .pipe(replace(/^\s*define\(\[\], function\s*\(\s*\)\s*\{/m,
                       "define(function (require) {"))
@@ -256,12 +269,12 @@ gulp.task("mocha", ["default"], (callback) => {
 
   child.on("exit", (code, signal) => {
     if (code) {
-      callback(new Error("child terminated with code: " + code));
+      callback(new Error(`child terminated with code: ${code}`));
       return;
     }
 
     if (signal) {
-      callback(new Error("child terminated with signal: " + signal));
+      callback(new Error(`child terminated with signal: ${signal}`));
       return;
     }
 

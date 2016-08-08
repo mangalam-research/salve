@@ -4,6 +4,7 @@
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
 
+/* global it, describe, before */
 "use strict";
 import "amd-loader";
 import nameResolver from "../build/dist/lib/salve/name_resolver";
@@ -21,7 +22,7 @@ describe("NameResolver", function () {
   describe("resolveName", function () {
     beforeEach(() => {
       resolver = new nameResolver.NameResolver();
-      for (let k of Object.keys(mapping)) {
+      for (const k of Object.keys(mapping)) {
         resolver.definePrefix(k, mapping[k]);
       }
     });
@@ -161,7 +162,7 @@ describe("NameResolver", function () {
   describe("unresolveName", function () {
     beforeEach(() => {
       resolver = new nameResolver.NameResolver();
-      for (let k of Object.keys(mapping)) {
+      for (const k of Object.keys(mapping)) {
         resolver.definePrefix(k, mapping[k]);
       }
     });
@@ -218,7 +219,7 @@ describe("NameResolver", function () {
   describe("prefixFromURI", function () {
     beforeEach(() => {
       resolver = new nameResolver.NameResolver();
-      for (let k of Object.keys(mapping)) {
+      for (const k of Object.keys(mapping)) {
         resolver.definePrefix(k, mapping[k]);
       }
     });
@@ -256,7 +257,7 @@ describe("NameResolver", function () {
   describe("clone", function () {
     beforeEach(() => {
       resolver = new nameResolver.NameResolver();
-      for (let k of Object.keys(mapping)) {
+      for (const k of Object.keys(mapping)) {
         resolver.definePrefix(k, mapping[k]);
       }
     });
@@ -264,8 +265,8 @@ describe("NameResolver", function () {
     it("creates a clone", function () {
       const cloned = resolver.clone();
       Object.keys(mapping).forEach(function (k) {
-        assert.equal(cloned.resolveName(k + ":x").toString(),
-                     resolver.resolveName(k + ":x").toString());
+        assert.equal(cloned.resolveName(`${k}:x`).toString(),
+                     resolver.resolveName(`${k}:x`).toString());
       });
     });
 

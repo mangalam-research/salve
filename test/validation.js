@@ -4,6 +4,7 @@
  * @copyright 2013-2015 Mangalam Research Center for Buddhist Languages
  */
 
+/* global it, describe, before */
 "use strict";
 import "amd-loader";
 import validate from "../build/dist/lib/salve/validate";
@@ -22,7 +23,7 @@ function fileAsString(p) {
 
 function getEventList(eventSource) {
   const eventList = [];
-  for (let x of eventSource.split("\n")) {
+  for (const x of eventSource.split("\n")) {
     if (!x.match(/^\s*$/)) {
       eventList.push(new validate.Event(x.split(/,\s*/)));
     }
@@ -39,7 +40,7 @@ function makeParser(er, walker) {
 
     const names = Object.keys(node.attributes);
     names.sort();
-    for (let name of names) {
+    for (const name of names) {
       const { prefix, local, value } = node.attributes[name];
       if (// xmlns="..."
         (local === "" && name === "xmlns") ||
@@ -49,11 +50,11 @@ function makeParser(er, walker) {
       }
     }
 
-    const ename = walker.resolveName(node.prefix + ":" + node.local);
+    const ename = walker.resolveName(`${node.prefix}:${node.local}`);
     node.uri = ename.ns;
 
     er.recordEvent(walker, "enterStartTag", node.uri, node.local);
-    for (let name of names) {
+    for (const name of names) {
       const attr = node.attributes[name];
       const { local, prefix, value } = attr;
       let { uri } = attr;
@@ -141,8 +142,7 @@ class EventRecorder {
           evParams[0] !== "leaveContext" &&
           evParams[0] !== "definePrefix") {
         this.ce.compare(
-          "possible events\n" +
-            validate.eventsToTreeString(possibleEvs), nev);
+          `possible events\n${validate.eventsToTreeString(possibleEvs)}`, nev);
       }
     }
   }
@@ -172,7 +172,7 @@ class ComparisonEngine {
 
 function errorsToString(errs) {
   if (!errs) {
-    return errs + "";
+    return errs;
   }
 
   return errs.join(",").toString();
@@ -207,8 +207,7 @@ function makeValidTest(dir) {
     ce.compare(`wholly context-independent ${contextIndependent}`,
                "*context-independent*");
 
-    ce.compare("possible events\n" +
-               validate.eventsToTreeString(walker.possible()),
+    ce.compare(`possible events\n${validate.eventsToTreeString(walker.possible())}`,
                new validate.Event(["initial"]));
 
     const parser = makeParser(er, walker);
@@ -259,7 +258,7 @@ describe("GrammarWalker.fireEvent", function () {
         check_possible: false,
       };
       return function () {
-        let myrng = rng || `test/${dir}/simplified-rng.js`;
+        const myrng = rng || `test/${dir}/simplified-rng.js`;
         // Read the RNG tree.
         const source = fileAsString(myrng);
 
@@ -383,7 +382,6 @@ describe("GrammarWalker.fireEvent", function () {
       it("NameChoice fails a match", makeErrorTest("name_error2"));
 
       it("Except fails a match", makeErrorTest("name_error3"));
-
     });
 
     it("an attribute without value", function () {
@@ -433,20 +431,20 @@ describe("GrammarWalker.fireEvent", function () {
       const stub =
               "attributeName:\n" +
               "    ";
-      for (let perm of permutations) {
+      for (const perm of permutations) {
         let ret = walker.fireEvent(
           new validate.Event("enterStartTag", "", "em"));
         assert.isFalse(ret, "entering em");
 
         const possible = [];
-        for (let attr of perm) {
+        for (const attr of perm) {
           possible.push(`{"ns":"","name":"${attr}"}`);
         }
-        for (let attr of perm) {
+        for (const attr of perm) {
           const sorted = possible.slice().sort();
           assert.equal(
             validate.eventsToTreeString(walker.possible()),
-            stub + sorted.join("\n    ") + "\n");
+            `${stub}${sorted.join("\n    ")}\n`);
 
           ret = walker.fireEvent(
             new validate.Event("attributeName", "", attr));
@@ -583,8 +581,8 @@ describe("error objects", function () {
     second = second || "blah: a";
 
     it(ctorName, function () {
-      var ctor = validate[ctorName];
-      var err = Object.create(ctor.prototype);
+      const ctor = validate[ctorName];
+      const err = Object.create(ctor.prototype);
       ctor.apply(err, ["blah"].concat(names));
       assert.equal(err.toString(), first);
       assert.sameMembers(err.getNames(), names);
@@ -734,7 +732,7 @@ describe("Name pattern", function () {
       // We get true here because anyName matches anything.
       assert.isTrue(complex.wildcardMatch("c", "d"));
 
-      var x = new namePatterns.NameChoice(
+      const x = new namePatterns.NameChoice(
         "",
         [new namePatterns.AnyName(
           "",
