@@ -12,11 +12,16 @@
   ],
   "homepage": "https://github.com/mangalam-research/salve",
   "author": "Louis-Dominique Dubeau <louisd@mangalamresearch.org>",
+  "contributors": [
+    "Jesse Bethel <keisetsu@gmail.com>",
+    "Bennett Buchanan <buchanan.3rd@gmail.com>"
+  ],
   "main": "lib/salve/validate.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/mangalam-research/salve.git"
   },
+  "bugs": "https://github.com/mangalam-research/salve/issues",
   "licenses": [
     {
       "type": "MPL",
@@ -41,15 +46,18 @@
     "xregexp": "^3.0.0"
   },
   "devDependencies": {
-    "babel-core": "^6.7.4",
+    "babel-core": "^6.9.1",
     "babel-polyfill": ">=6.3.14 <7",
     "babel-preset-es2015": ">6.3.3 <7",
     "bluebird": ">=3.1.1 <4",
     "chai": ">=3 <4",
     "del": ">=2.0.2 <3",
+    "eslint": "^2.10.2",
+    "eslint-config-lddubeau-base": "0.0.1",
     "event-stream": ">=3.3.2 <4",
     "gulp": "~3.9.1",
     "gulp-debug": ">=2.1.2 <3",
+    "gulp-eslint": "^2.0.0",
     "gulp-filter": ">=4.0.0 <5",
     "gulp-jison": ">=1.2.0 <2",
     "gulp-mocha": ">=2.1.3 <3",
