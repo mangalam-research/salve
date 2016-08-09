@@ -53,7 +53,7 @@
     "chai": ">=3 <4",
     "del": ">=2.0.2 <3",
     "eslint": "^2.10.2",
-    "eslint-config-lddubeau-base": "0.0.1",
+    "eslint-config-lddubeau-base": "^0.1.0",
     "event-stream": ">=3.3.2 <4",
     "gulp": "~3.9.1",
     "gulp-debug": ">=2.1.2 <3",
