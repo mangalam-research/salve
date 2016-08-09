@@ -1,18 +1,13 @@
-"use strict";
-
+/* eslint-env node */
 import "babel-polyfill";
 import fs_ from "fs";
-import path from "path";
-import child_process_ from "child_process";
+import childProcess_ from "child_process";
 
 import gulp from "gulp";
 import newer from "gulp-newer";
 import rename from "gulp-rename";
 import jison from "gulp-jison";
 import replace from "gulp-replace";
-import gulpFilter from "gulp-filter";
-import debug from "gulp-debug";
-import tap from "gulp-tap";
 import Promise from "bluebird";
 import del from "del";
 import touch from "touch";
@@ -23,7 +18,7 @@ import eslint from "gulp-eslint";
 
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
-const childProcess = Promise.promisifyAll(child_process_);
+const childProcess = Promise.promisifyAll(childProcess_);
 const execFileAsync = childProcess.execFileAsync;
 
 //
@@ -38,6 +33,7 @@ const execFileAsync = childProcess.execFileAsync;
 // Try to load local configuration options.
 let localConfig = {};
 try {
+  // eslint-disable-next-line global-require, import/no-unresolved
   localConfig = require("./gulp.local");
 }
 catch (e) {
@@ -100,7 +96,9 @@ gulp.task("lint", () =>
             "lib/**/*.js",
             "gulptasks/**/*.js",
             "test/**/*.js",
-            "misc/**/*.js"])
+            "!test/salve-convert/**/*.js",
+            "misc/**/*.js",
+            "!test/**/simplified-rng*.js"])
       .pipe(eslint())
       .pipe(eslint.format())
       .pipe(eslint.failAfterError())
@@ -143,7 +141,7 @@ gulp.task("default", ["copy-src", "copy-readme", "jison"],
 
 let packname;
 
-gulp.task("install_test", ["default"], Promise.coroutine(function *() {
+gulp.task("install_test", ["default"], Promise.coroutine(function* install() {
   const testDir = "build/install_dir";
   yield del(testDir);
   const _packname = yield execFileAsync("npm", ["pack", "dist"],

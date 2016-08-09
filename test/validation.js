@@ -5,12 +5,9 @@
  */
 
 /* global it, describe, before */
-"use strict";
 import "amd-loader";
 import validate from "../build/dist/lib/salve/validate";
-import oop from "../build/dist/lib/salve/oop";
 import namePatterns from "../build/dist/lib/salve/name_patterns";
-import util from "util";
 import fs from "fs";
 import path from "path";
 import { assert } from "chai";
@@ -21,14 +18,12 @@ function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();
 }
 
-function getEventList(eventSource) {
-  const eventList = [];
-  for (const x of eventSource.split("\n")) {
-    if (!x.match(/^\s*$/)) {
-      eventList.push(new validate.Event(x.split(/,\s*/)));
-    }
+function errorsToString(errs) {
+  if (!errs) {
+    return errs;
   }
-  return eventList;
+
+  return errs.join(",").toString();
 }
 
 function makeParser(er, walker) {
@@ -103,6 +98,7 @@ class EventRecorder {
   }
 
   recordEvent(walker) {
+    // eslint-disable-next-line prefer-rest-params
     this.events.push(Array.prototype.slice.call(arguments, 1));
     this.issueLastEvent(walker);
   }
@@ -170,16 +166,8 @@ class ComparisonEngine {
   }
 }
 
-function errorsToString(errs) {
-  if (!errs) {
-    return errs;
-  }
-
-  return errs.join(",").toString();
-}
-
 function makeValidTest(dir) {
-  return function () {
+  return function validTest() {
     // Read the RNG tree.
     const source = fileAsString(`test/${dir}/simplified-rng.js`);
 
@@ -189,6 +177,7 @@ function makeValidTest(dir) {
     }
     catch (e) {
       if (e instanceof validate.ValidationError) {
+        // eslint-disable-next-line no-console
         console.log(e.toString());
       }
       throw e;
@@ -231,7 +220,7 @@ function makeValidTest(dir) {
   };
 }
 
-describe("GrammarWalker.fireEvent reports no errors on", function () {
+describe("GrammarWalker.fireEvent reports no errors on", () => {
   it("a simple test", makeValidTest("simple"));
 
   it("choice matching", makeValidTest("choice_matching"));
@@ -248,16 +237,15 @@ describe("GrammarWalker.fireEvent reports no errors on", function () {
   it("a schema using anyName, etc.", makeValidTest("names"));
 });
 
-describe("GrammarWalker.fireEvent", function () {
-  describe("reports errors on", function () {
-    let walker;
+describe("GrammarWalker.fireEvent", () => {
+  describe("reports errors on", () => {
     let rng;
     function makeErrorTest(dir, recorderOptions) {
       recorderOptions = recorderOptions || {
         check_fireEvent_invocation: false,
         check_possible: false,
       };
-      return function () {
+      return function errorTest() {
         const myrng = rng || `test/${dir}/simplified-rng.js`;
         // Read the RNG tree.
         const source = fileAsString(myrng);
@@ -268,11 +256,12 @@ describe("GrammarWalker.fireEvent", function () {
         }
         catch (e) {
           if (e instanceof validate.ValidationError) {
+            // eslint-disable-next-line no-console
             console.log(e.toString());
           }
           throw e;
         }
-        walker = tree.newWalker();
+        const walker = tree.newWalker();
 
         const xmlSource = fileAsString(`test/${dir}/to_parse.xml`);
 
@@ -290,7 +279,7 @@ describe("GrammarWalker.fireEvent", function () {
       };
     }
 
-    describe("a tei-based file", function () {
+    describe("a tei-based file", () => {
       before(() => {
         rng = "test/tei/simplified-rng.js";
       });
@@ -307,7 +296,7 @@ describe("GrammarWalker.fireEvent", function () {
          makeErrorTest("missing_element"));
     });
 
-    describe("a tei-based file (optimized ids)", function () {
+    describe("a tei-based file (optimized ids)", () => {
       before(() => {
         rng = "test/tei/simplified-rng.js";
       });
@@ -324,7 +313,7 @@ describe("GrammarWalker.fireEvent", function () {
          makeErrorTest("missing_element"));
     });
 
-    describe("a simple schema", function () {
+    describe("a simple schema", () => {
       before(() => {
         rng = "test/simple/simplified-rng.js";
       });
@@ -344,7 +333,7 @@ describe("GrammarWalker.fireEvent", function () {
          }));
     });
 
-    describe("ad hoc schema", function () {
+    describe("ad hoc schema", () => {
       before(() => {
         rng = undefined;
       });
@@ -384,7 +373,7 @@ describe("GrammarWalker.fireEvent", function () {
       it("Except fails a match", makeErrorTest("name_error3"));
     });
 
-    it("an attribute without value", function () {
+    it("an attribute without value", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
@@ -405,8 +394,8 @@ describe("GrammarWalker.fireEvent", function () {
     });
   });
 
-  describe("handles valid documents having", function () {
-    it("attributes in any valid order", function () {
+  describe("handles valid documents having", () => {
+    it("attributes in any valid order", () => {
       // Read the RNG tree.
       const source = fileAsString(
         "test/attribute-order/simplified-rng.js");
@@ -432,7 +421,7 @@ describe("GrammarWalker.fireEvent", function () {
               "attributeName:\n" +
               "    ";
       for (const perm of permutations) {
-        let ret = walker.fireEvent(
+        ret = walker.fireEvent(
           new validate.Event("enterStartTag", "", "em"));
         assert.isFalse(ret, "entering em");
 
@@ -480,8 +469,8 @@ describe("GrammarWalker.fireEvent", function () {
   //
   // Still try to handle these cases gracefully rather than
   // crash and burn.
-  describe("handles mangled documents having", function () {
-    it("misplaced text", function () {
+  describe("handles mangled documents having", () => {
+    it("misplaced text", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
@@ -495,7 +484,7 @@ describe("GrammarWalker.fireEvent", function () {
       assert.equal(ret[0].toString(), "text not allowed here");
     });
 
-    it("duplicate leaveStartTag", function () {
+    it("duplicate leaveStartTag", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
@@ -520,7 +509,7 @@ describe("GrammarWalker.fireEvent", function () {
                    "fireEvent is incorrectly called");
     });
 
-    it("duplicate attributeValue", function () {
+    it("duplicate attributeValue", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
@@ -544,7 +533,7 @@ describe("GrammarWalker.fireEvent", function () {
                    "fireEvent is incorrectly called");
     });
 
-    it("duplicate endTag", function () {
+    it("duplicate endTag", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
@@ -573,14 +562,14 @@ describe("GrammarWalker.fireEvent", function () {
   });
 });
 
-describe("error objects", function () {
+describe("error objects", () => {
   function makeErrorTest(ctorName, names, fakeNames, first, second) {
     names = names || [new validate.EName("a", "b")];
     fakeNames = fakeNames || ["a"];
     first = first || "blah: {a}b";
     second = second || "blah: a";
 
-    it(ctorName, function () {
+    it(ctorName, () => {
       const ctor = validate[ctorName];
       const err = Object.create(ctor.prototype);
       ctor.apply(err, ["blah"].concat(names));
@@ -594,7 +583,7 @@ describe("error objects", function () {
   makeErrorTest("AttributeValueError");
   makeErrorTest("ElementNameError");
 
-  it("ChoiceError", function () {
+  it("ChoiceError", () => {
     const namesA = [new validate.EName("a", "b"),
                      new validate.EName("c", "d")];
     const namesB = [new validate.EName("e", "f"),
@@ -609,9 +598,9 @@ describe("error objects", function () {
 });
 
 
-describe("Grammar", function () {
-  describe("getNamespaces", function () {
-    it("returns the namespaces", function () {
+describe("Grammar", () => {
+  describe("getNamespaces", () => {
+    it("returns the namespaces", () => {
       // Read the RNG tree.
       const source = fileAsString("test/tei/simplified-rng.js");
 
@@ -623,7 +612,7 @@ describe("Grammar", function () {
     });
 
     it("returns an empty namespace when there are no namespaces",
-       function () {
+       () => {
          // Read the RNG tree.
          const source = fileAsString("test/simple/simplified-rng.js");
 
@@ -632,7 +621,7 @@ describe("Grammar", function () {
        });
 
     it("returns * when anyName is used and ::except when except is used",
-       function () {
+       () => {
          // Read the RNG tree.
          const source = fileAsString("test/names/simplified-rng.js");
 
@@ -647,54 +636,58 @@ describe("Grammar", function () {
   });
 });
 
-describe("Misc", function () {
-  it("Text singleton", function () {
+describe("Misc", () => {
+  it("Text singleton", () => {
     const t1 = new test.Text("a");
     const t2 = new test.Text("b");
     assert.equal(t1, t2);
   });
 });
 
-describe("Name pattern", function () {
-  describe("Name", function () {
+describe("Name pattern", () => {
+  describe("Name", () => {
     let np;
 
     before(() => {
       np = new namePatterns.Name("", "a", "b");
     });
 
-    it("is simple", function () {
+    it("is simple", () => {
       assert.isTrue(np.simple());
     });
 
-    it("converts to an array", function () {
+    it("converts to an array", () => {
       assert.sameMembers(np.toArray(), [np]);
     });
 
-    it("matches a matching namespace and name", function () {
+    it("matches a matching namespace and name", () => {
       assert.isTrue(np.match("a", "b"));
     });
 
-    it("does not match a non-matching namespace and name", function () {
+    it("does not match a non-matching namespace and name", () => {
       assert.isFalse(np.match("foo", "bar"));
     });
 
-    it("never matches as a wildcard", function () {
+    it("never matches as a wildcard", () => {
       assert.isFalse(np.wildcardMatch("a", "b"));
       assert.isFalse(np.wildcardMatch("foo", "bar"));
     });
 
-    it("converts to an object", function () {
+    it("converts to an object", () => {
       assert.deepEqual(np.toObject(), { ns: "a", name: "b" });
     });
 
-    it("holds one namespace", function () {
+    it("holds one namespace", () => {
       assert.sameMembers(np.getNamespaces(), ["a"]);
     });
   });
 
-  describe("NameChoice", function () {
-    let simple, complex, Asimple, Acomplex, b;
+  describe("NameChoice", () => {
+    let simple;
+    let complex;
+    let Asimple;
+    let Acomplex;
+    let b;
 
     before(() => {
       Asimple = new namePatterns.Name("", "a", "b");
@@ -704,28 +697,28 @@ describe("Name pattern", function () {
       complex = new namePatterns.NameChoice("", [Acomplex, b]);
     });
 
-    it("is simple or complex depending on contents", function () {
+    it("is simple or complex depending on contents", () => {
       assert.isTrue(simple.simple());
       assert.isFalse(complex.simple());
     });
 
-    it("converts to an array, if simple", function () {
+    it("converts to an array, if simple", () => {
       assert.sameMembers(simple.toArray(), [Asimple, b]);
       assert.isNull(complex.toArray());
     });
 
-    it("matches a matching namespace and name", function () {
+    it("matches a matching namespace and name", () => {
       // Will match on the first element.
       assert.isTrue(simple.match("a", "b"));
       // Will match on the second.
       assert.isTrue(simple.match("c", "d"));
     });
 
-    it("does not match a non-matching namespace and name", function () {
+    it("does not match a non-matching namespace and name", () => {
       assert.isFalse(simple.match("foo", "bar"));
     });
 
-    it("matches as a wildcard if one option does", function () {
+    it("matches as a wildcard if one option does", () => {
       assert.isFalse(simple.wildcardMatch("a", "b"));
       assert.isFalse(simple.wildcardMatch("c", "d"));
       assert.isTrue(complex.wildcardMatch("a", "b"));
@@ -743,19 +736,20 @@ describe("Name pattern", function () {
       assert.isTrue(x.wildcardMatch("a", "b"));
     });
 
-    it("converts to an object", function () {
+    it("converts to an object", () => {
       assert.deepEqual(simple.toObject(), { a: { ns: "a", name: "b" },
                                            b: { ns: "c", name: "d" } });
     });
 
-    it("holds multiple namespaces", function () {
+    it("holds multiple namespaces", () => {
       assert.sameMembers(simple.getNamespaces(), ["a", "c"]);
       assert.sameMembers(complex.getNamespaces(), ["c", "*"]);
     });
   });
 
-  describe("NsName", function () {
-    let np, withExcept;
+  describe("NsName", () => {
+    let np;
+    let withExcept;
 
     before(() => {
       np = new namePatterns.NsName("", "a");
@@ -764,33 +758,33 @@ describe("Name pattern", function () {
         new namePatterns.Name("", "a", "b"));
     });
 
-    it("is not simple", function () {
+    it("is not simple", () => {
       assert.isFalse(np.simple());
     });
 
-    it("does not convert to an array", function () {
+    it("does not convert to an array", () => {
       assert.isNull(np.toArray());
     });
 
-    it("matches a matching namespace and name", function () {
+    it("matches a matching namespace and name", () => {
       assert.isTrue(np.match("a", "b"));
       assert.isTrue(np.match("a", "c"));
     });
 
-    it("does not match a non-matching namespace", function () {
+    it("does not match a non-matching namespace", () => {
       assert.isFalse(np.match("foo", "b"));
     });
 
-    it("does not match an exception", function () {
+    it("does not match an exception", () => {
       assert.isFalse(withExcept.match("a", "b"));
     });
 
-    it("matches as a wildcard if it matches at all", function () {
+    it("matches as a wildcard if it matches at all", () => {
       assert.isTrue(np.wildcardMatch("a", "b"));
       assert.isFalse(withExcept.wildcardMatch("a", "b"));
     });
 
-    it("converts to an object", function () {
+    it("converts to an object", () => {
       assert.deepEqual(np.toObject(), { ns: "a" });
       assert.deepEqual(withExcept.toObject(),
         {
@@ -799,15 +793,16 @@ describe("Name pattern", function () {
         });
     });
 
-    it("holds a single namespace", function () {
+    it("holds a single namespace", () => {
       assert.sameMembers(np.getNamespaces(), ["a"]);
       assert.sameMembers(withExcept.getNamespaces(), ["a", "::except"]);
     });
   });
 
 
-  describe("AnyName", function () {
-    let np, withExcept;
+  describe("AnyName", () => {
+    let np;
+    let withExcept;
 
     before(() => {
       np = new namePatterns.AnyName("");
@@ -816,29 +811,29 @@ describe("Name pattern", function () {
         new namePatterns.Name("", "a", "b"));
     });
 
-    it("is not simple", function () {
+    it("is not simple", () => {
       assert.isFalse(np.simple());
     });
 
-    it("does not convert to an array", function () {
+    it("does not convert to an array", () => {
       assert.isNull(np.toArray());
     });
 
-    it("matches anything", function () {
+    it("matches anything", () => {
       assert.isTrue(np.match("a", "b"));
       assert.isTrue(np.match("q", "c"));
     });
 
-    it("does not match an exception", function () {
+    it("does not match an exception", () => {
       assert.isFalse(withExcept.match("a", "b"));
     });
 
-    it("matches as a wildcard if it matches at all", function () {
+    it("matches as a wildcard if it matches at all", () => {
       assert.isTrue(np.wildcardMatch("a", "b"));
       assert.isFalse(withExcept.wildcardMatch("a", "b"));
     });
 
-    it("converts to an object", function () {
+    it("converts to an object", () => {
       assert.deepEqual(np.toObject(), { pattern: "AnyName" });
       assert.deepEqual(withExcept.toObject(),
         {
@@ -847,7 +842,7 @@ describe("Name pattern", function () {
         });
     });
 
-    it("holds all namespaces", function () {
+    it("holds all namespaces", () => {
       assert.sameMembers(np.getNamespaces(), ["*"]);
       assert.sameMembers(withExcept.getNamespaces(), ["*", "::except"]);
     });

@@ -4,22 +4,21 @@
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
 
-/* global it, describe, before */
-"use strict";
+/* global it, describe, before, after */
+/* eslint-env node */
 import "amd-loader";
 import { assert } from "chai";
 import { spawn } from "child_process";
 import salveParse from "../build/dist/lib/salve/parse";
 import fs from "fs";
 import path from "path";
-import mocha from "mocha";
 
 function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();
 }
 
 const skips = {
-  "test56": {
+  test56: {
     // There is a bug in libxml2 which lets this one pass through.
     incorrect: true,
   },
@@ -83,14 +82,14 @@ const tests = testDirs.filter(
 function salveConvert(args, callback) {
   const child = spawn("build/dist/bin/salve-convert", args);
 
-  child.on("exit", (code, signal) => callback(code));
+  child.on("exit", (code) => callback(code));
 }
 
 function parse(rng, xml, mute, callback) {
   callback(salveParse(fileAsString(rng), fileAsString(xml), mute));
 }
 
-describe("spectest", function () {
+describe("spectest", function spectest() {
   this.timeout(0);
   const outpath = ".tmp_rng_to_js_test";
 
@@ -123,7 +122,9 @@ describe("spectest", function () {
             salveConvert(t.convert_args.concat([t.correct,
                                                  outpath]),
                           code => {
-                            assert.equal(code, 0, "salve-convert exit status");
+                            assert.equal(code, 0,
+                                         "salve-convert exit status while " +
+                                         `converting ${t.correct}`);
                             done();
                           });
           });

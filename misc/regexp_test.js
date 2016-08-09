@@ -21,6 +21,7 @@ var tests = [
 for (var i = 0; i < tests.length; i += 2) {
   var re = tests[i];
   var text = tests[i + 1];
+  // eslint-disable-next-line no-console
   console.log("running:", re, "on", JSON.stringify(text), "result",
                 text.match(re));
 }

@@ -3,6 +3,15 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 3.0.0:
+
+  - The code has been run through eslint, which has revealed a few bugs that
+    have been fixed.
+
+  - Some of the API has changed to conform to a camel case naming convension:
+
+    + ``conversion/parser``: ``Parser`` has a ``saxParser`` property.
+
 * 2.0.0:
 
   - Upgraded to lodash 4. Salve won't work with an earlier version of

@@ -5,7 +5,6 @@
  */
 
 /* global it, describe, before */
-"use strict";
 import "amd-loader";
 import datatypes from "../build/dist/lib/salve/datatypes";
 import nameResolver from "../build/dist/lib/salve/name_resolver";
@@ -15,7 +14,7 @@ import _ from "lodash";
 const decimalProgram = {
   equal: {
     // Tests that return true.
-    "true":
+    true:
     [
       // title, first value, second value
       ["for two identical values", "1.23", "1.23"],
@@ -31,55 +30,58 @@ const decimalProgram = {
        "+12", " +12."],
     ],
     // Tests that return false.
-    "false": [
+    false: [
       ["for two unequal values", "1", "2"],
     ],
   },
   parseParams: [
     // title, array to parse, expected object
-    ["all except minInclusive and maxInclusive",
-     [{ name: "totalDigits", value: "10" },
-      { name: "fractionDigits", value: "1" },
-      { name: "pattern", value: "abc" },
-      { name: "minExclusive", value: "1" },
-      { name: "maxExclusive", value: "10" },
-     ],
-      {
-        "totalDigits": 10,
-        "fractionDigits": 1,
-        "pattern": { rng: "abc", internal: new RegExp("^abc$") },
-        "minExclusive": 1,
-        "maxExclusive": 10,
-      },
-    ],
-    ["minInclusive and maxInclusive",
+    [
+      "all except minInclusive and maxInclusive",
       [
-       { name: "minInclusive", value: "1" },
-       { name: "maxInclusive", value: "10" },
+        { name: "totalDigits", value: "10" },
+        { name: "fractionDigits", value: "1" },
+        { name: "pattern", value: "abc" },
+        { name: "minExclusive", value: "1" },
+        { name: "maxExclusive", value: "10" },
       ],
       {
-        "minInclusive": 1,
-        "maxInclusive": 10,
+        totalDigits: 10,
+        fractionDigits: 1,
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+        minExclusive: 1,
+        maxExclusive: 10,
+      },
+    ],
+    [
+      "minInclusive and maxInclusive",
+      [
+        { name: "minInclusive", value: "1" },
+        { name: "maxInclusive", value: "10" },
+      ],
+      {
+        minInclusive: 1,
+        maxInclusive: 10,
       },
     ],
   ],
 
   disallows: {
     pattern: {
-      "false": [
+      false: [
         ["the pattern", "12", "[12]+"],
       ],
-      "true": [
+      true: [
         ["disallows what does not match the pattern", "3",
          "[12]+", ["value does not match the pattern [12]+"]],
       ],
     },
     totalDigits: {
-      "false": [
+      false: [
         // [title, value, parameter value]
         ["what is within spec", "  +001.23456000  ", "6"],
       ],
-      "true": [
+      true: [
         // [title, value, parameter value, error]
         ["too many digits (1)", "   +011.23456000   ", "6",
          ["value must have at most 6 digits"],
@@ -90,11 +92,11 @@ const decimalProgram = {
       ],
     },
     fractionDigits: {
-      "false": [
+      false: [
         ["what is within spec (1)", "  +124.123456000  ", "6"],
         ["what is within spec (2)", "  +124.003456000  ", "6"],
       ],
-      "true": [
+      true: [
         ["too many fraction digits (1)", "   -011.1234567000   ",
          "6", ["value must have at most 6 fraction digits"],
         ],
@@ -104,20 +106,20 @@ const decimalProgram = {
       ],
     },
     maxInclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  +1.234  ", "01.23400"],
       ],
-      "true": [
+      true: [
         ["a value greater than maxInclusive", "   +1.2340001   ",
          "01.23400", ["value must be less than or equal to 1.234"],
         ],
       ],
     },
     minInclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  +1.234  ", "01.23400"],
       ],
-      "true": [
+      true: [
         ["a value lower than minInclusive",
          "   +1.2339999   ", "01.23400",
          ["value must be greater than or equal to 1.234"],
@@ -125,20 +127,20 @@ const decimalProgram = {
       ],
     },
     maxExclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  +1.233999  ", "01.23400"],
       ],
-      "true": [
+      true: [
         ["a value equal to maxExclusive", "   +1.234   ", "01.23400",
          ["value must be less than 1.234"],
         ],
       ],
     },
     minExclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  +1.23400001  ", "01.23400"],
       ],
-      "true": [
+      true: [
         ["a value equal to minExclusive", "   +1.234   ", "01.23400",
          ["value must be greater than 1.234"],
         ],
@@ -149,7 +151,7 @@ const decimalProgram = {
 
 const integerProgram = {
   equal: {
-    "true":
+    true:
     [
       ["for two identical values", "10", "10"],
       ["for two equal values, represented differently (1)",
@@ -157,53 +159,56 @@ const integerProgram = {
       ["for two equal values, represented differently (2)",
        "+123", " 0123 "],
     ],
-    "false": [
+    false: [
       ["for two unequal values", "1", "2"],
     ],
   },
   parseParams: [
     // title, array to parse, expected object
-    ["all except minInclusive and maxInclusive",
-     [{ name: "totalDigits", value: "10" },
-      { name: "pattern", value: "abc" },
-      { name: "minExclusive", value: "1" },
-      { name: "maxExclusive", value: "10" },
-     ],
-      {
-        "totalDigits": 10,
-        "pattern": { rng: "abc", internal: new RegExp("^abc$") },
-        "minExclusive": 1,
-        "maxExclusive": 10,
-      },
-    ],
-    ["minInclusive and maxInclusive",
+    [
+      "all except minInclusive and maxInclusive",
       [
-       { name: "minInclusive", value: "1" },
-       { name: "maxInclusive", value: "10" },
+        { name: "totalDigits", value: "10" },
+        { name: "pattern", value: "abc" },
+        { name: "minExclusive", value: "1" },
+        { name: "maxExclusive", value: "10" },
       ],
       {
-        "minInclusive": 1,
-        "maxInclusive": 10,
+        totalDigits: 10,
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+        minExclusive: 1,
+        maxExclusive: 10,
+      },
+    ],
+    [
+      "minInclusive and maxInclusive",
+      [
+        { name: "minInclusive", value: "1" },
+        { name: "maxInclusive", value: "10" },
+      ],
+      {
+        minInclusive: 1,
+        maxInclusive: 10,
       },
     ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["what is within spec", " 1234"],
       ],
-      "true": [
+      true: [
         ["a value with a fraction part", "1.2",
          ["value is not an integer"],
         ],
       ],
     },
     totalDigits: {
-      "false": [
+      false: [
         // [title, value, parameter value]
         ["what is within spec", "  +0012 ", "2"],
       ],
-      "true": [
+      true: [
         // [title, value, parameter value, error]
         ["a value with too many digits", "   +0123   ", "2",
          ["value must have at most 2 digits"],
@@ -211,40 +216,40 @@ const integerProgram = {
       ],
     },
     maxInclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  +1  ", "01"],
       ],
-      "true": [
+      true: [
         ["a value greater than maxInclusive", "   +2   ",
          "01", ["value must be less than or equal to 1"],
         ],
       ],
     },
     minInclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  +1  ", "01"],
       ],
-      "true": [
+      true: [
         ["a value lower than minInclusive", "   +0   ", "01",
          ["value must be greater than or equal to 1"],
         ],
       ],
     },
     maxExclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  +0  ", "1"],
       ],
-      "true": [
+      true: [
         ["a value greater than maxExclusive", "   +1   ", "1",
          ["value must be less than 1"],
         ],
       ],
     },
     minExclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  +1  ", "0"],
       ],
-      "true": [
+      true: [
         ["a value lower than minExclusive", "   +0   ", "-0",
          ["value must be greater than 0"],
         ],
@@ -256,51 +261,54 @@ const integerProgram = {
 
 const nonPositiveIntegerProgram = {
   equal: {
-    "true":
+    true:
     [
       ["for two identical values", "-10", "-10"],
       ["for two equal values, represented differently",
        "-123", " -0123"],
     ],
-    "false": [
+    false: [
       ["for two unequal values", "-1", "-2"],
     ],
   },
   parseParams: [
     // title, array to parse, expected object
-    ["all except minInclusive and maxInclusive",
-     [{ name: "totalDigits", value: "10" },
-      { name: "pattern", value: "abc" },
-      { name: "minExclusive", value: "-10" },
-      { name: "maxExclusive", value: "-1" },
-     ],
-      {
-        "totalDigits": 10,
-        "pattern": { rng: "abc", internal: new RegExp("^abc$") },
-        "minExclusive": -10,
-        "maxExclusive": -1,
-      },
-    ],
-    ["minInclusive and maxInclusive",
+    [
+      "all except minInclusive and maxInclusive",
       [
-       { name: "minInclusive", value: "-10" },
-       { name: "maxInclusive", value: "-1" },
+        { name: "totalDigits", value: "10" },
+        { name: "pattern", value: "abc" },
+        { name: "minExclusive", value: "-10" },
+        { name: "maxExclusive", value: "-1" },
       ],
       {
-        "minInclusive": -10,
-        "maxInclusive": -1,
+        totalDigits: 10,
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+        minExclusive: -10,
+        maxExclusive: -1,
+      },
+    ],
+    [
+      "minInclusive and maxInclusive",
+      [
+        { name: "minInclusive", value: "-10" },
+        { name: "maxInclusive", value: "-1" },
+      ],
+      {
+        minInclusive: -10,
+        maxInclusive: -1,
       },
     ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["what is within spec", "-1234"],
         ["what is within spec", "0"],
         ["what is within spec", "+0"],
         ["what is within spec", "+0000"],
       ],
-      "true": [
+      true: [
         ["a value with a fraction part", "-1.2",
          ["value is not a nonPositiveInteger"],
         ],
@@ -310,11 +318,11 @@ const nonPositiveIntegerProgram = {
       ],
     },
     totalDigits: {
-      "false": [
+      false: [
         // [title, value, parameter value]
         ["what is within spec", "  -00123456 ", "6"],
       ],
-      "true": [
+      true: [
         // [title, value, parameter value, error]
         ["a value with too many digits", "   -01234567   ", "6",
          ["value must have at most 6 digits"],
@@ -322,40 +330,40 @@ const nonPositiveIntegerProgram = {
       ],
     },
     maxInclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  -1  ", "-1"],
       ],
-      "true": [
+      true: [
         ["a value greater than maxInclusive", "   -9   ",
          "-10", ["value must be less than or equal to -10"],
         ],
       ],
     },
     minInclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  -10  ", "-10"],
       ],
-      "true": [
+      true: [
         ["a value lower than minInclusive", "   -11   ", "-10",
          ["value must be greater than or equal to -10"],
         ],
       ],
     },
     maxExclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  -2  ", "-1"],
       ],
-      "true": [
+      true: [
         ["a value greater than maxExclusive", "   -1   ", "-1",
          ["value must be less than -1"],
         ],
       ],
     },
     minExclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  -9  ", "-10"],
       ],
-      "true": [
+      true: [
         ["a value lower than minExclusive", "   -10   ", "-010",
          ["value must be greater than -10"],
         ],
@@ -368,11 +376,11 @@ const negativeIntegerProgram = _.clone(nonPositiveIntegerProgram);
 
 negativeIntegerProgram.disallows = _.clone(negativeIntegerProgram.disallows);
 negativeIntegerProgram.disallows.NONE = {
-  "false": [
+  false: [
     ["what is within spec", "-1234"],
     ["what is within spec", "-001234"],
   ],
-  "true": [
+  true: [
     ["a value with a fraction part", "-1.2",
      ["value is not a negativeInteger"],
     ],
@@ -386,51 +394,54 @@ negativeIntegerProgram.disallows.NONE = {
 
 const nonNegativeIntegerProgram = {
   equal: {
-    "true":
+    true:
     [
       ["for two identical values", "10", "10"],
       ["for two equal values, represented differently",
        "123", " 0123"],
     ],
-    "false": [
+    false: [
       ["for two unequal values", "1", "2"],
     ],
   },
   parseParams: [
     // title, array to parse, expected object
-    ["all except minInclusive and maxInclusive",
-     [{ name: "totalDigits", value: "10" },
-      { name: "pattern", value: "abc" },
-      { name: "minExclusive", value: "1" },
-      { name: "maxExclusive", value: "10" },
-     ],
-      {
-        "totalDigits": 10,
-        "pattern": { rng: "abc", internal: new RegExp("^abc$") },
-        "minExclusive": 1,
-        "maxExclusive": 10,
-      },
-    ],
-    ["minInclusive and maxInclusive",
+    [
+      "all except minInclusive and maxInclusive",
       [
-       { name: "minInclusive", value: "1" },
-       { name: "maxInclusive", value: "10" },
+        { name: "totalDigits", value: "10" },
+        { name: "pattern", value: "abc" },
+        { name: "minExclusive", value: "1" },
+        { name: "maxExclusive", value: "10" },
       ],
       {
-        "minInclusive": 1,
-        "maxInclusive": 10,
+        totalDigits: 10,
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+        minExclusive: 1,
+        maxExclusive: 10,
+      },
+    ],
+    [
+      "minInclusive and maxInclusive",
+      [
+        { name: "minInclusive", value: "1" },
+        { name: "maxInclusive", value: "10" },
+      ],
+      {
+        minInclusive: 1,
+        maxInclusive: 10,
       },
     ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["what is within spec", "0"],
         ["what is within spec", "+0"],
         ["what is within spec", "+0000"],
         ["what is within spec", "+00123"],
       ],
-      "true": [
+      true: [
         ["a value with a fraction part", "1.2",
          ["value is not a nonNegativeInteger"],
         ],
@@ -440,11 +451,11 @@ const nonNegativeIntegerProgram = {
       ],
     },
     totalDigits: {
-      "false": [
+      false: [
         // [title, value, parameter value]
         ["what is within spec", "  00123456 ", "6"],
       ],
-      "true": [
+      true: [
         // [title, value, parameter value, error]
         ["a value with too many digits", "   01234567   ", "6",
          ["value must have at most 6 digits"],
@@ -452,40 +463,40 @@ const nonNegativeIntegerProgram = {
       ],
     },
     maxInclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  1  ", "1"],
       ],
-      "true": [
+      true: [
         ["a value greater than maxInclusive", "   11   ",
          "10", ["value must be less than or equal to 10"],
         ],
       ],
     },
     minInclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  1  ", "1"],
       ],
-      "true": [
+      true: [
         ["a value lower than minInclusive", "   0   ", "1",
          ["value must be greater than or equal to 1"],
         ],
       ],
     },
     maxExclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  1  ", "2"],
       ],
-      "true": [
+      true: [
         ["a value greater than maxExclusive", "   2   ", "2",
          ["value must be less than 2"],
         ],
       ],
     },
     minExclusive: {
-      "false": [
+      false: [
         ["what is within spec", "  2  ", "1"],
       ],
-      "true": [
+      true: [
         ["a value lower than minExclusive", "   2   ", "02",
          ["value must be greater than 2"],
         ],
@@ -496,14 +507,13 @@ const nonNegativeIntegerProgram = {
 
 const positiveIntegerProgram = _.clone(nonNegativeIntegerProgram);
 
-positiveIntegerProgram.disallows =
-  _.clone(positiveIntegerProgram.disallows);
+positiveIntegerProgram.disallows = _.clone(positiveIntegerProgram.disallows);
 positiveIntegerProgram.disallows.NONE = {
-  "false": [
+  false: [
     ["what is within spec", "1234"],
     ["what is within spec", "+001234"],
   ],
-  "true": [
+  true: [
     ["a value with a fraction part", "1.2",
      ["value is not a positiveInteger"],
     ],
@@ -519,10 +529,10 @@ positiveIntegerProgram.disallows.NONE = {
 const longProgram = _.clone(integerProgram);
 longProgram.disallows = _.clone(longProgram.disallows);
 longProgram.disallows.NONE = {
-  "false": [
+  false: [
     ["what is within spec", " 1234"],
   ],
-  "true": [
+  true: [
     ["a value with a fraction part", "1.2",
      ["value is not a long"],
     ],
@@ -532,10 +542,10 @@ longProgram.disallows.NONE = {
 const intProgram = _.clone(longProgram);
 intProgram.disallows = _.clone(intProgram.disallows);
 intProgram.disallows.NONE = {
-  "false": [
+  false: [
     ["what is within spec", " 1234"],
   ],
-  "true": [
+  true: [
     ["a value with a fraction part", "1.2",
      ["value is not an int"],
     ],
@@ -551,10 +561,10 @@ intProgram.disallows.NONE = {
 const shortProgram = _.clone(longProgram);
 shortProgram.disallows = _.clone(shortProgram.disallows);
 shortProgram.disallows.NONE = {
-  "false": [
+  false: [
     ["what is within spec", " 1234"],
   ],
-  "true": [
+  true: [
     ["a value with a fraction part", "1.2",
      ["value is not a short"],
     ],
@@ -570,10 +580,10 @@ shortProgram.disallows.NONE = {
 const byteProgram = _.clone(longProgram);
 byteProgram.disallows = _.clone(byteProgram.disallows);
 byteProgram.disallows.NONE = {
-  "false": [
+  false: [
     ["what is within spec", " 123"],
   ],
-  "true": [
+  true: [
     ["a value with a fraction part", "1.2",
      ["value is not a byte"],
     ],
@@ -590,10 +600,10 @@ byteProgram.disallows.NONE = {
 const unsignedLongProgram = _.clone(integerProgram);
 unsignedLongProgram.disallows = _.clone(unsignedLongProgram.disallows);
 unsignedLongProgram.disallows.NONE = {
-  "false": [
+  false: [
     ["what is within spec", " 1234"],
   ],
-  "true": [
+  true: [
     ["a value with a fraction part", "1.2",
      ["value is not an unsignedLong"],
     ],
@@ -603,10 +613,10 @@ unsignedLongProgram.disallows.NONE = {
 const unsignedIntProgram = _.clone(integerProgram);
 unsignedIntProgram.disallows = _.clone(unsignedIntProgram.disallows);
 unsignedIntProgram.disallows.NONE = {
-  "false": [
+  false: [
     ["what is within spec", " 1234"],
   ],
-  "true": [
+  true: [
     ["a value with a fraction part", "1.2",
      ["value is not an unsignedInt"],
     ],
@@ -619,10 +629,10 @@ unsignedIntProgram.disallows.NONE = {
 const unsignedShortProgram = _.clone(integerProgram);
 unsignedShortProgram.disallows = _.clone(unsignedShortProgram.disallows);
 unsignedShortProgram.disallows.NONE = {
-  "false": [
+  false: [
     ["what is within spec", " 1234"],
   ],
-  "true": [
+  true: [
     ["a value with a fraction part", "1.2",
      ["value is not an unsignedShort"],
     ],
@@ -636,10 +646,10 @@ unsignedShortProgram.disallows.NONE = {
 const unsignedByteProgram = _.clone(integerProgram);
 unsignedByteProgram.disallows = _.clone(unsignedByteProgram.disallows);
 unsignedByteProgram.disallows.NONE = {
-  "false": [
+  false: [
     ["what is within spec", " 123"],
   ],
-  "true": [
+  true: [
     ["a value with a fraction part", "1.2",
      ["value is not an unsignedByte"],
     ],
@@ -652,37 +662,40 @@ unsignedByteProgram.disallows.NONE = {
 const floatProgram = _.clone(decimalProgram);
 floatProgram.parseParams = [
   // title, array to parse, expected object
-  ["all except minInclusive and maxInclusive",
-   [{ name: "pattern", value: "abc" },
-    { name: "minExclusive", value: "1" },
-    { name: "maxExclusive", value: "10" },
-   ],
-    {
-      "pattern": { rng: "abc", internal: new RegExp("^abc$") },
-      "minExclusive": 1,
-      "maxExclusive": 10,
-    },
-  ],
-  ["minInclusive and maxInclusive",
+  [
+    "all except minInclusive and maxInclusive",
     [
-     { name: "minInclusive", value: "1" },
-     { name: "maxInclusive", value: "10" },
+      { name: "pattern", value: "abc" },
+      { name: "minExclusive", value: "1" },
+      { name: "maxExclusive", value: "10" },
     ],
     {
-      "minInclusive": 1,
-      "maxInclusive": 10,
+      pattern: { rng: "abc", internal: new RegExp("^abc$") },
+      minExclusive: 1,
+      maxExclusive: 10,
+    },
+  ],
+  [
+    "minInclusive and maxInclusive",
+    [
+      { name: "minInclusive", value: "1" },
+      { name: "maxInclusive", value: "10" },
+    ],
+    {
+      minInclusive: 1,
+      maxInclusive: 10,
     },
   ],
 ];
 floatProgram.disallows = _.clone(floatProgram.disallows);
 floatProgram.disallows.NONE = {
-  "false": [
+  false: [
     ["number with mantissa and exponent", "-1E10"],
     ["negative infinity", "-INF"],
     ["infinity", "INF"],
     ["number NaN", "NaN"],
   ],
-  "true": [
+  true: [
     ["random stuff", "ABC",
      ["not a valid float"],
     ],
@@ -694,7 +707,7 @@ delete floatProgram.disallows.fractionDigits;
 const doubleProgram = _.clone(floatProgram);
 doubleProgram.disallows = _.clone(doubleProgram.disallows);
 doubleProgram.disallows.NONE = _.clone(doubleProgram.disallows.NONE);
-doubleProgram.disallows.NONE["true"] = [
+doubleProgram.disallows.NONE.true = [
   ["random stuff", "ABC",
    ["not a valid double"],
   ],
@@ -702,35 +715,36 @@ doubleProgram.disallows.NONE["true"] = [
 
 const dateTimeProgram = {
   equal: {
-    "true": [
+    true: [
       ["for two equal values",
        "1901-01-01T10:10:10.111-01:30",
        "1901-01-01T10:10:10.111-01:30"],
     ],
-    "false": [
+    false: [
       ["for two unequal values", "1901-01-01T10:10:10.111-01:30",
        "1901-01-01T10:10:10.111-01:31"],
     ],
   },
   parseParams: [
-    ["all supported", [
-      { name: "pattern", value: "abc" },
-    ],
+    [
+      "all supported", [
+        { name: "pattern", value: "abc" },
+      ],
       {
-        "pattern": { rng: "abc",
+        pattern: { rng: "abc",
                    internal: new RegExp("^abc$") },
       },
     ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["'1901-01-01T10:10:10.111-01:30'",
          "1901-01-01T10:10:10.111-01:30"],
         ["'11901-01-01T10:10:10.111-01:30'",
          "11901-01-01T10:10:10.111-01:30"],
       ],
-      "true": [
+      true: [
         ["'1901-01-01T99:10:10.111-01:30'",
          "1901-01-01T99:10:10.111-01:30",
          ["not a valid dateTime"],
@@ -742,26 +756,26 @@ const dateTimeProgram = {
 
 const timeProgram = {
   equal: {
-    "true": [
+    true: [
       ["for two equal values", "10:10:10.111-01:30",
        "10:10:10.111-01:30"],
     ],
-    "false": [
+    false: [
       ["for two unequal values",
        "10:10:10.111-01:30", "10:10:10.111-01:31"],
     ],
   },
   parseParams: [
     ["all supported", [{ name: "pattern", value: "abc" }],
-     { "pattern": { rng: "abc", internal: new RegExp("^abc$") } },
+     { pattern: { rng: "abc", internal: new RegExp("^abc$") } },
     ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["'10:10:10.111-01:30'", "10:10:10.111-01:30"],
       ],
-      "true": [
+      true: [
         ["'99:10:10.111-01:30'", "99:10:10.111-01:30",
          ["not a valid time"]],
       ],
@@ -771,29 +785,29 @@ const timeProgram = {
 
 const dateProgram = {
   equal: {
-    "true": [
+    true: [
       ["for two equal values", "1901-01-01-01:30", "1901-01-01-01:30"],
     ],
-    "false": [
+    false: [
       ["for two unequal values", "1901-01-02-01:30",
        "1901-01-01-01:31"],
     ],
   },
   parseParams: [
-    ["all supported", [
-      { name: "pattern", value: "abc" },
-    ],
+    [
+      "all supported",
+      [{ name: "pattern", value: "abc" }],
       {
-        "pattern": { rng: "abc",
-                   internal: new RegExp("^abc$") },
-      }],
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+      },
+    ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["'1901-01-01-01:30'", "1901-01-01-01:30"],
       ],
-      "true": [
+      true: [
         ["'1901-99-01-01:30'", "1901-99-01-01:30",
          ["not a valid date"],
         ],
@@ -804,29 +818,29 @@ const dateProgram = {
 
 const gYearMonthProgram = {
   equal: {
-    "true": [
+    true: [
       ["for two equal values", "1901-01-01:30", "1901-01-01:30"],
     ],
-    "false": [
+    false: [
       ["for two unequal values", "1901-01-01:30",
        "1901-02-01:31"],
     ],
   },
   parseParams: [
-    ["all supported", [
-      { name: "pattern", value: "abc" },
-    ],
+    [
+      "all supported",
+      [{ name: "pattern", value: "abc" }],
       {
-        "pattern": { rng: "abc",
-                   internal: new RegExp("^abc$") },
-      }],
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+      },
+    ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["'1901-01'", "1901-01"],
       ],
-      "true": [
+      true: [
         ["'1901-99-01:30'", "1901-99-01:30",
          ["not a valid gYearMonth"],
         ],
@@ -837,29 +851,29 @@ const gYearMonthProgram = {
 
 const gYearProgram = {
   equal: {
-    "true": [
+    true: [
       ["for two equal values", "1901-01:30", "1901-01:30"],
     ],
-    "false": [
+    false: [
       ["for two unequal values", "1901-01:30",
        "1901-01:31"],
     ],
   },
   parseParams: [
-    ["all supported", [
-      { name: "pattern", value: "abc" },
-    ],
+    [
+      "all supported",
+      [{ name: "pattern", value: "abc" }],
       {
-        "pattern": { rng: "abc",
-                   internal: new RegExp("^abc$") },
-      }],
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+      },
+    ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["'1901'", "1901"],
       ],
-      "true": [
+      true: [
         ["'01901'", "01901",
          ["not a valid gYear"],
         ],
@@ -870,29 +884,29 @@ const gYearProgram = {
 
 const gMonthDayProgram = {
   equal: {
-    "true": [
+    true: [
       ["for two equal values", "01-01-01:30", "01-01-01:30"],
     ],
-    "false": [
+    false: [
       ["for two unequal values", "01-02-01:30",
        "01-02-01:31"],
     ],
   },
   parseParams: [
-    ["all supported", [
-      { name: "pattern", value: "abc" },
-    ],
+    [
+      "all supported",
+      [{ name: "pattern", value: "abc" }],
       {
-        "pattern": { rng: "abc",
-                   internal: new RegExp("^abc$") },
-      }],
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+      },
+    ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["'12-31'", "12-31"],
       ],
-      "true": [
+      true: [
         ["'02-30'", "02-30",
          ["not a valid gMonthDay"],
         ],
@@ -903,29 +917,29 @@ const gMonthDayProgram = {
 
 const gDayProgram = {
   equal: {
-    "true": [
+    true: [
       ["for two equal values", "31-01:30", "31-01:30"],
     ],
-    "false": [
+    false: [
       ["for two unequal values", "31-01:30",
        "02-01:31"],
     ],
   },
   parseParams: [
-    ["all supported", [
-      { name: "pattern", value: "abc" },
-    ],
+    [
+      "all supported",
+      [{ name: "pattern", value: "abc" }],
       {
-        "pattern": { rng: "abc",
-                   internal: new RegExp("^abc$") },
-      }],
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+      },
+    ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["'01'", "01"],
       ],
-      "true": [
+      true: [
         ["'32'", "32",
          ["not a valid gDay"],
         ],
@@ -936,29 +950,29 @@ const gDayProgram = {
 
 const gMonthProgram = {
   equal: {
-    "true": [
+    true: [
       ["for two equal values", "01-01:30", "01-01:30"],
     ],
-    "false": [
+    false: [
       ["for two unequal values", "01-01:30",
        "01-01:31"],
     ],
   },
   parseParams: [
-    ["all supported", [
-      { name: "pattern", value: "abc" },
-    ],
+    [
+      "all supported",
+      [{ name: "pattern", value: "abc" }],
       {
-        "pattern": { rng: "abc",
-                   internal: new RegExp("^abc$") },
-      }],
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+      },
+    ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["'12'", "12"],
       ],
-      "true": [
+      true: [
         ["'13'", "13",
          ["not a valid gMonth"],
         ],
@@ -969,42 +983,46 @@ const gMonthProgram = {
 
 const anyURIProgram = {
   equal: {
-    "true": [
+    true: [
       ["for two equal values", "a:b", "a:b"],
     ],
-    "false": [
+    false: [
       ["for two unequal values", "a:f",
        "a:b"],
     ],
   },
   parseParams: [
-    ["all except maxLength and minLength", [
-      { name: "length", value: "1" },
-      { name: "pattern", value: "abc" },
-    ],
+    [
+      "all except maxLength and minLength",
+      [
+        { name: "length", value: "1" },
+        { name: "pattern", value: "abc" },
+      ],
       {
-        "length": 1,
-        "pattern": { rng: "abc",
-                   internal: new RegExp("^abc$") },
-      }],
-    ["minLength and maxLength", [
-      { name: "maxLength", value: "1" },
-      { name: "minLength", value: "1" },
+        length: 1,
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+      },
     ],
+    [
+      "minLength and maxLength",
+      [
+        { name: "maxLength", value: "1" },
+        { name: "minLength", value: "1" },
+      ],
       {
-        "maxLength": 1,
-        "minLength": 1,
+        maxLength: 1,
+        minLength: 1,
       },
     ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["simple", "a:b"],
         ["fragment", "a:/b#gaga"],
         ["relative URI", "aaa"],
       ],
-      "true": [
+      true: [
         [":", ":",
          ["not a valid anyURI"],
         ],
@@ -1022,17 +1040,17 @@ const schemaNr = new nameResolver.NameResolver();
 schemaNr.definePrefix("aaa", "http://aaaaa.com");
 schemaNr.definePrefix("z", "http://qqqqqq.com");
 
-const QName_program = {
-  doc_context: { resolver: docNr },
-  schema_context: { resolver: schemaNr },
+const QNameProgram = {
+  docContext: { resolver: docNr },
+  schemaContext: { resolver: schemaNr },
   // Reminder: in equal tests the first parameter is from the
   // document, the 2nd parameter is from the schema.
   equal: {
-    "true": [
+    true: [
       ["for two equal values (1) ", "a:b", "aaa:b"],
       ["for two equal values (2)", "foo", "z:foo"],
     ],
-    "false": [
+    false: [
       ["for equal URIs, unequal local names", "a:f",
        "aaa:b"],
       ["for unequal URIs", "a:f",
@@ -1040,35 +1058,39 @@ const QName_program = {
     ],
   },
   parseParams: [
-    ["all except maxLength and minLength", [
-      { name: "length", value: "1" },
-      { name: "pattern", value: "abc" },
-    ],
+    [
+      "all except maxLength and minLength",
+      [
+        { name: "length", value: "1" },
+        { name: "pattern", value: "abc" },
+      ],
       {
-        "length": 1,
-        "pattern": { rng: "abc",
-                   internal: new RegExp("^abc$") },
-      }],
-    ["minLength and maxLength", [
-      { name: "maxLength", value: "1" },
-      { name: "minLength", value: "1" },
+        length: 1,
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
+      },
     ],
+    [
+      "minLength and maxLength",
+      [
+        { name: "maxLength", value: "1" },
+        { name: "minLength", value: "1" },
+      ],
       {
-        "maxLength": 1,
-        "minLength": 1,
+        maxLength: 1,
+        minLength: 1,
       },
     ],
   ],
   disallows: {
     NONE: {
-      "false": [
+      false: [
         ["'foo'", "foo"],
         ["colons", "a:zh"],
         ["tabs", "foo\t"],
         ["newlines", "foo\n"],
         ["carriage returns", "foo\r"],
       ],
-      "true": [
+      true: [
         ["spaces", "foo zh",
          ["not a valid QName"],
         ],
@@ -1087,10 +1109,10 @@ const QName_program = {
   },
 };
 
-const NOTATION_program = _.clone(QName_program);
-NOTATION_program.disallows = _.clone(NOTATION_program.disallows);
-NOTATION_program.disallows.NONE = _.clone(NOTATION_program.disallows.NONE);
-NOTATION_program.disallows.NONE["true"] = [
+const NOTATIONProgram = _.clone(QNameProgram);
+NOTATIONProgram.disallows = _.clone(NOTATIONProgram.disallows);
+NOTATIONProgram.disallows.NONE = _.clone(NOTATIONProgram.disallows.NONE);
+NOTATIONProgram.disallows.NONE.true = [
   ["spaces", "foo zh",
    ["not a valid NOTATION"],
   ],
@@ -1107,41 +1129,38 @@ NOTATION_program.disallows.NONE["true"] = [
 
 function testProgram(name, lib, program, disallows) {
   const type = lib.types[name];
-  const schema_context = program.schema_context;
-  const doc_context = program.doc_context;
-  describe(name, function () {
-    describe("equal", function () {
-      for (const x of program.equal["true"]) {
+  const schemaContext = program.schemaContext;
+  const docContext = program.docContext;
+  describe(name, () => {
+    describe("equal", () => {
+      for (const x of program.equal.true) {
         it(`returns true ${x[0]}`, () => {
           assert.isTrue(type.equal(x[1],
-                                   type.parseValue(x[2],
-                                                   schema_context),
-                                   doc_context));
+                                   type.parseValue(x[2], schemaContext),
+                                   docContext));
         });
       }
 
-      for (const x of program.equal["false"]) {
+      for (const x of program.equal.false) {
         it(`returns false ${x[0]}`, () => {
           assert.isFalse(type.equal(x[1],
-                                    type.parseValue(x[2],
-                                                    schema_context),
-                                    doc_context));
+                                    type.parseValue(x[2], schemaContext),
+                                    docContext));
         });
       }
     });
 
-    describe("parseParams", function () {
+    describe("parseParams", () => {
       for (const x of program.parseParams) {
-        it(x[0], () => {
-          assert.deepEqual(type.parseParams(undefined, x[1]), x[2]);
-        });
+        it(x[0], () =>
+           assert.deepEqual(type.parseParams(undefined, x[1]), x[2]));
       }
     });
 
-    describe("disallows", function () {
+    describe("disallows", () => {
       const none = program.disallows && program.disallows.NONE;
       if (disallows || none) {
-        describe("without parameters", function () {
+        describe("without parameters", () => {
           if (disallows) {
             disallows(type);
           }
@@ -1149,16 +1168,14 @@ function testProgram(name, lib, program, disallows) {
             return;
           }
 
-          for (const x of none["false"]) {
-            it(`allows ${x[0]}`, () => {
-              assert.isFalse(type.disallows(x[1], {},
-                                            doc_context));
-            });
+          for (const x of none.false) {
+            it(`allows ${x[0]}`, () =>
+               assert.isFalse(type.disallows(x[1], {}, docContext)));
           }
 
-          for (const x of none["true"]) {
+          for (const x of none.true) {
             it(`disallows ${x[0]}`, () => {
-              const ret = type.disallows(x[1], {}, doc_context);
+              const ret = type.disallows(x[1], {}, docContext);
               assert.equal(ret.length, x[2].length);
               assert.equal(ret[0].toString(), x[2][0]);
             });
@@ -1167,22 +1184,20 @@ function testProgram(name, lib, program, disallows) {
       }
 
       function makeParameterTest(i, param) {
-        return function () {
-          for (const x of param["false"]) {
+        return function test() {
+          for (const x of param.false) {
             it(`allows ${x[0]}`, () => {
-              const params = type.parseParams(
-                undefined, [{ name: i, value: x[2] }]);
-              assert.isFalse(type.disallows(x[1], params,
-                                            doc_context));
+              const params = type.parseParams(undefined,
+                                              [{ name: i, value: x[2] }]);
+              assert.isFalse(type.disallows(x[1], params, docContext));
             });
           }
 
-          for (const x of param["true"]) {
+          for (const x of param.true) {
             it(`disallows ${x[0]}`, () => {
-              const params = type.parseParams(
-                undefined, [{ name: i, value: x[2] }]);
-              const ret = type.disallows(x[1], params,
-                                         doc_context);
+              const params = type.parseParams(undefined,
+                                              [{ name: i, value: x[2] }]);
+              const ret = type.disallows(x[1], params, docContext);
               assert.equal(ret.length, x[3].length);
               assert.equal(ret[0].toString(), x[3][0]);
             });
@@ -1204,49 +1219,47 @@ function testProgram(name, lib, program, disallows) {
 
 function testString(name, lib, disallowsNoparams, disallowsParams) {
   const type = lib.types[name];
-  describe(name, function () {
-    before(() => { assert.isFalse(type.needs_context); });
-    describe("equal", function () {
-      it("returns true for two equal values", function () {
-        assert.isTrue(type.equal("foo", { value: "foo" }));
-      });
+  describe(name, () => {
+    before(() => assert.isFalse(type.needs_context));
 
-      it("returns false for two unequal values", function () {
-        assert.isFalse(type.equal("foo", { value: "bar" }));
-      });
+    describe("equal", () => {
+      it("returns true for two equal values", () =>
+         assert.isTrue(type.equal("foo", { value: "foo" })));
+
+      it("returns false for two unequal values", () =>
+         assert.isFalse(type.equal("foo", { value: "bar" })));
     });
 
-    describe("parseParams", function () {
-      it("empty array", function () {
-        assert.deepEqual(type.parseParams(undefined, []), {});
-      });
+    describe("parseParams", () => {
+      it("empty array", () =>
+         assert.deepEqual(type.parseParams(undefined, []), {}));
 
-      it("all, except minLength and maxLength", function () {
+      it("all, except minLength and maxLength", () => {
         assert.deepEqual(
           type.parseParams(undefined, [
             { name: "length", value: "1" },
             { name: "pattern", value: "abc" },
           ]),
           {
-            "length": 1,
-            "pattern": { rng: "abc", internal: new RegExp("^abc$") },
+            length: 1,
+            pattern: { rng: "abc", internal: new RegExp("^abc$") },
           });
       });
 
 
-      it("minLength and maxLength", function () {
+      it("minLength and maxLength", () => {
         assert.deepEqual(
           type.parseParams(undefined, [
             { name: "maxLength", value: "1" },
             { name: "minLength", value: "1" },
           ]),
           {
-            "maxLength": 1,
-            "minLength": 1,
+            maxLength: 1,
+            minLength: 1,
           });
       });
 
-      it("repeatables", function () {
+      it("repeatables", () => {
         const parsed = type.parseParams(undefined, [
           { name: "pattern", value: "abc" },
           { name: "pattern", value: "def" },
@@ -1254,15 +1267,13 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
 
         assert.deepEqual(_.sortBy(parsed.pattern, "rng"),
                          _.sortBy(
-                           [{ rng: "abc",
-                             internal: new RegExp("^abc$") },
-                            { rng: "def",
-                             internal: new RegExp("^def$") }],
+                           [{ rng: "abc", internal: new RegExp("^abc$") },
+                            { rng: "def", internal: new RegExp("^def$") }],
                            "rng"));
       });
 
-      it("non-repeatables", function () {
-        assert.Throw(
+      it("non-repeatables", () => {
+        assert.throws(
           type.parseParams.bind(type, undefined, [
             { name: "length", value: "1" },
             { name: "maxLength", value: "1" },
@@ -1278,87 +1289,78 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
       });
     });
 
-    describe("disallows", function () {
-      describe("without parameters", function () {
-        it("allows 'foo'", function () {
-          assert.isFalse(type.disallows("foo"));
-        });
+    describe("disallows", () => {
+      describe("without parameters", () => {
+        it("allows 'foo'", () => assert.isFalse(type.disallows("foo")));
 
         disallowsNoparams(type);
       });
 
-      describe("with a length parameter", function () {
-        it("allows the length", function () {
-          assert.isFalse(type.disallows("foo", { "length": 3 }))
-        });
-        it("disallows other lengths", function () {
-          const ret = type.disallows("foobar", { "length": 3 });
+      describe("with a length parameter", () => {
+        it("allows the length", () =>
+           assert.isFalse(type.disallows("foo", { length: 3 })));
+
+        it("disallows other lengths", () => {
+          const ret = type.disallows("foobar", { length: 3 });
           assert.equal(ret.length, 1);
-          assert.equal(ret[0].toString(),
-                       "length of value should be 3");
+          assert.equal(ret[0].toString(), "length of value should be 3");
         });
       });
 
-      describe("with a minLength parameter", function () {
-        it("allows the length", function () {
-          assert.isFalse(type.disallows("foo", { "minLength": 3 }));
-        });
-        it("allows more than the length", function () {
-          assert.isFalse(type.disallows("foobar", { "minLength": 3 }));
-        });
-        it("disallows less than the length", function () {
-          const ret = type.disallows("f", { "minLength": 3 });
+      describe("with a minLength parameter", () => {
+        it("allows the length", () =>
+           assert.isFalse(type.disallows("foo", { minLength: 3 })));
+
+        it("allows more than the length", () =>
+           assert.isFalse(type.disallows("foobar", { minLength: 3 })));
+
+        it("disallows less than the length", () => {
+          const ret = type.disallows("f", { minLength: 3 });
           assert.equal(ret.length, 1);
           assert.equal(ret[0].toString(),
-                       "length of value should be greater than " +
-                       "or equal to 3");
+                       "length of value should be greater than or equal to 3");
         });
       });
 
-      describe("with a maxLength parameter", function () {
-        it("allows the length", function () {
-          assert.isFalse(type.disallows("foo", { "maxLength": 3 }));
-        });
-        it("allows less than the length", function () {
-          assert.isFalse(type.disallows("f", { "maxLength": 3 }));
-        });
-        it("disallows more than the length", function () {
-          const ret = type.disallows("foobar", { "maxLength": 3 });
+      describe("with a maxLength parameter", () => {
+        it("allows the length", () =>
+          assert.isFalse(type.disallows("foo", { maxLength: 3 })));
+
+        it("allows less than the length", () =>
+          assert.isFalse(type.disallows("f", { maxLength: 3 })));
+
+        it("disallows more than the length", () => {
+          const ret = type.disallows("foobar", { maxLength: 3 });
           assert.equal(ret.length, 1);
           assert.equal(ret[0].toString(),
-                       "length of value should be less than " +
-                       "or equal to 3");
+                       "length of value should be less than or equal to 3");
         });
       });
 
-      describe("with a pattern parameter", function () {
+      describe("with a pattern parameter", () => {
         // Extract the pattern processor from the type.
         const pattern = type.param_name_to_obj.pattern;
-        it("allows the pattern", function () {
-          assert.isFalse(
-            type.disallows("foo",
-                           { "pattern": pattern.convert("[fb].*") }));
+        it("allows the pattern", () =>
+           assert.isFalse(
+             type.disallows("foo", { pattern: pattern.convert("[fb].*") })));
+        it("disallows what does not match the pattern", () => {
+          const ret = type.disallows("afoo",
+                                     { pattern: pattern.convert("[fb].*") });
+          assert.equal(ret.length, 1);
+          assert.equal(ret[0].toString(),
+                       "value does not match the pattern [fb].*");
         });
-        it("disallows what does not match the pattern",
-           function () {
-             const ret = type.disallows("afoo",
-                                        { "pattern":
-                                         pattern.convert("[fb].*") });
-             assert.equal(ret.length, 1);
-             assert.equal(ret[0].toString(),
-                          "value does not match the pattern [fb].*");
-           });
 
-        it("disallows what does not match multiple patterns",
-           function () {
-             const parsed = type.parseParams(undefined,
-                                             [{ name: "pattern", value: ".*" },
-                                              { name: "pattern", value: "[fb].*" }]);
-             const ret = type.disallows("afoo", parsed);
-             assert.equal(ret.length, 1);
-             assert.equal(ret[0].toString(),
-                          "value does not match the pattern [fb].*");
-           });
+        it("disallows what does not match multiple patterns", () => {
+          const parsed = type.parseParams(
+            undefined,
+            [{ name: "pattern", value: ".*" },
+             { name: "pattern", value: "[fb].*" }]);
+          const ret = type.disallows("afoo", parsed);
+          assert.equal(ret.length, 1);
+          assert.equal(ret[0].toString(),
+                       "value does not match the pattern [fb].*");
+        });
       });
 
       if (disallowsParams) {
@@ -1368,473 +1370,367 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
   });
 }
 
-describe("datatypes", function () {
-  describe("Builtin library", function () {
+describe("datatypes", () => {
+  describe("Builtin library", () => {
     const lib = datatypes.registry.get("");
 
-    describe("string", function () {
+    describe("string", () => {
       const type = lib.types.string;
 
-      describe("equal", function () {
-        it("returns true for two equal values", function () {
+      describe("equal", () => {
+        it("returns true for two equal values", () => {
           assert.isTrue(type.equal("foo", type.parseValue("foo")));
         });
 
-        it("returns false for two unequal values", function () {
+        it("returns false for two unequal values", () => {
           assert.isFalse(type.equal("foo", type.parseValue("bar")));
         });
       });
 
-      describe("disallows", function () {
-        it("nothing", function () {
-          assert.isFalse(type.disallows("foo"));
-        });
+      describe("disallows", () => {
+        it("nothing", () => assert.isFalse(type.disallows("foo")));
       });
     });
 
-    describe("token", function () {
+    describe("token", () => {
       const type = lib.types.token;
 
-      describe("equal", function () {
-        it("returns true for two equal values", function () {
+      describe("equal", () => {
+        it("returns true for two equal values", () => {
           assert.isTrue(type.equal("foo", type.parseValue("foo")));
         });
 
         it("returns true for string differing only regarding space (1)",
-           function () {
-             assert.isTrue(type.equal("foo", type.parseValue(" foo ")));
-           });
+           () => assert.isTrue(type.equal("foo", type.parseValue(" foo "))));
 
         it("returns true for string differing only regarding space (2)",
-           function () {
-             assert.isTrue(type.equal(
-               "foo bar   fwip",
-               type.parseValue(" foo   bar fwip")));
-           });
+           () => assert.isTrue(type.equal(
+             "foo bar   fwip", type.parseValue(" foo   bar fwip"))));
 
-        it("returns false for two unequal values", function () {
-          assert.isFalse(type.equal("foobar",
-                                    type.parseValue("foo bar")));
-        });
+        it("returns false for two unequal values", () =>
+           assert.isFalse(type.equal("foobar", type.parseValue("foo bar"))));
       });
 
-      describe("disallows", function () {
-        it("anything", function () {
-          assert.isFalse(type.disallows("foo"));
-        });
+      describe("disallows", () => {
+        it("anything", () => assert.isFalse(type.disallows("foo")));
       });
     });
   });
 
-  describe("XMLSchema library", function () {
+  describe("XMLSchema library", () => {
     const lib = datatypes.registry.get(
       "http://www.w3.org/2001/XMLSchema-datatypes");
 
-    describe("disallowed combinations of parameters",
-             function () {
-               it("minLength must be <= maxLength", function () {
-                 const type = lib.types.string;
+    describe("disallowed combinations of parameters", () => {
+      it("minLength must be <= maxLength", () => {
+        const type = lib.types.string;
 
-                 assert.Throw(
-                   type.parseParams.bind(type, undefined, [
-                     { name: "maxLength", value: "1" },
-                     { name: "minLength", value: "2" },
-                   ]),
-                   datatypes.ParameterParsingError,
-                   "minLength must be less than or equal to maxLength");
-               });
+        assert.throws(
+          type.parseParams.bind(type, undefined, [
+            { name: "maxLength", value: "1" },
+            { name: "minLength", value: "2" },
+          ]),
+          datatypes.ParameterParsingError,
+          "minLength must be less than or equal to maxLength");
+      });
 
-               it("combining length and minLength is invalid", function () {
-                 const type = lib.types.string;
-                 assert.Throw(
-                   type.parseParams.bind(type, undefined, [
-                     { name: "length", value: "1" },
-                     { name: "minLength", value: "2" },
-                   ]),
-                   datatypes.ParameterParsingError,
-                   "length and minLength cannot appear together");
-               });
+      it("combining length and minLength is invalid", () => {
+        const type = lib.types.string;
+        assert.throws(
+          type.parseParams.bind(type, undefined, [
+            { name: "length", value: "1" },
+            { name: "minLength", value: "2" },
+          ]),
+          datatypes.ParameterParsingError,
+          "length and minLength cannot appear together");
+      });
 
-               it("combining length and maxLength is invalid", function () {
-                 const type = lib.types.string;
-                 assert.Throw(
-                   type.parseParams.bind(type, undefined, [
-                     { name: "length", value: "1" },
-                     { name: "maxLength", value: "2" },
-                   ]),
-                   datatypes.ParameterParsingError,
-                   "length and maxLength cannot appear together");
-               });
+      it("combining length and maxLength is invalid", () => {
+        const type = lib.types.string;
+        assert.throws(
+          type.parseParams.bind(type, undefined, [
+            { name: "length", value: "1" },
+            { name: "maxLength", value: "2" },
+          ]),
+          datatypes.ParameterParsingError,
+          "length and maxLength cannot appear together");
+      });
 
-               it("combining maxInclusive and maxExclusive is invalid",
-                  function () {
-                    const type = lib.types.decimal;
-                    assert.Throw(
-                      type.parseParams.bind(type, undefined, [
-                        { name: "maxInclusive", value: "1" },
-                        { name: "maxExclusive", value: "2" },
-                      ]),
-                      datatypes.ParameterParsingError,
-                      "maxInclusive and maxExclusive cannot appear together");
-                  });
+      it("combining maxInclusive and maxExclusive is invalid", () => {
+        const type = lib.types.decimal;
+        assert.throws(
+          type.parseParams.bind(type, undefined, [
+            { name: "maxInclusive", value: "1" },
+            { name: "maxExclusive", value: "2" },
+          ]),
+          datatypes.ParameterParsingError,
+          "maxInclusive and maxExclusive cannot appear together");
+      });
 
-               it("combining minInclusive and minExclusive is invalid",
-                  function () {
-                    const type = lib.types.decimal;
-                    assert.Throw(
-                      type.parseParams.bind(type, undefined, [
-                        { name: "minInclusive", value: "1" },
-                        { name: "minExclusive", value: "2" },
-                      ]),
-                      datatypes.ParameterParsingError,
-                      "minInclusive and minExclusive cannot appear together");
-                  });
+      it("combining minInclusive and minExclusive is invalid", () => {
+        const type = lib.types.decimal;
+        assert.throws(
+          type.parseParams.bind(type, undefined, [
+            { name: "minInclusive", value: "1" },
+            { name: "minExclusive", value: "2" },
+          ]),
+          datatypes.ParameterParsingError,
+          "minInclusive and minExclusive cannot appear together");
+      });
 
-               it("minInclusive must be <= maxInclusive", function () {
-                 const type = lib.types.decimal;
+      it("minInclusive must be <= maxInclusive", () => {
+        const type = lib.types.decimal;
 
-                 assert.Throw(
-                   type.parseParams.bind(type, undefined, [
-                     { name: "minInclusive", value: "2" },
-                     { name: "maxInclusive", value: "1" },
-                   ]),
-                   datatypes.ParameterParsingError,
-                   "minInclusive must be less than or equal to maxInclusive");
-               });
+        assert.throws(
+          type.parseParams.bind(type, undefined, [
+            { name: "minInclusive", value: "2" },
+            { name: "maxInclusive", value: "1" },
+          ]),
+          datatypes.ParameterParsingError,
+          "minInclusive must be less than or equal to maxInclusive");
+      });
 
-               it("minExclusive must be < maxInclusive", function () {
-                 const type = lib.types.decimal;
+      it("minExclusive must be < maxInclusive", () => {
+        const type = lib.types.decimal;
 
-                 assert.Throw(
-                   type.parseParams.bind(type, undefined, [
-                     { name: "minExclusive", value: "1" },
-                     { name: "maxInclusive", value: "1" },
-                   ]),
-                   datatypes.ParameterParsingError,
-                   "minExclusive must be less than maxInclusive");
-               });
+        assert.throws(
+          type.parseParams.bind(type, undefined, [
+            { name: "minExclusive", value: "1" },
+            { name: "maxInclusive", value: "1" },
+          ]),
+          datatypes.ParameterParsingError,
+          "minExclusive must be less than maxInclusive");
+      });
 
-               it("minInclusive must be < maxExclusive", function () {
-                 const type = lib.types.decimal;
+      it("minInclusive must be < maxExclusive", () => {
+        const type = lib.types.decimal;
 
-                 assert.Throw(
-                   type.parseParams.bind(type, undefined, [
-                     { name: "minInclusive", value: "1" },
-                     { name: "maxExclusive", value: "1" },
-                   ]),
-                   datatypes.ParameterParsingError,
-                   "minInclusive must be less than maxExclusive");
-               });
+        assert.throws(
+          type.parseParams.bind(type, undefined, [
+            { name: "minInclusive", value: "1" },
+            { name: "maxExclusive", value: "1" },
+          ]),
+          datatypes.ParameterParsingError,
+          "minInclusive must be less than maxExclusive");
+      });
 
-               it("minExclusive must be <= maxExclusive", function () {
-                 const type = lib.types.decimal;
+      it("minExclusive must be <= maxExclusive", () => {
+        const type = lib.types.decimal;
 
-                 assert.Throw(
-                   type.parseParams.bind(type, undefined, [
-                     { name: "minExclusive", value: "1.1" },
-                     { name: "maxExclusive", value: "1" },
-                   ]),
-                   datatypes.ParameterParsingError,
-                   "minExclusive must be less than or equal to maxExclusive");
-               });
-             });
-
-    testString("string", lib, function (type) {
-      it("allows anything", function () {
-        assert.isFalse(type.disallows("foo"));
+        assert.throws(
+          type.parseParams.bind(type, undefined, [
+            { name: "minExclusive", value: "1.1" },
+            { name: "maxExclusive", value: "1" },
+          ]),
+          datatypes.ParameterParsingError,
+          "minExclusive must be less than or equal to maxExclusive");
       });
     });
 
-    testString("normalizedString", lib,
-               function (type) {
-                 it("allows simple text", function () {
-                   assert.isFalse(type.disallows("foo"));
-                 });
+    testString("string", lib, (type) => {
+      it("allows anything", () => assert.isFalse(type.disallows("foo")));
+    });
 
-                 it("disallows tabs", function () {
-                   const ret = type.disallows("foo\tbar");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "string contains a tab, carriage return " +
-                                "or newline");
-                 });
+    testString("normalizedString", lib, (type) => {
+      it("allows simple text", () => assert.isFalse(type.disallows("foo")));
 
-                 it("disallows newlines", function () {
-                   const ret = type.disallows("foo\nbar");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "string contains a tab, carriage return " +
-                                "or newline");
-                 });
+      it("disallows tabs", () => {
+        const ret = type.disallows("foo\tbar");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(),
+                     "string contains a tab, carriage return or newline");
+      });
 
-                 it("disallows carriage returns", function () {
-                   const ret = type.disallows("foo\rbar");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "string contains a tab, carriage return " +
-                                "or newline");
-                 });
-               });
+      it("disallows newlines", () => {
+        const ret = type.disallows("foo\nbar");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(),
+                     "string contains a tab, carriage return or newline");
+      });
 
-    testString("token", lib,
-               function (type) {
-                 it("allows simple text", function () {
-                   assert.isFalse(type.disallows("foo"));
-                 });
+      it("disallows carriage returns", () => {
+        const ret = type.disallows("foo\rbar");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(),
+                     "string contains a tab, carriage return or newline");
+      });
+    });
 
-                 it("allows tabs", function () {
-                   assert.isFalse(type.disallows("en\t"));
-                 });
+    testString("token", lib, (type) => {
+      it("allows simple text", () => {
+        assert.isFalse(type.disallows("foo"));
+      });
 
-                 it("disallows newlines", function () {
-                   const ret = type.disallows("foo\nbar");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "not a valid token");
-                 });
+      it("allows tabs", () => {
+        assert.isFalse(type.disallows("en\t"));
+      });
 
-                 it("disallows carriage returns", function () {
-                   const ret = type.disallows("foo\rbar");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "not a valid token");
-                 });
+      it("disallows newlines", () => {
+        const ret = type.disallows("foo\nbar");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(), "not a valid token");
+      });
 
-                 it("allows spaces", function () {
-                   assert.isFalse(type.disallows("foo  bar"));
-                 });
-               });
+      it("disallows carriage returns", () => {
+        const ret = type.disallows("foo\rbar");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(), "not a valid token");
+      });
 
-    testString("language", lib,
-               function (type) {
-                 it("allows simple text", function () {
-                   assert.isFalse(type.disallows("en"));
-                 });
+      it("allows spaces", () => {
+        assert.isFalse(type.disallows("foo  bar"));
+      });
+    });
 
-                 it("allows tabs", function () {
-                   assert.isFalse(type.disallows("en\t"));
-                 });
+    testString("language", lib, (type) => {
+      it("allows simple text", () => assert.isFalse(type.disallows("en")));
 
-                 it("allows newlines", function () {
-                   assert.isFalse(type.disallows("en\n"));
-                 });
+      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
 
-                 it("allows carriage returns", function () {
-                   assert.isFalse(type.disallows("en\r"));
-                 });
+      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
 
-                 it("allows spaces", function () {
-                   assert.isFalse(type.disallows("en "));
-                 });
-               });
+      it("allows carriage returns",
+         () => assert.isFalse(type.disallows("en\r")));
 
-    testString("Name", lib,
-               function (type) {
-                 it("allows simple text", function () {
-                   assert.isFalse(type.disallows("en"));
-                 });
+      it("allows spaces", () => assert.isFalse(type.disallows("en ")));
+    });
 
-                 it("allows tabs", function () {
-                   assert.isFalse(type.disallows("en\t"));
-                 });
+    testString("Name", lib, (type) => {
+      it("allows simple text", () => assert.isFalse(type.disallows("en")));
 
-                 it("allows newlines", function () {
-                   assert.isFalse(type.disallows("en\n"));
-                 });
+      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
 
-                 it("allows carriage returns", function () {
-                   assert.isFalse(type.disallows("en\r"));
-                 });
+      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
 
-                 it("allows spaces", function () {
-                   assert.isFalse(type.disallows("en "));
-                 });
+      it("allows carriage returns",
+         () => assert.isFalse(type.disallows("en\r")));
 
-                 it("disallows spaces between letters", function () {
-                   const ret = type.disallows("en zh");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "not a valid Name");
-                 });
-               });
+      it("allows spaces", () => assert.isFalse(type.disallows("en ")));
 
-    testString("NCName", lib,
-               function (type) {
-                 it("allows simple text", function () {
-                   assert.isFalse(type.disallows("en"));
-                 });
+      it("disallows spaces between letters", () => {
+        const ret = type.disallows("en zh");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(), "not a valid Name");
+      });
+    });
 
-                 it("allows tabs", function () {
-                   assert.isFalse(type.disallows("en\t"));
-                 });
+    testString("NCName", lib, (type) => {
+      it("allows simple text", () => assert.isFalse(type.disallows("en")));
 
-                 it("allows newlines", function () {
-                   assert.isFalse(type.disallows("en\n"));
-                 });
+      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
 
-                 it("allows carriage returns", function () {
-                   assert.isFalse(type.disallows("en\r"));
-                 });
+      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
 
-                 it("allows spaces", function () {
-                   assert.isFalse(type.disallows("en "));
-                 });
+      it("allows carriage returns",
+         () => assert.isFalse(type.disallows("en\r")));
 
-                 it("disallows colons", function () {
-                   const ret = type.disallows("en:zh");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "not a valid NCName");
-                 });
-               });
+      it("allows spaces", () => assert.isFalse(type.disallows("en ")));
 
-    testString("NMTOKEN", lib,
-               function (type) {
-                 it("allows simple text", function () {
-                   assert.isFalse(type.disallows(":en"));
-                 });
+      it("disallows colons", () => {
+        const ret = type.disallows("en:zh");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(), "not a valid NCName");
+      });
+    });
 
-                 it("allows tabs", function () {
-                   assert.isFalse(type.disallows("en\t"));
-                 });
+    testString("NMTOKEN", lib, (type) => {
+      it("allows simple text", () => assert.isFalse(type.disallows(":en")));
 
-                 it("allows newlines", function () {
-                   assert.isFalse(type.disallows("en\n"));
-                 });
+      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
 
-                 it("allows carriage returns", function () {
-                   assert.isFalse(type.disallows("en\r"));
-                 });
+      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
 
-                 it("disallows spaces", function () {
-                   const ret = type.disallows("en zh");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "not a valid NMTOKEN");
-                 });
-               });
+      it("allows carriage returns",
+         () => assert.isFalse(type.disallows("en\r")));
 
-    testString("NMTOKENS", lib,
-               function (type) {
-                 it("allows simple text", function () {
-                   assert.isFalse(type.disallows(":en"));
-                 });
+      it("disallows spaces", () => {
+        const ret = type.disallows("en zh");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(), "not a valid NMTOKEN");
+      });
+    });
 
-                 it("allows spaces", function () {
-                   assert.isFalse(type.disallows("en zh"));
-                 });
+    testString("NMTOKENS", lib, (type) => {
+      it("allows simple text", () => assert.isFalse(type.disallows(":en")));
 
-                 it("allows tabs", function () {
-                   assert.isFalse(type.disallows("en\t"));
-                 });
+      it("allows spaces", () => assert.isFalse(type.disallows("en zh")));
 
-                 it("allows newlines", function () {
-                   assert.isFalse(type.disallows("en\n"));
-                 });
+      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
 
-                 it("allows carriage returns", function () {
-                   assert.isFalse(type.disallows("en\r"));
-                 });
-               });
+      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
 
-    testString("ID", lib,
-               function (type) {
-                 it("allows simple text", function () {
-                   assert.isFalse(type.disallows("en"));
-                 });
+      it("allows carriage returns",
+         () => assert.isFalse(type.disallows("en\r")));
+    });
 
-                 it("allows tabs", function () {
-                   assert.isFalse(type.disallows("en\t"));
-                 });
+    testString("ID", lib, (type) => {
+      it("allows simple text", () => assert.isFalse(type.disallows("en")));
 
-                 it("allows newlines", function () {
-                   assert.isFalse(type.disallows("en\n"));
-                 });
+      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
 
-                 it("allows carriage returns", function () {
-                   assert.isFalse(type.disallows("en\r"));
-                 });
+      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
 
-                 it("disallows spaces", function () {
-                   const ret = type.disallows("en zh");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "not a valid ID");
-                 });
+      it("allows carriage returns",
+         () => assert.isFalse(type.disallows("en\r")));
 
-                 it("disallows colons", function () {
-                   const ret = type.disallows("en:zh");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "not a valid ID");
-                 });
-               });
+      it("disallows spaces", () => {
+        const ret = type.disallows("en zh");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(),
+                     "not a valid ID");
+      });
 
-    testString("IDREF", lib,
-               function (type) {
-                 it("allows simple text", function () {
-                   assert.isFalse(type.disallows("en"));
-                 });
+      it("disallows colons", () => {
+        const ret = type.disallows("en:zh");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(), "not a valid ID");
+      });
+    });
 
-                 it("allows tabs", function () {
-                   assert.isFalse(type.disallows("en\t"));
-                 });
+    testString("IDREF", lib, (type) => {
+      it("allows simple text", () => assert.isFalse(type.disallows("en")));
 
-                 it("allows newlines", function () {
-                   assert.isFalse(type.disallows("en\n"));
-                 });
+      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
 
-                 it("allows carriage returns", function () {
-                   assert.isFalse(type.disallows("en\r"));
-                 });
+      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
 
-                 it("disallows spaces", function () {
-                   const ret = type.disallows("en zh");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "not a valid IDREF");
-                 });
+      it("allows carriage returns",
+         () => assert.isFalse(type.disallows("en\r")));
 
-                 it("disallows colons", function () {
-                   const ret = type.disallows("en:zh");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "not a valid IDREF");
-                 });
-               });
+      it("disallows spaces", () => {
+        const ret = type.disallows("en zh");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(), "not a valid IDREF");
+      });
 
-    testString("IDREFS", lib,
-               function (type) {
-                 it("allows simple text", function () {
-                   assert.isFalse(type.disallows("en"));
-                 });
+      it("disallows colons", () => {
+        const ret = type.disallows("en:zh");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(), "not a valid IDREF");
+      });
+    });
 
-                 it("allows spaces", function () {
-                   assert.isFalse(type.disallows("en zh"));
-                 });
+    testString("IDREFS", lib, (type) => {
+      it("allows simple text", () => assert.isFalse(type.disallows("en")));
 
-                 it("allows tabs", function () {
-                   assert.isFalse(type.disallows("en\t"));
-                 });
+      it("allows spaces", () => assert.isFalse(type.disallows("en zh")));
 
-                 it("allows newlines", function () {
-                   assert.isFalse(type.disallows("en\n"));
-                 });
+      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
 
-                 it("allows carriage returns", function () {
-                   assert.isFalse(type.disallows("en\r"));
-                 });
+      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
 
-                 it("disallows colons", function () {
-                   const ret = type.disallows("en:zh");
-                   assert.equal(ret.length, 1);
-                   assert.equal(ret[0].toString(),
-                                "not a valid IDREFS");
-                 });
-               });
+      it("allows carriage returns",
+         () => assert.isFalse(type.disallows("en\r")));
 
-    testProgram("QName", lib, QName_program);
-    testProgram("NOTATION", lib, NOTATION_program);
+      it("disallows colons", () => {
+        const ret = type.disallows("en:zh");
+        assert.equal(ret.length, 1);
+        assert.equal(ret[0].toString(), "not a valid IDREFS");
+      });
+    });
+
+    testProgram("QName", lib, QNameProgram);
+    testProgram("NOTATION", lib, NOTATIONProgram);
 
     testProgram("decimal", lib, decimalProgram);
     testProgram("integer", lib, integerProgram);
@@ -1857,207 +1753,162 @@ describe("datatypes", function () {
     testProgram("float", lib, floatProgram);
     testProgram("double", lib, doubleProgram);
 
-    describe("boolean", function () {
-      const type = lib.types["boolean"];
-      describe("equal", function () {
-        it("returns true for two equal values", function () {
-          assert.isTrue(type.equal("1",
-                                   type.parseValue("1")));
-        });
+    describe("boolean", () => {
+      const type = lib.types.boolean;
+      describe("equal", () => {
+        it("returns true for two equal values",
+           () => assert.isTrue(type.equal("1", type.parseValue("1"))));
 
-        it("returns true for two equal values", function () {
-          assert.isTrue(type.equal("0",
-                                   type.parseValue("0")));
-        });
+        it("returns true for two equal values",
+           () => assert.isTrue(type.equal("0", type.parseValue("0"))));
 
-        it("returns true for two equal values", function () {
-          assert.isTrue(type.equal("true",
-                                   type.parseValue("true")));
-        });
+        it("returns true for two equal values",
+           () => assert.isTrue(type.equal("true", type.parseValue("true"))));
 
+        it("returns true for two equal values",
+           () => assert.isTrue(type.equal("false", type.parseValue("false"))));
 
-        it("returns true for two equal values", function () {
-          assert.isTrue(type.equal("false",
-                                   type.parseValue("false")));
-        });
+        it("returns true for two equal values",
+           () => assert.isTrue(type.equal("true", type.parseValue("1"))));
 
-        it("returns true for two equal values", function () {
-          assert.isTrue(type.equal("true",
-                                   type.parseValue("1")));
-        });
+        it("returns true for two equal values",
+           () => assert.isTrue(type.equal("false", type.parseValue("0"))));
 
-        it("returns true for two equal values", function () {
-          assert.isTrue(type.equal("false",
-                                   type.parseValue("0")));
-        });
+        it("returns false for two unequal values",
+           () => assert.isFalse(type.equal("false", type.parseValue("1"))));
 
-        it("returns false for two unequal values", function () {
-          assert.isFalse(type.equal("false",
-                                    type.parseValue("1")));
-        });
-
-        it("returns false for two unequal values", function () {
-          assert.isFalse(type.equal("true",
-                                    type.parseValue("0")));
-        });
+        it("returns false for two unequal values",
+           () => assert.isFalse(type.equal("true", type.parseValue("0"))));
       });
 
-      describe("parseParams", function () {
-        it("all, except minLength and maxLength", function () {
+      describe("parseParams", () => {
+        it("all, except minLength and maxLength", () => {
           assert.deepEqual(
             type.parseParams(undefined, [
               { name: "pattern", value: "abc" },
             ]),
             {
-              "pattern": { rng: "abc",
-                          internal: new RegExp("^abc$") },
+              pattern: { rng: "abc", internal: new RegExp("^abc$") },
             });
         });
       });
 
-      describe("disallows", function () {
-        describe("without parameters", function () {
-          it("allows 'true'", function () {
-            assert.isFalse(type.disallows("true"));
-          });
+      describe("disallows", () => {
+        describe("without parameters", () => {
+          it("allows 'true'", () => assert.isFalse(type.disallows("true")));
 
-          it("allows 'false'", function () {
-            assert.isFalse(type.disallows("false"));
-          });
+          it("allows 'false'", () => assert.isFalse(type.disallows("false")));
 
-          it("allows 1", function () {
-            assert.isFalse(type.disallows("1"));
-          });
+          it("allows 1", () => assert.isFalse(type.disallows("1")));
 
-          it("allows 0", function () {
-            assert.isFalse(type.disallows("0"));
-          });
+          it("allows 0", () => assert.isFalse(type.disallows("0")));
 
-          it("disallows 'yes'", function () {
+          it("disallows 'yes'", () => {
             const ret = type.disallows("yes");
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(),
-                         "not a valid boolean");
+            assert.equal(ret[0].toString(), "not a valid boolean");
           });
         });
       });
     });
 
-    describe("base64Binary", function () {
+    describe("base64Binary", () => {
       const type = lib.types.base64Binary;
-      describe("equal", function () {
-        it("returns true for two equal values", function () {
-          assert.isTrue(type.equal("AAAA",
-                                   type.parseValue("A A A A")));
-        });
+      describe("equal", () => {
+        it("returns true for two equal values",
+           () => assert.isTrue(type.equal("AAAA", type.parseValue("A A A A"))));
 
-        it("returns false for two unequal values", function () {
-          assert.isFalse(type.equal("AAAA",
-                                    type.parseValue("BBBB")));
-        });
+        it("returns false for two unequal values",
+           () => assert.isFalse(type.equal("AAAA", type.parseValue("BBBB"))));
       });
 
-      describe("parseParams", function () {
-        it("all, except minLength and maxLength", function () {
+      describe("parseParams", () => {
+        it("all, except minLength and maxLength", () => {
           assert.deepEqual(
             type.parseParams(undefined, [
               { name: "length", value: "1" },
               { name: "pattern", value: "abc" },
             ]),
             {
-              "length": 1,
-              "pattern": { rng: "abc",
-                          internal: new RegExp("^abc$") },
+              length: 1,
+              pattern: { rng: "abc", internal: new RegExp("^abc$") },
             });
         });
 
 
-        it("minLength and maxLength", function () {
+        it("minLength and maxLength", () => {
           assert.deepEqual(
             type.parseParams(undefined, [
               { name: "maxLength", value: "1" },
               { name: "minLength", value: "1" },
             ]),
             {
-              "maxLength": 1,
-              "minLength": 1,
+              maxLength: 1,
+              minLength: 1,
             });
         });
       });
 
-      describe("disallows", function () {
-        describe("without parameters", function () {
-          it("allows 'AAAA'", function () {
-            assert.isFalse(type.disallows("AAAA"));
-          });
+      describe("disallows", () => {
+        describe("without parameters", () => {
+          it("allows 'AAAA'", () => assert.isFalse(type.disallows("AAAA")));
 
-          it("allows 'A A A A'", function () {
-            assert.isFalse(type.disallows("A A A A"));
-          });
+          it("allows 'A A A A'",
+             () => assert.isFalse(type.disallows("A A A A")));
 
-          it("allows an empty string", function () {
-            assert.isFalse(type.disallows(""));
-          });
+          it("allows an empty string",
+             () => assert.isFalse(type.disallows("")));
 
-          it("allows 'test' coded in base64", function () {
-            assert.isFalse(type.disallows("dGVzdA=="));
-          });
+          it("allows 'test' coded in base64",
+             () => assert.isFalse(type.disallows("dGVzdA==")));
 
-          it("disallows badly padded (1)", function () {
+          it("disallows badly padded (1)", () => {
             const ret = type.disallows("AAA");
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(),
-                         "not a valid base64Binary");
+            assert.equal(ret[0].toString(), "not a valid base64Binary");
           });
 
-          it("disallows badly padded (2)", function () {
+          it("disallows badly padded (2)", () => {
             const ret = type.disallows("AA");
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(),
-                         "not a valid base64Binary");
+            assert.equal(ret[0].toString(), "not a valid base64Binary");
           });
 
-          it("disallows badly padded (3)", function () {
+          it("disallows badly padded (3)", () => {
             const ret = type.disallows("A");
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(),
-                         "not a valid base64Binary");
+            assert.equal(ret[0].toString(), "not a valid base64Binary");
           });
 
-          it("disallows badly padded (4)", function () {
+          it("disallows badly padded (4)", () => {
             const ret = type.disallows("A=");
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(),
-                         "not a valid base64Binary");
+            assert.equal(ret[0].toString(), "not a valid base64Binary");
           });
         });
 
-        describe("with a length parameter", function () {
-          it("allows the length", function () {
-            assert.isFalse(type.disallows("dGVzdA==",
-                                          { "length": 4 }));
+        describe("with a length parameter", () => {
+          it("allows the length", () => {
+            assert.isFalse(type.disallows("dGVzdA==", { length: 4 }));
           });
-          it("disallows other lengths", function () {
-            const ret = type.disallows("dGVzdCttb3JlCg==",
-                                       { "length": 4 });
+          it("disallows other lengths", () => {
+            const ret = type.disallows("dGVzdCttb3JlCg==", { length: 4 });
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(),
-                         "length of value should be 4");
+            assert.equal(ret[0].toString(), "length of value should be 4");
           });
         });
 
-        describe("with a minLength parameter", function () {
-          it("allows the length", function () {
-            assert.isFalse(type.disallows("dGVzdA==",
-                                          { "minLength": 4 }));
+        describe("with a minLength parameter", () => {
+          it("allows the length", () => {
+            assert.isFalse(type.disallows("dGVzdA==", { minLength: 4 }));
           });
-          it("allows more than the length", function () {
+          it("allows more than the length", () => {
             assert.isFalse(type.disallows("dGVzdCttb3JlCg==",
-                                          { "minLength": 4 }));
+                                          { minLength: 4 }));
           });
 
-          it("disallows less than the length", function () {
-            const ret = type.disallows("Zm9v", { "minLength": 4 });
+          it("disallows less than the length", () => {
+            const ret = type.disallows("Zm9v", { minLength: 4 });
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(),
                          "length of value should be greater than " +
@@ -2065,17 +1916,15 @@ describe("datatypes", function () {
           });
         });
 
-        describe("with a maxLength parameter", function () {
-          it("allows the length", function () {
-            assert.isFalse(type.disallows("dGVzdA==",
-                                          { "maxLength": 4 }));
+        describe("with a maxLength parameter", () => {
+          it("allows the length", () => {
+            assert.isFalse(type.disallows("dGVzdA==", { maxLength: 4 }));
           });
-          it("allows less than the length", function () {
-            assert.isFalse(type.disallows("Zm9v",
-                                          { "maxLength": 4 }));
+          it("allows less than the length", () => {
+            assert.isFalse(type.disallows("Zm9v", { maxLength: 4 }));
           });
-          it("disallows more than the length", function () {
-            const ret = type.disallows("dGVzdHM=", { "maxLength": 4 });
+          it("disallows more than the length", () => {
+            const ret = type.disallows("dGVzdHM=", { maxLength: 4 });
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(),
                          "length of value should be less than " +
@@ -2085,99 +1934,83 @@ describe("datatypes", function () {
       });
     });
 
-    describe("hexBinary", function () {
+    describe("hexBinary", () => {
       const type = lib.types.hexBinary;
-      describe("equal", function () {
-        it("returns true for two equal values", function () {
-          assert.isTrue(type.equal("AAAA",
-                                   type.parseValue("AAAA")));
-        });
+      describe("equal", () => {
+        it("returns true for two equal values",
+           () => assert.isTrue(type.equal("AAAA", type.parseValue("AAAA"))));
 
-        it("returns false for two unequal values", function () {
-          assert.isFalse(type.equal("AAAA",
-                                    type.parseValue("BBBB")));
-        });
+        it("returns false for two unequal values",
+           () => assert.isFalse(type.equal("AAAA", type.parseValue("BBBB"))));
       });
 
-      describe("parseParams", function () {
-        it("all, except minLength and maxLength", function () {
+      describe("parseParams", () => {
+        it("all, except minLength and maxLength", () => {
           assert.deepEqual(
             type.parseParams(undefined, [
               { name: "length", value: "1" },
               { name: "pattern", value: "abc" },
             ]),
             {
-              "length": 1,
-              "pattern": { rng: "abc",
-                          internal: new RegExp("^abc$") },
+              length: 1,
+              pattern: { rng: "abc", internal: new RegExp("^abc$") },
             });
         });
 
 
-        it("minLength and maxLength", function () {
+        it("minLength and maxLength", () => {
           assert.deepEqual(
             type.parseParams(undefined, [
               { name: "maxLength", value: "1" },
               { name: "minLength", value: "1" },
             ]),
             {
-              "maxLength": 1,
-              "minLength": 1,
+              maxLength: 1,
+              minLength: 1,
             });
         });
       });
 
-      describe("disallows", function () {
-        describe("without parameters", function () {
-          it("allows 'AAAA'", function () {
-            assert.isFalse(type.disallows("AAAA"));
-          });
+      describe("disallows", () => {
+        describe("without parameters", () => {
+          it("allows 'AAAA'", () => assert.isFalse(type.disallows("AAAA")));
 
-          it("allows an empty string", function () {
-            assert.isFalse(type.disallows(""));
-          });
+          it("allows an empty string",
+             () => assert.isFalse(type.disallows("")));
 
-          it("disallows 'A'", function () {
+          it("disallows 'A'", () => {
             const ret = type.disallows("A");
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(),
-                         "not a valid hexBinary");
+            assert.equal(ret[0].toString(), "not a valid hexBinary");
           });
 
-          it("disallows 'A A A A'", function () {
+          it("disallows 'A A A A'", () => {
             const ret = type.disallows("A A A A");
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(),
-                         "not a valid hexBinary");
+            assert.equal(ret[0].toString(), "not a valid hexBinary");
           });
         });
 
-        describe("with a length parameter", function () {
-          it("allows the length", function () {
-            assert.isFalse(type.disallows("AAAA",
-                                          { "length": 2 }));
-          });
-          it("disallows other lengths", function () {
-            const ret = type.disallows("AA",
-                                       { "length": 2 });
+        describe("with a length parameter", () => {
+          it("allows the length",
+             () => assert.isFalse(type.disallows("AAAA", { length: 2 })));
+          it("disallows other lengths", () => {
+            const ret = type.disallows("AA", { length: 2 });
             assert.equal(ret.length, 1);
-            assert.equal(ret[0].toString(),
-                         "length of value should be 2");
+            assert.equal(ret[0].toString(), "length of value should be 2");
           });
         });
 
-        describe("with a minLength parameter", function () {
-          it("allows the length", function () {
-            assert.isFalse(type.disallows("AAAA",
-                                          { "minLength": 2 }));
+        describe("with a minLength parameter", () => {
+          it("allows the length", () => {
+            assert.isFalse(type.disallows("AAAA", { minLength: 2 }));
           });
-          it("allows more than the length", function () {
-            assert.isFalse(type.disallows("AAAAAA",
-                                          { "minLength": 2 }));
+          it("allows more than the length", () => {
+            assert.isFalse(type.disallows("AAAAAA", { minLength: 2 }));
           });
 
-          it("disallows less than the length", function () {
-            const ret = type.disallows("AA", { "minLength": 2 });
+          it("disallows less than the length", () => {
+            const ret = type.disallows("AA", { minLength: 2 });
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(),
                          "length of value should be greater than " +
@@ -2185,17 +2018,15 @@ describe("datatypes", function () {
           });
         });
 
-        describe("with a maxLength parameter", function () {
-          it("allows the length", function () {
-            assert.isFalse(type.disallows("AAAA",
-                                          { "maxLength": 2 }));
-          });
-          it("allows less than the length", function () {
-            assert.isFalse(type.disallows("AA",
-                                          { "maxLength": 2 }));
-          });
-          it("disallows more than the length", function () {
-            const ret = type.disallows("AAAAAA", { "maxLength": 2 });
+        describe("with a maxLength parameter", () => {
+          it("allows the length",
+             () => assert.isFalse(type.disallows("AAAA", { maxLength: 2 })));
+
+          it("allows less than the length",
+             () => assert.isFalse(type.disallows("AA", { maxLength: 2 })));
+
+          it("disallows more than the length", () => {
+            const ret = type.disallows("AAAAAA", { maxLength: 2 });
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(),
                          "length of value should be less than " +
@@ -2206,36 +2037,31 @@ describe("datatypes", function () {
     });
 
 
-    describe("duration", function () {
+    describe("duration", () => {
       const type = lib.types.duration;
-      describe("equal", function () {
-        it("returns true for two equal values", function () {
-          assert.isTrue(type.equal("P3Y",
-                                   type.parseValue("P3Y")));
-        });
+      describe("equal", () => {
+        it("returns true for two equal values",
+           () => assert.isTrue(type.equal("P3Y", type.parseValue("P3Y"))));
 
-        it("returns false for two unequal values", function () {
-          assert.isFalse(type.equal("P3Y",
-                                    type.parseValue("P2Y")));
-        });
+        it("returns false for two unequal values",
+           () => assert.isFalse(type.equal("P3Y", type.parseValue("P2Y"))));
       });
 
-      describe("parseParams", function () {
-        it("all supported", function () {
+      describe("parseParams", () => {
+        it("all supported", () => {
           assert.deepEqual(
             type.parseParams(undefined, [
               { name: "pattern", value: "abc" },
             ]),
             {
-              "pattern": { rng: "abc",
-                          internal: new RegExp("^abc$") },
+              pattern: { rng: "abc", internal: new RegExp("^abc$") },
             });
         });
       });
 
-      describe("disallows", function () {
-        describe("without parameters", function () {
-          it("allows 'P2Y3M1DT12H3M23.123S'", function () {
+      describe("disallows", () => {
+        describe("without parameters", () => {
+          it("allows 'P2Y3M1DT12H3M23.123S'", () => {
             assert.isFalse(type.disallows("P2Y3M1DT12H3M23.123S"));
           });
         });

@@ -5,7 +5,6 @@
  */
 
 /* global it, describe */
-"use strict";
 import "amd-loader";
 import regexp from "../build/dist/lib/salve/datatypes/regexp";
 import { assert } from "chai";
@@ -58,7 +57,7 @@ const matchingTests = [
   false, "ab[^a\\S\\dq]cd", "ab1cd",
 ];
 
-describe("XML Schema regexp", function () {
+describe("XML Schema regexp", () => {
   for (let i = 0; i < conversionTests.length; i += 2) {
     const re = conversionTests[i];
     const expected = conversionTests[i + 1];
@@ -67,7 +66,7 @@ describe("XML Schema regexp", function () {
     });
   }
 
-  for(let i = 0; i < matchingTests.length; i += 3) {
+  for (let i = 0; i < matchingTests.length; i += 3) {
     const matches = matchingTests[i];
     const re = matchingTests[i + 1];
     const text = matchingTests[i + 2];
@@ -77,7 +76,7 @@ describe("XML Schema regexp", function () {
       });
     }
     else {
-      it(`'${re}' does not match '${text}'`, () =>  {
+      it(`'${re}' does not match '${text}'`, () => {
         assert.isFalse(new RegExp(regexp.parse(re)).test(text));
       });
     }

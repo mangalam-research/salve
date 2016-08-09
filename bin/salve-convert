@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-
+/* eslint-env node */
 "use strict";
+
+/* eslint-disable no-console, no-use-before-define */
 
 require("amd-loader");
 var temp = require("temp");
@@ -22,7 +24,7 @@ Fatal.prototype = new Error();
 Fatal.prototype.constructor = Fatal;
 
 var terminating = false;
-process.on("uncaughtException", function (ex) {
+process.on("uncaughtException", function uncaughtException(ex) {
   // We don't want to handle exceptions that happen while we're terminating.
   if (terminating) {
     return;
@@ -46,64 +48,77 @@ process.on("uncaughtException", function (ex) {
 //
 
 var salve = require("../");
-var patterns = require("../lib/salve/patterns");
-var oop = require("../lib/salve/oop");
 var conversion = require("../lib/salve/conversion");
 var datatypes = require("../lib/salve/datatypes");
-var Element = conversion.Element;
 var spawn = require("child_process").spawn;
 var fs = require("fs");
 var ArgumentParser = require("argparse").ArgumentParser;
 
 var parser = new ArgumentParser({
   addHelp: true,
-  description: "Converts a simplified RNG file to a JavaScript file "+
-    "that salve can use."});
+  description: "Converts a simplified RNG file to a JavaScript file " +
+    "that salve can use.",
+});
 
 parser.addArgument(["--version"], {
   action: "version",
   version: salve.version,
-  help: "Shows version number and exit."
+  help: "Shows version number and exit.",
 });
+
 parser.addArgument(["--no-optimize-ids"], {
   help: "Do NOT optimize the identifiers used by references and definitions.",
-  action: "storeTrue"
+  action: "storeTrue",
 });
+
 parser.addArgument(["--include-paths"], {
   help: "Include RNG node path information in the JavaScript file.",
-  action: "storeTrue"
+  action: "storeTrue",
 });
+
 parser.addArgument(["--format-version"], {
   help: "Version number of the JavaScript format that the tool must produce.",
   type: Number,
-  defaultValue: 3
+  defaultValue: 3,
 });
+
 parser.addArgument(["--simplify-only"], {
   help: "Stop converting at the simplification stage.",
-  action: "storeTrue"
+  action: "storeTrue",
 });
+
 parser.addArgument(["--simplified-input"], {
   help: "The input is as simplified RNG.",
-  action: "storeTrue"
+  action: "storeTrue",
 });
+
 parser.addArgument(["--keep-temp"], {
   help: "Keep the temporary files around. Useful for diagnosis.",
-  action: "storeTrue"
+  action: "storeTrue",
 });
+
 parser.addArgument(["-v", "--verbose"], {
   help: "Run verbosely.",
-  action: "storeTrue"
+  action: "storeTrue",
 });
+
 parser.addArgument(["--timing"], {
   help: "Output timing information. Implies --verbose.",
-  action: "storeTrue"
+  action: "storeTrue",
 });
+
 parser.addArgument(["--verbose-format"], {
-  help: "Outputs a verbose version of the data, with actual class names instead of numbers. Implies --no-optimize-ids. This format is cannot be read by salve. It is meant for debugging purposes only.",
-  action: "storeTrue"
+  help: "Outputs a verbose version of the data, with actual class names " +
+    "instead of numbers. Implies --no-optimize-ids. This format is cannot " +
+    "be read by salve. It is meant for debugging purposes only.",
+  action: "storeTrue",
 });
+
 parser.addArgument(["--allow-incomplete-types"], {
-  help: "Without this flag, the conversion process will stop upon encountering types that are not fully supported. Using this flag will allow the conversion to happen. Use --allow-incomplete-types=quiet to suppress all warnings about this."
+  help: "Without this flag, the conversion process will stop upon " +
+    "encountering types that are not fully supported. Using this flag will " +
+    "allow the conversion to happen. Use --allow-incomplete-types=quiet to" +
+    " suppress all warnings about this.",
 });
 
 
@@ -125,6 +140,7 @@ if (args.format_version < 3) {
 }
 
 var tempDir;
+var startTime;
 if (args.simplified_input) {
   convert(args.input_path);
 }
@@ -132,7 +148,7 @@ else {
   if (args.verbose) {
     console.log("Validating RNG...");
     if (args.timing) {
-      var startTime = new Date();
+      startTime = new Date();
     }
   }
 
@@ -145,14 +161,14 @@ else {
   // get jing to output only schema errors, hence what we have here.
 
   var child = spawn("jing", [args.input_path, "/dev/null"],
-                    {stdio: ["ignore", "pipe", "ignore"]});
+                    { stdio: ["ignore", "pipe", "ignore"] });
 
   var err = "";
-  child.stdout.on("data", function (data) {
+  child.stdout.on("data", function stdout(data) {
     err += data;
   });
 
-  child.on("close", function (status) {
+  child.on("close", function close(_status) {
     // Remove everything that has to do with /dev/null to avoid confusing
     // the user.
     err = err.replace(/\/dev\/null(.|[\r\n])*/, "");
@@ -191,41 +207,41 @@ function simplify() {
   var libPath = path.resolve(__dirname, path.join("..", "lib", "salve",
                                                    "rng-simplification"));
   var steps = fs.readdirSync(libPath);
-  var step_re = /^rng-simplification_step(\d*?).xsl$/;
-  steps = steps.filter(function (file) {
-    return file.match(step_re);
+  var stepRe = /^rng-simplification_step(\d*?).xsl$/;
+  steps = steps.filter(function filter(file) {
+    return file.match(stepRe);
   });
 
   // The filter step above ensures the regexp match.
-  steps.sort(function (a, b) {
-    return parseInt(a.match(step_re)[1]) -
-      parseInt(b.match(step_re)[1]);
+  steps.sort(function cmp(a, b) {
+    return parseInt(a.match(stepRe)[1]) -
+      parseInt(b.match(stepRe)[1]);
   });
 
-  steps = steps.map(function (file) {
+  steps = steps.map(function map(file) {
     var ret = { name: file, path: path.join(libPath, file) };
     if (file === "rng-simplification_step1.xsl") {
       ret.repeatWhen = function repeatWhen(outPath) {
         // We want to check whether we need to run the
         // step again to include more files.
-        var parser = new IncludeParser(sax.parser(true, {xmlns: true}));
+        var incParser = new IncludeParser(sax.parser(true, { xmlns: true }));
         var data = fs.readFileSync(outPath).toString();
         try {
-          parser.sax_parser.write(data).close();
+          incParser.saxParser.write(data).close();
         }
         catch (ex) {
           if (!(ex instanceof Found)) {
             throw ex;
           }
         }
-        return parser.found;
+        return incParser.found;
       };
       ret.repeat_no = 0;
     }
     return ret;
   });
 
-  tempDir = temp.mkdirSync({prefix: "salve-convert"});
+  tempDir = temp.mkdirSync({ prefix: "salve-convert" });
 
   if (args.keep_temp) {
     temp.track(false);
@@ -243,7 +259,7 @@ function simplify() {
  */
 function executeStep(steps, stepNo, inPath, after) {
   if (stepNo >= steps.length) {
-    return after(inPath);
+    after(inPath);
   }
 
   var step = steps[stepNo];
@@ -251,13 +267,13 @@ function executeStep(steps, stepNo, inPath, after) {
         (step.repeatWhen ? ("." + (step.repeat_no + 1)) : "") +
         ".rng";
   var outPath = path.join(tempDir, outBase);
-  var child = spawn("xsltproc", ["-o", outPath, "--stringparam",
-                                 "originalDir",
-                                 path.resolve(path.dirname(args.input_path))
-                                 + "/",
-                                 step.path, inPath],
-                    {stdio: "inherit"});
-  child.on("exit", function (status) {
+  var xsltproc = spawn("xsltproc", ["-o", outPath, "--stringparam",
+                                    "originalDir",
+                                    path.resolve(path.dirname(args.input_path))
+                                    + "/",
+                                    step.path, inPath],
+                       { stdio: "inherit" });
+  xsltproc.on("exit", function exit(status) {
     if (status) {
       throw new Fatal("xsltproc terminated with status: " + status);
     }
@@ -270,14 +286,13 @@ function executeStep(steps, stepNo, inPath, after) {
     if (step.repeatWhen) {
       if (step.repeatWhen(outPath)) {
         step.repeat_no++;
-        return executeStep(steps, stepNo, outPath, after);
+        executeStep(steps, stepNo, outPath, after);
       }
     }
 
-    return executeStep(steps, stepNo + 1, outPath, after);
+    executeStep(steps, stepNo + 1, outPath, after);
   });
 }
-
 
 /**
  * Meant to be used as the <code>after</code> call back for
@@ -293,23 +308,24 @@ function convert(simplifiedPath) {
   }
 
   if (args.simplify_only) {
-    var child = spawn("xmllint",
-                      ["--format", "--output", args.output_path,
-                       simplifiedPath],
-                      {stdio: "inherit"});
-    child.on("exit", process.exit.bind(undefined, 0));
+    var xmllint = spawn("xmllint",
+                        ["--format", "--output", args.output_path,
+                         simplifiedPath],
+                      { stdio: "inherit" });
+    xmllint.on("exit", process.exit.bind(undefined, 0));
     return;
   }
 
+  var convStartTime;
   if (args.verbose) {
     console.log("Transforming RNG to JavaScript...");
     if (args.timing) {
-      var convStartTime = new Date();
+      convStartTime = new Date();
     }
   }
 
-  var parser = new conversion.ConversionParser(sax.parser(true,
-                                                          {xmlns: true}));
+  var convParser = new conversion.ConversionParser(sax.parser(true,
+                                                              { xmlns: true }));
   var walker;
   switch (args.format_version) {
   case 3:
@@ -319,46 +335,45 @@ function convert(simplifiedPath) {
   default:
     throw new Error("unknown version: " + args.format_version);
   }
-  parser.sax_parser.write(
+  convParser.saxParser.write(
     fs.readFileSync(simplifiedPath).toString()).close();
 
   if (args.no_optimize_ids) {
-    walker.walk(parser.stack[0].children[0]);
+    walker.walk(convParser.stack[0].children[0]);
     fs.writeFileSync(args.output_path, walker.output.join(""));
   }
   else {
     if (args.format_version === 3) {
       // Gather names
       var g = new conversion.NameGatherer();
-      g.walk(parser.stack[0].children[0]);
+      g.walk(convParser.stack[0].children[0]);
       var names = g.names;
 
       // Now assign new names with shorter new names being
       // assigned to those original names that are most
       // frequent.
-      var sorted = Object.keys(names).map(function (key) {
-        return {key: key, freq: names[key]};
+      var sorted = Object.keys(names).map(function map(key) {
+        return { key: key, freq: names[key] };
       });
-      sorted.sort(function (a, b) {
+      sorted.sort(function cmp(a, b) {
         // Yes, we want to sort in reverse order of frequency
         return b.freq - a.freq;
       });
       var id = 1;
       var newNames = {};
-      sorted.forEach(function (elem) {
+      sorted.forEach(function each(elem) {
         newNames[elem.key] = id++;
       });
 
       // Perform the renaming.
       var renamer = new conversion.Renamer(newNames);
-      renamer.walk(parser.stack[0].children[0]);
+      renamer.walk(convParser.stack[0].children[0]);
 
       var typeChecker = new conversion.DatatypeProcessor();
       try {
-        typeChecker.walk(parser.stack[0].children[0]);
+        typeChecker.walk(convParser.stack[0].children[0]);
       }
       catch (ex) {
-        debugger;
         if (ex instanceof datatypes.ValueValidationError) {
           throw new Fatal(ex.message);
         }
@@ -372,13 +387,15 @@ function convert(simplifiedPath) {
 
       if (typeChecker.warnings.length &&
           args.allow_incomplete_types !== "quiet") {
-        process.stderr.write(prog + ": WARNING: the following incomplete types are used in the schema: ");
+        process.stderr.write(
+          prog + ": WARNING: the following incomplete types are " +
+            "used in the schema: ");
         process.stderr.write(
           Object.keys(typeChecker.incomplete_types_used).join(", "));
         process.stderr.write("\n");
         process.stderr.write(prog + ": details follow\n");
 
-        typeChecker.warnings.forEach(function (x) {
+        typeChecker.warnings.forEach(function each(x) {
           process.stderr.write(prog + ": " + x + "\n");
         });
         if (!args.allow_incomplete_types) {
@@ -391,7 +408,7 @@ function convert(simplifiedPath) {
         }
       }
 
-      walker.walk(parser.stack[0].children[0]);
+      walker.walk(convParser.stack[0].children[0]);
       fs.writeFileSync(args.output_path, walker.output.join(""));
     }
     else {
@@ -416,17 +433,17 @@ function Found() {
 }
 Found.prototype = new Error();
 
-function Parser(sax_parser) {
-  this.sax_parser = sax_parser;
+function Parser(saxParser) {
+  this.saxParser = saxParser;
   for (var name in this) {
     if (name.lastIndexOf("on", 0) === 0) {
-      this.sax_parser[name] = this[name].bind(this);
+      this.saxParser[name] = this[name].bind(this);
     }
   }
 }
 
-function IncludeParser(sax_parser) {
-  Parser.call(this, sax_parser);
+function IncludeParser(saxParser) {
+  Parser.call(this, saxParser);
   this.found = false;
 }
 

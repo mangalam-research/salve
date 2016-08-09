@@ -1,3 +1,4 @@
+/* eslint-env node */
 "use strict";
 require("amd-loader");
 var parse = require("../lib/salve/parse");

@@ -4,14 +4,13 @@
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
 
-/* global it, describe */
-"use strict";
+/* global it, describe, afterEach */
 import "amd-loader";
 import { assert } from "chai";
 import { spawn } from "child_process";
 import fs from "fs";
 
-describe("salve-convert", function () {
+describe("salve-convert", function convert() {
   this.timeout(0);
   const outpath = ".tmp_rng_to_js_test";
 
@@ -38,13 +37,13 @@ describe("salve-convert", function () {
       });
     }
 
-    child.on("exit", (code, signal) => {
+    child.on("exit", (code) => {
       assert.equal(code, expStatus, "salve-convert exit status");
       if (!expStatus && exp) {
         // The actual output from diff would not be that useful here.
         spawn("diff", [outpath, exp], { stdio: "ignore" })
-          .on("exit", (code, signal) => {
-            assert.equal(code, 0, "there was a difference");
+          .on("exit", (diffCode) => {
+            assert.equal(diffCode, 0, "there was a difference");
             done();
           });
       }
@@ -80,7 +79,7 @@ describe("salve-convert", function () {
     }
   }
 
-  it("allows not optimizing ids", function (done) {
+  it("allows not optimizing ids", (done) => {
     const inpath = "test/tei/simplified.rng";
     const expath = "test/tei/simplified-rng-not-optimized.js";
 
@@ -89,7 +88,7 @@ describe("salve-convert", function () {
                                    "--no-optimize-ids"], done);
   });
 
-  it("optimizes ids", function (done) {
+  it("optimizes ids", (done) => {
     const inpath = "test/tei/simplified.rng";
     const expath = "test/tei/simplified-rng.js";
 
@@ -98,17 +97,15 @@ describe("salve-convert", function () {
                                   ], done);
   });
 
-  it("default execution", function (done) {
+  it("default execution", (done) => {
     const inpath = "test/tei/myTEI.rng";
     const expath = "test/tei/simplified-rng.js";
 
     salveConvert(inpath, expath, ["--allow-incomplete-types=quiet"], done);
   });
 
-  it("include paths", function (done) {
+  it("include paths", (done) => {
     const inpath = "test/tei/myTEI.rng";
-    const expath = "test/tei/simplified-rng.js";
-
     // Test created to deal with an internal error, so we don't
     // check the output.
     salveConvert(inpath, null, ["--allow-incomplete-types=quiet",
