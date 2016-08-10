@@ -260,6 +260,7 @@ function simplify() {
 function executeStep(steps, stepNo, inPath, after) {
   if (stepNo >= steps.length) {
     after(inPath);
+    return;
   }
 
   var step = steps[stepNo];
@@ -279,14 +280,14 @@ function executeStep(steps, stepNo, inPath, after) {
     }
 
     if (!fs.existsSync(outPath)) {
-      throw new Fatal("xsltproc step " + stepNo +
-                      " failed to create output");
+      throw new Fatal("xsltproc step " + stepNo + " failed to create output");
     }
 
     if (step.repeatWhen) {
       if (step.repeatWhen(outPath)) {
         step.repeat_no++;
         executeStep(steps, stepNo, outPath, after);
+        return;
       }
     }
 
