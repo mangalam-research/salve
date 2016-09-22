@@ -6,10 +6,10 @@
 
 /* global it, describe, before */
 import "amd-loader";
-import datatypes from "../build/dist/lib/salve/datatypes";
-import nameResolver from "../build/dist/lib/salve/name_resolver";
 import { assert } from "chai";
 import _ from "lodash";
+import datatypes from "../build/dist/lib/salve/datatypes";
+import nameResolver from "../build/dist/lib/salve/name_resolver";
 
 const decimalProgram = {
   equal: {

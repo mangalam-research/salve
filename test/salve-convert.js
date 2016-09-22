@@ -32,7 +32,7 @@ describe("salve-convert", function convert() {
 
     const stderr = [];
     if (expStatus) {
-      child.stderr.on("data", data => {
+      child.stderr.on("data", (data) => {
         stderr.push(data);
       });
     }

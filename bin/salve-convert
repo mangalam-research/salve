@@ -8,6 +8,7 @@ require("amd-loader");
 var temp = require("temp");
 var sax = require("sax");
 var path = require("path");
+
 temp.track();
 
 var prog = path.basename(process.argv[1]);

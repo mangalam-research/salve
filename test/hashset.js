@@ -26,7 +26,7 @@ describe("HashSet", () => {
     it("forEach", () => {
       const hs = new hashstructs.HashSet(id, [1, 2, 3]);
       const t = {};
-      hs.forEach(x => {
+      hs.forEach((x) => {
         t[x] = x;
       });
       for (let x = 1; x <= 3; ++x) {
@@ -69,7 +69,7 @@ describe("HashSet", () => {
     it("forEach", () => {
       const hs = new hashstructs.HashSet(id, init);
       const t = {};
-      hs.forEach(x => {
+      hs.forEach((x) => {
         t[x] = x;
       });
       for (const q of init) {
@@ -111,10 +111,10 @@ describe("HashSet", () => {
   class Test {
     constructor(name) {
       this.name = name;
-      this.id = this.createID();
+      this.id = Test.createID();
     }
 
-    createID() {
+    static createID() {
       return nextId++;
     }
 
@@ -132,7 +132,7 @@ describe("HashSet", () => {
     it("creation", () => {
       const hs = new hashstructs.HashSet(ahHash, init);
       const t = {};
-      hs.forEach(x => {
+      hs.forEach((x) => {
         t[x.name] = x.name;
       });
       for (const q of init) {
@@ -144,7 +144,7 @@ describe("HashSet", () => {
     it("forEach", () => {
       const hs = new hashstructs.HashSet(ahHash, init);
       const t = {};
-      hs.forEach(x => {
+      hs.forEach((x) => {
         t[x.name] = x.name;
       });
       for (const q of init) {
@@ -155,7 +155,7 @@ describe("HashSet", () => {
 
     it("adding", () => {
       const hs = new hashstructs.HashSet(ahHash, init);
-      init.forEach(x => {
+      init.forEach((x) => {
         hs.add(x);
       });
       assert.equal(hs.size(), 3);
@@ -193,10 +193,10 @@ describe("HashMap", () => {
   class Test {
     constructor(name) {
       this.name = name;
-      this.id = this.createID();
+      this.id = Test.createID();
     }
 
-    createID() {
+    static createID() {
       return nextId++;
     }
 

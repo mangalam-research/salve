@@ -6,8 +6,8 @@
 
 /* global it, describe */
 import "amd-loader";
-import regexp from "../build/dist/lib/salve/datatypes/regexp";
 import { assert } from "chai";
+import regexp from "../build/dist/lib/salve/datatypes/regexp";
 
 const conversionTests = [
   "", "^$",

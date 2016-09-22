@@ -9,9 +9,9 @@
 import "amd-loader";
 import { assert } from "chai";
 import { spawn } from "child_process";
-import salveParse from "../build/dist/lib/salve/parse";
 import fs from "fs";
 import path from "path";
+import salveParse from "../build/dist/lib/salve/parse";
 
 function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();
@@ -70,7 +70,7 @@ function Test(test) {
 
 const tests = testDirs.filter(
   x => fs.statSync(path.join(spectestDir, x)).isDirectory())
-        .map(x => {
+        .map((x) => {
           const ret = new Test(x);
           // test384 uses double
           if (x === "test384") {
@@ -82,7 +82,7 @@ const tests = testDirs.filter(
 function salveConvert(args, callback) {
   const child = spawn("build/dist/bin/salve-convert", args);
 
-  child.on("exit", (code) => callback(code));
+  child.on("exit", code => callback(code));
 }
 
 function parse(rng, xml, mute, callback) {
@@ -102,13 +102,13 @@ describe("spectest", function spectest() {
   for (const t of tests) {
     const skip = skips[t.test] || {};
     if (!skip.incorrect && t.incorrect) {
-      it(t.incorrect, done => {
+      it(t.incorrect, (done) => {
         salveConvert(t.convert_args.concat([t.incorrect, outpath]),
-                      code => {
-                        assert.isFalse(code === 0, "salve-convert exit status");
-                        clean();
-                        done();
-                      });
+                     (code) => {
+                       assert.isFalse(code === 0, "salve-convert exit status");
+                       clean();
+                       done();
+                     });
       });
     }
 
@@ -118,20 +118,20 @@ describe("spectest", function spectest() {
 
       if (doValid || doInvalid) {
         describe("valid and invalid cases", () => {
-          before(done => {
+          before((done) => {
             salveConvert(t.convert_args.concat([t.correct,
                                                  outpath]),
-                          code => {
-                            assert.equal(code, 0,
-                                         "salve-convert exit status while " +
-                                         `converting ${t.correct}`);
-                            done();
-                          });
+                         (code) => {
+                           assert.equal(code, 0,
+                                        "salve-convert exit status while " +
+                                        `converting ${t.correct}`);
+                           done();
+                         });
           });
 
           for (const vfile of t.valid) {
-            it(vfile, done => {
-              parse(outpath, vfile, false, code => {
+            it(vfile, (done) => {
+              parse(outpath, vfile, false, (code) => {
                 assert.equal(code, 0, "parse exit status");
                 done();
               });
@@ -139,8 +139,8 @@ describe("spectest", function spectest() {
           }
 
           for (const vfile of t.invalid) {
-            it(vfile, done => {
-              parse(outpath, vfile, true, code => {
+            it(vfile, (done) => {
+              parse(outpath, vfile, true, (code) => {
                 assert.equal(code, 1, "parse exit status");
                 done();
               });

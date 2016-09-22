@@ -6,12 +6,13 @@
 
 /* global it, describe, before */
 import "amd-loader";
-import validate from "../build/dist/lib/salve/validate";
-import namePatterns from "../build/dist/lib/salve/name_patterns";
 import fs from "fs";
 import path from "path";
 import { assert } from "chai";
 import sax from "sax";
+import validate from "../build/dist/lib/salve/validate";
+import namePatterns from "../build/dist/lib/salve/name_patterns";
+
 const test = validate.__test();
 
 function fileAsString(p) {
@@ -205,6 +206,7 @@ function makeValidTest(dir) {
     ce.compare(`end returned ${walker.end()}`, "*final*");
 
     // Roll back; >> gives us an integer
+    // eslint-disable-next-line no-bitwise
     const startAt = (er.recorded_states.length / 2) >> 0;
     walker = er.recorded_states[startAt][0];
     ce.exp_ix = er.recorded_states[startAt][1];

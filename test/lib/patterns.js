@@ -1,7 +1,7 @@
 /* global it, describe */
+import { assert } from "chai";
 import { Event } from "../../build/dist/lib/salve/patterns";
 import namePatterns from "../../build/dist/lib/salve/name_patterns";
-import { assert } from "chai";
 
 describe("Event objects are cached", () => {
   it("simple case", () => {
