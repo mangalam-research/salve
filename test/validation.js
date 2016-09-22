@@ -58,7 +58,7 @@ function makeParser(er, walker) {
         (local === "" && name === "xmlns") ||
           // xmlns:...=...
           (prefix === "xmlns")) {
-        continue;
+        continue; // eslint-disable-line no-continue
       }
       if (prefix !== "") {
         uri = walker.resolveName(`${prefix}:${local}`, true).ns;

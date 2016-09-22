@@ -62,7 +62,7 @@ describe("salve-convert", function convert() {
 
   for (const t of tests) {
     if (t.slice(-4) !== ".rng") {
-      continue;
+      continue; // eslint-disable-line no-continue
     }
 
     if (t.lastIndexOf("fails", 0) === -1) {
