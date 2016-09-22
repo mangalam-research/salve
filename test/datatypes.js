@@ -1207,11 +1207,11 @@ function testProgram(name, lib, program, disallows) {
 
       const programDisallows = program.disallows;
       for (const i in programDisallows) {
-        if (i === "NONE" || !programDisallows.hasOwnProperty(i)) {
-          continue;
+        // eslint-disable-next-line no-prototype-builtins
+        if (!(i === "NONE" || !programDisallows.hasOwnProperty(i))) {
+          describe(`with a ${i} parameter`,
+                   makeParameterTest(i, programDisallows[i]));
         }
-        describe(`with a ${i} parameter`,
-                 makeParameterTest(i, programDisallows[i]));
       }
     });
   });
