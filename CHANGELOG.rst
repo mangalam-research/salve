@@ -15,6 +15,12 @@ issue reported on github.
   - Use the jsdoc ``inferModule`` plugin to avoid having to specify ``@module``
     manually. Removed ``@module`` from all files.
 
+  - Removed the years from the copyright notices. It was a pain to update and
+    did not get updated consistently. Search the git history if you really care
+    about years. (Copyright law does not require that the copyright notice
+    include a year. A notice is not even required for copyright to apply. The
+    notice is more a courtesy than anything else.)
+
 * 2.0.0:
 
   - Upgraded to lodash 4. Salve won't work with an earlier version of
