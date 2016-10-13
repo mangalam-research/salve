@@ -5,6 +5,8 @@ issue reported on github.
 
 * 3.0.0:
 
+  - We no longer test on or support versions of Node less than version 4.
+
   - The code has been run through eslint, which has revealed a few bugs that
     have been fixed.
 
