@@ -12,6 +12,9 @@ issue reported on github.
 
     + ``conversion/parser``: ``Parser`` has a ``saxParser`` property.
 
+  - Use the jsdoc ``inferModule`` plugin to avoid having to specify ``@module``
+    manually. Removed ``@module`` from all files.
+
 * 2.0.0:
 
   - Upgraded to lodash 4. Salve won't work with an earlier version of
