@@ -4,6 +4,7 @@ import fs_ from "fs";
 import childProcess_ from "child_process";
 
 import gulp from "gulp";
+import gutil from "gulp-util";
 import newer from "gulp-newer";
 import rename from "gulp-rename";
 import jison from "gulp-jison";
@@ -15,6 +16,7 @@ import reduce from "stream-reduce";
 import es from "event-stream";
 import { ArgumentParser } from "argparse";
 import eslint from "gulp-eslint";
+import versync from "versync";
 
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
@@ -244,9 +246,12 @@ gulp.task("gh-pages-build", ["jsdoc"], () => {
         .pipe(gulp.dest(dest));
 });
 
-gulp.task("semver",
-          () => execFileAsync("./node_modules/semver-sync/bin/semver-sync",
-                              ["-v"]));
+gulp.task("versync",
+          () => versync.run({
+            verify: true,
+            onMessage: gutil.log,
+          }));
+
 //
 // Ideally we'd be using gulp-mocha but there are issues with running
 // Mocha as part of the same process which runs gulp. So we don't.
@@ -280,6 +285,6 @@ gulp.task("mocha", ["default"], (callback) => {
   });
 });
 
-gulp.task("test", ["default", "semver", "mocha"]);
+gulp.task("test", ["default", "versync", "mocha"]);
 
 gulp.task("clean", () => del(["build", "gh-pages-build"]));
