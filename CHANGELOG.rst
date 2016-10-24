@@ -5,6 +5,15 @@ issue reported on github.
 
 * 3.0.0:
 
+  - Upgrade to XRegExp version 3. This can be a breaking change for libraries
+    using salve. For instance, it was a breaking change for wed because it as
+    using the version of XRegExp bundled with salve, and this version exports
+    itself differently from version 2.
+
+  - XRegExp is a peer dependency rather than a regular dependency. This is a
+    breaking change, as libraries that depend on salve need to list XRegExp as a
+    dependency of their own to get it installed.
+
   - We no longer test on or support versions of Node less than version 4.
 
   - The code has been run through eslint, which has revealed a few bugs that

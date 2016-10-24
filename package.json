@@ -42,8 +42,7 @@
     "babel-preset-react": "^6.5.0",
     "lodash": ">=4 <5",
     "sax": "~1.2.1",
-    "temp": "~0.8.0",
-    "xregexp": "^3.0.0"
+    "temp": "~0.8.0"
   },
   "devDependencies": {
     "babel-core": "^6.9.1",
@@ -72,7 +71,11 @@
     "mocha": ">=2 <3",
     "stream-reduce": ">=1.0.3 <2",
     "touch": ">=1.0.0 <2",
-    "versync": "^3.1.0"
+    "versync": "^3.1.0",
+    "xregexp": "^3.0.0"
+  },
+  "peerDependencies": {
+    "xregexp": "^3.0.0"
   },
   "bin": {
     "salve-convert": "./bin/salve-convert"
