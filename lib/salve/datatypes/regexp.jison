@@ -150,7 +150,7 @@ var xml_Letter = xmlcharacters.xml_Letter;
 
 // Maintain a group state.
 var group_state = [];
-var needs_xregexp = false;
+var needs_xregexp_re = /\\p/i;
 
 function unshift_group_state(negative) {
      group_state.unshift({negative: negative,
@@ -201,7 +201,7 @@ start
         case "string":
             return $1;
         case "re":
-            var constructor = (needs_xregexp ? XRegExp : RegExp);
+            var constructor = (needs_xregexp_re.test($1) ? XRegExp : RegExp);
             return new constructor($1);
         default:
             throw new Error("unsupported output type: " + output_type);
@@ -355,13 +355,5 @@ charClassEsc
             $$ = multi_char_escapes[$1]
     }
     | CATESC
-    {
-        needs_xregexp = true;
-        $$ = $1;
-    }
     | COMPLESC
-    {
-        needs_xregexp = true;
-        $$ = $1;
-    }
     ;

@@ -8,37 +8,39 @@
 import "amd-loader";
 import { assert } from "chai";
 import regexp from "../build/dist/lib/salve/datatypes/regexp";
+import XRegExp from "xregexp";
 
 const conversionTests = [
-  "", "^$",
-  "abc", "^abc$",
-  "abc|def", "^abc|def$",
-  "abc+", "^abc+$",
-  "abc?", "^abc?$",
-  "abc*", "^abc*$",
-  "ab{1}", "^ab{1}$",
-  "ab{1,2}", "^ab{1,2}$",
-  "ab{1,}", "^ab{1,}$",
-  "ab(123)cd", "^ab(?:123)cd$",
-  "ab.", "^ab.$",
-  "ab\\scd", "^ab[ \\t\\n\\r]cd$",
-  "abcd\\p{Lm}ef", "^abcd\\p{Lm}ef$",
-  "ab[A-Z]cd", "^ab[A-Z]cd$",
+  "", "^$", RegExp,
+  "abc", "^abc$", RegExp,
+  "abc|def", "^abc|def$", RegExp,
+  "abc+", "^abc+$", RegExp,
+  "abc?", "^abc?$", RegExp,
+  "abc*", "^abc*$", RegExp,
+  "ab{1}", "^ab{1}$", RegExp,
+  "ab{1,2}", "^ab{1,2}$", RegExp,
+  "ab{1,}", "^ab{1,}$", RegExp,
+  "ab(123)cd", "^ab(?:123)cd$", RegExp,
+  "ab.", "^ab.$", RegExp,
+  "ab\\scd", "^ab[ \\t\\n\\r]cd$", RegExp,
+  "abcd\\p{Lm}ef", "^abcd\\p{Lm}ef$", XRegExp,
+  "ab[A-Z]cd", "^ab[A-Z]cd$", RegExp,
   // Multiple char escape with other characters in char class.
   // Positive multi-char escape in positive character class.
-  "ab[a\\sq]cd", "^ab[a \\t\\n\\rq]cd$",
+  "ab[a\\sq]cd", "^ab[a \\t\\n\\rq]cd$", RegExp,
   // Negative multi-char escape in positive character class.
-  "ab[a\\S\\Dq]cd", "^ab(?:[^ \\t\\n\\r]|[^\\p{Nd}]|[aq])cd$",
+  "ab[a\\S\\Dq]cd", "^ab(?:[^ \\t\\n\\r]|[^\\p{Nd}]|[aq])cd$", XRegExp,
   // Positive multi-char escape in negative character class.
-  "ab[^a\\s\\dq]cd", "^ab[^a \\t\\n\\r\\p{Nd}q]cd$",
+  "ab[^a\\s\\dq]cd", "^ab[^a \\t\\n\\r\\p{Nd}q]cd$", XRegExp,
   // Negative multi-char escape in negative character class.
-  "ab[^a\\Sq]cd", "^ab(?:(?=[ \\t\\n\\r])[^aq])cd$",
-  "ab[^a\\S\\Dq]cd", "^ab(?:(?=[ \\t\\n\\r\\p{Nd}])[^aq])cd$",
+  "ab[^a\\Sq]cd", "^ab(?:(?=[ \\t\\n\\r])[^aq])cd$", RegExp,
+  "ab[^a\\S\\Dq]cd", "^ab(?:(?=[ \\t\\n\\r\\p{Nd}])[^aq])cd$", XRegExp,
   // Subtractions,
-  "ab[abcd-[bc]]cd", "^ab(?:(?![bc])[abcd])cd$",
-  "ab[abcd-[bc-[c]]]cd", "^ab(?:(?!(?:(?![c])[bc]))[abcd])cd$",
+  "ab[abcd-[bc]]cd", "^ab(?:(?![bc])[abcd])cd$", RegExp,
+  "ab[abcd-[bc-[c]]]cd", "^ab(?:(?!(?:(?![c])[bc]))[abcd])cd$", RegExp,
   "(\\p{L}|\\p{N}|\\p{P}|\\p{S})+", "^(?:\\p{L}|\\p{N}|\\p{P}|\\p{S})+$",
-  "ab[a-d-[bc-[c]]]cd", "^ab(?:(?!(?:(?![c])[bc]))[a-d])cd$",
+  XRegExp,
+  "ab[a-d-[bc-[c]]]cd", "^ab(?:(?!(?:(?![c])[bc]))[a-d])cd$", RegExp,
 ];
 
 const matchingTests = [
@@ -58,11 +60,13 @@ const matchingTests = [
 ];
 
 describe("XML Schema regexp", () => {
-  for (let i = 0; i < conversionTests.length; i += 2) {
+  for (let i = 0; i < conversionTests.length; i += 3) {
     const re = conversionTests[i];
     const expected = conversionTests[i + 1];
+    const constructor = conversionTests[i + 2];
     it(`'${re}' becomes '${expected}'`, () => {
       assert.equal(regexp.parse(re, "string"), expected);
+      assert.instanceOf(regexp.parse(re), constructor);
     });
   }
 

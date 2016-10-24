@@ -5,6 +5,12 @@ issue reported on github.
 
 * 3.0.0:
 
+  - Bug fix: salve converts XML Schema regular expressions to expressions that
+    can be used in JavaScript. Depending on what the original expression does,
+    the conversion may require the use of XRegExp. Salve sometimes failed to
+    identify cases where XRegExp was needed rather than native RegExp
+    objects. This has been fixed.
+
   - Upgrade to XRegExp version 3. This can be a breaking change for libraries
     using salve. For instance, it was a breaking change for wed because it as
     using the version of XRegExp bundled with salve, and this version exports
