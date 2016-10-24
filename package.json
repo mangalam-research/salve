@@ -68,7 +68,7 @@
     "gulp-util": "^3.0.7",
     "inferModule-jsdoc-plugin": "^1",
     "jison": "~0.4.16",
-    "jsdoc": "3.4.0",
+    "jsdoc": "^3.4",
     "mocha": ">=2 <3",
     "stream-reduce": ">=1.0.3 <2",
     "touch": ">=1.0.0 <2",
