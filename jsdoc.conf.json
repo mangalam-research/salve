@@ -2,8 +2,7 @@
   "templates": {
     "cleverLinks": true
   },
-  "plugins": ["plugins/markdown"],
-  "plugins": ["node_modules/inferModule-jsdoc-plugin/inferModule"],
+  "plugins": ["plugins/markdown", "node_modules/inferModule-jsdoc-plugin/inferModule"],
   "inferModule": {
     "schema": [
       { "from": "^lib/salve/(.*)$", "to": "$1" }
