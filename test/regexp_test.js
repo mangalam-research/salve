@@ -3,12 +3,11 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-
 /* global it, describe */
 import "amd-loader";
 import { assert } from "chai";
-import regexp from "../build/dist/lib/salve/datatypes/regexp";
 import XRegExp from "xregexp";
+import regexp from "../build/dist/lib/salve/datatypes/regexp";
 
 const conversionTests = [
   "", "^$", RegExp,
