@@ -205,6 +205,11 @@ gulp.task("jsdoc", ["check-jsdoc-version"], (callback) => {
       return acc;
     }, []))
     .on("data", (files) => {
+      if (files.length === 0) {
+        callback();
+        return;
+      }
+
       let args = ["-c", "jsdoc.conf.json"];
       if (options.jsdoc_private) {
         args.push("-p");
