@@ -27,7 +27,9 @@ issue reported on github.
 
   - Some of the API has changed to conform to a camel case naming convension:
 
-    + ``conversion/parser``: ``Parser`` has a ``saxParser`` property.
+    + ``module:conversion/parser.Parser#saxParser`` property.
+    + ``module:patterns.Grammar#elementsDefinitions`` property.
+
 
   - Use the jsdoc ``inferModule`` plugin to avoid having to specify ``@module``
     manually. Removed ``@module`` from all files.

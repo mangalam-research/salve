@@ -1220,7 +1220,7 @@ function testProgram(name, lib, program, disallows) {
 function testString(name, lib, disallowsNoparams, disallowsParams) {
   const type = lib.types[name];
   describe(name, () => {
-    before(() => assert.isFalse(type.needs_context));
+    before(() => assert.isFalse(type.needsContext));
 
     describe("equal", () => {
       it("returns true for two equal values", () =>
@@ -1339,7 +1339,7 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
 
       describe("with a pattern parameter", () => {
         // Extract the pattern processor from the type.
-        const pattern = type.param_name_to_obj.pattern;
+        const pattern = type.paramNameToObj.pattern;
         it("allows the pattern", () =>
            assert.isFalse(
              type.disallows("foo", { pattern: pattern.convert("[fb].*") })));

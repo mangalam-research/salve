@@ -56,6 +56,8 @@ const matchingTests = [
   true, "ab[a\\S\\Dq]cd", "abwcd",
   true, "ab[a\\S\\Dq]cd", "ab1cd", // 1 is fine because it matches \\S
   false, "ab[^a\\S\\dq]cd", "ab1cd",
+  true, "[\\i]", "a",
+  true, "[\\c]", "a",
 ];
 
 describe("XML Schema regexp", () => {

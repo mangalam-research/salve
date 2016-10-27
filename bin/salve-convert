@@ -393,7 +393,7 @@ function convert(simplifiedPath) {
           prog + ": WARNING: the following incomplete types are " +
             "used in the schema: ");
         process.stderr.write(
-          Object.keys(typeChecker.incomplete_types_used).join(", "));
+          Object.keys(typeChecker.incompleteTypesUsed).join(", "));
         process.stderr.write("\n");
         process.stderr.write(prog + ": details follow\n");
 
