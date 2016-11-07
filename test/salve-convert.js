@@ -83,18 +83,20 @@ describe("salve-convert", function convert() {
     const inpath = "test/tei/simplified.rng";
     const expath = "test/tei/simplified-rng-not-optimized.js";
 
-    salveConvert(inpath, expath, ["--simplified-input",
-                                   "--allow-incomplete-types=quiet",
-                                   "--no-optimize-ids"], done);
+    salveConvert(inpath, expath, [
+      "--simplified-input",
+      "--allow-incomplete-types=quiet",
+      "--no-optimize-ids",
+    ], done);
   });
 
   it("optimizes ids", (done) => {
     const inpath = "test/tei/simplified.rng";
     const expath = "test/tei/simplified-rng.js";
 
-    salveConvert(inpath, expath, ["--simplified-input",
-                                   "--allow-incomplete-types=quiet",
-                                  ], done);
+    salveConvert(inpath, expath,
+                 ["--simplified-input", "--allow-incomplete-types=quiet"],
+                 done);
   });
 
   it("default execution", (done) => {
@@ -108,7 +110,8 @@ describe("salve-convert", function convert() {
     const inpath = "test/tei/myTEI.rng";
     // Test created to deal with an internal error, so we don't
     // check the output.
-    salveConvert(inpath, null, ["--allow-incomplete-types=quiet",
-                                 "--include-paths"], done);
+    salveConvert(inpath, null,
+                 ["--allow-incomplete-types=quiet", "--include-paths"],
+                 done);
   });
 });

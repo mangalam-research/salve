@@ -119,8 +119,7 @@ describe("spectest", function spectest() {
       if (doValid || doInvalid) {
         describe("valid and invalid cases", () => {
           before((done) => {
-            salveConvert(t.convert_args.concat([t.correct,
-                                                 outpath]),
+            salveConvert(t.convert_args.concat([t.correct, outpath]),
                          (code) => {
                            assert.equal(code, 0,
                                         "salve-convert exit status while " +

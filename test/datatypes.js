@@ -18,16 +18,11 @@ const decimalProgram = {
     [
       // title, first value, second value
       ["for two identical values", "1.23", "1.23"],
-      ["for two equal values, represented differently (1)",
-       "1.23", " 01.230"],
-      ["for two equal values, represented differently (2)",
-       "1.23", " +01.230"],
-      ["for two equal values, represented differently (3)",
-       "-1.23", " -01.230"],
-      ["for two equal values, represented differently (4)",
-       "-.23", " -00.230"],
-      ["for two equal values, represented differently (5)",
-       "+12", " +12."],
+      ["for two equal values, represented differently (1)", "1.23", " 01.230"],
+      ["for two equal values, represented differently (2)", "1.23", " +01.230"],
+      ["for two equal values, represented differently (3)", "-1.23", " -01.230"],
+      ["for two equal values, represented differently (4)", "-.23", " -00.230"],
+      ["for two equal values, represented differently (5)", "+12", " +12."],
     ],
     // Tests that return false.
     false: [
@@ -72,8 +67,11 @@ const decimalProgram = {
         ["the pattern", "12", "[12]+"],
       ],
       true: [
-        ["disallows what does not match the pattern", "3",
-         "[12]+", ["value does not match the pattern [12]+"]],
+        [
+          "disallows what does not match the pattern", "3",
+          "[12]+",
+          ["value does not match the pattern [12]+"],
+        ],
       ],
     },
     totalDigits: {
@@ -97,11 +95,17 @@ const decimalProgram = {
         ["what is within spec (2)", "  +124.003456000  ", "6"],
       ],
       true: [
-        ["too many fraction digits (1)", "   -011.1234567000   ",
-         "6", ["value must have at most 6 fraction digits"],
+        [
+          "too many fraction digits (1)",
+          "   -011.1234567000   ",
+          "6",
+          ["value must have at most 6 fraction digits"],
         ],
-        ["too many faction digits (2)", "   +001.123456700   ",
-         "6", ["value must have at most 6 fraction digits"],
+        [
+          "too many faction digits (2)",
+          "   +001.123456700   ",
+          "6",
+          ["value must have at most 6 fraction digits"],
         ],
       ],
     },
@@ -110,8 +114,11 @@ const decimalProgram = {
         ["what is within spec", "  +1.234  ", "01.23400"],
       ],
       true: [
-        ["a value greater than maxInclusive", "   +1.2340001   ",
-         "01.23400", ["value must be less than or equal to 1.234"],
+        [
+          "a value greater than maxInclusive",
+          "   +1.2340001   ",
+          "01.23400",
+          ["value must be less than or equal to 1.234"],
         ],
       ],
     },
@@ -120,9 +127,11 @@ const decimalProgram = {
         ["what is within spec", "  +1.234  ", "01.23400"],
       ],
       true: [
-        ["a value lower than minInclusive",
-         "   +1.2339999   ", "01.23400",
-         ["value must be greater than or equal to 1.234"],
+        [
+          "a value lower than minInclusive",
+          "   +1.2339999   ",
+          "01.23400",
+          ["value must be greater than or equal to 1.234"],
         ],
       ],
     },
@@ -154,10 +163,8 @@ const integerProgram = {
     true:
     [
       ["for two identical values", "10", "10"],
-      ["for two equal values, represented differently (1)",
-       "123", " 0123"],
-      ["for two equal values, represented differently (2)",
-       "+123", " 0123 "],
+      ["for two equal values, represented differently (1)", "123", " 0123"],
+      ["for two equal values, represented differently (2)", "+123", " 0123 "],
     ],
     false: [
       ["for two unequal values", "1", "2"],
@@ -220,8 +227,11 @@ const integerProgram = {
         ["what is within spec", "  +1  ", "01"],
       ],
       true: [
-        ["a value greater than maxInclusive", "   +2   ",
-         "01", ["value must be less than or equal to 1"],
+        [
+          "a value greater than maxInclusive",
+          "   +2   ",
+          "01",
+          ["value must be less than or equal to 1"],
         ],
       ],
     },
@@ -264,8 +274,7 @@ const nonPositiveIntegerProgram = {
     true:
     [
       ["for two identical values", "-10", "-10"],
-      ["for two equal values, represented differently",
-       "-123", " -0123"],
+      ["for two equal values, represented differently", "-123", " -0123"],
     ],
     false: [
       ["for two unequal values", "-1", "-2"],
@@ -334,8 +343,11 @@ const nonPositiveIntegerProgram = {
         ["what is within spec", "  -1  ", "-1"],
       ],
       true: [
-        ["a value greater than maxInclusive", "   -9   ",
-         "-10", ["value must be less than or equal to -10"],
+        [
+          "a value greater than maxInclusive",
+          "   -9   ",
+          "-10",
+          ["value must be less than or equal to -10"],
         ],
       ],
     },
@@ -397,8 +409,7 @@ const nonNegativeIntegerProgram = {
     true:
     [
       ["for two identical values", "10", "10"],
-      ["for two equal values, represented differently",
-       "123", " 0123"],
+      ["for two equal values, represented differently", "123", " 0123"],
     ],
     false: [
       ["for two unequal values", "1", "2"],
@@ -467,8 +478,11 @@ const nonNegativeIntegerProgram = {
         ["what is within spec", "  1  ", "1"],
       ],
       true: [
-        ["a value greater than maxInclusive", "   11   ",
-         "10", ["value must be less than or equal to 10"],
+        [
+          "a value greater than maxInclusive",
+          "   11   ",
+          "10",
+          ["value must be less than or equal to 10"],
         ],
       ],
     },
@@ -514,14 +528,9 @@ positiveIntegerProgram.disallows.NONE = {
     ["what is within spec", "+001234"],
   ],
   true: [
-    ["a value with a fraction part", "1.2",
-     ["value is not a positiveInteger"],
-    ],
-    ["a negative value", "-1.2",
-     ["value is not a positiveInteger"],
-    ],
-    ["zero", "0", ["value must be greater than or equal to 1"],
-    ],
+    ["a value with a fraction part", "1.2", ["value is not a positiveInteger"]],
+    ["a negative value", "-1.2", ["value is not a positiveInteger"]],
+    ["zero", "0", ["value must be greater than or equal to 1"]],
   ],
 };
 
@@ -533,9 +542,7 @@ longProgram.disallows.NONE = {
     ["what is within spec", " 1234"],
   ],
   true: [
-    ["a value with a fraction part", "1.2",
-     ["value is not a long"],
-    ],
+    ["a value with a fraction part", "1.2", ["value is not a long"]],
   ],
 };
 
@@ -546,9 +553,7 @@ intProgram.disallows.NONE = {
     ["what is within spec", " 1234"],
   ],
   true: [
-    ["a value with a fraction part", "1.2",
-     ["value is not an int"],
-    ],
+    ["a value with a fraction part", "1.2", ["value is not an int"]],
     ["too high a value", "999999999999999",
      ["value must be less than or equal to 2147483647"],
     ],
@@ -565,9 +570,7 @@ shortProgram.disallows.NONE = {
     ["what is within spec", " 1234"],
   ],
   true: [
-    ["a value with a fraction part", "1.2",
-     ["value is not a short"],
-    ],
+    ["a value with a fraction part", "1.2", ["value is not a short"]],
     ["too high a value", "999999999999999",
      ["value must be less than or equal to 32767"],
     ],
@@ -584,9 +587,7 @@ byteProgram.disallows.NONE = {
     ["what is within spec", " 123"],
   ],
   true: [
-    ["a value with a fraction part", "1.2",
-     ["value is not a byte"],
-    ],
+    ["a value with a fraction part", "1.2", ["value is not a byte"]],
     ["too high a value", "999999999999999",
      ["value must be less than or equal to 127"],
     ],
@@ -604,9 +605,7 @@ unsignedLongProgram.disallows.NONE = {
     ["what is within spec", " 1234"],
   ],
   true: [
-    ["a value with a fraction part", "1.2",
-     ["value is not an unsignedLong"],
-    ],
+    ["a value with a fraction part", "1.2", ["value is not an unsignedLong"]],
   ],
 };
 
@@ -617,9 +616,7 @@ unsignedIntProgram.disallows.NONE = {
     ["what is within spec", " 1234"],
   ],
   true: [
-    ["a value with a fraction part", "1.2",
-     ["value is not an unsignedInt"],
-    ],
+    ["a value with a fraction part", "1.2", ["value is not an unsignedInt"]],
     ["value to high", "4294967296",
      ["value must be less than or equal to 4294967295"],
     ],
@@ -633,9 +630,7 @@ unsignedShortProgram.disallows.NONE = {
     ["what is within spec", " 1234"],
   ],
   true: [
-    ["a value with a fraction part", "1.2",
-     ["value is not an unsignedShort"],
-    ],
+    ["a value with a fraction part", "1.2", ["value is not an unsignedShort"]],
     ["value to high", "4294967296",
      ["value must be less than or equal to 65535"],
     ],
@@ -650,9 +645,7 @@ unsignedByteProgram.disallows.NONE = {
     ["what is within spec", " 123"],
   ],
   true: [
-    ["a value with a fraction part", "1.2",
-     ["value is not an unsignedByte"],
-    ],
+    ["a value with a fraction part", "1.2", ["value is not an unsignedByte"]],
     ["value to high", "4294967296",
      ["value must be less than or equal to 255"],
     ],
@@ -696,9 +689,7 @@ floatProgram.disallows.NONE = {
     ["number NaN", "NaN"],
   ],
   true: [
-    ["random stuff", "ABC",
-     ["not a valid float"],
-    ],
+    ["random stuff", "ABC", ["not a valid float"]],
   ],
 };
 delete floatProgram.disallows.totalDigits;
@@ -708,21 +699,24 @@ const doubleProgram = _.clone(floatProgram);
 doubleProgram.disallows = _.clone(doubleProgram.disallows);
 doubleProgram.disallows.NONE = _.clone(doubleProgram.disallows.NONE);
 doubleProgram.disallows.NONE.true = [
-  ["random stuff", "ABC",
-   ["not a valid double"],
-  ],
+  ["random stuff", "ABC", ["not a valid double"]],
 ];
 
 const dateTimeProgram = {
   equal: {
     true: [
-      ["for two equal values",
-       "1901-01-01T10:10:10.111-01:30",
-       "1901-01-01T10:10:10.111-01:30"],
+      [
+        "for two equal values",
+        "1901-01-01T10:10:10.111-01:30",
+        "1901-01-01T10:10:10.111-01:30",
+      ],
     ],
     false: [
-      ["for two unequal values", "1901-01-01T10:10:10.111-01:30",
-       "1901-01-01T10:10:10.111-01:31"],
+      [
+        "for two unequal values",
+        "1901-01-01T10:10:10.111-01:30",
+        "1901-01-01T10:10:10.111-01:31",
+      ],
     ],
   },
   parseParams: [
@@ -731,23 +725,21 @@ const dateTimeProgram = {
         { name: "pattern", value: "abc" },
       ],
       {
-        pattern: { rng: "abc",
-                   internal: new RegExp("^abc$") },
+        pattern: { rng: "abc", internal: new RegExp("^abc$") },
       },
     ],
   ],
   disallows: {
     NONE: {
       false: [
-        ["'1901-01-01T10:10:10.111-01:30'",
-         "1901-01-01T10:10:10.111-01:30"],
-        ["'11901-01-01T10:10:10.111-01:30'",
-         "11901-01-01T10:10:10.111-01:30"],
+        ["'1901-01-01T10:10:10.111-01:30'", "1901-01-01T10:10:10.111-01:30"],
+        ["'11901-01-01T10:10:10.111-01:30'", "11901-01-01T10:10:10.111-01:30"],
       ],
       true: [
-        ["'1901-01-01T99:10:10.111-01:30'",
-         "1901-01-01T99:10:10.111-01:30",
-         ["not a valid dateTime"],
+        [
+          "'1901-01-01T99:10:10.111-01:30'",
+          "1901-01-01T99:10:10.111-01:30",
+          ["not a valid dateTime"],
         ],
       ],
     },
@@ -757,12 +749,10 @@ const dateTimeProgram = {
 const timeProgram = {
   equal: {
     true: [
-      ["for two equal values", "10:10:10.111-01:30",
-       "10:10:10.111-01:30"],
+      ["for two equal values", "10:10:10.111-01:30", "10:10:10.111-01:30"],
     ],
     false: [
-      ["for two unequal values",
-       "10:10:10.111-01:30", "10:10:10.111-01:31"],
+      ["for two unequal values", "10:10:10.111-01:30", "10:10:10.111-01:31"],
     ],
   },
   parseParams: [
@@ -776,8 +766,7 @@ const timeProgram = {
         ["'10:10:10.111-01:30'", "10:10:10.111-01:30"],
       ],
       true: [
-        ["'99:10:10.111-01:30'", "99:10:10.111-01:30",
-         ["not a valid time"]],
+        ["'99:10:10.111-01:30'", "99:10:10.111-01:30", ["not a valid time"]],
       ],
     },
   },
@@ -789,8 +778,7 @@ const dateProgram = {
       ["for two equal values", "1901-01-01-01:30", "1901-01-01-01:30"],
     ],
     false: [
-      ["for two unequal values", "1901-01-02-01:30",
-       "1901-01-01-01:31"],
+      ["for two unequal values", "1901-01-02-01:30", "1901-01-01-01:31"],
     ],
   },
   parseParams: [
@@ -808,9 +796,7 @@ const dateProgram = {
         ["'1901-01-01-01:30'", "1901-01-01-01:30"],
       ],
       true: [
-        ["'1901-99-01-01:30'", "1901-99-01-01:30",
-         ["not a valid date"],
-        ],
+        ["'1901-99-01-01:30'", "1901-99-01-01:30", ["not a valid date"]],
       ],
     },
   },
@@ -822,8 +808,7 @@ const gYearMonthProgram = {
       ["for two equal values", "1901-01-01:30", "1901-01-01:30"],
     ],
     false: [
-      ["for two unequal values", "1901-01-01:30",
-       "1901-02-01:31"],
+      ["for two unequal values", "1901-01-01:30", "1901-02-01:31"],
     ],
   },
   parseParams: [
@@ -841,9 +826,7 @@ const gYearMonthProgram = {
         ["'1901-01'", "1901-01"],
       ],
       true: [
-        ["'1901-99-01:30'", "1901-99-01:30",
-         ["not a valid gYearMonth"],
-        ],
+        ["'1901-99-01:30'", "1901-99-01:30", ["not a valid gYearMonth"]],
       ],
     },
   },
@@ -855,8 +838,7 @@ const gYearProgram = {
       ["for two equal values", "1901-01:30", "1901-01:30"],
     ],
     false: [
-      ["for two unequal values", "1901-01:30",
-       "1901-01:31"],
+      ["for two unequal values", "1901-01:30", "1901-01:31"],
     ],
   },
   parseParams: [
@@ -874,9 +856,7 @@ const gYearProgram = {
         ["'1901'", "1901"],
       ],
       true: [
-        ["'01901'", "01901",
-         ["not a valid gYear"],
-        ],
+        ["'01901'", "01901", ["not a valid gYear"]],
       ],
     },
   },
@@ -888,8 +868,7 @@ const gMonthDayProgram = {
       ["for two equal values", "01-01-01:30", "01-01-01:30"],
     ],
     false: [
-      ["for two unequal values", "01-02-01:30",
-       "01-02-01:31"],
+      ["for two unequal values", "01-02-01:30", "01-02-01:31"],
     ],
   },
   parseParams: [
@@ -907,9 +886,7 @@ const gMonthDayProgram = {
         ["'12-31'", "12-31"],
       ],
       true: [
-        ["'02-30'", "02-30",
-         ["not a valid gMonthDay"],
-        ],
+        ["'02-30'", "02-30", ["not a valid gMonthDay"]],
       ],
     },
   },
@@ -921,8 +898,7 @@ const gDayProgram = {
       ["for two equal values", "31-01:30", "31-01:30"],
     ],
     false: [
-      ["for two unequal values", "31-01:30",
-       "02-01:31"],
+      ["for two unequal values", "31-01:30", "02-01:31"],
     ],
   },
   parseParams: [
@@ -940,9 +916,7 @@ const gDayProgram = {
         ["'01'", "01"],
       ],
       true: [
-        ["'32'", "32",
-         ["not a valid gDay"],
-        ],
+        ["'32'", "32", ["not a valid gDay"]],
       ],
     },
   },
@@ -954,8 +928,7 @@ const gMonthProgram = {
       ["for two equal values", "01-01:30", "01-01:30"],
     ],
     false: [
-      ["for two unequal values", "01-01:30",
-       "01-01:31"],
+      ["for two unequal values", "01-01:30", "01-01:31"],
     ],
   },
   parseParams: [
@@ -973,9 +946,7 @@ const gMonthProgram = {
         ["'12'", "12"],
       ],
       true: [
-        ["'13'", "13",
-         ["not a valid gMonth"],
-        ],
+        ["'13'", "13", ["not a valid gMonth"]],
       ],
     },
   },
@@ -987,8 +958,7 @@ const anyURIProgram = {
       ["for two equal values", "a:b", "a:b"],
     ],
     false: [
-      ["for two unequal values", "a:f",
-       "a:b"],
+      ["for two unequal values", "a:f", "a:b"],
     ],
   },
   parseParams: [
@@ -1023,9 +993,7 @@ const anyURIProgram = {
         ["relative URI", "aaa"],
       ],
       true: [
-        [":", ":",
-         ["not a valid anyURI"],
-        ],
+        [":", ":", ["not a valid anyURI"]],
       ],
     },
   },
@@ -1051,10 +1019,8 @@ const QNameProgram = {
       ["for two equal values (2)", "foo", "z:foo"],
     ],
     false: [
-      ["for equal URIs, unequal local names", "a:f",
-       "aaa:b"],
-      ["for unequal URIs", "a:f",
-       "z:b"],
+      ["for equal URIs, unequal local names", "a:f", "aaa:b"],
+      ["for unequal URIs", "a:f", "z:b"],
     ],
   },
   parseParams: [
@@ -1091,19 +1057,10 @@ const QNameProgram = {
         ["carriage returns", "foo\r"],
       ],
       true: [
-        ["spaces", "foo zh",
-         ["not a valid QName"],
-        ],
-        ["curly braces", "{foo} zh",
-         ["not a valid QName"],
-        ],
-        ["colons appearing twice", "foo:zh:zh",
-         ["not a valid QName"],
-        ],
-        ["unresovable names", "foo:zh",
-         ["cannot resolve the name foo:zh"],
-        ],
-
+        ["spaces", "foo zh", ["not a valid QName"]],
+        ["curly braces", "{foo} zh", ["not a valid QName"]],
+        ["colons appearing twice", "foo:zh:zh", ["not a valid QName"]],
+        ["unresovable names", "foo:zh", ["cannot resolve the name foo:zh"]],
       ],
     },
   },
@@ -1113,18 +1070,10 @@ const NOTATIONProgram = _.clone(QNameProgram);
 NOTATIONProgram.disallows = _.clone(NOTATIONProgram.disallows);
 NOTATIONProgram.disallows.NONE = _.clone(NOTATIONProgram.disallows.NONE);
 NOTATIONProgram.disallows.NONE.true = [
-  ["spaces", "foo zh",
-   ["not a valid NOTATION"],
-  ],
-  ["curly braces", "{foo} zh",
-   ["not a valid NOTATION"],
-  ],
-  ["colons appearing twice", "foo:zh:zh",
-   ["not a valid NOTATION"],
-  ],
-  ["unresovable names", "foo:zh",
-   ["cannot resolve the name foo:zh"],
-  ],
+  ["spaces", "foo zh", ["not a valid NOTATION"]],
+  ["curly braces", "{foo} zh", ["not a valid NOTATION"]],
+  ["colons appearing twice", "foo:zh:zh", ["not a valid NOTATION"]],
+  ["unresovable names", "foo:zh", ["cannot resolve the name foo:zh"]],
 ];
 
 function testProgram(name, lib, program, disallows) {
@@ -1784,9 +1733,7 @@ describe("datatypes", () => {
       describe("parseParams", () => {
         it("all, except minLength and maxLength", () => {
           assert.deepEqual(
-            type.parseParams(undefined, [
-              { name: "pattern", value: "abc" },
-            ]),
+            type.parseParams(undefined, [{ name: "pattern", value: "abc" }]),
             {
               pattern: { rng: "abc", internal: new RegExp("^abc$") },
             });

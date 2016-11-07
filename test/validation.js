@@ -119,8 +119,7 @@ class EventRecorder {
 
     // For the clone check
     if (!this.dont_record_state) {
-      this.recorded_states.push([walker.clone(),
-                                 this.ce.exp_ix, evIx]);
+      this.recorded_states.push([walker.clone(), this.ce.exp_ix, evIx]);
     }
 
     const nev = new validate.Event(evParams);
@@ -586,10 +585,8 @@ describe("error objects", () => {
   makeErrorTest("ElementNameError");
 
   it("ChoiceError", () => {
-    const namesA = [new validate.EName("a", "b"),
-                     new validate.EName("c", "d")];
-    const namesB = [new validate.EName("e", "f"),
-                     new validate.EName("g", "h")];
+    const namesA = [new validate.EName("a", "b"), new validate.EName("c", "d")];
+    const namesB = [new validate.EName("e", "f"), new validate.EName("g", "h")];
     const err = new validate.ChoiceError(namesA, namesB);
     assert.equal(err.toString(),
                  "must choose either {a}b, {c}d or {e}f, {g}h");
@@ -609,8 +606,7 @@ describe("Grammar", () => {
       const tree = validate.constructTree(source);
       assert.sameMembers(
         tree.getNamespaces(),
-        ["http://www.tei-c.org/ns/1.0",
-         "http://www.w3.org/XML/1998/namespace"]);
+        ["http://www.tei-c.org/ns/1.0", "http://www.w3.org/XML/1998/namespace"]);
     });
 
     it("returns an empty namespace when there are no namespaces",
@@ -729,18 +725,20 @@ describe("Name pattern", () => {
 
       const x = new namePatterns.NameChoice(
         "",
-        [new namePatterns.AnyName(
-          "",
-          new namePatterns.Name("", "c", "d")),
-         b]);
+        [
+          new namePatterns.AnyName("", new namePatterns.Name("", "c", "d")),
+          b,
+        ]);
       // This is false because our AnyName explicitly excludes {c}d.
       assert.isFalse(x.wildcardMatch("c", "d"));
       assert.isTrue(x.wildcardMatch("a", "b"));
     });
 
     it("converts to an object", () => {
-      assert.deepEqual(simple.toObject(), { a: { ns: "a", name: "b" },
-                                           b: { ns: "c", name: "d" } });
+      assert.deepEqual(simple.toObject(), {
+        a: { ns: "a", name: "b" },
+        b: { ns: "c", name: "d" },
+      });
     });
 
     it("holds multiple namespaces", () => {
