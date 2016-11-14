@@ -131,18 +131,29 @@ gulp.task("jison", () => {
   const dest = "build/dist/lib/salve/datatypes";
   return gulp.src("lib/salve/datatypes/regexp.jison")
     .pipe(newer(`${dest}/regexp.js`))
-    .pipe(jison({ moduleType: "amd" }))
-    .pipe(replace(/^\s*define\(\[\], function\s*\(\s*\)\s*\{/m,
-                  "define(function (require) {"))
+    .pipe(jison({ moduleType: "commonjs" }))
     .pipe(gulp.dest(dest));
 });
 
 gulp.task("default", ["copy-src", "copy-readme", "jison"], () =>
           fs.writeFileAsync("build/dist/.npmignore", "bin/parse.js"));
 
+
+gulp.task("webpack", ["default"], (callback) => {
+  webpack(webpackConfig, (err, stats) => {
+    if (err) {
+      throw new gutil.PluginError("webpack", err);
+    }
+
+    gutil.log("[webpack]", stats.toString({ colors: true }));
+
+    callback();
+  });
+});
+
 let packname;
 
-gulp.task("install_test", ["default"], Promise.coroutine(function* install() {
+gulp.task("install_test", ["default"], Promise.coroutine(function *install() {
   const testDir = "build/install_dir";
   yield del(testDir);
   const _packname = yield execFileAsync("npm", ["pack", "dist"],
