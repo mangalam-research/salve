@@ -9,10 +9,9 @@ import fs from "fs";
 import path from "path";
 import { assert } from "chai";
 import sax from "sax";
-import validate from "../build/dist/lib/salve/validate";
-import namePatterns from "../build/dist/lib/salve/name_patterns";
+import salve from "../build/dist/salve";
 
-const test = validate.__test();
+const test = salve.__test();
 
 function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();
@@ -121,7 +120,7 @@ class EventRecorder {
       this.recorded_states.push([walker.clone(), this.ce.exp_ix, evIx]);
     }
 
-    const nev = new validate.Event(evParams);
+    const nev = new salve.Event(evParams);
     if (this.check_fireEvent_invocation) {
       this.ce.compare(
         `\ninvoking fireEvent with ${nev.toString().trim()}`, nev);
@@ -137,7 +136,7 @@ class EventRecorder {
           evParams[0] !== "leaveContext" &&
           evParams[0] !== "definePrefix") {
         this.ce.compare(
-          `possible events\n${validate.eventsToTreeString(possibleEvs)}`, nev);
+          `possible events\n${salve.eventsToTreeString(possibleEvs)}`, nev);
       }
     }
   }
@@ -172,10 +171,10 @@ function makeValidTest(dir) {
 
     let tree;
     try {
-      tree = validate.constructTree(source);
+      tree = salve.constructTree(source);
     }
     catch (e) {
-      if (e instanceof validate.ValidationError) {
+      if (e instanceof salve.ValidationError) {
         // eslint-disable-next-line no-console
         console.log(e.toString());
       }
@@ -195,8 +194,8 @@ function makeValidTest(dir) {
     ce.compare(`wholly context-independent ${contextIndependent}`,
                "*context-independent*");
 
-    ce.compare(`possible events\n${validate.eventsToTreeString(walker.possible())}`,
-               new validate.Event(["initial"]));
+    ce.compare(`possible events\n${salve.eventsToTreeString(walker.possible())}`,
+               new salve.Event(["initial"]));
 
     const parser = makeParser(er, walker);
     parser.write(xmlSource).close();
@@ -252,10 +251,10 @@ describe("GrammarWalker.fireEvent", () => {
 
         let tree;
         try {
-          tree = validate.constructTree(source);
+          tree = salve.constructTree(source);
         }
         catch (e) {
-          if (e instanceof validate.ValidationError) {
+          if (e instanceof salve.ValidationError) {
             // eslint-disable-next-line no-console
             console.log(e.toString());
           }
@@ -377,16 +376,13 @@ describe("GrammarWalker.fireEvent", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
-      const tree = validate.constructTree(source);
+      const tree = salve.constructTree(source);
       const walker = tree.newWalker();
-      let ret = walker.fireEvent(
-        new validate.Event("enterStartTag", "", "html"));
+      let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(
-        new validate.Event("attributeName", "", "style"));
+      ret = walker.fireEvent(new salve.Event("attributeName", "", "style"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(
-        new validate.Event("attributeName", "", "style"));
+      ret = walker.fireEvent(new salve.Event("attributeName", "", "style"));
       assert.equal(ret.length, 1);
       assert.equal(
         ret[0].toString(),
@@ -400,13 +396,11 @@ describe("GrammarWalker.fireEvent", () => {
       const source = fileAsString(
         "test/attribute-order/simplified-rng.js");
 
-      const tree = validate.constructTree(source);
+      const tree = salve.constructTree(source);
       const walker = tree.newWalker();
-      let ret = walker.fireEvent(
-        new validate.Event("enterStartTag", "", "html"));
+      let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(
-        new validate.Event("leaveStartTag", "", "html"));
+      ret = walker.fireEvent(new salve.Event("leaveStartTag", "", "html"));
       assert.isFalse(ret);
 
       const permutations = [
@@ -421,8 +415,7 @@ describe("GrammarWalker.fireEvent", () => {
               "attributeName:\n" +
               "    ";
       for (const perm of permutations) {
-        ret = walker.fireEvent(
-          new validate.Event("enterStartTag", "", "em"));
+        ret = walker.fireEvent(new salve.Event("enterStartTag", "", "em"));
         assert.isFalse(ret, "entering em");
 
         const possible = [];
@@ -431,33 +424,29 @@ describe("GrammarWalker.fireEvent", () => {
         }
         for (const attr of perm) {
           const sorted = possible.slice().sort();
-          assert.equal(
-            validate.eventsToTreeString(walker.possible()),
-            `${stub}${sorted.join("\n    ")}\n`);
+          assert.equal(salve.eventsToTreeString(walker.possible()),
+                       `${stub}${sorted.join("\n    ")}\n`);
 
-          ret = walker.fireEvent(
-            new validate.Event("attributeName", "", attr));
+          ret = walker.fireEvent(new salve.Event("attributeName", "", attr));
           assert.isFalse(ret);
 
           // We've seen it. This array is in the same order
           // as perm.
           possible.shift();
 
-          ret = walker.fireEvent(
-            new validate.Event("attributeValue", "x"));
+          ret = walker.fireEvent(new salve.Event("attributeValue", "x"));
           assert.isFalse(ret);
 
           // Seen all possible attributes.
           if (!possible.length) {
-            assert.equal(
-              validate.eventsToTreeString(walker.possible()),
-              "leaveStartTag\n");
+            assert.equal(salve.eventsToTreeString(walker.possible()),
+                         "leaveStartTag\n");
           }
         }
 
-        ret = walker.fireEvent(new validate.Event("leaveStartTag"));
+        ret = walker.fireEvent(new salve.Event("leaveStartTag"));
         assert.isFalse(ret);
-        ret = walker.fireEvent(new validate.Event("endTag", "", "em"));
+        ret = walker.fireEvent(new salve.Event("endTag", "", "em"));
         assert.isFalse(ret);
       }
     });
@@ -474,12 +463,11 @@ describe("GrammarWalker.fireEvent", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
-      const tree = validate.constructTree(source);
+      const tree = salve.constructTree(source);
       const walker = tree.newWalker();
-      let ret = walker.fireEvent(
-        new validate.Event("enterStartTag", "", "html"));
+      let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(new validate.Event("text", "q"));
+      ret = walker.fireEvent(new salve.Event("text", "q"));
       assert.equal(ret.length, 1);
       assert.equal(ret[0].toString(), "text not allowed here");
     });
@@ -488,20 +476,17 @@ describe("GrammarWalker.fireEvent", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
-      const tree = validate.constructTree(source);
+      const tree = salve.constructTree(source);
       const walker = tree.newWalker();
-      let ret = walker.fireEvent(
-        new validate.Event("enterStartTag", "", "html"));
+      let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(
-        new validate.Event("attributeName", "", "style"));
+      ret = walker.fireEvent(new salve.Event("attributeName", "", "style"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(
-        new validate.Event("attributeValue", "", "x"));
+      ret = walker.fireEvent(new salve.Event("attributeValue", "", "x"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(new validate.Event("leaveStartTag"));
+      ret = walker.fireEvent(new salve.Event("leaveStartTag"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(new validate.Event("leaveStartTag"));
+      ret = walker.fireEvent(new salve.Event("leaveStartTag"));
       assert.equal(ret.length, 1);
       assert.equal(ret[0].toString(),
                    "unexpected leaveStartTag event; " +
@@ -513,19 +498,16 @@ describe("GrammarWalker.fireEvent", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
-      const tree = validate.constructTree(source);
+      const tree = salve.constructTree(source);
       const walker = tree.newWalker();
       let ret = walker.fireEvent(
-        new validate.Event("enterStartTag", "", "html"));
+        new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(
-        new validate.Event("attributeName", "", "style"));
+      ret = walker.fireEvent(new salve.Event("attributeName", "", "style"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(
-        new validate.Event("attributeValue", "", "x"));
+      ret = walker.fireEvent(new salve.Event("attributeValue", "", "x"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(
-        new validate.Event("attributeValue", "", "x"));
+      ret = walker.fireEvent(new salve.Event("attributeValue", "", "x"));
       assert.equal(ret.length, 1);
       assert.equal(ret[0].toString(),
                    "unexpected attributeValue event; " +
@@ -537,24 +519,22 @@ describe("GrammarWalker.fireEvent", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
-      const tree = validate.constructTree(source);
+      const tree = salve.constructTree(source);
       const walker = tree.newWalker();
       let ret = walker.fireEvent(
-        new validate.Event("enterStartTag", "", "html"));
+        new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(
-        new validate.Event("attributeName", "", "style"));
+      ret = walker.fireEvent(new salve.Event("attributeName", "", "style"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(
-        new validate.Event("attributeValue", "", "x"));
+      ret = walker.fireEvent(new salve.Event("attributeValue", "", "x"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(new validate.Event("leaveStartTag"));
+      ret = walker.fireEvent(new salve.Event("leaveStartTag"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(new validate.Event("endTag", "", "html"));
+      ret = walker.fireEvent(new salve.Event("endTag", "", "html"));
       assert.equal(ret.length, 1);
       assert.equal(ret[0].toString(),
                    "tag required: {\"ns\":\"\",\"name\":\"head\"}");
-      ret = walker.fireEvent(new validate.Event("endTag", "", "html"));
+      ret = walker.fireEvent(new salve.Event("endTag", "", "html"));
       assert.equal(ret.length, 1);
       assert.equal(ret[0].toString(),
                    "unexpected end tag: {\"ns\":\"\",\"name\":\"html\"}");
@@ -564,13 +544,13 @@ describe("GrammarWalker.fireEvent", () => {
 
 describe("error objects", () => {
   function makeErrorTest(ctorName, names, fakeNames, first, second) {
-    names = names || [new validate.EName("a", "b")];
+    names = names || [new salve.EName("a", "b")];
     fakeNames = fakeNames || ["a"];
     first = first || "blah: {a}b";
     second = second || "blah: a";
 
     it(ctorName, () => {
-      const ctor = validate[ctorName];
+      const ctor = salve[ctorName];
       const err = Object.create(ctor.prototype);
       ctor.apply(err, ["blah"].concat(names));
       assert.equal(err.toString(), first);
@@ -584,9 +564,9 @@ describe("error objects", () => {
   makeErrorTest("ElementNameError");
 
   it("ChoiceError", () => {
-    const namesA = [new validate.EName("a", "b"), new validate.EName("c", "d")];
-    const namesB = [new validate.EName("e", "f"), new validate.EName("g", "h")];
-    const err = new validate.ChoiceError(namesA, namesB);
+    const namesA = [new salve.EName("a", "b"), new salve.EName("c", "d")];
+    const namesB = [new salve.EName("e", "f"), new salve.EName("g", "h")];
+    const err = new salve.ChoiceError(namesA, namesB);
     assert.equal(err.toString(),
                  "must choose either {a}b, {c}d or {e}f, {g}h");
     assert.sameMembers(err.getNames(), namesA.concat(namesB));
@@ -602,7 +582,7 @@ describe("Grammar", () => {
       // Read the RNG tree.
       const source = fileAsString("test/tei/simplified-rng.js");
 
-      const tree = validate.constructTree(source);
+      const tree = salve.constructTree(source);
       assert.sameMembers(
         tree.getNamespaces(),
         ["http://www.tei-c.org/ns/1.0", "http://www.w3.org/XML/1998/namespace"]);
@@ -613,7 +593,7 @@ describe("Grammar", () => {
          // Read the RNG tree.
          const source = fileAsString("test/simple/simplified-rng.js");
 
-         const tree = validate.constructTree(source);
+         const tree = salve.constructTree(source);
          assert.sameMembers(tree.getNamespaces(), [""]);
        });
 
@@ -622,7 +602,7 @@ describe("Grammar", () => {
          // Read the RNG tree.
          const source = fileAsString("test/names/simplified-rng.js");
 
-         const tree = validate.constructTree(source);
+         const tree = salve.constructTree(source);
          assert.sameMembers(tree.getNamespaces(), [
            "",
            "foo:foo",
@@ -646,7 +626,7 @@ describe("Name pattern", () => {
     let np;
 
     before(() => {
-      np = new namePatterns.Name("", "a", "b");
+      np = new salve.Name("", "a", "b");
     });
 
     it("is simple", () => {
@@ -687,11 +667,11 @@ describe("Name pattern", () => {
     let b;
 
     before(() => {
-      Asimple = new namePatterns.Name("", "a", "b");
-      Acomplex = new namePatterns.AnyName("");
-      b = new namePatterns.Name("", "c", "d");
-      simple = new namePatterns.NameChoice("", [Asimple, b]);
-      complex = new namePatterns.NameChoice("", [Acomplex, b]);
+      Asimple = new salve.Name("", "a", "b");
+      Acomplex = new salve.AnyName("");
+      b = new salve.Name("", "c", "d");
+      simple = new salve.NameChoice("", [Asimple, b]);
+      complex = new salve.NameChoice("", [Acomplex, b]);
     });
 
     it("is simple or complex depending on contents", () => {
@@ -722,10 +702,10 @@ describe("Name pattern", () => {
       // We get true here because anyName matches anything.
       assert.isTrue(complex.wildcardMatch("c", "d"));
 
-      const x = new namePatterns.NameChoice(
+      const x = new salve.NameChoice(
         "",
         [
-          new namePatterns.AnyName("", new namePatterns.Name("", "c", "d")),
+          new salve.AnyName("", new salve.Name("", "c", "d")),
           b,
         ]);
       // This is false because our AnyName explicitly excludes {c}d.
@@ -751,10 +731,8 @@ describe("Name pattern", () => {
     let withExcept;
 
     before(() => {
-      np = new namePatterns.NsName("", "a");
-      withExcept = new namePatterns.NsName(
-        "", "a",
-        new namePatterns.Name("", "a", "b"));
+      np = new salve.NsName("", "a");
+      withExcept = new salve.NsName("", "a", new salve.Name("", "a", "b"));
     });
 
     it("is not simple", () => {
@@ -804,10 +782,8 @@ describe("Name pattern", () => {
     let withExcept;
 
     before(() => {
-      np = new namePatterns.AnyName("");
-      withExcept = new namePatterns.AnyName(
-        "",
-        new namePatterns.Name("", "a", "b"));
+      np = new salve.AnyName("");
+      withExcept = new salve.AnyName("", new salve.Name("", "a", "b"));
     });
 
     it("is not simple", () => {
