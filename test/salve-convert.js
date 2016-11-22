@@ -5,7 +5,6 @@
  */
 
 /* global it, describe, afterEach */
-import "amd-loader";
 import { assert } from "chai";
 import { spawn } from "child_process";
 import fs from "fs";

@@ -6,7 +6,6 @@
 
 /* global it, describe, before, after */
 /* eslint-env node */
-import "amd-loader";
 import { assert } from "chai";
 import { spawn } from "child_process";
 import fs from "fs";

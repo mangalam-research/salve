@@ -4,7 +4,6 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 /* global it, describe */
-import "amd-loader";
 import { assert } from "chai";
 import XRegExp from "xregexp";
 import regexp from "../build/dist/lib/salve/datatypes/regexp";

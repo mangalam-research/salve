@@ -5,7 +5,6 @@
  */
 
 /* global it, describe */
-import "amd-loader";
 import { assert } from "chai";
 import hashstructs from "../build/dist/lib/salve/hashstructs";
 

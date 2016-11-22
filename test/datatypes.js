@@ -5,7 +5,6 @@
  */
 
 /* global it, describe, before */
-import "amd-loader";
 import { assert } from "chai";
 import _ from "lodash";
 import datatypes from "../build/dist/lib/salve/datatypes";

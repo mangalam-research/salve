@@ -5,7 +5,6 @@
  */
 
 /* global it, describe, before, beforeEach */
-import "amd-loader";
 import { assert } from "chai";
 import nameResolver from "../build/dist/lib/salve/name_resolver";
 import { EName } from "../build/dist/lib/salve/validate";

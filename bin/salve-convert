@@ -4,7 +4,6 @@
 
 /* eslint-disable no-console, no-use-before-define */
 
-require("amd-loader");
 var temp = require("temp");
 var sax = require("sax");
 var path = require("path");

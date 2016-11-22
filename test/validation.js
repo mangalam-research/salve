@@ -5,7 +5,6 @@
  */
 
 /* global it, describe, before */
-import "amd-loader";
 import fs from "fs";
 import path from "path";
 import { assert } from "chai";
