@@ -131,7 +131,15 @@ gulp.task("jison", () => {
   const dest = "build/dist/lib/salve/datatypes";
   return gulp.src("lib/salve/datatypes/regexp.jison")
     .pipe(newer(`${dest}/regexp.js`))
-    .pipe(jison({ moduleType: "commonjs" }))
+    .pipe(jison({
+      moduleType: "commonjs",
+      // Override the default main created by Jison. This module cannot ever be
+      // used as a main script. And the default that Jison uses does
+      // `require("fs")` which causes problems.
+      moduleMain: () => {
+        throw new Error("this module cannot be used as main");
+      },
+    }))
     .pipe(gulp.dest(dest));
 });
 
