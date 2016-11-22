@@ -20,6 +20,10 @@ issue reported on github.
     breaking change, as libraries that depend on salve need to list XRegExp as a
     dependency of their own to get it installed.
 
+  - Lodash is no longer a regular dependency. Removing the dependency reduced
+    the size of a build by 30%. It remains a development dependency because it
+    is used in tests.
+
   - We no longer test on or support versions of Node less than version 4.
 
   - The code has been run through eslint, which has revealed a few bugs that
