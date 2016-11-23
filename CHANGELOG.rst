@@ -5,6 +5,28 @@ issue reported on github.
 
 * 3.0.0:
 
+  - General restructuring of salve. This could consitute a breaking change
+    depending on how you've used salve in the past.
+
+    Natively, salve used to be implemented as a series of AMD modules, and then
+    you'd have to use something like the ``amd-loader`` package to load it in
+    Node.js. Also, although salve's documentation said you should use only the
+    ``validate`` module, it was possible to directly load other modules of salve
+    as needed. This was an unsupported way to use salve, but you could *easily*
+    do it. Moreover, the benefits of using AMD were minuscule. This, in great
+    part because salve is not designed to be partially loaded.
+
+    Using AMD as the native module format for the code-base created some
+    annoyances: needing one extra level of indentation due to ``define`` (or
+    having to use custom indentation code to avoid this level), poor support for
+    AMD from ``jsdoc`` (on paper it is supposed to be easy but in practice it
+    requires some workarounds to be copied in every module), the necessity of
+    using ``amd-loader`` in Node.js, etc.
+
+    So the code-base has been converted to the CommonJS format and the modules
+    are now built into a UMD file that exports only the ``validate`` module to
+    the world. See ``Deploying`` in the ``README.rst`` file for details.
+
   - Bug fix: salve converts XML Schema regular expressions to expressions that
     can be used in JavaScript. Depending on what the original expression does,
     the conversion may require the use of XRegExp. Salve sometimes failed to
@@ -15,10 +37,6 @@ issue reported on github.
     using salve. For instance, it was a breaking change for wed because it as
     using the version of XRegExp bundled with salve, and this version exports
     itself differently from version 2.
-
-  - XRegExp is a peer dependency rather than a regular dependency. This is a
-    breaking change, as libraries that depend on salve need to list XRegExp as a
-    dependency of their own to get it installed.
 
   - Lodash is no longer a regular dependency. Removing the dependency reduced
     the size of a build by 30%. It remains a development dependency because it

@@ -1,7 +1,7 @@
 {
   "name": "salve",
   "description": "Salve is a Javascript library which implements a validator able to validate an XML document on the basis of a subset of RelaxNG.",
-  "version": "2.0.0",
+  "version": "3.0.0-dev",
   "versionedSources": "lib/salve/validate.js",
   "keywords": [
     "RelaxNG",
@@ -16,7 +16,7 @@
     "Jesse Bethel <keisetsu@gmail.com>",
     "Bennett Buchanan <buchanan.3rd@gmail.com>"
   ],
-  "main": "lib/salve/validate.js",
+  "main": "salve.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/mangalam-research/salve.git"
@@ -71,9 +71,8 @@
     "stream-reduce": ">=1.0.3 <2",
     "touch": ">=1.0.0 <2",
     "versync": "^3.1.0",
-    "xregexp": "^3.0.0"
-  },
-  "peerDependencies": {
+    "webpack": "^1.13.3",
+    "webpack-load-plugins": "^0.1.2",
     "xregexp": "^3.0.0"
   },
   "bin": {

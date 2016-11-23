@@ -2,6 +2,7 @@
 import "babel-polyfill";
 import fs_ from "fs";
 import childProcess_ from "child_process";
+import path from "path";
 
 import gulp from "gulp";
 import gutil from "gulp-util";
@@ -17,6 +18,8 @@ import es from "event-stream";
 import { ArgumentParser } from "argparse";
 import eslint from "gulp-eslint";
 import versync from "versync";
+import webpack from "webpack";
+import webpackConfig from "../webpack.config";
 
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
@@ -93,25 +96,28 @@ parser.addArgument(["--rst2html"], {
 const options = parser.parseArgs(process.argv.slice(2));
 
 gulp.task("lint", () =>
-  gulp.src(["*.js",
+          gulp.src([
+            "*.js",
             "bin/**/*.js",
             "lib/**/*.js",
             "gulptasks/**/*.js",
             "test/**/*.js",
             "!test/salve-convert/**/*.js",
             "misc/**/*.js",
-            "!test/**/simplified-rng*.js"])
-      .pipe(eslint())
-      .pipe(eslint.format())
-      .pipe(eslint.failAfterError())
-);
+            "!test/**/simplified-rng*.js",
+          ])
+          .pipe(eslint())
+          .pipe(eslint.format())
+          .pipe(eslint.failAfterError()));
 
 gulp.task("copy-src", () => {
   const dest = "build/dist/";
-  return gulp.src(["package.json",
-                   "bin/*",
-                   "lib/**/*.js",
-                   "lib/**/*.xsl"], { base: "." })
+  return gulp.src([
+    "package.json",
+    "bin/*",
+    "lib/**/*.js",
+    "lib/**/*.xsl",
+  ], { base: "." })
     .pipe(newer(dest))
     .pipe(gulp.dest(dest));
 });
@@ -143,11 +149,13 @@ gulp.task("jison", () => {
     .pipe(gulp.dest(dest));
 });
 
-gulp.task("default", ["copy-src", "copy-readme", "jison"], () =>
+gulp.task("default", ["webpack"]);
+
+gulp.task("copy", ["copy-src", "copy-readme"], () =>
           fs.writeFileAsync("build/dist/.npmignore", "bin/parse.js"));
 
 
-gulp.task("webpack", ["default"], (callback) => {
+gulp.task("webpack", ["copy", "jison"], (callback) => {
   webpack(webpackConfig, (err, stats) => {
     if (err) {
       throw new gutil.PluginError("webpack", err);

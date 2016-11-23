@@ -119,13 +119,13 @@ calling it JavaScript is correct.)
 Turning to actual code, a typical usage scenario would be as follows::
 
     // Import the validation module
-    var validate = require("./lib/salve/validate");
+    var salve = require("salve");
 
     // Source should be a string which contains the entire
     // output of having simplified the original RNG and converted it to JS.
     // This would be read from [js] in the example of xsltproc invocation
     // above.
-    var tree = validate.constructTree(source);
+    var tree = salve.constructTree(source);
 
     // Get a walker on which to fire events.
     var walker = tree.newWalker();
@@ -513,27 +513,22 @@ will use your ``PATH`` to locate them.) The formatted jsdoc3 will
 appear in the `<build/api/>`_ subdirectory, and the `<README.html>`_
 in the root of the source tree.
 
-.. warning:: All the public interfaces of salve are available through
-             the ``validate`` module. However, ``validate`` is a
-             facade that exposes interfaces that are implemented in
-             separate modules like ``patterns`` and ``formats``. The
-             documentation documents interfaces where they are
-             *implemented*. So if you look for
-             ``validate.constructTree`` you will find it in
-             ``formats``. There is currently no simple way to get
-             jsdoc3 to expose these elements as being part of
-             ``validate``.
+**NOTE**: All the public interfaces of salve are available through the
+``validate`` module. However, ``validate`` is a facade that exposes interfaces
+that are implemented in separate modules like ``patterns`` and ``formats``. The
+documentation documents interfaces where they are *implemented*. So if you look
+for ``validate.constructTree`` you will find it in ``formats``.
+
+**NOTE**: The codebase for salve really has multiple level of privacy. There are
+ those parts of the API in ``validate`` that you use directly. These are fully
+ public. Then there are those parts that are used indirectly through the API in
+ ``validate``. And then there are those parts you should not use at all. The
+ latter are marked "private" and you need to use ``gulp doc --jsdoc-private`` to
+ get them to be included in the documentation.
 
 
 Dependencies
 ============
-
-Salve is packaged as a RequireJS module. So to use it in a browser
-environment, you need to first load RequireJS and pass to RequireJS a
-configuration that will allow it to find salve's code.
-
-Loading salve in a Node.js environment requires installing the modules
-listed in the ``dependencies`` section of the `<package.json>`_ file.
 
 Running ``salve-convert`` additionally requires that ``xmllint``,
 ``xsltproc`` and ``jing`` be installed on your system.
@@ -620,40 +615,18 @@ salve.
 Deploying
 =========
 
-Node
-----
+When you install salve through `npm`, you get a package that contains:
 
-Salve is ready to be used in an environment able to load AMD-style
-modules. Node.js is one such environment, provided you include a
-loader able to process AMD-style modules. When you install salve using
-``npm``, everything is already installed for you.
+* a hierarchy of CommonJS modules in `lib`,
+* a UMD build as `salve.js`,
+* a minified UMD build as `salve.min.js`.
 
-RequireJS
----------
+The UMD builds can be loaded in a CommonJS environment, in a AMD environment or
+as "plain scripts" in a browser. If you use the latter, then salve will be
+accessible as the `salve` global.
 
-RequireJS can load salve in a browser. There are two external
-libraries that salve must have available in the browser:
-
-* lodash
-* xregexp
-
-Besides setting appropriate ``paths`` values for these libraries,
-the following shim is required::
-
-    shim: {
-      xregexp: {
-        exports: "XRegExp",
-        init: function () { return {XRegExp: XRegExp}; }
-      },
-    }
-
-The seemingly superfluous ``init`` for xregexp is to make it look
-exactly the same when used with RequireJS as it does when used in
-Node.js.
-
-The shim configuration above is valid as of xregexp 2.0.0. Future
-versions of this library might need different shim configurations or
-no shim configuration at all.
+When you do `require('salve')` in Node.js, what is loaded is
+`lib/salve/validate.js`. In other words, it loads from the hierarchy of modules.
 
 Testing
 =======
