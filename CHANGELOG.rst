@@ -3,6 +3,65 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 3.0.0:
+
+  - General restructuring of salve. This could consitute a breaking change
+    depending on how you've used salve in the past.
+
+    Natively, salve used to be implemented as a series of AMD modules, and then
+    you'd have to use something like the ``amd-loader`` package to load it in
+    Node.js. Also, although salve's documentation said you should use only the
+    ``validate`` module, it was possible to directly load other modules of salve
+    as needed. This was an unsupported way to use salve, but you could *easily*
+    do it. Moreover, the benefits of using AMD were minuscule. This, in great
+    part because salve is not designed to be partially loaded.
+
+    Using AMD as the native module format for the code-base created some
+    annoyances: needing one extra level of indentation due to ``define`` (or
+    having to use custom indentation code to avoid this level), poor support for
+    AMD from ``jsdoc`` (on paper it is supposed to be easy but in practice it
+    requires some workarounds to be copied in every module), the necessity of
+    using ``amd-loader`` in Node.js, etc.
+
+    So the code-base has been converted to the CommonJS format and the modules
+    are now built into a UMD file that exports only the ``validate`` module to
+    the world. See ``Deploying`` in the ``README.rst`` file for details.
+
+  - Bug fix: salve converts XML Schema regular expressions to expressions that
+    can be used in JavaScript. Depending on what the original expression does,
+    the conversion may require the use of XRegExp. Salve sometimes failed to
+    identify cases where XRegExp was needed rather than native RegExp
+    objects. This has been fixed.
+
+  - Upgrade to XRegExp version 3. This can be a breaking change for libraries
+    using salve. For instance, it was a breaking change for wed because it as
+    using the version of XRegExp bundled with salve, and this version exports
+    itself differently from version 2.
+
+  - Lodash is no longer a regular dependency. Removing the dependency reduced
+    the size of a build by 30%. It remains a development dependency because it
+    is used in tests.
+
+  - We no longer test on or support versions of Node less than version 4.
+
+  - The code has been run through eslint, which has revealed a few bugs that
+    have been fixed.
+
+  - Some of the API has changed to conform to a camel case naming convension:
+
+    + ``module:conversion/parser.Parser#saxParser`` property.
+    + ``module:patterns.Grammar#elementsDefinitions`` property.
+
+
+  - Use the jsdoc ``inferModule`` plugin to avoid having to specify ``@module``
+    manually. Removed ``@module`` from all files.
+
+  - Removed the years from the copyright notices. It was a pain to update and
+    did not get updated consistently. Search the git history if you really care
+    about years. (Copyright law does not require that the copyright notice
+    include a year. A notice is not even required for copyright to apply. The
+    notice is more a courtesy than anything else.)
+
 * 2.0.0:
 
   - Upgraded to lodash 4. Salve won't work with an earlier version of

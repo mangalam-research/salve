@@ -1,5 +1,5 @@
 %{var xmlcharacters = require("./xmlcharacters");
-var XRegExp = require("xregexp").XRegExp;
+var XRegExp = require("xregexp");
 %}
 //
 // Terminology:
@@ -121,13 +121,13 @@ var XRegExp = require("xregexp").XRegExp;
 // We use the name ``Salve`` to help avoid potential
 // clashes. ``ParsingError`` seems too risky.
 function SalveParsingError(msg) {
-    // This is crap to work around the fact that Error is a terribly
-    // designed class or prototype or whatever. Unfortunately the
-    // stack trace contains an extra frame.
-    var err = new Error(msg);
-    this.name = "SalveParsingError";
-    this.stack = err.stack;
-    this.message = err.message;
+  // This is crap to work around the fact that Error is a terribly
+  // designed class or prototype or whatever. Unfortunately the
+  // stack trace contains an extra frame.
+  var err = new Error(msg);
+  this.name = "SalveParsingError";
+  this.stack = err.stack;
+  this.message = err.message;
 }
 
 SalveParsingError.prototype = new Error();
@@ -135,47 +135,51 @@ SalveParsingError.prototype = new Error();
 // This will serve as a replacement for the default parseError method on
 // the parser.
 function parseError(str, hash) {
-    throw new SalveParsingError(str);
+  throw new SalveParsingError(str);
 }
 
 // Export this error.
-if (typeof exports !== 'undefined')
-    exports.SalveParsingError = SalveParsingError;
-else
-    parser.SalveParsingError = SalveParsingError;
-
-
-var xml_Name_Char = xmlcharacters.xml_Name_Char;
-var xml_Letter = xmlcharacters.xml_Letter;
-
-// Maintain a group state.
-var group_state = [];
-var needs_xregexp = false;
-
-function unshift_group_state(negative) {
-     group_state.unshift({negative: negative,
-                         captured_multi_char: []
-                        });
+if (typeof exports !== 'undefined') {
+  exports.SalveParsingError = SalveParsingError;
+}
+else {
+  parser.SalveParsingError = SalveParsingError;
 }
 
-var multi_char_escapes_in_group = {
+
+var xmlNameChar = xmlcharacters.xmlNameChar;
+var xmlLetter = xmlcharacters.xmlLetter;
+
+// Maintain a group state.
+var groupState = [];
+var needsXRegExpRe = /\\p/i;
+
+function unshiftGroupState(negative) {
+  groupState.unshift({
+    negative: negative,
+    capturedMultiChar: [],
+  });
+}
+
+var multiCharEscapesInGroup = {
     "\\s": " \\t\\n\\r",
     "\\S": "^ \\t\\n\\r",
-    "\\i": "" + xml_Letter + "_:",
-    "\\I": "^" + xml_Letter + "_:",
-    "\\c": "" + xml_Name_Char,
-    "\\C": "^" + xml_Name_Char,
+    "\\i": "" + xmlLetter + "_:",
+    "\\I": "^" + xmlLetter + "_:",
+    "\\c": "" + xmlNameChar,
+    "\\C": "^" + xmlNameChar,
     "\\d": "\\p{Nd}",
     "\\D": "^\\p{Nd}",
     "\\w": "^\\p{P}\\p{Z}\\p{C}",
     "\\W": "\\p{P}\\p{Z}\\p{C}"
 };
 
-var multi_char_escapes = [];
-for(var i in multi_char_escapes_in_group) {
-    if (!multi_char_escapes_in_group.hasOwnProperty(i))
-       continue;
-    multi_char_escapes[i] = "[" + multi_char_escapes_in_group[i] + "]";
+var multiCharEscapes = [];
+for(var i in multiCharEscapesInGroup) {
+  if (!multiCharEscapesInGroup.hasOwnProperty(i)) {
+    continue;
+  }
+  multiCharEscapes[i] = "[" + multiCharEscapesInGroup[i] + "]";
 }
 
 %}
@@ -185,27 +189,27 @@ for(var i in multi_char_escapes_in_group) {
 %left '|'
 
 %start start
-%parse-param output_type
+%parse-param outputType
 
 %% /* language grammar */
 
 start
     : input
     {
-        // Overwrite the parseError method with our own. NOTE: Our own
-        // method does not allow recovering from recoverable parsing
-        // errors.
-        this.parseError = parseError;
-        output_type = output_type || "re";
-        switch(output_type) {
-        case "string":
-            return $1;
-        case "re":
-            var constructor = (needs_xregexp ? XRegExp : RegExp);
-            return new constructor($1);
-        default:
-            throw new Error("unsupported output type: " + output_type);
-        }
+      // Overwrite the parseError method with our own. NOTE: Our own
+      // method does not allow recovering from recoverable parsing
+      // errors.
+      this.parseError = parseError;
+      outputType = outputType || "re";
+      switch(outputType) {
+      case "string":
+        return $1;
+      case "re":
+        var constructor = (needsXRegExpRe.test($1) ? XRegExp : RegExp);
+        return new constructor($1);
+      default:
+        throw new Error("unsupported output type: " + outputType);
+      }
     }
     ;
 
@@ -254,37 +258,35 @@ charClass
 
 charClassExpr
     : charClassExprStart charGroup ']'
-        {
-            var state = group_state.shift();
-            var captured_multi_char =
-                    state.captured_multi_char;
+    {
+      var state = groupState.shift();
+      var capturedMultiChar = state.capturedMultiChar;
 
-            var subtraction = state.subtraction ?
-                    ("(?!" +  state.subtraction + ")") : "";
-            if (captured_multi_char.length !== 0) {
-                var out = ["(?:", subtraction];
-                if (state.negative) {
-                    out.push("(?=[");
-                    for(var i = 0; i < captured_multi_char.length; ++i)
-                        out.push(multi_char_escapes_in_group[
-                            captured_multi_char[i]].slice(1));
-                    out.push("])");
-                }
-                else {
-                    for(var i = 0; i < captured_multi_char.length; ++i)
-                        out.push("[",
-                                 multi_char_escapes_in_group[
-                                     captured_multi_char[i]],
-                                 "]|");
-                }
-                out.push($1, $2, $3, ")");
-                $$ = out.join("");
-            }
-            else
-                $$ = (subtraction !== "") ?
-                   "(?:" + subtraction + $1.concat($2, $3) + ")":
-                   $1.concat($2, $3);
+      var subtraction = state.subtraction ?
+            ("(?!" +  state.subtraction + ")") : "";
+      if (capturedMultiChar.length !== 0) {
+        var out = ["(?:", subtraction];
+        if (state.negative) {
+          out.push("(?=[");
+          for (var i = 0; i < capturedMultiChar.length; ++i) {
+            out.push(multiCharEscapesInGroup[capturedMultiChar[i]].slice(1));
+          }
+          out.push("])");
         }
+        else {
+          for (var i = 0; i < capturedMultiChar.length; ++i) {
+            out.push("[", multiCharEscapesInGroup[capturedMultiChar[i]], "]|");
+          }
+        }
+        out.push($1, $2, $3, ")");
+        $$ = out.join("");
+      }
+      else {
+        $$ = (subtraction !== "") ?
+          "(?:" + subtraction + $1.concat($2, $3) + ")":
+          $1.concat($2, $3);
+      }
+    }
     ;
 
 // We have to break it this way because Jison does not support actions
@@ -292,15 +294,15 @@ charClassExpr
 
 charClassExprStart
     : '['
-        {
-            unshift_group_state(false);
-            $$ = $1;
-        }
+    {
+      unshiftGroupState(false);
+      $$ = $1;
+    }
     | '[^'
-        {
-            unshift_group_state(true);
-            $$ = $1;
-        }
+    {
+      unshiftGroupState(true);
+      $$ = $1;
+    }
     ;
 
 charGroup
@@ -319,10 +321,10 @@ posCharGroup
 
 charClassSub
     : posCharGroups CLASSSUBTRACTION charClassExpr
-        {
-            $$ = $1;
-            group_state[0].subtraction = $3;
-        }
+    {
+      $$ = $1;
+      groupState[0].subtraction = $3;
+    }
     ;
 
 charRange
@@ -342,26 +344,20 @@ charClassEsc
     : SINGLECHARESC
     | MULTICHARESC
     {
-        if (group_state.length) {
-            var repl = multi_char_escapes_in_group[$1]
-            if (repl.charAt(0) === "^") {
-                group_state[0].captured_multi_char.push($1);
-                $$ = "";
-            }
-            else
-                $$ = repl;
+      if (groupState.length) {
+        var repl = multiCharEscapesInGroup[$1]
+        if (repl.charAt(0) === "^") {
+          groupState[0].capturedMultiChar.push($1);
+          $$ = "";
         }
-        else
-            $$ = multi_char_escapes[$1]
+        else {
+          $$ = repl;
+        }
+      }
+      else {
+        $$ = multiCharEscapes[$1]
+      }
     }
     | CATESC
-    {
-        needs_xregexp = true;
-        $$ = $1;
-    }
     | COMPLESC
-    {
-        needs_xregexp = true;
-        $$ = $1;
-    }
     ;

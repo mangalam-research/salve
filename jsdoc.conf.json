@@ -1,13 +1,22 @@
 {
-    "templates": {
-        "cleverLinks": true
-    },
-    "plugins": ["plugins/markdown"],
-    "markdown": {
-        "gfm": true,
-        "tables": true
-    },
-    "opts": {
-        "pedantic": true
-    }
+  "templates": {
+    "cleverLinks": true
+  },
+  "tags": {
+    "allowUnknownTags": false
+  },
+  "plugins": ["plugins/markdown",
+              "node_modules/inferModule-jsdoc-plugin/inferModule"],
+  "inferModule": {
+    "schema": [
+      { "from": "^lib/salve/(.*)$", "to": "$1" }
+    ]
+  },
+  "markdown": {
+    "gfm": true,
+    "tables": true
+  },
+  "opts": {
+    "pedantic": true
+  }
 }

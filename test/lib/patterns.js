@@ -1,19 +1,17 @@
-import { Event } from "../../build/dist/lib/salve/patterns";
-import name_patterns from "../../build/dist/lib/salve/name_patterns";
+/* global it, describe */
 import { assert } from "chai";
+import { Event, Name } from "../../build/dist/salve";
 
-describe("Event objects are cached", function () {
-    it("simple case", function () {
-        var a = new Event("a");
-        var a2 = new Event("a");
-        assert.equal(a, a2);
-    });
+describe("Event objects are cached", () => {
+  it("simple case", () => {
+    const a = new Event("a");
+    const a2 = new Event("a");
+    assert.equal(a, a2);
+  });
 
-    it("name pattern case", function () {
-        var a = new Event("enterStartTag",
-                          name_patterns.Name("", "foo", "bar"));
-        var a2 = new Event("enterStartTag",
-                           name_patterns.Name("", "foo", "bar"));
-        assert.equal(a, a2);
-    });
+  it("name pattern case", () => {
+    const a = new Event("enterStartTag", new Name("", "foo", "bar"));
+    const a2 = new Event("enterStartTag", new Name("", "foo", "bar"));
+    assert.equal(a, a2);
+  });
 });
