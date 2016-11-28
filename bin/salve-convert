@@ -47,7 +47,9 @@ process.on("uncaughtException", function uncaughtException(ex) {
 // The real logic begins here.
 //
 
-var salve = require("../");
+// We load individual modules rather than the build module because the
+// conversion code uses parts of salve that are not public.
+var validate = require("../lib/salve/validate");
 var conversion = require("../lib/salve/conversion");
 var datatypes = require("../lib/salve/datatypes");
 var spawn = require("child_process").spawn;
@@ -62,7 +64,7 @@ var parser = new ArgumentParser({
 
 parser.addArgument(["--version"], {
   action: "version",
-  version: salve.version,
+  version: validate.version,
   help: "Shows version number and exit.",
 });
 
