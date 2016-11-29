@@ -9,7 +9,6 @@ import gutil from "gulp-util";
 import newer from "gulp-newer";
 import rename from "gulp-rename";
 import jison from "gulp-jison";
-import replace from "gulp-replace";
 import Promise from "bluebird";
 import del from "del";
 import touch from "touch";
