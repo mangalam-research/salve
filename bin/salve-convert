@@ -342,14 +342,14 @@ function convert(simplifiedPath) {
     fs.readFileSync(simplifiedPath).toString()).close();
 
   if (args.no_optimize_ids) {
-    walker.walk(convParser.stack[0].children[0]);
+    walker.walk(convParser.root);
     fs.writeFileSync(args.output_path, walker.output.join(""));
   }
   else {
     if (args.format_version === 3) {
       // Gather names
       var g = new conversion.NameGatherer();
-      g.walk(convParser.stack[0].children[0]);
+      g.walk(convParser.root);
       var names = g.names;
 
       // Now assign new names with shorter new names being
@@ -370,11 +370,11 @@ function convert(simplifiedPath) {
 
       // Perform the renaming.
       var renamer = new conversion.Renamer(newNames);
-      renamer.walk(convParser.stack[0].children[0]);
+      renamer.walk(convParser.root);
 
       var typeChecker = new conversion.DatatypeProcessor();
       try {
-        typeChecker.walk(convParser.stack[0].children[0]);
+        typeChecker.walk(convParser.root);
       }
       catch (ex) {
         if (ex instanceof datatypes.ValueValidationError) {
@@ -411,7 +411,7 @@ function convert(simplifiedPath) {
         }
       }
 
-      walker.walk(convParser.stack[0].children[0]);
+      walker.walk(convParser.root);
       fs.writeFileSync(args.output_path, walker.output.join(""));
     }
     else {

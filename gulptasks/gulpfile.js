@@ -19,6 +19,9 @@ import eslint from "gulp-eslint";
 import versync from "versync";
 import webpack from "webpack";
 import webpackConfig from "../webpack.config";
+import sourcemaps from "gulp-sourcemaps";
+import tslint from "gulp-tslint";
+import ts from "gulp-typescript";
 
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
@@ -153,8 +156,33 @@ gulp.task("default", ["webpack"]);
 gulp.task("copy", ["copy-src", "copy-readme"], () =>
           fs.writeFileAsync("build/dist/.npmignore", "bin/parse.js"));
 
+const project = ts.createProject("tsconfig.json");
+gulp.task("tsc", () => {
+  // The .once nonsense is to work around a gulp-typescript bug
+  //
+  // See: https://github.com/ivogabe/gulp-typescript/issues/295
+  //
+  // For the fix see:
+  // https://github.com/ivogabe/gulp-typescript/issues/295#issuecomment-197299175
+  //
+  const result = project.src()
+          .pipe(sourcemaps.init({ loadMaps: true }))
+          .pipe(project())
+          .once("error", function onError() {
+            this.once("finish", () => {
+              process.exit(1);
+            });
+          });
 
-gulp.task("webpack", ["copy", "jison"], (callback) => {
+  const dest = "build/dist/lib";
+  return es.merge(result.js
+                  .pipe(sourcemaps.write("."))
+                  .pipe(gulp.dest(dest)),
+                  result.dts.pipe(gulp.dest(dest)));
+});
+
+
+gulp.task("webpack", ["tsc", "copy", "jison"], (callback) => {
   webpack(webpackConfig, (err, stats) => {
     if (err) {
       throw new gutil.PluginError("webpack", err);
@@ -223,8 +251,11 @@ gulp.task("check-jsdoc-version", (callback) => {
   });
 });
 
-gulp.task("jsdoc", ["check-jsdoc-version"], (callback) => {
-  const src = ["lib/**/*.js", "doc/api_intro.md", "package.json"];
+gulp.task("jsdoc", ["default", "check-jsdoc-version"], (callback) => {
+  const src = [
+    "build/dist/lib/**/*.js", "doc/api_intro.md", "package.json",
+    "!build/dist/lib/salve/datatypes/regexp.js",
+  ];
 
   const dest = "build/api";
   const stamp = "build/api.stamp";

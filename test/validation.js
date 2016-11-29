@@ -613,14 +613,6 @@ describe("Grammar", () => {
   });
 });
 
-describe("Misc", () => {
-  it("Text singleton", () => {
-    const t1 = new test.Text("a");
-    const t2 = new test.Text("b");
-    assert.equal(t1, t2);
-  });
-});
-
 describe("Name pattern", () => {
   describe("Name", () => {
     let np;

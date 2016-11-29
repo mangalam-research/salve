@@ -9,7 +9,7 @@
               "node_modules/inferModule-jsdoc-plugin/inferModule"],
   "inferModule": {
     "schema": [
-      { "from": "^lib/salve/(.*)$", "to": "$1" }
+      { "from": "^build/dist/lib/salve/(.*)$", "to": "$1" }
     ]
   },
   "markdown": {
