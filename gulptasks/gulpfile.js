@@ -168,12 +168,15 @@ gulp.task("webpack", ["copy", "jison"], (callback) => {
 
 let packname;
 
-gulp.task("install_test", ["default"], Promise.coroutine(function *install() {
+gulp.task("pack", ["default"],
+          () => execFileAsync("npm", ["pack", "dist"], { cwd: "build" })
+          .then((_packname) => {
+            packname = _packname.trim();
+          }));
+
+gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
   const testDir = "build/install_dir";
   yield del(testDir);
-  const _packname = yield execFileAsync("npm", ["pack", "dist"],
-                                        { cwd: "build" });
-  packname = _packname.trim();
   yield fs.mkdirAsync(testDir);
   yield fs.mkdirAsync(path.join(testDir, "node_modules"));
   yield execFileAsync("npm", ["install", `../${packname}`], { cwd: testDir });
