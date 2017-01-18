@@ -18,10 +18,10 @@ import { ArgumentParser } from "argparse";
 import eslint from "gulp-eslint";
 import versync from "versync";
 import webpack from "webpack";
-import webpackConfig from "../webpack.config";
 import sourcemaps from "gulp-sourcemaps";
 import tslint from "gulp-tslint";
 import ts from "gulp-typescript";
+import webpackConfig from "../webpack.config";
 
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
@@ -97,7 +97,9 @@ parser.addArgument(["--rst2html"], {
 
 const options = parser.parseArgs(process.argv.slice(2));
 
-gulp.task("lint", () =>
+gulp.task("lint", ["tslint", "eslint"]);
+
+gulp.task("eslint", () =>
           gulp.src([
             "*.js",
             "bin/**/*.js",
@@ -111,6 +113,13 @@ gulp.task("lint", () =>
           .pipe(eslint())
           .pipe(eslint.format())
           .pipe(eslint.failAfterError()));
+
+gulp.task("tslint", () =>
+          gulp.src("lib/**/*.ts")
+          .pipe(tslint({
+            formatter: "verbose",
+          }))
+          .pipe(tslint.report()));
 
 gulp.task("copy-src", () => {
   const dest = "build/dist/";
@@ -344,6 +353,6 @@ gulp.task("mocha", ["default"], (callback) => {
   });
 });
 
-gulp.task("test", ["default", "versync", "mocha"]);
+gulp.task("test", ["default", "lint", "versync", "mocha"]);
 
 gulp.task("clean", () => del(["build", "gh-pages-build"]));
