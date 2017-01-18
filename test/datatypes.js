@@ -1159,8 +1159,8 @@ function testProgram(name, lib, program, disallows) {
 
       const programDisallows = program.disallows;
       for (const paramName in programDisallows) {
-        // eslint-disable-next-line no-prototype-builtins
         if (!(paramName === "NONE" ||
+              // eslint-disable-next-line no-prototype-builtins
               !programDisallows.hasOwnProperty(paramName))) {
           describe(`with a ${paramName} parameter`,
                    makeParameterTest(paramName, programDisallows[paramName]));
