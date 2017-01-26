@@ -55,8 +55,7 @@ export abstract class HashBase {
    *
    * @param initial An initial value for the object being constructed.
    */
-  constructor (protected hashF: HashFunction,
-               initial?: HashBase | any[] | any) {
+  constructor(protected hashF: HashFunction, initial?: HashBase | any[] | any) {
     if (initial !== undefined) {
       if (initial instanceof HashBase) {
         const backing: Backing = this.backing;

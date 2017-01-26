@@ -34,8 +34,8 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
   let error: boolean = false;
 
   function fireEvent(...args: any[]): void {
-    let ev: salve.Event = new salve.Event(args);
-    let ret: salve.FireEventResult = walker.fireEvent(ev);
+    const ev: salve.Event = new salve.Event(args);
+    const ret: salve.FireEventResult = walker.fireEvent(ev);
     if (ret) {
       error = true;
       if (!mute) {

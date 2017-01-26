@@ -91,7 +91,7 @@ if (DEBUG) {
   // tslint:disable-next-line:only-arrow-functions
   (function buildTracingCode(): void {
     let buf: string = "";
-    let step: string = " ";
+    const step: string = " ";
 
     const nameOrPath: (walker: any) => string = (walker: any) => {
       const el: any = walker.el as any;
@@ -265,7 +265,7 @@ export class BasePattern {
    * @param xmlPath This is a string which uniquely identifies the element from
    * the simplified RNG tree. Used in debugging.
    */
-  constructor (xmlPath: string) {
+  constructor(xmlPath: string) {
     this.id = `P${this.__newID()}`;
     this.xmlPath = xmlPath;
   }
@@ -472,7 +472,7 @@ export class Event {
    * containing all the event parameters ``(new Event([a, b, ])``. All of the
    * event parameters must be strings.
    */
-  constructor (...args: any[]) {
+  constructor(...args: any[]) {
     const params: Array<string|namePatterns.Base> =
       (args.length === 1 && args[0] instanceof Array) ? args[0] : args;
 
@@ -575,7 +575,7 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
 
   const hash: HashMap = new HashMap(hashF);
   evs.forEach((ev: Event) => {
-    let params: Array<string|namePatterns.Base> = ev.params;
+    const params: Array<string|namePatterns.Base> = ev.params;
 
     let node: HashMap = hash;
     for (let i: number = 0; i < params.length; ++i) {
@@ -595,15 +595,18 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
     }
   });
 
+  // We don't set dumpTree to const because the compiler has a fit when dumpTree
+  // is accessed recursively.
+  // tslint:disable-next-line:prefer-const
   let dumpTree: (hash: HashMap) => string =
     // tslint:disable-next-line:only-arrow-functions
     (function makeDumpTree(): (hash: HashMap) => string {
       let dumpTreeBuf: string = "";
-      let dumpTreeIndent: string = "    ";
+      const dumpTreeIndent: string = "    ";
       // tslint:disable-next-line:no-shadowed-variable
       return (hash: HashMap): string => {
         let ret: string = "";
-        let keys: any[] = hash.keys();
+        const keys: any[] = hash.keys();
         keys.sort();
         for (const key of keys) {
           const sub: any | undefined = hash.has(key);
@@ -2558,7 +2561,7 @@ class ElementWalker extends Walker<Element> {
       else if (ev.params[0] === "leaveStartTag") {
         this.endedStartTag = true;
 
-        let errs: EndResult = this.walker!.end(true);
+        const errs: EndResult = this.walker!.end(true);
         let ret: FireEventResult = [];
         if (errs) {
           for (const err of errs) {
@@ -2591,7 +2594,7 @@ class ElementWalker extends Walker<Element> {
                                    ev.params[2] as string)) {
             this.closed = true;
 
-            let errs: EndResult = this.walker!.end();
+            const errs: EndResult = this.walker!.end();
             ret = [];
 
             // Strip out the attributes errors as we've already reported
@@ -2811,7 +2814,7 @@ export class Grammar extends BasePattern {
   }
 
   get elementDefinitions(): TrivialMap<Define[]> {
-    let ret: TrivialMap<Define[]> | undefined = this._elementDefinitions;
+    const ret: TrivialMap<Define[]> | undefined = this._elementDefinitions;
     if (ret) {
       return ret;
     }

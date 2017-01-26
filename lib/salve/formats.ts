@@ -224,7 +224,8 @@ class V2Constructor extends V2JSONWalker {
       }
 
       const newParams: any[] = new Array(params.length / 2);
-      for (let i: number = 0, limit: number = params.length; i < limit; i += 2) {
+      const limit: number = params.length;
+      for (let i: number = 0; i < limit; i += 2) {
         newParams[i / 2] = { name: params[i], value: params[i + 1] };
       }
       args[3] = newParams;

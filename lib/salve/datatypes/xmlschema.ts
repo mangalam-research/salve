@@ -7,8 +7,8 @@
 
 import { EName } from "../ename";
 import { TrivialMap } from "../types";
-import { ParamError, ParameterParsingError, ValueError, ValueValidationError }
-from "./errors";
+import { ParamError, ParameterParsingError, ValueError,
+         ValueValidationError } from "./errors";
 import { Context, Datatype, RawParameter, TypeLibrary } from "./library";
 import * as regexp from "./regexp";
 import { xmlNameChar, xmlNameRe, xmlNcname, xmlNcnameRe } from "./xmlcharacters";
@@ -476,7 +476,7 @@ abstract class Base implements Datatype {
    */
   get paramNameToObj(): NameToParameterMap {
     const paramNameToObj: NameToParameterMap | undefined = this._paramNameToObj;
-    let ret: NameToParameterMap = paramNameToObj || Object.create(null);
+    const ret: NameToParameterMap = paramNameToObj || Object.create(null);
     if (!paramNameToObj) {
       this._paramNameToObj = ret;
       for (const param of this.validParams) {
@@ -493,7 +493,7 @@ abstract class Base implements Datatype {
    * The default parameters if none are specified.
    */
   get defaultParams(): any[] {
-    let defaultParams: any[] | undefined = this._defaultParams;
+    const defaultParams: any[] | undefined = this._defaultParams;
 
     if (defaultParams) {
       return defaultParams;
@@ -1521,7 +1521,7 @@ const types: any[] = [
   anyURI,
 ];
 
-let library: TypeLibrary = {
+const library: TypeLibrary = {
   uri: "http://www.w3.org/2001/XMLSchema-datatypes",
   types: {},
 };

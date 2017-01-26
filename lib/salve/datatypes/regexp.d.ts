@@ -20,9 +20,8 @@
  * ``outputType`` was ``"re"`` or a ``string`` if the output type was
  * ``"string"``.
  */
-export declare function parse(value: string): RegExp;
-export declare function parse(value: string, outputType: "re"): RegExp;
-export declare function parse(value: string, outputType: "string"): string;
+export declare function parse(value: string,
+                              outputType?: "re" | "string"): RegExp;
 
 /**
  * Reports an error in parsing.

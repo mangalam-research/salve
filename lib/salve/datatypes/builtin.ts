@@ -4,8 +4,8 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { ParamError, ParameterParsingError, ValueError, ValueValidationError }
-from "./errors";
+import { ParamError, ParameterParsingError, ValueError,
+         ValueValidationError } from "./errors";
 import { Datatype, RawParameter, TypeLibrary } from "./library";
 
 /**

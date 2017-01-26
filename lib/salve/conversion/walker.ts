@@ -595,7 +595,7 @@ export class DatatypeProcessor extends ConversionWalker {
           [new datatypes.ValueError(`unknown datatype library: ${libname}`)]);
       }
 
-      let datatype: datatypes.Datatype = lib.types[type!];
+      const datatype: datatypes.Datatype = lib.types[type!];
       if (!datatype) {
         throw new datatypes.ValueValidationError(
           [new datatypes.ValueError(`unknown datatype ${type} in ` +
