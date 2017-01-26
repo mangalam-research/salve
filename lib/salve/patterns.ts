@@ -218,8 +218,8 @@ function addWalker<T>(elCls: any, walkerCls: any): void {
 // The naive Set implementation turns out to be faster than the HashSet
 // implementation for how we are using it.
 
-import { Set, Set as EventSet } from "./set";
-export { Set as EventSet } from "./set";
+import { NaiveSet as EventSet } from "./set";
+export { NaiveSet as EventSet } from "./set";
 
 interface Hashable {
   hash(): any;

@@ -19,6 +19,10 @@ issue reported on github.
     with the built-in ``ReferenceError`` provided by JavaScript engines. The
     clash did not make the code fail but it had unfortunate side-effects.
 
+  - Renamed ``Set`` in ``set.ts`` to ``NaiveSet`` to avoid clashing with
+    possible ``Set`` classes provided by the JavaScript runtime. (This was a
+    private part of salve, so it should not break anything.)
+
 * 3.0.0:
 
   - General restructuring of salve. This could consitute a breaking change
