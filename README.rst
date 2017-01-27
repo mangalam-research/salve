@@ -502,30 +502,19 @@ scenario also occurs if ``name`` is not defined at all by the schema.
 Documentation
 =============
 
-The code is documented using jsdoc3. The following command will
+The code is documented using ``typedoc``. The following command will
 generate the documentation::
 
     $ gulp doc
 
-You may need to create a ``gulp.local`` module to tell ``gulp`` where
-to get ``jsdoc`` and ``rst2html``. (Defaults are such that ``gulp``
-will use your ``PATH`` to locate them.) The formatted jsdoc3 will
-appear in the `<build/api/>`_ subdirectory, and the `<README.html>`_
-in the root of the source tree.
+You may need to create a ``gulp.local`` module to tell ``gulp`` where to get
+``rst2html``. (Defaults are such that ``gulp`` will use your ``PATH`` to locate
+such tools.) The formatted documentation will appear in the `<build/api/>`_
+subdirectory, and the `<README.html>`_ in the root of the source tree.
 
 **NOTE**: All the public interfaces of salve are available through the
 ``validate`` module. However, ``validate`` is a facade that exposes interfaces
-that are implemented in separate modules like ``patterns`` and ``formats``. The
-documentation documents interfaces where they are *implemented*. So if you look
-for ``validate.constructTree`` you will find it in ``formats``.
-
-**NOTE**: The codebase for salve really has multiple level of privacy. There are
- those parts of the API in ``validate`` that you use directly. These are fully
- public. Then there are those parts that are used indirectly through the API in
- ``validate``. And then there are those parts you should not use at all. The
- latter are marked "private" and you need to use ``gulp doc --jsdoc-private`` to
- get them to be included in the documentation.
-
+that are implemented in separate modules like ``patterns`` and ``formats``.
 
 Dependencies
 ============
@@ -575,28 +564,22 @@ The variables that can be set are:
 +-----------------------+------------------------------------------------------+
 |Name                   | Meaning                                              |
 +=======================+======================================================+
-|jsdoc                  | jsdoc command to run                                 |
+|``doc_private``        | Whether to produce documentation for private         |
+|                       | entities. You can set ``doc_private`` to ``false``   |
+|                       | using ``no_doc_private``.                            |
 +-----------------------+------------------------------------------------------+
-|jsdoc_private          | jsdoc should produce documentation for private       |
-|                       | entities. True by default. Set jsdoc_private to      |
-|                       | false using no_jsdoc_private.                        |
+|``mocha_grep``         | ``--grep`` parameter for Mocha                       |
 +-----------------------+------------------------------------------------------+
-|jsdoc_required_version | The jsdoc version required by the project's docs     |
-+-----------------------+------------------------------------------------------+
-|jsdoc_template_dir     | Location of the jsdoc default template               |
-+-----------------------+------------------------------------------------------+
-|mocha_grep             | --grep parameter for Mocha                           |
-+-----------------------+------------------------------------------------------+
-|rst2html               | rst2html command to run                              |
+|``rst2html``           | ``rst2html`` command to run                          |
 +-----------------------+------------------------------------------------------+
 
 Note that when used on the command line, underscores become dashes, thus
-``--mocha-grep`` and ``--jsdoc-private``.
+``--mocha-grep`` and ``--doc-private``.
 
 The ``gulp.local.js`` file is a module. You must export values
 like this::
 
-    exports.jsdoc3 = "/usr/local/blah/jsdoc"
+    exports.doc_private = true
 
 Building
 ========
@@ -736,7 +719,7 @@ the Humanities.
 ..  LocalWords:  fireEvent js chai semver json xmllint xsltproc npm
 ..  LocalWords:  RNG minified rng XSLT xsl constructTree newWalker mk
 ..  LocalWords:  xml enterStartTag uri leaveStartTag endTag nxml html
-..  LocalWords:  attributeName attributeValue jsdoc Debeissat's API
+..  LocalWords:  attributeName attributeValue Debeissat's API
 ..  LocalWords:  CeCILL tokenizer Makefile README boolean anyName RST
 ..  LocalWords:  nsName URIs uris enterContext leaveContext xmlns rst
 ..  LocalWords:  definePrefix useNameResolver foons resolveName HD NG

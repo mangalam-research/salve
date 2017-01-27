@@ -9,6 +9,7 @@ import gutil from "gulp-util";
 import newer from "gulp-newer";
 import rename from "gulp-rename";
 import jison from "gulp-jison";
+import typedoc from "gulp-typedoc";
 import Promise from "bluebird";
 import del from "del";
 import touch from "touch";
@@ -60,29 +61,19 @@ parser.addArgument(["target"], {
   defaultValue: "default",
 });
 
-parser.addArgument(["--jsdoc"], {
-  help: "Set which jsdoc executable to use.",
-  defaultValue: localConfig.jsdoc || "./node_modules/.bin/jsdoc",
-});
-
-parser.addArgument(["--jsdoc-private"], {
-  help: "jsdoc will document private functions.",
+parser.addArgument(["--doc-private"], {
+  help: "document private functions.",
   type: Boolean,
   action: "storeTrue",
-  defaultValue: localConfig.jsdoc_private,
+  defaultValue: localConfig.doc_private,
 });
 
-parser.addArgument(["--no-jsdoc-private"], {
-  help: "jsdoc will not document private functions.",
+parser.addArgument(["--no-doc-private"], {
+  help: "do not document private functions.",
   type: Boolean,
   action: "storeFalse",
-  dest: "jsdoc_private",
-  defaultValue: localConfig.jsdoc_private,
-});
-
-parser.addArgument(["--jsdoc-required-version"], {
-  help: "The version of jsdoc needed to generate the documentation.",
-  defaultValue: localConfig.jsdoc_required_version || "3.2.2",
+  dest: "doc_private",
+  defaultValue: localConfig.doc_private,
 });
 
 parser.addArgument(["--mocha-grep"], {
@@ -223,52 +214,11 @@ gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
 gulp.task("publish", ["install_test"],
           () => execFileAsync("npm", ["publish", packname], { cwd: "build" }));
 
-gulp.task("check-jsdoc-version", (callback) => {
-  // Check that the local version of JSDoc is the same or better
-  // than the version deemed required for proper output.
-  childProcess.execFile(options.jsdoc, ["-v"], (err, stdout, _stderr) => {
-    if (err) {
-      throw err;
-    }
-
-    const versionRe = /(\d+)(?:\.(\d+)(?:\.(\d+))?)?/;
-    const requiredRe = new RegExp(`^${versionRe.source}$`);
-
-    const reqVersionMatch = options.jsdoc_required_version.match(requiredRe);
-    if (!reqVersionMatch) {
-      throw new Error("Incorrect version specification: " +
-                      `"${options.required_jsdoc_version}".`);
-    }
-
-    const versionMatchList = versionRe.exec(stdout);
-    if (!versionMatchList) {
-      throw new Error("Could not determine local JSDoc version.");
-    }
-
-    for (let i = 1; i < reqVersionMatch.length; ++i) {
-      const req = Number(reqVersionMatch[i]);
-      const actual = Number(versionMatchList[i]);
-      if (req > actual) {
-        throw new Error("Local JSDoc version is too old: " +
-                        `${versionMatchList[0]} < ${reqVersionMatch[0]}.`);
-      }
-      else if (actual > req) {
-        break;
-      }
-    }
-    callback();
-  });
-});
-
-gulp.task("jsdoc", ["default", "check-jsdoc-version"], (callback) => {
-  const src = [
-    "build/dist/lib/**/*.js", "doc/api_intro.md", "package.json",
-    "!build/dist/lib/salve/datatypes/regexp.js",
-  ];
-
-  const dest = "build/api";
+gulp.task("typedoc", ["lint"], (callback) => {
   const stamp = "build/api.stamp";
-  gulp.src(src, { read: false, base: "." })
+
+  gulp
+    .src(["lib/**/*.ts"])
     .pipe(newer(stamp))
     .pipe(reduce((acc, data) => {
       acc.push(data);
@@ -276,19 +226,35 @@ gulp.task("jsdoc", ["default", "check-jsdoc-version"], (callback) => {
     }, []))
     .on("data", (files) => {
       if (files.length === 0) {
+        gutil.log("No change, skipping typedoc.");
         callback();
         return;
       }
 
-      let args = ["-c", "jsdoc.conf.json"];
-      if (options.jsdoc_private) {
-        args.push("-p");
-      }
-      args = args.concat(files.map(x => x.path));
-      args.push("-d", dest);
-      childProcess.execFileAsync(options.jsdoc, args)
-        .then(() => touchAsync(stamp))
-        .then(() => callback());
+      const tsoptions = JSON.parse(fs.readFileSync("tsconfig.json"))
+              .compilerOptions;
+      const version = JSON.parse(fs.readFileSync("package.json")).version;
+      Object.assign(tsoptions, {
+        out: `./build/api/salve/${version}`,
+        name: "salve",
+        readme: "doc/api_intro.md",
+        ignoreCompilerErrors: false,
+        version: true,
+        excludePrivate: !options.doc_private,
+      });
+
+      // These are not supported by typedoc.
+      delete tsoptions.noImplicitThis;
+      delete tsoptions.declaration;
+      delete tsoptions.sourceMap;
+      delete tsoptions.strictNullChecks;
+
+      gulp
+        .src(["lib/**/*.ts"])
+        .pipe(typedoc(tsoptions))
+        .on("end", () => {
+          touchAsync(stamp).asCallback(callback);
+        });
     });
 });
 
@@ -306,9 +272,9 @@ gulp.task("readme", () => {
                                        () => callback())));
 });
 
-gulp.task("doc", ["jsdoc", "readme"]);
+gulp.task("doc", ["typedoc", "readme"]);
 
-gulp.task("gh-pages-build", ["jsdoc"], () => {
+gulp.task("gh-pages-build", ["typedoc"], () => {
   const dest = "gh-pages-build";
   return gulp.src("**/*", { cwd: "build/api/" })
     .pipe(newer(dest))
