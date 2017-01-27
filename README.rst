@@ -591,9 +591,7 @@ Run::
 This will create a `<build/dist/>`_ subdirectory in which the
 JavaScript necessary to validate XML files against a prepared Relax NG
 schema. You could copy what is in `<build/dist>`_ to a server to serve
-these files to a client that would then perform validation. Future
-releases will include automatic support for minified versions of
-salve.
+these files to a client that would then perform validation.
 
 Deploying
 =========
@@ -607,9 +605,6 @@ When you install salve through `npm`, you get a package that contains:
 The UMD builds can be loaded in a CommonJS environment, in a AMD environment or
 as "plain scripts" in a browser. If you use the latter, then salve will be
 accessible as the `salve` global.
-
-When you do `require('salve')` in Node.js, what is loaded is
-`lib/salve/validate.js`. In other words, it loads from the hierarchy of modules.
 
 Testing
 =======
