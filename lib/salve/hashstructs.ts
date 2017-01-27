@@ -1,4 +1,3 @@
-/// <reference path='global.d.ts'/>
 /**
  * Implementations of some simple collections. This module is meant for salve's
  * internal purposes only. It may be yanked at any time. Do not use in your own
