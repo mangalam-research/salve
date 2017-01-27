@@ -120,7 +120,7 @@ gulp.task("copy-src", () => {
   return gulp.src([
     "package.json",
     "bin/*",
-    "lib/**/*.js",
+    "lib/**/*.d.ts",
     "lib/**/*.xsl",
   ], { base: "." })
     .pipe(newer(dest))
