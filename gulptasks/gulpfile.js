@@ -143,7 +143,7 @@ gulp.task("jison", () => {
       // Override the default main created by Jison. This module cannot ever be
       // used as a main script. And the default that Jison uses does
       // `require("fs")` which causes problems.
-      moduleMain: () => {
+      moduleMain: function main() {
         throw new Error("this module cannot be used as main");
       },
     }))
