@@ -1,7 +1,7 @@
 /* eslint-env node */
 import "babel-polyfill";
 import fs_ from "fs";
-import childProcess_ from "child_process";
+import childProcess from "child_process";
 import path from "path";
 
 import gulp from "gulp";
@@ -23,11 +23,10 @@ import sourcemaps from "gulp-sourcemaps";
 import tslint from "gulp-tslint";
 import ts from "gulp-typescript";
 import webpackConfig from "../webpack.config";
+import { execFileAsync } from "./util";
 
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
-const childProcess = Promise.promisifyAll(childProcess_);
-const execFileAsync = childProcess.execFileAsync;
 
 //
 // This script accepts configuration options from 3 places, in
@@ -207,7 +206,14 @@ gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
   yield del(testDir);
   yield fs.mkdirAsync(testDir);
   yield fs.mkdirAsync(path.join(testDir, "node_modules"));
-  yield execFileAsync("npm", ["install", `../${packname}`], { cwd: testDir });
+  yield execFileAsync("npm", ["install", `../${packname}`, "sax", "@types/sax"],
+                      { cwd: testDir });
+  let module = yield fs.readFileAsync("lib/salve/parse.ts");
+  module = module.toString();
+  module = module.replace("./validate", "salve");
+  yield fs.writeFileAsync(path.join(testDir, "parse.ts"), module);
+  yield execFileAsync("../../node_modules/.bin/tsc", ["parse.ts"],
+                      { cwd: testDir });
   yield del(testDir);
 }));
 
