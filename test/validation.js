@@ -9,7 +9,7 @@ import fs from "fs";
 import path from "path";
 import { assert } from "chai";
 import sax from "sax";
-import salve from "../build/dist/salve";
+import salve from "../salve";
 
 function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();

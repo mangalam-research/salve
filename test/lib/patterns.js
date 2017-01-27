@@ -1,6 +1,6 @@
 /* global it, describe */
 import { assert } from "chai";
-import { Event, Name } from "../../build/dist/salve";
+import { Event, Name } from "../../salve";
 
 describe("Event objects are cached", () => {
   it("simple case", () => {
