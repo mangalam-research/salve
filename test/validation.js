@@ -9,9 +9,7 @@ import fs from "fs";
 import path from "path";
 import { assert } from "chai";
 import sax from "sax";
-import salve from "../build/dist/salve";
-
-const test = salve.__test();
+import salve from "../salve";
 
 function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();
@@ -610,14 +608,6 @@ describe("Grammar", () => {
            "::except",
          ]);
        });
-  });
-});
-
-describe("Misc", () => {
-  it("Text singleton", () => {
-    const t1 = new test.Text("a");
-    const t2 = new test.Text("b");
-    assert.equal(t1, t2);
   });
 });
 

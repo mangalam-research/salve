@@ -6,7 +6,7 @@
 
 /* global it, describe, before, beforeEach */
 import { assert } from "chai";
-import { EName, NameResolver } from "../build/dist/salve";
+import { EName, NameResolver } from "../salve";
 
 const mapping = {
   btw: "http://lddubeau.com/ns/btw-storage",

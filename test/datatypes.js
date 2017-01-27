@@ -1101,7 +1101,7 @@ function testProgram(name, lib, program, disallows) {
     describe("parseParams", () => {
       for (const x of program.parseParams) {
         it(x[0], () =>
-           assert.deepEqual(type.parseParams(undefined, x[1]), x[2]));
+           assert.deepEqual(type.parseParams("foo:1", x[1]), x[2]));
       }
     });
 
@@ -1131,20 +1131,24 @@ function testProgram(name, lib, program, disallows) {
         });
       }
 
-      function makeParameterTest(i, param) {
+      function makeParameterTest(paramName, param) {
         return function test() {
           for (const x of param.false) {
             it(`allows ${x[0]}`, () => {
-              const params = type.parseParams(undefined,
-                                              [{ name: i, value: x[2] }]);
+              const params = type.parseParams("foo:1", [{
+                name: paramName,
+                value: x[2],
+              }]);
               assert.isFalse(type.disallows(x[1], params, docContext));
             });
           }
 
           for (const x of param.true) {
             it(`disallows ${x[0]}`, () => {
-              const params = type.parseParams(undefined,
-                                              [{ name: i, value: x[2] }]);
+              const params = type.parseParams("foo:1", [{
+                name: paramName,
+                value: x[2],
+              }]);
               const ret = type.disallows(x[1], params, docContext);
               assert.equal(ret.length, x[3].length);
               assert.equal(ret[0].toString(), x[3][0]);
@@ -1154,11 +1158,12 @@ function testProgram(name, lib, program, disallows) {
       }
 
       const programDisallows = program.disallows;
-      for (const i in programDisallows) {
-        // eslint-disable-next-line no-prototype-builtins
-        if (!(i === "NONE" || !programDisallows.hasOwnProperty(i))) {
-          describe(`with a ${i} parameter`,
-                   makeParameterTest(i, programDisallows[i]));
+      for (const paramName in programDisallows) {
+        if (!(paramName === "NONE" ||
+              // eslint-disable-next-line no-prototype-builtins
+              !programDisallows.hasOwnProperty(paramName))) {
+          describe(`with a ${paramName} parameter`,
+                   makeParameterTest(paramName, programDisallows[paramName]));
         }
       }
     });
@@ -1180,11 +1185,11 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
 
     describe("parseParams", () => {
       it("empty array", () =>
-         assert.deepEqual(type.parseParams(undefined, []), {}));
+         assert.deepEqual(type.parseParams("foo:1", []), {}));
 
       it("all, except minLength and maxLength", () => {
         assert.deepEqual(
-          type.parseParams(undefined, [
+          type.parseParams("foo:1", [
             { name: "length", value: "1" },
             { name: "pattern", value: "abc" },
           ]),
@@ -1197,7 +1202,7 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
 
       it("minLength and maxLength", () => {
         assert.deepEqual(
-          type.parseParams(undefined, [
+          type.parseParams("foo:1", [
             { name: "maxLength", value: "1" },
             { name: "minLength", value: "1" },
           ]),
@@ -1208,7 +1213,7 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
       });
 
       it("repeatables", () => {
-        const parsed = type.parseParams(undefined, [
+        const parsed = type.parseParams("foo:1", [
           { name: "pattern", value: "abc" },
           { name: "pattern", value: "def" },
         ]);
@@ -1222,7 +1227,7 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
 
       it("non-repeatables", () => {
         assert.throws(
-          type.parseParams.bind(type, undefined, [
+          type.parseParams.bind(type, "foo: 1", [
             { name: "length", value: "1" },
             { name: "maxLength", value: "1" },
             { name: "minLength", value: "1" },
@@ -1301,7 +1306,7 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
 
         it("disallows what does not match multiple patterns", () => {
           const parsed = type.parseParams(
-            undefined,
+            "foo:1",
             [{ name: "pattern", value: ".*" },
              { name: "pattern", value: "[fb].*" }]);
           const ret = type.disallows("afoo", parsed);
@@ -1374,7 +1379,7 @@ describe("datatypes", () => {
         const type = lib.types.string;
 
         assert.throws(
-          type.parseParams.bind(type, undefined, [
+          type.parseParams.bind(type, "foo:1", [
             { name: "maxLength", value: "1" },
             { name: "minLength", value: "2" },
           ]),
@@ -1385,7 +1390,7 @@ describe("datatypes", () => {
       it("combining length and minLength is invalid", () => {
         const type = lib.types.string;
         assert.throws(
-          type.parseParams.bind(type, undefined, [
+          type.parseParams.bind(type, "foo:1", [
             { name: "length", value: "1" },
             { name: "minLength", value: "2" },
           ]),
@@ -1396,7 +1401,7 @@ describe("datatypes", () => {
       it("combining length and maxLength is invalid", () => {
         const type = lib.types.string;
         assert.throws(
-          type.parseParams.bind(type, undefined, [
+          type.parseParams.bind(type, "foo:1", [
             { name: "length", value: "1" },
             { name: "maxLength", value: "2" },
           ]),
@@ -1407,7 +1412,7 @@ describe("datatypes", () => {
       it("combining maxInclusive and maxExclusive is invalid", () => {
         const type = lib.types.decimal;
         assert.throws(
-          type.parseParams.bind(type, undefined, [
+          type.parseParams.bind(type, "foo:1", [
             { name: "maxInclusive", value: "1" },
             { name: "maxExclusive", value: "2" },
           ]),
@@ -1418,7 +1423,7 @@ describe("datatypes", () => {
       it("combining minInclusive and minExclusive is invalid", () => {
         const type = lib.types.decimal;
         assert.throws(
-          type.parseParams.bind(type, undefined, [
+          type.parseParams.bind(type, "foo:1", [
             { name: "minInclusive", value: "1" },
             { name: "minExclusive", value: "2" },
           ]),
@@ -1430,7 +1435,7 @@ describe("datatypes", () => {
         const type = lib.types.decimal;
 
         assert.throws(
-          type.parseParams.bind(type, undefined, [
+          type.parseParams.bind(type, "foo:1", [
             { name: "minInclusive", value: "2" },
             { name: "maxInclusive", value: "1" },
           ]),
@@ -1442,7 +1447,7 @@ describe("datatypes", () => {
         const type = lib.types.decimal;
 
         assert.throws(
-          type.parseParams.bind(type, undefined, [
+          type.parseParams.bind(type, "foo:1", [
             { name: "minExclusive", value: "1" },
             { name: "maxInclusive", value: "1" },
           ]),
@@ -1454,7 +1459,7 @@ describe("datatypes", () => {
         const type = lib.types.decimal;
 
         assert.throws(
-          type.parseParams.bind(type, undefined, [
+          type.parseParams.bind(type, "foo:1", [
             { name: "minInclusive", value: "1" },
             { name: "maxExclusive", value: "1" },
           ]),
@@ -1466,7 +1471,7 @@ describe("datatypes", () => {
         const type = lib.types.decimal;
 
         assert.throws(
-          type.parseParams.bind(type, undefined, [
+          type.parseParams.bind(type, "foo:1", [
             { name: "minExclusive", value: "1.1" },
             { name: "maxExclusive", value: "1" },
           ]),
@@ -1732,7 +1737,7 @@ describe("datatypes", () => {
       describe("parseParams", () => {
         it("all, except minLength and maxLength", () => {
           assert.deepEqual(
-            type.parseParams(undefined, [{ name: "pattern", value: "abc" }]),
+            type.parseParams("foo:1", [{ name: "pattern", value: "abc" }]),
             {
               pattern: { rng: "abc", internal: new RegExp("^abc$") },
             });
@@ -1771,7 +1776,7 @@ describe("datatypes", () => {
       describe("parseParams", () => {
         it("all, except minLength and maxLength", () => {
           assert.deepEqual(
-            type.parseParams(undefined, [
+            type.parseParams("foo:1", [
               { name: "length", value: "1" },
               { name: "pattern", value: "abc" },
             ]),
@@ -1784,7 +1789,7 @@ describe("datatypes", () => {
 
         it("minLength and maxLength", () => {
           assert.deepEqual(
-            type.parseParams(undefined, [
+            type.parseParams("foo:1", [
               { name: "maxLength", value: "1" },
               { name: "minLength", value: "1" },
             ]),
@@ -1893,7 +1898,7 @@ describe("datatypes", () => {
       describe("parseParams", () => {
         it("all, except minLength and maxLength", () => {
           assert.deepEqual(
-            type.parseParams(undefined, [
+            type.parseParams("foo:1", [
               { name: "length", value: "1" },
               { name: "pattern", value: "abc" },
             ]),
@@ -1906,7 +1911,7 @@ describe("datatypes", () => {
 
         it("minLength and maxLength", () => {
           assert.deepEqual(
-            type.parseParams(undefined, [
+            type.parseParams("foo:1", [
               { name: "maxLength", value: "1" },
               { name: "minLength", value: "1" },
             ]),
@@ -1996,7 +2001,7 @@ describe("datatypes", () => {
       describe("parseParams", () => {
         it("all supported", () => {
           assert.deepEqual(
-            type.parseParams(undefined, [
+            type.parseParams("foo:1", [
               { name: "pattern", value: "abc" },
             ]),
             {

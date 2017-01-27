@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "rootDir": "lib",
+    "module": "commonjs",
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "outDir": "build/dist",
+    "declaration": true,
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "target": "es5"
+  },
+  "include": [
+    "lib/salve/**/*.ts"
+  ]
+}

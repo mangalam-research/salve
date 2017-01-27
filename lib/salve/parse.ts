@@ -1,32 +1,45 @@
 /**
- * @desc A parser used for testing.
+ * A parser used for testing.
  * @author Louis-Dominique Dubeau
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 "use strict";
-/* eslint-disable no-console */
-var validate = require("./validate");
-var sax = require("sax");
+import * as sax from "sax";
+import * as salve from "./validate";
 
-var parser = sax.parser(true, { xmlns: true });
+// tslint:disable no-console
 
-function parse(rngSource, xmlSource, mute) {
+declare module "sax" {
+  export interface SAXParser {
+    ENTITIES: {[key: string]: string};
+  }
+}
+
+const parser: sax.SAXParser = sax.parser(true, { xmlns: true });
+
+type TagInfo = {
+  uri: string,
+  local: string,
+  hasContext: boolean,
+};
+
+function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
   mute = !!mute;
 
-  var tree = validate.constructTree(rngSource);
+  const tree: salve.Grammar = salve.constructTree(rngSource);
 
-  var walker = tree.newWalker();
+  const walker: salve.Walker<salve.BasePattern> = tree.newWalker();
 
-  var error = false;
+  let error: boolean = false;
 
-  function fireEvent() {
-    var ev = new validate.Event(Array.prototype.slice.call(arguments));
-    var ret = walker.fireEvent(ev);
+  function fireEvent(...args: any[]): void {
+    const ev: salve.Event = new salve.Event(args);
+    const ret: salve.FireEventResult = walker.fireEvent(ev);
     if (ret) {
       error = true;
       if (!mute) {
-        ret.forEach(function forEach(x) {
+        ret.forEach((x: salve.ValidationError) => {
           console.log("on event " + ev);
           console.log(x.toString());
         });
@@ -34,22 +47,21 @@ function parse(rngSource, xmlSource, mute) {
     }
   }
 
-  var tagStack = [];
-  var textBuf = "";
+  const tagStack: TagInfo[] = [];
+  let textBuf: string = "";
 
-  function flushTextBuf() {
+  function flushTextBuf(): void {
     fireEvent("text", textBuf);
     textBuf = "";
   }
 
-
-  parser.onopentag = function onopentag(node) {
+  parser.onopentag = (node: sax.QualifiedTag) => {
     flushTextBuf();
-    var names = Object.keys(node.attributes);
-    var nsDefinitions = [];
+    const names: string[] = Object.keys(node.attributes);
+    const nsDefinitions: string[][] = [];
     names.sort();
-    names.forEach(function forEach(name) {
-      var attr = node.attributes[name];
+    names.forEach((name: string) => {
+      const attr: sax.QualifiedAttribute = node.attributes[name];
       if (attr.local === "" && name === "xmlns") { // xmlns="..."
         nsDefinitions.push(["", attr.value]);
       }
@@ -59,13 +71,13 @@ function parse(rngSource, xmlSource, mute) {
     });
     if (nsDefinitions.length) {
       fireEvent("enterContext");
-      nsDefinitions.forEach(function forEach(x) {
+      nsDefinitions.forEach((x: string[]) => {
         fireEvent("definePrefix", x[0], x[1]);
       });
     }
     fireEvent("enterStartTag", node.uri, node.local);
-    names.forEach(function forEach(name) {
-      var attr = node.attributes[name];
+    names.forEach((name: string) => {
+      const attr: sax.QualifiedAttribute = node.attributes[name];
       // The parser handles all namespace issues
       if ((attr.local === "" && name === "xmlns") || // xmlns="..."
           (attr.prefix === "xmlns")) { // xmlns:...=...
@@ -75,25 +87,32 @@ function parse(rngSource, xmlSource, mute) {
       fireEvent("attributeValue", attr.value);
     });
     fireEvent("leaveStartTag");
-    tagStack.unshift([node.uri, node.local, nsDefinitions.length]);
+    tagStack.unshift({
+      uri: node.uri,
+      local: node.local,
+      hasContext: nsDefinitions.length !== 0,
+    });
   };
 
-  parser.ontext = function ontext(text) {
+  parser.ontext = (text: string) => {
     textBuf += text;
   };
 
-  parser.onclosetag = function onclosetag(_node) {
+  parser.onclosetag = () => {
     flushTextBuf();
-    var tagInfo = tagStack.shift();
-    fireEvent("endTag", tagInfo[0], tagInfo[1]);
-    if (tagInfo[2]) {
+    const tagInfo: TagInfo | undefined = tagStack.shift();
+    if (tagInfo === undefined) {
+      throw new Error("stack underflow");
+    }
+    fireEvent("endTag", tagInfo.uri, tagInfo.local);
+    if (tagInfo.hasContext) {
       fireEvent("leaveContext");
     }
   };
 
-  var entityRe = /^<!ENTITY\s+([^\s]+)\s+(['"])(.*?)\2\s*>\s*/;
+  const entityRe: RegExp = /^<!ENTITY\s+([^\s]+)\s+(['"])(.*?)\2\s*>\s*/;
 
-  parser.ondoctype = function ondoctype(doctype) {
+  parser.ondoctype = (doctype: string) => {
     // This is an extremely primitive way to handle ENTITY declarations in a
     // DOCTYPE. It is unlikely to support any kind of complicated construct.
     // If a reminder need be given then: THIS PARSER IS NOT MEANT TO BE A
@@ -106,10 +125,10 @@ function parse(rngSource, xmlSource, mute) {
       .trim();
 
     while (doctype.length) {
-      var match = entityRe.exec(doctype);
+      const match: RegExpMatchArray | null = entityRe.exec(doctype);
       if (match) {
-        var name = match[1];
-        var value = match[3];
+        const name: string = match[1];
+        const value: string = match[3];
         doctype = doctype.slice(match[0].length);
         if (parser.ENTITIES[name] !== undefined) {
           throw new Error("redefining entity: " + name);

@@ -1,7 +1,7 @@
 /* eslint-env node */
 import "babel-polyfill";
 import fs_ from "fs";
-import childProcess_ from "child_process";
+import childProcess from "child_process";
 import path from "path";
 
 import gulp from "gulp";
@@ -9,7 +9,7 @@ import gutil from "gulp-util";
 import newer from "gulp-newer";
 import rename from "gulp-rename";
 import jison from "gulp-jison";
-import replace from "gulp-replace";
+import typedoc from "gulp-typedoc";
 import Promise from "bluebird";
 import del from "del";
 import touch from "touch";
@@ -19,12 +19,14 @@ import { ArgumentParser } from "argparse";
 import eslint from "gulp-eslint";
 import versync from "versync";
 import webpack from "webpack";
+import sourcemaps from "gulp-sourcemaps";
+import tslint from "gulp-tslint";
+import ts from "gulp-typescript";
 import webpackConfig from "../webpack.config";
+import { execFileAsync } from "./util";
 
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
-const childProcess = Promise.promisifyAll(childProcess_);
-const execFileAsync = childProcess.execFileAsync;
 
 //
 // This script accepts configuration options from 3 places, in
@@ -58,29 +60,19 @@ parser.addArgument(["target"], {
   defaultValue: "default",
 });
 
-parser.addArgument(["--jsdoc"], {
-  help: "Set which jsdoc executable to use.",
-  defaultValue: localConfig.jsdoc || "./node_modules/.bin/jsdoc",
-});
-
-parser.addArgument(["--jsdoc-private"], {
-  help: "jsdoc will document private functions.",
+parser.addArgument(["--doc-private"], {
+  help: "document private functions.",
   type: Boolean,
   action: "storeTrue",
-  defaultValue: localConfig.jsdoc_private,
+  defaultValue: localConfig.doc_private,
 });
 
-parser.addArgument(["--no-jsdoc-private"], {
-  help: "jsdoc will not document private functions.",
+parser.addArgument(["--no-doc-private"], {
+  help: "do not document private functions.",
   type: Boolean,
   action: "storeFalse",
-  dest: "jsdoc_private",
-  defaultValue: localConfig.jsdoc_private,
-});
-
-parser.addArgument(["--jsdoc-required-version"], {
-  help: "The version of jsdoc needed to generate the documentation.",
-  defaultValue: localConfig.jsdoc_required_version || "3.2.2",
+  dest: "doc_private",
+  defaultValue: localConfig.doc_private,
 });
 
 parser.addArgument(["--mocha-grep"], {
@@ -95,7 +87,13 @@ parser.addArgument(["--rst2html"], {
 
 const options = parser.parseArgs(process.argv.slice(2));
 
-gulp.task("lint", () =>
+gulp.task("lint", ["tslint", "eslint"]);
+
+gulp.task("eslint",
+          // The TypeScript code must have been compiled, otherwise we get
+          // reference errors.
+          ["tsc"],
+          () =>
           gulp.src([
             "*.js",
             "bin/**/*.js",
@@ -110,12 +108,19 @@ gulp.task("lint", () =>
           .pipe(eslint.format())
           .pipe(eslint.failAfterError()));
 
+gulp.task("tslint", () =>
+          gulp.src("lib/**/*.ts")
+          .pipe(tslint({
+            formatter: "verbose",
+          }))
+          .pipe(tslint.report()));
+
 gulp.task("copy-src", () => {
   const dest = "build/dist/";
   return gulp.src([
     "package.json",
     "bin/*",
-    "lib/**/*.js",
+    "lib/**/*.d.ts",
     "lib/**/*.xsl",
   ], { base: "." })
     .pipe(newer(dest))
@@ -142,7 +147,7 @@ gulp.task("jison", () => {
       // Override the default main created by Jison. This module cannot ever be
       // used as a main script. And the default that Jison uses does
       // `require("fs")` which causes problems.
-      moduleMain: () => {
+      moduleMain: function main() {
         throw new Error("this module cannot be used as main");
       },
     }))
@@ -154,8 +159,33 @@ gulp.task("default", ["webpack"]);
 gulp.task("copy", ["copy-src", "copy-readme"], () =>
           fs.writeFileAsync("build/dist/.npmignore", "bin/parse.js"));
 
+const project = ts.createProject("tsconfig.json");
+gulp.task("tsc", () => {
+  // The .once nonsense is to work around a gulp-typescript bug
+  //
+  // See: https://github.com/ivogabe/gulp-typescript/issues/295
+  //
+  // For the fix see:
+  // https://github.com/ivogabe/gulp-typescript/issues/295#issuecomment-197299175
+  //
+  const result = project.src()
+          .pipe(sourcemaps.init({ loadMaps: true }))
+          .pipe(project())
+          .once("error", function onError() {
+            this.once("finish", () => {
+              process.exit(1);
+            });
+          });
 
-gulp.task("webpack", ["copy", "jison"], (callback) => {
+  const dest = "build/dist/lib";
+  return es.merge(result.js
+                  .pipe(sourcemaps.write("."))
+                  .pipe(gulp.dest(dest)),
+                  result.dts.pipe(gulp.dest(dest)));
+});
+
+
+gulp.task("webpack", ["tsc", "copy", "jison"], (callback) => {
   webpack(webpackConfig, (err, stats) => {
     if (err) {
       throw new gutil.PluginError("webpack", err);
@@ -169,64 +199,36 @@ gulp.task("webpack", ["copy", "jison"], (callback) => {
 
 let packname;
 
-gulp.task("install_test", ["default"], Promise.coroutine(function *install() {
+gulp.task("pack", ["default"],
+          () => execFileAsync("npm", ["pack", "dist"], { cwd: "build" })
+          .then((_packname) => {
+            packname = _packname.trim();
+          }));
+
+gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
   const testDir = "build/install_dir";
   yield del(testDir);
-  const _packname = yield execFileAsync("npm", ["pack", "dist"],
-                                        { cwd: "build" });
-  packname = _packname.trim();
   yield fs.mkdirAsync(testDir);
   yield fs.mkdirAsync(path.join(testDir, "node_modules"));
-  yield execFileAsync("npm", ["install", `../${packname}`], { cwd: testDir });
+  yield execFileAsync("npm", ["install", `../${packname}`, "sax", "@types/sax"],
+                      { cwd: testDir });
+  let module = yield fs.readFileAsync("lib/salve/parse.ts");
+  module = module.toString();
+  module = module.replace("./validate", "salve");
+  yield fs.writeFileAsync(path.join(testDir, "parse.ts"), module);
+  yield execFileAsync("../../node_modules/.bin/tsc", ["parse.ts"],
+                      { cwd: testDir });
   yield del(testDir);
 }));
 
 gulp.task("publish", ["install_test"],
           () => execFileAsync("npm", ["publish", packname], { cwd: "build" }));
 
-gulp.task("check-jsdoc-version", (callback) => {
-  // Check that the local version of JSDoc is the same or better
-  // than the version deemed required for proper output.
-  childProcess.execFile(options.jsdoc, ["-v"], (err, stdout, _stderr) => {
-    if (err) {
-      throw err;
-    }
-
-    const versionRe = /(\d+)(?:\.(\d+)(?:\.(\d+))?)?/;
-    const requiredRe = new RegExp(`^${versionRe.source}$`);
-
-    const reqVersionMatch = options.jsdoc_required_version.match(requiredRe);
-    if (!reqVersionMatch) {
-      throw new Error("Incorrect version specification: " +
-                      `"${options.required_jsdoc_version}".`);
-    }
-
-    const versionMatchList = versionRe.exec(stdout);
-    if (!versionMatchList) {
-      throw new Error("Could not determine local JSDoc version.");
-    }
-
-    for (let i = 1; i < reqVersionMatch.length; ++i) {
-      const req = Number(reqVersionMatch[i]);
-      const actual = Number(versionMatchList[i]);
-      if (req > actual) {
-        throw new Error("Local JSDoc version is too old: " +
-                        `${versionMatchList[0]} < ${reqVersionMatch[0]}.`);
-      }
-      else if (actual > req) {
-        break;
-      }
-    }
-    callback();
-  });
-});
-
-gulp.task("jsdoc", ["check-jsdoc-version"], (callback) => {
-  const src = ["lib/**/*.js", "doc/api_intro.md", "package.json"];
-
-  const dest = "build/api";
+gulp.task("typedoc", ["lint"], (callback) => {
   const stamp = "build/api.stamp";
-  gulp.src(src, { read: false, base: "." })
+
+  gulp
+    .src(["lib/**/*.ts"])
     .pipe(newer(stamp))
     .pipe(reduce((acc, data) => {
       acc.push(data);
@@ -234,19 +236,35 @@ gulp.task("jsdoc", ["check-jsdoc-version"], (callback) => {
     }, []))
     .on("data", (files) => {
       if (files.length === 0) {
+        gutil.log("No change, skipping typedoc.");
         callback();
         return;
       }
 
-      let args = ["-c", "jsdoc.conf.json"];
-      if (options.jsdoc_private) {
-        args.push("-p");
-      }
-      args = args.concat(files.map(x => x.path));
-      args.push("-d", dest);
-      childProcess.execFileAsync(options.jsdoc, args)
-        .then(() => touchAsync(stamp))
-        .then(() => callback());
+      const tsoptions = JSON.parse(fs.readFileSync("tsconfig.json"))
+              .compilerOptions;
+      const version = JSON.parse(fs.readFileSync("package.json")).version;
+      Object.assign(tsoptions, {
+        out: `./build/api/salve/${version}`,
+        name: "salve",
+        readme: "doc/api_intro.md",
+        ignoreCompilerErrors: false,
+        version: true,
+        excludePrivate: !options.doc_private,
+      });
+
+      // These are not supported by typedoc.
+      delete tsoptions.noImplicitThis;
+      delete tsoptions.declaration;
+      delete tsoptions.sourceMap;
+      delete tsoptions.strictNullChecks;
+
+      gulp
+        .src(["lib/**/*.ts"])
+        .pipe(typedoc(tsoptions))
+        .on("end", () => {
+          touchAsync(stamp).asCallback(callback);
+        });
     });
 });
 
@@ -264,9 +282,9 @@ gulp.task("readme", () => {
                                        () => callback())));
 });
 
-gulp.task("doc", ["jsdoc", "readme"]);
+gulp.task("doc", ["typedoc", "readme"]);
 
-gulp.task("gh-pages-build", ["jsdoc"], () => {
+gulp.task("gh-pages-build", ["typedoc"], () => {
   const dest = "gh-pages-build";
   return gulp.src("**/*", { cwd: "build/api/" })
     .pipe(newer(dest))
@@ -311,6 +329,6 @@ gulp.task("mocha", ["default"], (callback) => {
   });
 });
 
-gulp.task("test", ["default", "versync", "mocha"]);
+gulp.task("test", ["default", "lint", "versync", "mocha"]);
 
 gulp.task("clean", () => del(["build", "gh-pages-build"]));

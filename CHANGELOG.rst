@@ -3,6 +3,26 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 4.0.0:
+
+  - Move to TypeScript. Immediate advantages:
+
+    + Fixed a few bugs in the code that were revealed by TypeScript. The bugs
+      what were found were in the following categories: dead code (in particular
+      an experimental type was left over), errors cancelling each other.
+
+    + Fixed mistakes in the documentation. JSDoc3 allows for the code and the
+      documentation to be a complete odds with each other. typedoc narrows the
+      opportunities for divergence considerably.
+
+  - Renamed ``ReferenceError`` to ``RefError``. This is to avoid a name clash
+    with the built-in ``ReferenceError`` provided by JavaScript engines. The
+    clash did not make the code fail but it had unfortunate side-effects.
+
+  - Renamed ``Set`` in ``set.ts`` to ``NaiveSet`` to avoid clashing with
+    possible ``Set`` classes provided by the JavaScript runtime. (This was a
+    private part of salve, so it should not break anything.)
+
 * 3.0.0:
 
   - General restructuring of salve. This could consitute a breaking change
