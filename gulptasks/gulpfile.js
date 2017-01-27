@@ -89,7 +89,11 @@ const options = parser.parseArgs(process.argv.slice(2));
 
 gulp.task("lint", ["tslint", "eslint"]);
 
-gulp.task("eslint", () =>
+gulp.task("eslint",
+          // The TypeScript code must have been compiled, otherwise we get
+          // reference errors.
+          ["tsc"],
+          () =>
           gulp.src([
             "*.js",
             "bin/**/*.js",
