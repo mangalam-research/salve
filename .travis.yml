@@ -4,6 +4,8 @@ node_js:
   - "5"
   - "4"
 before_install:
+  # On Node v4 the version of npm is too old.
+  - if [[ `npm -v` != 3* ]]; then npm i -g npm@3; fi
   - sudo apt-get update -qq
   - sudo apt-get install -y xsltproc jing
 script: gulp test
