@@ -5,7 +5,7 @@ var webpack = require("webpack");
 
 module.exports = {
   resolve: {
-    modulesDirectories: ["build/dist/lib", "node_modules"],
+    modules: ["build/dist/lib", "node_modules"],
   },
   entry: {
     salve: "salve/validate.js",
@@ -21,6 +21,7 @@ module.exports = {
   },
   plugins: [
     new webpack.optimize.UglifyJsPlugin({
+      sourceMap: true,
       include: /\.min\.js$/,
     }),
   ],
