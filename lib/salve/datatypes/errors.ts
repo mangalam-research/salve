@@ -23,7 +23,7 @@ export class ParamError {
   toString(): string {
     return this.message;
   }
-};
+}
 
 /**
  * Records an error due to an incorrect value (``<value>``).  This is an error

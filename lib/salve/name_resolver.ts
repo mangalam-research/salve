@@ -16,12 +16,14 @@ import { EName } from "./ename";
  * The namespace URI for the "xml" prefix. This is part of the [XML
  * spec](http://www.w3.org/TR/REC-xml-names/#ns-decl).
  */
+// tslint:disable-next-line: no-http-string
 export const XML1_NAMESPACE: string = "http://www.w3.org/XML/1998/namespace";
 
 /**
  * The namespace URI for the "xmlns" prefix. This is part of the [XML
  * spec](http://www.w3.org/TR/REC-xml-names/#ns-decl).
  */
+// tslint:disable-next-line: no-http-string
 export const XMLNS_NAMESPACE: string = "http://www.w3.org/2000/xmlns/";
 
 /**
@@ -297,7 +299,7 @@ export class NameResolver {
   private __newID(): number {
     return NameResolver.__id++;
   }
-};
+}
 
 // LocalWords:  namespace unresolving MPL xml resolveName Dubeau URI
 // LocalWords:  Mangalam LocalWords NameResolver lt html lang ename

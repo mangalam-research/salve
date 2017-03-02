@@ -1,3 +1,6 @@
+/**
+ * Fix omissions in the global declarations.
+ */
 //
 // We need this because we access function names.
 //

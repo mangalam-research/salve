@@ -3,6 +3,10 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 4.1.0:
+
+  - Fixed an obscure bug revealed through linting the code more stringently.
+
 * 4.0.0:
 
   - Move to TypeScript. Immediate advantages:

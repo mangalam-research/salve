@@ -143,7 +143,7 @@ export abstract class ConversionWalker {
    * of the children of ``el``.
    */
   walkChildren(el: Element, startAt: number = 0, endAt?: number): void {
-    const children: Array<Element | string> = el.children;
+    const children: (Element | string)[] = el.children;
 
     if (!endAt) {
       endAt = children.length;
@@ -202,11 +202,12 @@ export class DefaultConversionWalker extends ConversionWalker {
     this.outputItem(this.arrayStart);
   }
 
+  // tslint:disable-next-line: max-func-body-length
   walk(el: Element): void {
     el.makePath();
 
     // Damn hoisting.
-    let constructor: number;
+    let ctor: number;
 
     // This is the SAX node.
     const node: any = el.node;
@@ -222,8 +223,8 @@ export class DefaultConversionWalker extends ConversionWalker {
       this.openConstruct("{", "}");
       this.outputItem(`"v":3,"o":${this.includePaths ? 0 : 1},"d":`);
       // tslint:disable:no-string-literal
-      constructor = constructorNameToIndex["Grammar"];
-      if (!constructor) {
+      ctor = constructorNameToIndex["Grammar"];
+      if (!ctor) {
         throw new Error("can't find constructor for Grammar");
       }
       this.openConstruct("[", "]");
@@ -231,7 +232,7 @@ export class DefaultConversionWalker extends ConversionWalker {
         this.outputString("Grammar");
       }
       else {
-        this.outputItem(constructor);
+        this.outputItem(ctor);
       }
       if (this.includePaths) {
         this.outputString(el.path!);
@@ -267,8 +268,8 @@ export class DefaultConversionWalker extends ConversionWalker {
       }
 
       this.newItem();
-      constructor = constructorNameToIndex[capitalized];
-      if (!constructor) {
+      ctor = constructorNameToIndex[capitalized];
+      if (!ctor) {
         throw new Error(`can't find constructor for ${capitalized}`);
       }
 
@@ -277,7 +278,7 @@ export class DefaultConversionWalker extends ConversionWalker {
         this.outputString(capitalized);
       }
       else {
-        this.outputItem(constructor);
+        this.outputItem(ctor);
       }
       if (this.includePaths) {
         this.outputString(el.path!);
@@ -578,7 +579,7 @@ export class DatatypeProcessor extends ConversionWalker {
 
   walk(el: Element): void {
     let libname: string | undefined;
-    let type: string | undefined;
+    let type: string | undefined; // tslint:disable-line: no-reserved-keywords
 
     if (el.node.local === "value") {
       el.makePath();
@@ -604,6 +605,7 @@ export class DatatypeProcessor extends ConversionWalker {
       }
 
       if (datatype.needsContext &&
+          // tslint:disable-next-line: no-http-string
           !(libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
             (type === "QName" || type === "NOTATION"))) {
         throw new Error("datatype needs context but is not " +
@@ -663,6 +665,7 @@ export class DatatypeProcessor extends ConversionWalker {
       new nameToConstructor.Data(el.path, type, libname, params);
     }
 
+    // tslint:disable-next-line: no-http-string
     if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
         warnAboutTheseTypes.indexOf(type!) !== -1) {
       this.warnings.push(

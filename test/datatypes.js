@@ -7,8 +7,8 @@
 /* global it, describe, before */
 import { assert } from "chai";
 import _ from "lodash";
-import datatypes from "../build/dist/lib/salve/datatypes";
-import nameResolver from "../build/dist/lib/salve/name_resolver";
+import * as datatypes from "../build/dist/lib/salve/datatypes";
+import * as nameResolver from "../build/dist/lib/salve/name_resolver";
 
 const decimalProgram = {
   equal: {

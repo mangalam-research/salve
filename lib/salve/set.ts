@@ -18,6 +18,7 @@
  *
  * Note that ``NaiveSet`` cannot hold undefined values.
  */
+// tslint:disable: no-any no-reserved-keywords
 export class NaiveSet {
   /**
    * The backing store for the set.
@@ -70,7 +71,7 @@ export class NaiveSet {
    * @param s The set to add.
    * @throws {Error} If ``s`` is not a ``NaiveSet`` object
    */
-  union(s: NaiveSet): void {
+  union(s?: NaiveSet): void {
     if (s == null) {
       return;
     }
@@ -168,7 +169,7 @@ export class NaiveSet {
   toArray(): any[] {
     return this.b.slice();
   }
-};
+}
 
 // LocalWords:  hashstructs HashSet Dubeau MPL Mangalam LocalWords
 // LocalWords:  param truthy

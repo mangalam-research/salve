@@ -13,6 +13,8 @@ import { Context, Datatype, RawParameter, TypeLibrary } from "./library";
 import * as regexp from "./regexp";
 import { xmlNameChar, xmlNameRe, xmlNcname, xmlNcnameRe } from "./xmlcharacters";
 
+// tslint:disable: no-reserved-keywords
+
 /**
  * @private
  */
@@ -178,13 +180,13 @@ abstract class NumericParameter extends Parameter {
   convert(value: string): any {
     return Number(value);
   }
-};
+}
 
 abstract class NonNegativeIntegerParameter extends NumericParameter {
   isInvalidParam(value: string, name: string): ParamError | false {
     return failIfNotNonNegativeInteger(value, name);
   }
-};
+}
 
 class LengthP extends NonNegativeIntegerParameter {
   readonly name: string = "length";
@@ -196,7 +198,7 @@ class LengthP extends NonNegativeIntegerParameter {
 
     return new ValueError(`length of value should be ${param}`);
   }
-};
+}
 
 const lengthP: LengthP = new LengthP();
 
@@ -211,7 +213,7 @@ class MinLengthP extends NonNegativeIntegerParameter {
     return new ValueError("length of value should be greater than " +
                           `or equal to ${param}`);
   }
-};
+}
 
 const minLengthP: MinLengthP = new MinLengthP();
 
@@ -227,7 +229,7 @@ class MaxLengthP extends NonNegativeIntegerParameter {
                           `or equal to ${param}`);
   }
 
-};
+}
 
 const maxLengthP: MaxLengthP = new MaxLengthP();
 
@@ -305,7 +307,7 @@ class PatternP extends Parameter {
 
     return new ValueError(`value does not match the pattern ${param.rng}`);
   }
-};
+}
 
 const patternP: PatternP = new PatternP();
 
@@ -324,7 +326,7 @@ class TotalDigitsP extends NumericParameter {
 
     return false;
   }
-};
+}
 
 const totalDigitsP: TotalDigitsP = new TotalDigitsP();
 
@@ -339,7 +341,7 @@ class FractionDigitsP extends NonNegativeIntegerParameter {
 
     return false;
   }
-};
+}
 
 abstract class NumericTypeDependentParameter extends NumericParameter {
   isInvalidParam(value: any, name: string, type: Base): ParamError | false {
@@ -354,7 +356,7 @@ abstract class NumericTypeDependentParameter extends NumericParameter {
     // narrow it to the first error and convert the ValueError to a ParamError.
     return new ParamError(errors[0].message);
   }
-};
+}
 
 const fractionDigitsP: FractionDigitsP = new FractionDigitsP();
 
@@ -366,7 +368,7 @@ class MaxInclusiveP extends NumericTypeDependentParameter {
     }
     return false;
   }
-};
+}
 
 const maxInclusiveP: MaxInclusiveP = new MaxInclusiveP();
 
@@ -378,7 +380,7 @@ class MaxExclusiveP extends NumericTypeDependentParameter {
     }
     return false;
   }
-};
+}
 
 const maxExclusiveP: MaxExclusiveP = new MaxExclusiveP();
 
@@ -390,7 +392,7 @@ class MinInclusiveP extends NumericTypeDependentParameter {
     }
     return false;
   }
-};
+}
 
 const minInclusiveP: MinInclusiveP = new MinInclusiveP();
 
@@ -402,7 +404,7 @@ class MinExclusiveP extends NumericTypeDependentParameter {
     }
     return false;
   }
-};
+}
 
 const minExclusiveP: MinExclusiveP = new MinExclusiveP();
 
@@ -539,6 +541,7 @@ abstract class Base implements Datatype {
     return { value: this.convertValue(value, context) };
   }
 
+  // tslint:disable-next-line: max-func-body-length
   parseParams(location?: string, params?: RawParameter[]): any {
     const errors: ParamError[] = [];
     const names: TrivialMap<any[]> = Object.create(null);
@@ -752,7 +755,7 @@ abstract class Base implements Datatype {
 
     return this.disallowedByParams(value, converted, params, context);
   }
-};
+}
 
 //
 // String family
@@ -767,45 +770,45 @@ class string_ extends Base {
                                        patternP];
   readonly needsContext: boolean = false;
   readonly regexp: RegExp = /^.*$/;
-};
+}
 
 class normalizedString extends string_ {
   readonly name: string = "normalizedString";
   readonly typeErrorMsg: string =
     "string contains a tab, carriage return or newline";
   readonly regexp: RegExp = /^[^\r\n\t]+$/;
-};
+}
 
 class token extends normalizedString {
   readonly name: string = "token";
   readonly typeErrorMsg: string = "not a valid token";
   readonly regexp: RegExp = /^(?:(?! )(?:(?! {3})[^\r\n\t])*[^\r\n\t ])?$/;
-};
+}
 
 class language extends token {
   readonly name: string = "language";
   readonly typeErrorMsg: string = "not a valid language identifier";
   readonly regexp: RegExp = /^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$/;
-};
+}
 
 class Name extends token {
   readonly name: string = "Name";
   readonly typeErrorMsg: string = "not a valid Name";
   readonly regexp: RegExp = xmlNameRe;
-};
+}
 
 class NCName extends Name {
   readonly name: string = "NCName";
   readonly typeErrorMsg: string = "not a valid NCName";
   readonly regexp: RegExp = xmlNcnameRe;
-};
+}
 
 const xmlNmtokenRe: RegExp = new RegExp(`^[${xmlNameChar}]+$`);
 class NMTOKEN extends token {
   readonly name: string = "NMTOKEN";
   readonly typeErrorMsg: string = "not a valid NMTOKEN";
   readonly regexp: RegExp = xmlNmtokenRe;
-};
+}
 
 const xmlNmtokensRe: RegExp =
   new RegExp(`^[${xmlNameChar}]+(?: [${xmlNameChar}]+)*$`);
@@ -814,17 +817,17 @@ class NMTOKENS extends NMTOKEN {
   readonly typeErrorMsg: string = "not a valid NMTOKENS";
   readonly regexp: RegExp = xmlNmtokensRe;
   readonly whiteSpaceDefault: WhitespaceHandling = WhitespaceHandling.COLLAPSE;
-};
+}
 
 class ID extends NCName {
   readonly name: string = "ID";
   readonly typeErrorMsg: string = "not a valid ID";
-};
+}
 
 class IDREF extends NCName {
   readonly name: string = "IDREF";
   readonly typeErrorMsg: string = "not a valid IDREF";
-};
+}
 
 const IDREFS_RE: RegExp = new RegExp(`^${xmlNcname}(?: ${xmlNcname})*$`);
 class IDREFS extends IDREF {
@@ -832,17 +835,17 @@ class IDREFS extends IDREF {
   readonly typeErrorMsg: string = "not a valid IDREFS";
   readonly regexp: RegExp = IDREFS_RE;
   readonly whiteSpaceDefault: WhitespaceHandling = WhitespaceHandling.COLLAPSE;
-};
+}
 
 class ENTITY extends string_ {
   readonly name: string = "ENTITY";
   readonly typeErrorMsg: string = "not a valid ENTITY";
-};
+}
 
 class ENTITIES extends string_ {
   readonly name: string = "ENTITIES";
   readonly typeErrorMsg: string = "not a valid ENTITIES";
-};
+}
 
 //
 // Decimal family
@@ -865,7 +868,7 @@ class decimal extends Base {
     return Number(super.convertValue(value));
   }
 
-};
+}
 
 const integerPattern: string = "[-+]?\\d+";
 class integer extends decimal {
@@ -873,8 +876,8 @@ class integer extends decimal {
   readonly typeErrorMsg: string = "value is not an integer";
   readonly regexp: RegExp = new RegExp(`^${integerPattern}$`);
 
-  readonly highestVal: number | undefined = undefined;
-  readonly lowestVal: number | undefined = undefined;
+  readonly highestVal: number | undefined;
+  readonly lowestVal: number | undefined;
 
   readonly validParams: Parameter[] = [
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
@@ -936,7 +939,7 @@ class integer extends decimal {
 
     return ret;
   }
-};
+}
 
 class nonPositiveInteger extends integer {
   readonly name: string = "nonPositiveInteger";
@@ -947,7 +950,7 @@ class nonPositiveInteger extends integer {
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
     maxInclusiveP,
   ];
-};
+}
 
 class negativeInteger extends nonPositiveInteger {
   readonly name: string = "negativeInteger";
@@ -958,7 +961,7 @@ class negativeInteger extends nonPositiveInteger {
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
     maxInclusiveP,
   ];
-};
+}
 
 class nonNegativeInteger extends integer {
   readonly name: string = "nonNegativeInteger";
@@ -969,7 +972,7 @@ class nonNegativeInteger extends integer {
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
     maxInclusiveP,
   ];
-};
+}
 
 class positiveInteger extends nonNegativeInteger {
   readonly name: string = "positiveInteger";
@@ -980,7 +983,7 @@ class positiveInteger extends nonNegativeInteger {
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
     maxInclusiveP,
   ];
-};
+}
 
 class long_ extends integer {
   readonly name: string = "long";
@@ -998,21 +1001,21 @@ class int_ extends long_ {
   readonly typeErrorMsg: string = "value is not an int";
   readonly highestVal: number = 2147483647;
   readonly lowestVal: number = -2147483648;
-};
+}
 
 class short_ extends int_ {
   readonly name: string = "short";
   readonly typeErrorMsg: string = "value is not a short";
   readonly highestVal: number = 32767;
   readonly lowestVal: number = -32768;
-};
+}
 
 class byte_ extends short_ {
   readonly name: string = "byte";
   readonly typeErrorMsg: string = "value is not a byte";
   readonly highestVal: number = 127;
   readonly lowestVal: number = -128;
-};
+}
 
 class unsignedLong extends nonNegativeInteger {
   readonly name: string = "unsignedLong";
@@ -1022,7 +1025,7 @@ class unsignedLong extends nonNegativeInteger {
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
     maxInclusiveP,
   ];
-};
+}
 
 class unsignedInt extends unsignedLong {
   readonly name: string = "unsignedInt";
@@ -1032,7 +1035,7 @@ class unsignedInt extends unsignedLong {
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
     maxInclusiveP,
   ];
-};
+}
 
 class unsignedShort extends unsignedInt {
   readonly name: string = "unsignedShort";
@@ -1042,7 +1045,7 @@ class unsignedShort extends unsignedInt {
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
     maxInclusiveP,
   ];
-};
+}
 
 class unsignedByte extends unsignedShort {
   readonly name: string = "unsignedByte";
@@ -1052,7 +1055,7 @@ class unsignedByte extends unsignedShort {
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
     maxInclusiveP,
   ];
-};
+}
 
 class boolean_ extends Base {
   readonly name: string = "boolean";
@@ -1063,7 +1066,7 @@ class boolean_ extends Base {
   convertValue(value: string): boolean {
     return (value === "1" || value === "true");
   }
-};
+}
 
 const B04: string = "[AQgw]";
 const B16: string = "[AEIMQUYcgkosw048]";
@@ -1092,7 +1095,7 @@ class base64Binary extends Base {
     // Length of the decoded value.
     return Math.floor((value.replace(/[\s=]/g, "").length * 3) / 4);
   }
-};
+}
 
 class hexBinary extends Base {
   readonly name: string = "hexBinary";
@@ -1109,7 +1112,7 @@ class hexBinary extends Base {
     // Length of the byte list.
     return value.length / 2;
   }
-};
+}
 
 const doubleRe: RegExp = new RegExp(
   `^(?:(?:[-+]?INF)|(?:NaN)|(?:${decimalPattern}(?:[Ee]${integerPattern})?))$`);
@@ -1126,7 +1129,7 @@ class float_ extends Base {
   convertValue(value: string, context?: Context): any {
     return parseFloat(value);
   }
-};
+}
 
 class double_ extends Base {
   readonly name: string = "double";
@@ -1140,7 +1143,7 @@ class double_ extends Base {
   convertValue(value: string, context?: Context): any {
     return parseFloat(value);
   }
-};
+}
 
 class QName extends Base {
   readonly name: string = "QName";
@@ -1158,7 +1161,7 @@ class QName extends Base {
     }
     return `{${ret.ns}}${ret.name}`;
   }
-};
+}
 
 class NOTATION extends Base {
   readonly name: string = "NOTATION";
@@ -1176,7 +1179,7 @@ class NOTATION extends Base {
     }
     return `{${ret.ns}}${ret.name}`;
   }
-};
+}
 
 class duration extends Base {
   readonly name: string = "duration";
@@ -1185,7 +1188,7 @@ class duration extends Base {
     /^-?P(?!$)(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?!$)(?:\d+H)?(?:\d+M)?(?:\d+(\.\d+)?S)?)?$/;
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
-};
+}
 
 const yearPattern: string = "-?(?:[1-9]\\d*)?\\d{4}";
 const monthPattern: string  = "[01]\\d";
@@ -1202,7 +1205,7 @@ const dateGroupingRe: RegExp = new RegExp(
   `^(${yearPattern})-(${monthPattern})-(${domPattern})T(${timePattern})` +
     `(${tzPattern}?)$`);
 
-const maxDoms: Array<number|undefined> =
+const maxDoms: (number|undefined)[] =
   [undefined, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 function checkDate(value: string): number | true {
   // The Date.parse method of JavaScript is not reliable.
@@ -1223,7 +1226,7 @@ function checkDate(value: string): number | true {
   if (month === 2 && !leap) {
     maxDom = 28;
   }
-  if (dom === 0 || dom > maxDom) {
+  if (dom === 0 || dom > maxDom!) {
     return NaN;
   }
 
@@ -1331,7 +1334,7 @@ class date extends Base {
 
     return false;
   }
-};
+}
 
 class gYearMonth extends Base {
   readonly name: string = "gYearMonth";
@@ -1356,7 +1359,7 @@ class gYearMonth extends Base {
 
     return false;
   }
-};
+}
 
 class gYear extends Base {
   readonly name: string = "gYear";
@@ -1380,7 +1383,7 @@ class gYear extends Base {
 
     return false;
   }
-};
+}
 
 class gMonthDay extends Base {
   readonly name: string = "gMonthDay";
@@ -1407,7 +1410,7 @@ class gMonthDay extends Base {
 
     return false;
   }
-};
+}
 
 class gDay extends Base {
   readonly name: string = "gDay";
@@ -1433,7 +1436,7 @@ class gDay extends Base {
 
     return false;
   }
-};
+}
 
 class gMonth extends Base {
   readonly name: string = "gMonth";
@@ -1459,7 +1462,7 @@ class gMonth extends Base {
 
     return false;
   }
-};
+}
 
 // Generated from http://jmrware.com/articles/2009/uri_regexp/URI_regex.html
 // tslint:disable-next-line:max-line-length
@@ -1472,7 +1475,7 @@ class anyURI extends Base {
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] =
     [patternP, lengthP, minLengthP, maxLengthP];
-};
+}
 
 const types: any[] = [
   string_,
@@ -1522,6 +1525,7 @@ const types: any[] = [
 ];
 
 const library: TypeLibrary = {
+  // tslint:disable-next-line: no-http-string
   uri: "http://www.w3.org/2001/XMLSchema-datatypes",
   types: {},
 };
@@ -1529,7 +1533,7 @@ const library: TypeLibrary = {
 for (const type of types) {
   const instance: Base = new type();
   library.types[instance.name] = instance;
-};
+}
 
 /**
  * The XML Schema datatype library.

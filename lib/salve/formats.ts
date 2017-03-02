@@ -131,13 +131,13 @@ export class V2JSONWalker {
    * @returns The return value of [[V2JSONWalker._processObject]].
    */
   walkObject(array: any[]): any {
-    const type: number = array[0];
-    const ctor: Function = codeToConstructor[type];
+    const kind: number = array[0];
+    const ctor: Function = codeToConstructor[kind];
     if (ctor === undefined) {
       if (array.length < 1) {
         throw new Error("array too small to contain object");
       }
-      throw new Error(`undefined type: ${type}`);
+      throw new Error(`undefined type: ${kind}`);
     }
 
     if (ctor === Array) {
@@ -223,6 +223,7 @@ class V2Constructor extends V2JSONWalker {
         throw new Error("parameter array length not a multiple of 2");
       }
 
+      // tslint:disable-next-line: prefer-array-literal
       const newParams: any[] = new Array(params.length / 2);
       const limit: number = params.length;
       for (let i: number = 0; i < limit; i += 2) {
@@ -272,7 +273,7 @@ class V2Constructor extends V2JSONWalker {
     // Some constructors return a value; make sure to use it!
     return ctorRet !== undefined ? ctorRet : newObj;
   }
-};
+}
 
 /**
  * Constructs a tree of patterns from the data structure produced by running

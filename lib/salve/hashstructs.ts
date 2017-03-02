@@ -239,7 +239,7 @@ export class HashSet extends HashBase {
   add(x: any): void {
     this._store(this.hashF(x), x);
   };
-};
+}
 
 /**
  * A map of (key, value) pairs. The keys are distinguished by means of a hash

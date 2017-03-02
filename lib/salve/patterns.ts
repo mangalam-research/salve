@@ -69,6 +69,10 @@ import * as util from "./util";
 
 const DEBUG: boolean = false;
 
+// This is here to shut the compiler up about unused variables.
+/* tslint:disable: no-empty no-invalid-this */
+function noop(..._args: any[]): void {}
+
 if (DEBUG) {
   //
   // Debugging utilities
@@ -78,10 +82,10 @@ if (DEBUG) {
     console.log(msg); // tslint:disable-line:no-console
   };
 
-  // eslint-disable-next-line no-unused-vars
   const stackTrace: () => void = () => {
     trace(new Error().stack);
   };
+  noop(stackTrace);
 
   let possibleTracer: (oldMethod: Function, name: string, args: any[]) => any;
   let fireEventTracer: (oldMethod: Function, name: string, args: any[]) => any;
@@ -190,6 +194,8 @@ if (DEBUG) {
         return f.call(this, me[mangledName], name, arguments);
       };
     };
+  noop(wrap);
+  /* tslint:enable */
 }
 
 /**
@@ -199,6 +205,7 @@ if (DEBUG) {
  * @param elCls The class that will get the new method.
  * @param walkerCls The Walker class to instantiate.
  */
+/* tslint:disable: no-invalid-this */
 function addWalker<T>(elCls: any, walkerCls: any): void {
   // `resolver` is a NameResolver.
   // tslint:disable-next-line:only-arrow-functions
@@ -207,6 +214,7 @@ function addWalker<T>(elCls: any, walkerCls: any): void {
     return new walkerCls(this, resolver) as T;
   };
 }
+/* tslint:enable */
 
 // function EventSet() {
 //     var args = Array.prototype.slice.call(arguments);
@@ -341,7 +349,7 @@ export class BasePattern {
    *
    * @param memo The memo in which to store the information.
    */
-  _gatherElementDefinitions(memo: any): void {
+  _gatherElementDefinitions(memo: TrivialMap<Element[]>): void {
     // By default we have no children.
   }
 
@@ -353,7 +361,7 @@ export class BasePattern {
   private __newID(): number {
     return Pattern.__id++;
   }
-};
+}
 
 /**
  * This is the common class from which patterns are derived. Most patterns
@@ -393,10 +401,10 @@ export abstract class OneSubpattern extends Pattern {
     return this.pat._hasAttrs();
   }
 
-  _gatherElementDefinitions(memo: any): void {
+  _gatherElementDefinitions(memo: TrivialMap<Element[]>): void {
     this.pat._gatherElementDefinitions(memo);
   }
-};
+}
 
 /**
  * Pattern objects of this class have exactly two child patterns.
@@ -430,7 +438,7 @@ export class TwoSubpatterns extends Pattern {
     return this.patA._hasAttrs() || this.patB._hasAttrs();
   }
 
-  _gatherElementDefinitions(memo: any): void {
+  _gatherElementDefinitions(memo: TrivialMap<Element[]>): void {
     this.patA._gatherElementDefinitions(memo);
     this.patB._gatherElementDefinitions(memo);
   }
@@ -463,7 +471,7 @@ export class Event {
   private static __id: number = 0;
 
   readonly id: string;
-  readonly params: Array<string|namePatterns.Base>;
+  readonly params: (string|namePatterns.Base)[];
   private readonly key: string;
 
   /**
@@ -473,7 +481,7 @@ export class Event {
    * event parameters must be strings.
    */
   constructor(...args: any[]) {
-    const params: Array<string|namePatterns.Base> =
+    const params: (string|namePatterns.Base)[] =
       (args.length === 1 && args[0] instanceof Array) ? args[0] : args;
 
     const key: string = params.join();
@@ -536,7 +544,7 @@ export class Event {
     return Event.__id++;
   }
 
-};
+}
 
 /**
  * Utility function used mainly in testing to transform a [["set".Set]] of
@@ -575,7 +583,7 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
 
   const hash: HashMap = new HashMap(hashF);
   evs.forEach((ev: Event) => {
-    const params: Array<string|namePatterns.Base> = ev.params;
+    const params: (string|namePatterns.Base)[] = ev.params;
 
     let node: HashMap = hash;
     for (let i: number = 0; i < params.length; ++i) {
@@ -626,6 +634,7 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
     }());
 
   return dumpTree(hash);
+  /* tslint:enable */
 }
 
 /**
@@ -660,7 +669,7 @@ export abstract class Walker<T extends BasePattern> {
 
   protected readonly el: T;
 
-  protected possibleCached: any;
+  protected possibleCached: EventSet | undefined;
 
   protected suppressedAttributes: boolean = false;
 
@@ -669,7 +678,7 @@ export abstract class Walker<T extends BasePattern> {
    */
   protected constructor(other: Walker<T>, memo: HashMap);
   protected constructor(el: T);
-  protected constructor(elOrWalker: any, memo?: HashMap) {
+  protected constructor(elOrWalker: T | Walker<T>) {
     if (elOrWalker instanceof Walker) {
       this.el = elOrWalker.el;
       this.possibleCached = elOrWalker.possibleCached;
@@ -793,7 +802,7 @@ export abstract class Walker<T extends BasePattern> {
   * @returns The clone.
   */
   _clone(memo: HashMap): this {
-    return new (this.constructor as any)(this, new HashMap(hashHelper));
+    return new (this.constructor as any)(this, memo);
   }
 
   /**
@@ -929,7 +938,7 @@ class EmptyWalker extends Walker<Empty> {
   }
 
   _possible(): EventSet {
-    return this.possibleCached;
+    return this.possibleCached!;
   }
 
   fireEvent(ev: Event): false | undefined {
@@ -947,7 +956,7 @@ addWalker(Empty, EmptyWalker);
 /**
  * List pattern.
  */
-class List extends OneSubpattern {};
+class List extends OneSubpattern {}
 
 /**
  * Walker for [[List]].
@@ -1061,6 +1070,7 @@ class Value extends Pattern {
    *
    * @param ns The namespace in which to interpret the value.
    */
+  // tslint:disable-next-line: no-reserved-keywords
   constructor(xmlPath: string, value: string, readonly type: string = "token",
               readonly datatypeLibrary: string = "", readonly ns: string = "") {
     super(xmlPath);
@@ -1068,7 +1078,6 @@ class Value extends Pattern {
     if (!this.datatype) {
       throw new Error(`unkown type: ${type}`);
     }
-    this._value = undefined;
     this.rawValue = value;
   }
 
@@ -1126,7 +1135,7 @@ class ValueWalker extends Walker<Value> {
   }
 
   _possible(): EventSet {
-    return this.possibleCached;
+    return this.possibleCached!;
   }
 
   fireEvent(ev: Event): false | undefined {
@@ -1188,6 +1197,7 @@ class Data extends Pattern {
    *
    * @param except The exception pattern.
    */
+  // tslint:disable-next-line: no-reserved-keywords
   constructor(xmlPath: string, readonly type: string = "token",
               readonly datatypeLibrary: string = "", params: RawParameter[],
               readonly except: Pattern) {
@@ -1196,7 +1206,6 @@ class Data extends Pattern {
     if (!this.datatype) {
       throw new Error(`unkown type: ${type}`);
     }
-    this._params = undefined;
     this.rngParams = params || [];
   }
 
@@ -1210,7 +1219,7 @@ class Data extends Pattern {
 
     return ret;
   }
-};
+}
 
 /**
  * Walker for [[Data]].
@@ -1254,7 +1263,7 @@ class DataWalker extends Walker<Data> {
   }
 
   _possible(): EventSet {
-    return this.possibleCached;
+    return this.possibleCached!;
   }
 
   fireEvent(ev: Event): false | undefined {
@@ -1327,14 +1336,14 @@ class DataWalker extends Walker<Data> {
   _suppressAttributes(): void {
     // No child attributes.
   }
-};
+}
 
 addWalker(Data, DataWalker);
 
 /**
  * Pattern for ``<notAllowed/>``.
  */
-class NotAllowed extends Pattern {};
+class NotAllowed extends Pattern {}
 
 /**
  * Walker for [[NotAllowed]];
@@ -1365,7 +1374,7 @@ class NotAllowedWalker extends Walker<NotAllowed> {
   }
 
   _possible(): EventSet {
-    return this.possibleCached;
+    return this.possibleCached!;
   }
 
   fireEvent(ev: Event): undefined {
@@ -1378,7 +1387,7 @@ addWalker(NotAllowed, NotAllowedWalker);
 /**
  * Pattern for ``<text/>``.
  */
-class Text extends Pattern {};
+class Text extends Pattern {}
 
 /**
  *
@@ -1406,7 +1415,7 @@ class TextWalker extends Walker<Text> {
   }
 
   _possible(): EventSet {
-    return this.possibleCached;
+    return this.possibleCached!;
   }
 
   fireEvent(ev: Event): false | undefined {
@@ -1424,7 +1433,7 @@ class Param extends Pattern {
     throw new Error("this pattern is a placeholder and should never actually " +
                     "be used");
   }
-};
+}
 
 /**
  * A pattern for RNG references.
@@ -1628,7 +1637,7 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
       }
     }
   }
-};
+}
 
 addWalker(OneOrMore, OneOrMoreWalker);
 
@@ -1905,7 +1914,7 @@ class GroupWalker extends Walker<Group> {
       this.possibleCached.union(possibleB);
     }
 
-    return this.possibleCached;
+    return this.possibleCached!;
   }
 
   fireEvent(ev: Event): FireEventResult {
@@ -2397,7 +2406,7 @@ addWalker(Attribute, AttributeWalker);
 /**
  * A pattern for elements.
  */
-class Element extends OneSubpattern {
+export class Element extends OneSubpattern {
   /**
    * @param xmlPath This is a string which uniquely identifies the
    * element from the simplified RNG tree. Used in debugging.
@@ -2429,7 +2438,7 @@ class Element extends OneSubpattern {
     return false;
   }
 
-  _gatherElementDefinitions(memo: any): void {
+  _gatherElementDefinitions(memo: TrivialMap<Element[]>): void {
     const key: string = this.name.toString();
     if (memo[key] === undefined) {
       memo[key] = [this];
@@ -2591,7 +2600,7 @@ class ElementWalker extends Walker<Element> {
         // Our subwalker did not handle the event, so we must do it here.
         if (ev.params[0] === "endTag") {
           if (this.boundName!.match(ev.params[1] as string,
-                                   ev.params[2] as string)) {
+                                    ev.params[2] as string)) {
             this.closed = true;
 
             const errs: EndResult = this.walker!.end();
@@ -2806,20 +2815,20 @@ export class Grammar extends BasePattern {
    *
    * @param memo The memo in which to store the information.
    */
-  _gatherElementDefinitions(memo: TrivialMap<Define[]>): void {
+  _gatherElementDefinitions(memo: TrivialMap<Element[]>): void {
     // tslint:disable-next-line:forin
     for (const d in this.definitions) {
       this.definitions[d]._gatherElementDefinitions(memo);
     }
   }
 
-  get elementDefinitions(): TrivialMap<Define[]> {
-    const ret: TrivialMap<Define[]> | undefined = this._elementDefinitions;
+  get elementDefinitions(): TrivialMap<Element[]> {
+    const ret: TrivialMap<Element[]> | undefined = this._elementDefinitions;
     if (ret) {
       return ret;
     }
 
-    const newDef: TrivialMap<Define[]> =
+    const newDef: TrivialMap<Element[]> =
       this._elementDefinitions = Object.create(null);
     this._gatherElementDefinitions(newDef);
     return newDef;
@@ -3008,7 +3017,9 @@ class GrammarWalker extends SingleSubwalker<Grammar> {
    * instructed to create its own name resolver or when trying to process an
    * event type unknown to salve.
    */
+  // tslint:disable-next-line: max-func-body-length
   fireEvent(ev: Event): FireEventResult {
+    let wsErr: FireEventResult = false;
     function combineWsErrWith(x: FireEventResult): FireEventResult {
       if (wsErr === undefined) {
         wsErr = [new ValidationError("text not allowed here")];
@@ -3070,7 +3081,6 @@ class GrammarWalker extends SingleSubwalker<Grammar> {
 
     const ignoreNextWsNow: boolean = this.ignoreNextWs;
     this.ignoreNextWs = false;
-    let wsErr: FireEventResult = false;
     switch (ev.params[0]) {
     case "enterStartTag":
       // Absorb the whitespace: poof, gone!
@@ -3158,7 +3168,8 @@ class GrammarWalker extends SingleSubwalker<Grammar> {
 
         // Try to infer what element is meant by this errant tag. If we can't find
         // a candidate, then fall back to a dumb mode.
-        const candidates: Define[] = this.el.elementDefinitions[name.toString()];
+        const candidates: Element[] =
+          this.el.elementDefinitions[name.toString()];
         if (candidates && candidates.length === 1) {
           const newWalker: Walker<BasePattern> =
             candidates[0].newWalker(this.nameResolver);
@@ -3251,14 +3262,14 @@ class GrammarWalker extends SingleSubwalker<Grammar> {
 //
 // Things used only during testing.
 //
-const tret: any = {
+const tret = {
   GrammarWalker,
   Text,
 };
 
 export function __test(): {[name: string]: any} {
   return tret;
-};
+}
 
 // tslint:disable-next-line:variable-name
 export const __protected: {[name: string]: any} = {
@@ -3284,6 +3295,7 @@ export const __protected: {[name: string]: any} = {
   NsName: namePatterns.NsName,
   AnyName: namePatterns.AnyName,
 };
+/*  tslint:enable */
 
 //  LocalWords:  namespaces validator namespace xmlns validators EOF
 //  LocalWords:  lookahead enterStartTag attributeName newWalker URI
