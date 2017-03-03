@@ -2910,7 +2910,7 @@ export class Grammar extends BasePattern {
    *
    * @returns A walker.
    */
-  newWalker(): Walker<BasePattern> {
+  newWalker(): GrammarWalker {
     return GrammarWalker.makeWalker(this);
   }
 }
