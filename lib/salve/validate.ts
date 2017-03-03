@@ -6,7 +6,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-export const version: string = "4.0.3-rc1";
+export const version: string = "4.0.3-rc2";
 
 export { eventsToTreeString, Event, EventSet, Grammar, GrammarWalker,
          BasePattern, RefError, Walker, __test, FireEventResult,
