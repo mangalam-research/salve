@@ -7,6 +7,9 @@ issue reported on github.
 
   - Fixed an obscure bug revealed through linting the code more stringently.
 
+  - Added an export for ``GrammarWalker``. This is the walker you'll be dealing
+    with most often, and it has some methods not present on other walkers.
+
 * 4.0.0:
 
   - Move to TypeScript. Immediate advantages:

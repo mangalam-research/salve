@@ -878,7 +878,7 @@ function isNameResolver(value: any, msg: string = ""): NameResolver {
 /**
  * Walkers that have only one subwalker.
  */
-abstract class SingleSubwalker<T extends Pattern> extends Walker<T> {
+export abstract class SingleSubwalker<T extends Pattern> extends Walker<T> {
   protected subwalker: Walker<BasePattern>;
 
   _possible(): EventSet {
@@ -2918,7 +2918,7 @@ export class Grammar extends BasePattern {
 /**
  * Walker for [[Grammar]].
  */
-class GrammarWalker extends SingleSubwalker<Grammar> {
+export class GrammarWalker extends SingleSubwalker<Grammar> {
   private readonly nameResolver: NameResolver;
 
   // A stack that keeps state for misplace elements. The elements of this
