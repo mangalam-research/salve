@@ -34,4 +34,4 @@ export class EName {
   equal(other: EName): boolean {
     return this.ns === other.ns && this.name === other.name;
   }
-};
+}

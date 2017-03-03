@@ -121,7 +121,7 @@ export abstract class Base {
   toString(): string {
     return JSON.stringify(this);
   }
-};
+}
 
 /**
  * Models the Relax NG ``<name>`` element.
@@ -279,7 +279,7 @@ export class NsName extends Base {
       namespaces["::except"] = 1;
     }
   }
-};
+}
 
 /**
  * Models the Relax NG ``<anyName>`` element.
@@ -327,4 +327,4 @@ export class AnyName extends Base {
       namespaces["::except"] = 1;
     }
   }
-};
+}

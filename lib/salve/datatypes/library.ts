@@ -33,7 +33,7 @@ export interface Context {
    * A name resolver that can resolve namespace prefixes to namespace URI.
    */
   resolver: NameResolver;
-};
+}
 
 /**
  * A schema data type.
@@ -117,7 +117,7 @@ export interface Datatype {
    */
   disallows(value: string, params?: any,
             context?: Context): ValueError[] | false;
-};
+}
 
 export interface TypeLibrary {
   /**
@@ -129,4 +129,4 @@ export interface TypeLibrary {
    * A mapping of name to type covering all the types in this library.
    */
   readonly types: { [name: string]: Datatype };
-};
+}

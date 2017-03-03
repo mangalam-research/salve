@@ -3,6 +3,16 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 4.0.3:
+
+  - Fixed an obscure bug revealed through linting the code more stringently.
+
+  - Added an export for ``GrammarWalker``. This is the walker you'll be dealing
+    with most often, and it has some methods not present on other walkers.
+
+  - Fixed ``Grammar#newWalker()``'s signature to return ``GrammarWalker``. This
+    is needed to take advantage of ``GrammarWalker``'s methods.
+
 * 4.0.0:
 
   - Move to TypeScript. Immediate advantages:

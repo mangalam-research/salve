@@ -42,7 +42,7 @@ export class Element {
   /**
    * The children of this element.
    */
-  readonly children: Array<Element|string> = [];
+  readonly children: (Element|string)[] = [];
 
   /**
    * The path of the element in its tree.
@@ -128,6 +128,7 @@ export class ConversionParser extends Parser {
   }
 
   onopentag(node: sax.QualifiedTag): void {
+    // tslint:disable-next-line: no-http-string
     if (node.uri !== "http://relaxng.org/ns/structure/1.0") {
       throw new Error(`node in unexpected namespace: ${node.uri}`);
     }

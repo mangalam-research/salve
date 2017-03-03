@@ -57,7 +57,7 @@ export class ValidationError {
     // We do not have names in ValidationError
     return this.msg;
   }
-};
+}
 
 /**
  * This class serves as a base for all those errors that have only
@@ -90,19 +90,19 @@ export class SingleNameError extends ValidationError {
  * Error returned when an attribute name is invalid.
  */
 export class AttributeNameError extends SingleNameError {
-};
+}
 
 /**
  * Error returned when an attribute value is invalid.
  */
 export class AttributeValueError extends SingleNameError {
-};
+}
 
 /**
  * Error returned when an element is invalid.
  */
 export class ElementNameError extends SingleNameError {
-};
+}
 
 /**
  * Error returned when choice was not satisfied.
@@ -130,4 +130,4 @@ export class ChoiceError extends ValidationError {
     const second: any[] = names.slice(this.namesA.length);
     return `must choose either ${first.join(", ")} or ${second.join(", ")}`;
   }
-};
+}

@@ -52,7 +52,7 @@ abstract class Base implements Datatype {
   abstract equal(value: string, schemaValue: any): boolean;
 
   abstract disallows(value: string): ValueError[] | false;
-};
+}
 
 class StringT extends Base {
   readonly name: "string";
@@ -70,7 +70,7 @@ class StringT extends Base {
   disallows(value: string): ValueError[] | false {
     return false;
   }
-};
+}
 
 const stringT: StringT = new StringT();
 
@@ -91,7 +91,7 @@ class Token extends Base {
     // Yep, token allows anything, just like string.
     return false;
   }
-};
+}
 
 const token: Token = new Token();
 

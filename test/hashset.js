@@ -6,7 +6,7 @@
 
 /* global it, describe */
 import { assert } from "chai";
-import hashstructs from "../build/dist/lib/salve/hashstructs";
+import * as hashstructs from "../build/dist/lib/salve/hashstructs";
 
 function id(x) {
   return x;

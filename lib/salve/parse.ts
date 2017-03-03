@@ -24,6 +24,7 @@ type TagInfo = {
   hasContext: boolean,
 };
 
+// tslint:disable-next-line: max-func-body-length
 function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
   mute = !!mute;
 

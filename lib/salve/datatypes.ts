@@ -53,6 +53,7 @@ export class Registry {
    *
    * @throws {Error} If the library does not exist.
    */
+  // tslint:disable-next-line: no-reserved-keywords
   get(uri: string): TypeLibrary {
     const ret: TypeLibrary | undefined = this.find(uri);
     if (!ret) {

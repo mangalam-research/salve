@@ -13,6 +13,6 @@
  */
 export function inspect(x: any): any {
   return x;
-};
+}
 
 // LocalWords:  util Dubeau MPL Mangalam

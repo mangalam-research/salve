@@ -15,7 +15,7 @@ Introduction
 ============
 
 Salve (Schema-Aware Library for Validation and Edition) is a
-JavaScript library which implements a validator able to validate an
+TypeScript library which implements a validator able to validate an
 XML document on the basis of a subset of Relax NG (RNG). It is developed
 as part of the Buddhist Translators Workbench. It can be seen in
 action in `wed <https://github.com/mangalam-research/wed>`_.
