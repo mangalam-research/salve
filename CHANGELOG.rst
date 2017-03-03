@@ -10,6 +10,9 @@ issue reported on github.
   - Added an export for ``GrammarWalker``. This is the walker you'll be dealing
     with most often, and it has some methods not present on other walkers.
 
+  - Added an export for ``EventSet``, which is useful for client code obtaining
+    sets of possible events.
+
   - Fixed ``Grammar#newWalker()``'s signature to return ``GrammarWalker``. This
     is needed to take advantage of ``GrammarWalker``'s methods.
 
