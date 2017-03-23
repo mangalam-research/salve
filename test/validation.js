@@ -217,6 +217,33 @@ function makeValidTest(dir) {
   };
 }
 
+function dropId(obj, memo) {
+  if (memo.indexOf(obj) !== -1) {
+    return;
+  }
+  memo.push(obj);
+
+  for (const key in obj) {
+    if (key === "id") {
+      delete obj[key];
+    }
+    else if (typeof obj[key] === "object") {
+      dropId(obj[key], memo);
+    }
+  }
+}
+
+describe("constructTree", () => {
+  it("accepts a string or an object", () => {
+    const source = fileAsString("test/simple/simplified-rng.js");
+    const fromString = salve.constructTree(source);
+    const fromObject = salve.constructTree(JSON.parse(source));
+    // We have to remove the ids because they are generated to make each object
+    // unique.
+    assert.deepEqual(dropId(fromString, []), dropId(fromObject, []));
+  });
+});
+
 describe("GrammarWalker.fireEvent reports no errors on", () => {
   it("a simple test", makeValidTest("simple"));
 
