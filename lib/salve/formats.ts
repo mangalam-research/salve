@@ -279,14 +279,14 @@ class V2Constructor extends V2JSONWalker {
  * Constructs a tree of patterns from the data structure produced by running
  * ``salve-convert`` on an RNG file.
  *
- * @param code The JSON representation.
+ * @param code The JSON representation (a string) or the deserialized JSON.
  *
  * @throws {Error} When the version of the data is not supported.
  *
  * @returns The tree.
  */
-export function constructTree(code: string): patterns.Grammar {
-  const parsed: any = JSON.parse(code);
+export function constructTree(code: string | {}): patterns.Grammar {
+  const parsed: any = (typeof code === "string" ? JSON.parse(code) : code);
   if (typeof parsed === "object" && !parsed.v) {
     throw new OldFormatError(); // version 0
   }

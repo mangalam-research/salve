@@ -1,7 +1,7 @@
 {
   "name": "salve",
   "description": "Salve is a Javascript library which implements a validator able to validate an XML document on the basis of a subset of RelaxNG.",
-  "version": "4.0.3",
+  "version": "4.0.4",
   "versionedSources": "lib/salve/validate.ts",
   "keywords": [
     "RelaxNG",
@@ -73,7 +73,7 @@
     "stream-reduce": ">=1.0.3 <2",
     "touch": ">=1.0.0 <2",
     "tslint": "^4.5.1",
-    "tslint-config-lddubeau": "^1.0.0",
+    "tslint-config-lddubeau": "1.0.1",
     "typedoc": "^0.5.5",
     "typescript": "^2.2.1",
     "versync": "^3.1.0",
