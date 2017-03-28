@@ -113,4 +113,13 @@ describe("salve-convert", function convert() {
                  ["--allow-incomplete-types=quiet", "--include-paths"],
                  done);
   });
+
+  it("propagates attributes of included grammars", (done) => {
+    const inpath = "test/inclusion/doc-unannotated.rng";
+    // Test created to deal with an internal error, so we don't
+    // check the output.
+    salveConvert(inpath, null,
+                 ["--allow-incomplete-types=quiet", "--include-paths"],
+                 done);
+  });
 });

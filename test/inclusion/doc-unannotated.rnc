@@ -1,0 +1,12 @@
+#
+# Documents which are the output of step 2a conform to this schema.
+#
+
+default namespace = "http://mangalamresearch.org/ns/mmwp/doc-unannotated"
+
+include "doc-common.rnc" {
+    cit.content = (word | text)+
+    word.attrs = attribute lem { text }?
+}
+
+start = doc

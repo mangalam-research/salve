@@ -55,6 +55,7 @@ externalRef patterns are replaced by the content of the resource referenced by t
 <xsl:template match="rng:include">
   <rng:div>
     <xsl:copy-of select="@*[name() != 'href']"/>
+    <xsl:copy-of select="document(@href)/rng:grammar/@*"/>
     <xsl:copy-of select="*"/>
     <xsl:variable name="sourceDir">
       <xsl:call-template name="joinpaths">
