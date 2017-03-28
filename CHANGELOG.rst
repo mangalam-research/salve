@@ -3,6 +3,14 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 4.0.5:
+
+  - Fixed an error whereby if an RNG file processed with ``salve-convert``
+    included another RNG file, and the other file had a ``datatypeLibrary`` set
+    on the top ``grammar`` element, this attribute would be lost during the
+    schema simplification process. One symptom would be to cause any reference
+    to types that are not in the default library to fail during conversion.
+
 * 4.0.4:
 
   - Allow passing an object to ``constructTree``.
