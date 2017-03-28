@@ -11,7 +11,7 @@ module.exports = {
     salve: "salve/validate.js",
     "salve.min": "salve/validate.js",
   },
-  devtool: "source-map",
+  devtool: "eval-source-map",
   output: {
     path: __dirname + "/build/dist", // eslint-disable-line no-path-concat
     filename: "[name].js",
