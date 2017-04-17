@@ -1,8 +1,8 @@
-import gutil from "gulp-util";
-import childProcess from "child_process";
+const gutil = require("gulp-util");
+const childProcess = require("child_process");
 
 /* eslint-disable import/prefer-default-export */
-export function execFileAsync(command, args, options) {
+function execFileAsync(command, args, options) {
   return new Promise((resolve, reject) => {
     childProcess.execFile(command, args, options, (err, stdout, stderr) => {
       if (err) {
@@ -14,3 +14,5 @@ export function execFileAsync(command, args, options) {
     });
   });
 }
+
+exports.execFileAsync = execFileAsync;
