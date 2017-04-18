@@ -5,11 +5,11 @@
  */
 
 /* global it, describe, before */
-import fs from "fs";
-import path from "path";
-import { assert } from "chai";
-import sax from "sax";
-import * as salve from "../salve";
+const fs = require("fs");
+const path = require("path");
+const { assert } = require("chai");
+const sax = require("sax");
+const salve = require("../salve");
 
 function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();

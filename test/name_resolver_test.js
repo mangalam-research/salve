@@ -5,8 +5,8 @@
  */
 
 /* global it, describe, before, beforeEach */
-import { assert } from "chai";
-import { EName, NameResolver } from "../salve";
+const { assert } = require("chai");
+const { EName, NameResolver } = require("../salve");
 
 const mapping = {
   btw: "http://lddubeau.com/ns/btw-storage",

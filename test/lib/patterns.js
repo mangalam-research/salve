@@ -1,6 +1,6 @@
 /* global it, describe */
-import { assert } from "chai";
-import { Event, Name } from "../../salve";
+const { assert } = require("chai");
+const { Event, Name } = require("../../salve");
 
 describe("Event objects are cached", () => {
   it("simple case", () => {
