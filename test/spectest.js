@@ -6,8 +6,9 @@
 
 /* global it, describe, before, after */
 /* eslint-env node */
-const { assert } = require("chai");
-const { spawn } = require("child_process");
+"use strict";
+const assert = require("chai").assert;
+const spawn = require("child_process").spawn;
 const fs = require("fs");
 const path = require("path");
 const salveParse = require("../build/dist/lib/salve/parse");

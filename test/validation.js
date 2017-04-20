@@ -5,9 +5,10 @@
  */
 
 /* global it, describe, before */
+"use strict";
 const fs = require("fs");
 const path = require("path");
-const { assert } = require("chai");
+const assert = require("chai").assert;
 const sax = require("sax");
 const salve = require("../salve");
 
@@ -33,7 +34,10 @@ function makeParser(er, walker) {
     const names = Object.keys(node.attributes);
     names.sort();
     for (const name of names) {
-      const { prefix, local, value } = node.attributes[name];
+      const attr = node.attributes[name];
+      const local = attr.local;
+      const prefix = attr.prefix;
+      const value = attr.value;
       if (// xmlns="..."
         (local === "" && name === "xmlns") ||
           // xmlns:...=...
@@ -48,8 +52,10 @@ function makeParser(er, walker) {
     er.recordEvent(walker, "enterStartTag", node.uri, node.local);
     for (const name of names) {
       const attr = node.attributes[name];
-      const { local, prefix, value } = attr;
-      let { uri } = attr;
+      const local = attr.local;
+      const prefix = attr.prefix;
+      const value = attr.value;
+      let uri = attr.uri;
       if (// xmlns="..."
         (local === "" && name === "xmlns") ||
           // xmlns:...=...

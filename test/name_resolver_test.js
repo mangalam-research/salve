@@ -5,8 +5,12 @@
  */
 
 /* global it, describe, before, beforeEach */
-const { assert } = require("chai");
-const { EName, NameResolver } = require("../salve");
+"use strict";
+const assert = require("chai").assert;
+const salve = require("../salve");
+
+const EName = salve.EName;
+const NameResolver = salve.NameResolver;
 
 const mapping = {
   btw: "http://lddubeau.com/ns/btw-storage",
