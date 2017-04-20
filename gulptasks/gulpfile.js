@@ -19,10 +19,10 @@ const eslint = require("gulp-eslint");
 const versync = require("versync");
 const webpack = require("webpack");
 const sourcemaps = require("gulp-sourcemaps");
-const tslint = require("gulp-tslint");
 const ts = require("gulp-typescript");
 const webpackConfig = require("../webpack.config");
 const { execFileAsync } = require("./util");
+const { spawn } = require("child-process-promise");
 
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
@@ -107,12 +107,25 @@ gulp.task("eslint",
           .pipe(eslint.format())
           .pipe(eslint.failAfterError()));
 
-gulp.task("tslint", () =>
-          gulp.src("lib/**/*.ts")
-          .pipe(tslint({
-            formatter: "verbose",
-          }))
-          .pipe(tslint.report()));
+function runTslint(tsconfig, tslintConfig) {
+  return spawn(
+    "./node_modules/.bin/tslint",
+    ["--type-check", "--format", "verbose", "--project", tsconfig,
+     "-c", tslintConfig],
+    { capture: ["stdout", "stderr"] }).then((result) => {
+      const stdout = result.stdout.toString().trim();
+      if (stdout !== "") {
+        gutil.log(stdout);
+      }
+
+      const stderr = result.stderr.toString().trim();
+      if (stderr !== "") {
+        gutil.log(stderr);
+      }
+    });
+}
+
+gulp.task("tslint", () => runTslint("tsconfig.json", "tslint.json"));
 
 gulp.task("copy-src", () => {
   const dest = "build/dist/";
@@ -307,26 +320,11 @@ gulp.task("versync", () => versync.run({
 //               grep: options.mocha_grep
 //           })));
 
-gulp.task("mocha", ["default"], (callback) => {
-  const child = childProcess.spawn(
-    "./node_modules/.bin/mocha",
-    options.mocha_grep ? ["--grep", options.mocha_grep] : [],
-    { stdio: "inherit" });
-
-  child.on("exit", (code, signal) => {
-    if (code) {
-      callback(new Error(`child terminated with code: ${code}`));
-      return;
-    }
-
-    if (signal) {
-      callback(new Error(`child terminated with signal: ${signal}`));
-      return;
-    }
-
-    callback();
-  });
-});
+gulp.task("mocha", ["default"],
+          () => spawn(
+            "./node_modules/.bin/mocha",
+            options.mocha_grep ? ["--grep", options.mocha_grep] : [],
+            { stdio: "inherit" }));
 
 gulp.task("test", ["default", "lint", "versync", "mocha"]);
 
