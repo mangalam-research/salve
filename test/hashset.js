@@ -5,6 +5,7 @@
  */
 
 /* global it, describe */
+"use strict";
 const assert = require("chai").assert;
 const hashstructs = require("../build/dist/lib/salve/hashstructs");
 

@@ -1,7 +1,7 @@
 module.exports = {
   extends: "lddubeau-base",
   parserOptions: {
-    sourceType: "module"
+    sourceType: "script"
   },
   env: {
     node: true,

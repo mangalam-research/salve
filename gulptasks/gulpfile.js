@@ -1,4 +1,5 @@
 /* eslint-env node */
+"use strict";
 const fs_ = require("fs");
 const childProcess = require("child_process");
 const path = require("path");

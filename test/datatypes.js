@@ -5,6 +5,7 @@
  */
 
 /* global it, describe, before */
+"use strict";
 const assert = require("chai").assert;
 const _ = require("lodash");
 const datatypes = require("../build/dist/lib/salve/datatypes");

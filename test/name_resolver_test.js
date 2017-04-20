@@ -5,6 +5,7 @@
  */
 
 /* global it, describe, before, beforeEach */
+"use strict";
 const assert = require("chai").assert;
 const salve = require("../salve");
 

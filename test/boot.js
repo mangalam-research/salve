@@ -1,4 +1,5 @@
 /* eslint-env node */
+"use strict";
 const Mocha = require("mocha");
 
 const oldRun = Mocha.prototype.run;

@@ -1,4 +1,5 @@
 /* global it, describe */
+"use strict";
 const assert = require("chai").assert;
 const salve = require("../../salve");
 

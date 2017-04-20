@@ -5,6 +5,7 @@
  */
 
 /* global it, describe, before */
+"use strict";
 const fs = require("fs");
 const path = require("path");
 const assert = require("chai").assert;

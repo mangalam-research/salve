@@ -5,6 +5,7 @@
  */
 
 /* global it, describe, afterEach */
+"use strict";
 const assert = require("chai").assert;
 const spawn = require("child_process").spawn;
 const fs = require("fs");

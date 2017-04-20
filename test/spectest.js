@@ -6,6 +6,7 @@
 
 /* global it, describe, before, after */
 /* eslint-env node */
+"use strict";
 const assert = require("chai").assert;
 const spawn = require("child_process").spawn;
 const fs = require("fs");
