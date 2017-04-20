@@ -1,30 +1,30 @@
 /* eslint-env node */
-import "babel-polyfill";
-import fs_ from "fs";
-import childProcess from "child_process";
-import path from "path";
+"use strict";
+const fs_ = require("fs");
+const childProcess = require("child_process");
+const path = require("path");
 
-import gulp from "gulp";
-import gutil from "gulp-util";
-import newer from "gulp-newer";
-import rename from "gulp-rename";
-import jison from "gulp-jison";
-import typedoc from "gulp-typedoc";
-import Promise from "bluebird";
-import del from "del";
-import touch from "touch";
-import reduce from "stream-reduce";
-import es from "event-stream";
-import { ArgumentParser } from "argparse";
-import eslint from "gulp-eslint";
-import versync from "versync";
-import webpack from "webpack";
-import sourcemaps from "gulp-sourcemaps";
-import tslint from "gulp-tslint";
-import ts from "gulp-typescript";
-import webpackConfig from "../webpack.config";
-import { execFileAsync } from "./util";
+const gulp = require("gulp");
+const gutil = require("gulp-util");
+const newer = require("gulp-newer");
+const rename = require("gulp-rename");
+const jison = require("gulp-jison");
+const typedoc = require("gulp-typedoc");
+const Promise = require("bluebird");
+const del = require("del");
+const touch = require("touch");
+const reduce = require("stream-reduce");
+const es = require("event-stream");
+const argparse = require("argparse");
+const eslint = require("gulp-eslint");
+const versync = require("versync");
+const sourcemaps = require("gulp-sourcemaps");
+const ts = require("gulp-typescript");
+const cpp = require("child-process-promise");
 
+const ArgumentParser = argparse.ArgumentParser;
+const execFile = cpp.execFile;
+const spawn = cpp.spawn;
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
 
@@ -108,12 +108,25 @@ gulp.task("eslint",
           .pipe(eslint.format())
           .pipe(eslint.failAfterError()));
 
-gulp.task("tslint", () =>
-          gulp.src("lib/**/*.ts")
-          .pipe(tslint({
-            formatter: "verbose",
-          }))
-          .pipe(tslint.report()));
+function runTslint(tsconfig, tslintConfig) {
+  return spawn(
+    "./node_modules/.bin/tslint",
+    ["--type-check", "--format", "verbose", "--project", tsconfig,
+     "-c", tslintConfig],
+    { capture: ["stdout", "stderr"] }).then((result) => {
+      const stdout = result.stdout.toString().trim();
+      if (stdout !== "") {
+        gutil.log(stdout);
+      }
+
+      const stderr = result.stderr.toString().trim();
+      if (stderr !== "") {
+        gutil.log(stderr);
+      }
+    });
+}
+
+gulp.task("tslint", () => runTslint("tsconfig.json", "tslint.json"));
 
 gulp.task("copy-src", () => {
   const dest = "build/dist/";
@@ -185,24 +198,20 @@ gulp.task("tsc", () => {
 });
 
 
-gulp.task("webpack", ["tsc", "copy", "jison"], (callback) => {
-  webpack(webpackConfig, (err, stats) => {
-    if (err) {
-      throw new gutil.PluginError("webpack", err);
-    }
-
-    gutil.log("[webpack]", stats.toString({ colors: true }));
-
-    callback();
-  });
-});
+gulp.task("webpack", ["tsc", "copy", "jison"], () =>
+          execFile("./node_modules/.bin/webpack", ["--color"])
+          .then((result) => {
+            const stdout = result.stdout;
+            gutil.log(stdout);
+          }));
 
 let packname;
 
 gulp.task("pack", ["default"],
-          () => execFileAsync("npm", ["pack", "dist"], { cwd: "build" })
-          .then((_packname) => {
-            packname = _packname.trim();
+          () => execFile("npm", ["pack", "dist"], { cwd: "build" })
+          .then((result) => {
+            const stdout = result.stdout;
+            packname = stdout.trim();
           }));
 
 gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
@@ -210,19 +219,18 @@ gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
   yield del(testDir);
   yield fs.mkdirAsync(testDir);
   yield fs.mkdirAsync(path.join(testDir, "node_modules"));
-  yield execFileAsync("npm", ["install", `../${packname}`, "sax", "@types/sax"],
-                      { cwd: testDir });
+  yield execFile("npm", ["install", `../${packname}`, "sax", "@types/sax"],
+                 { cwd: testDir });
   let module = yield fs.readFileAsync("lib/salve/parse.ts");
   module = module.toString();
   module = module.replace("./validate", "salve");
   yield fs.writeFileAsync(path.join(testDir, "parse.ts"), module);
-  yield execFileAsync("../../node_modules/.bin/tsc", ["parse.ts"],
-                      { cwd: testDir });
+  yield execFile("../../node_modules/.bin/tsc", ["parse.ts"], { cwd: testDir });
   yield del(testDir);
 }));
 
 gulp.task("publish", ["install_test"],
-          () => execFileAsync("npm", ["publish", packname], { cwd: "build" }));
+          () => execFile("npm", ["publish", packname], { cwd: "build" }));
 
 gulp.task("typedoc", ["lint"], (callback) => {
   const stamp = "build/api.stamp";
@@ -308,26 +316,11 @@ gulp.task("versync", () => versync.run({
 //               grep: options.mocha_grep
 //           })));
 
-gulp.task("mocha", ["default"], (callback) => {
-  const child = childProcess.spawn(
-    "./node_modules/.bin/mocha",
-    options.mocha_grep ? ["--grep", options.mocha_grep] : [],
-    { stdio: "inherit" });
-
-  child.on("exit", (code, signal) => {
-    if (code) {
-      callback(new Error(`child terminated with code: ${code}`));
-      return;
-    }
-
-    if (signal) {
-      callback(new Error(`child terminated with signal: ${signal}`));
-      return;
-    }
-
-    callback();
-  });
-});
+gulp.task("mocha", ["default"],
+          () => spawn(
+            "./node_modules/.bin/mocha",
+            options.mocha_grep ? ["--grep", options.mocha_grep] : [],
+            { stdio: "inherit" }));
 
 gulp.task("test", ["default", "lint", "versync", "mocha"]);
 

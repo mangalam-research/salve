@@ -5,8 +5,9 @@
  */
 
 /* global it, describe */
-import { assert } from "chai";
-import * as hashstructs from "../build/dist/lib/salve/hashstructs";
+"use strict";
+const assert = require("chai").assert;
+const hashstructs = require("../build/dist/lib/salve/hashstructs");
 
 function id(x) {
   return x;

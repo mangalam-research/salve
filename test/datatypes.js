@@ -5,10 +5,11 @@
  */
 
 /* global it, describe, before */
-import { assert } from "chai";
-import _ from "lodash";
-import * as datatypes from "../build/dist/lib/salve/datatypes";
-import * as nameResolver from "../build/dist/lib/salve/name_resolver";
+"use strict";
+const assert = require("chai").assert;
+const _ = require("lodash");
+const datatypes = require("../build/dist/lib/salve/datatypes");
+const nameResolver = require("../build/dist/lib/salve/name_resolver");
 
 const decimalProgram = {
   equal: {

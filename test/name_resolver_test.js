@@ -5,8 +5,12 @@
  */
 
 /* global it, describe, before, beforeEach */
-import { assert } from "chai";
-import { EName, NameResolver } from "../salve";
+"use strict";
+const assert = require("chai").assert;
+const salve = require("../salve");
+
+const EName = salve.EName;
+const NameResolver = salve.NameResolver;
 
 const mapping = {
   btw: "http://lddubeau.com/ns/btw-storage",

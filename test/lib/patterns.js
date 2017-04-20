@@ -1,6 +1,10 @@
 /* global it, describe */
-import { assert } from "chai";
-import { Event, Name } from "../../salve";
+"use strict";
+const assert = require("chai").assert;
+const salve = require("../../salve");
+
+const Event = salve.Event;
+const Name = salve.Name;
 
 describe("Event objects are cached", () => {
   it("simple case", () => {

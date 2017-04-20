@@ -3,6 +3,15 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 4.0.6:
+
+  - Fixed an error whereby if an element had multiple attribute errors, only
+    the first error was reported.
+
+  - Reverted the sourcemap generation to what it was before 4.0.5. The change
+    introduced in 4.0.5 used a method not suitable for production and thus was
+    erroneous.
+
 * 4.0.5:
 
   - Fixed an error whereby if an RNG file processed with ``salve-convert``

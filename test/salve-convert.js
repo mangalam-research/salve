@@ -5,9 +5,10 @@
  */
 
 /* global it, describe, afterEach */
-import { assert } from "chai";
-import { spawn } from "child_process";
-import fs from "fs";
+"use strict";
+const assert = require("chai").assert;
+const spawn = require("child_process").spawn;
+const fs = require("fs");
 
 describe("salve-convert", function convert() {
   this.timeout(0);

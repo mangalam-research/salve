@@ -11,7 +11,8 @@ import { ParamError, ParameterParsingError, ValueError,
          ValueValidationError } from "./errors";
 import { Context, Datatype, RawParameter, TypeLibrary } from "./library";
 import * as regexp from "./regexp";
-import { xmlNameChar, xmlNameRe, xmlNcname, xmlNcnameRe } from "./xmlcharacters";
+import { xmlNameChar, xmlNameRe, xmlNcname,
+         xmlNcnameRe } from "./xmlcharacters";
 
 // tslint:disable: no-reserved-keywords
 
@@ -156,7 +157,8 @@ abstract class Parameter {
    *
    * @returns ``false`` if there is no problem. Otherwise, an error.
    */
-  abstract isInvalidValue(value: any, param: any, type: Base): ValueError | false;
+  abstract isInvalidValue(value: any, param: any,
+                          type: Base): ValueError | false;
 
   /**
    * Combine multiple values from the schema into an internal value. This method
@@ -249,11 +251,16 @@ const maxLengthP: MaxLengthP = new MaxLengthP();
  */
 const reCache: TrivialMap<RegExp> = Object.create(null);
 
+export interface ConvertedPattern {
+  rng: string;
+  internal: RegExp;
+}
+
 class PatternP extends Parameter {
   readonly name: string = "pattern";
   readonly repeatable: boolean = true;
 
-  convert(value: string): any {
+  convert(value: string): ConvertedPattern {
     let internal: RegExp = reCache[value];
     if (internal === undefined) {
       internal = reCache[value] = regexp.parse(value);
@@ -264,7 +271,7 @@ class PatternP extends Parameter {
     };
   }
 
-  combine(values: string[]): any[] {
+  combine(values: string[]): ConvertedPattern[] {
     return values.map(this.convert);
   }
 
@@ -284,7 +291,9 @@ class PatternP extends Parameter {
     return false;
   }
 
-  isInvalidValue(value: any, param: any): ValueError | false {
+  isInvalidValue(value: any,
+                 param: ConvertedPattern | ConvertedPattern[]):
+  ValueError | false {
     if (param instanceof Array) {
       let failedOn: any;
       for (const p of param) {
@@ -294,7 +303,7 @@ class PatternP extends Parameter {
         }
       }
 
-      if (!failedOn) {
+      if (failedOn === undefined) {
         return false;
       }
 
@@ -478,8 +487,9 @@ abstract class Base implements Datatype {
    */
   get paramNameToObj(): NameToParameterMap {
     const paramNameToObj: NameToParameterMap | undefined = this._paramNameToObj;
-    const ret: NameToParameterMap = paramNameToObj || Object.create(null);
-    if (!paramNameToObj) {
+    const ret: NameToParameterMap = paramNameToObj !== undefined ?
+      paramNameToObj : Object.create(null);
+    if (paramNameToObj === undefined) {
       this._paramNameToObj = ret;
       for (const param of this.validParams) {
         ret[param.name] = param;
@@ -497,7 +507,7 @@ abstract class Base implements Datatype {
   get defaultParams(): any[] {
     const defaultParams: any[] | undefined = this._defaultParams;
 
-    if (defaultParams) {
+    if (defaultParams !== undefined) {
       return defaultParams;
     }
 
@@ -545,40 +555,41 @@ abstract class Base implements Datatype {
   parseParams(location?: string, params?: RawParameter[]): any {
     const errors: ParamError[] = [];
     const names: TrivialMap<any[]> = Object.create(null);
-    params = params || [];
+    params = params !== undefined ? params : [];
     for (const x of params) {
       const {name, value}: {name: string, value: string} = x;
 
       const prop: Parameter | undefined = this.paramNameToObj[name];
 
       // Do we know this parameter?
-      if (!prop) {
+      if (prop === undefined) {
         errors.push(new ParamError(`unexpected parameter: ${name}`));
         return;
       }
 
       // Is the value valid at all?
-      const invalid: ParamError | false = prop.isInvalidParam(value, name, this);
+      const invalid: ParamError | false =
+        prop.isInvalidParam(value, name, this);
       if (invalid) {
         errors.push(invalid);
       }
 
       // Is it repeated, and repeatable?
-      if (names[name] && !prop.repeatable) {
+      if (names[name] !== undefined && !prop.repeatable) {
         errors.push(new ParamError(`cannot repeat parameter ${name}`));
       }
 
       // We gather all the values in a map of name to value.
-      let values: any[] = names[name];
-      if (!values) {
+      let values: any[] | undefined = names[name];
+      if (values === undefined) {
         values = names[name] = [];
       }
 
       values.push(value);
     }
 
-    if (errors.length) {
-      if (location) {
+    if (errors.length !== 0) {
+      if (location !== undefined) {
         throw new ParameterParsingError(location, errors);
       }
 
@@ -594,7 +605,8 @@ abstract class Base implements Datatype {
         ret[key] = prop.combine(value);
       }
       else {
-        ret[key] = ((prop.convert) ? prop.convert(value[0]) : value[0]);
+        ret[key] = ((prop.convert !== undefined) ?
+                    prop.convert(value[0]) : value[0]);
       }
     }
 
@@ -657,8 +669,8 @@ abstract class Base implements Datatype {
     }
 
     /* tslint:enable: no-string-literal */
-    if (errors.length) {
-      if (location) {
+    if (errors.length !== 0) {
+      if (location !== undefined) {
         throw new ParameterParsingError(location, errors);
       }
 
@@ -684,7 +696,7 @@ abstract class Base implements Datatype {
    */
   disallowedByParams(raw: string, value: any, params?: any,
                      context?: Context): ValueError[] | false {
-    if (params) {
+    if (params !== undefined) {
       const errors: ValueError[] = [];
       // We use Object.keys because we don't know the precise type of params.
       for (const name of Object.keys(params)) {
@@ -696,7 +708,7 @@ abstract class Base implements Datatype {
         }
       }
 
-      if (errors.length) {
+      if (errors.length !== 0) {
         return errors;
       }
     }
@@ -724,20 +736,21 @@ abstract class Base implements Datatype {
     return converted === schemaValue.value;
   }
 
-  disallows(value: any, params?: any, context?: Context): ValueError[] | false {
+  disallows(value: string, params?: any,
+            context?: Context): ValueError[] | false {
     if (params instanceof Array) {
       throw new Error("it looks like you are passing unparsed " +
                       "parameters to disallows");
     }
-    else if (!params || Object.keys(params).length === 0) {
+    else if (params === undefined || Object.keys(params).length === 0) {
       // If no params were passed, get the default params.
       params = this.defaultParams;
     }
 
     // This must be done against the raw value because the **lexical** space of
     // this type must match this.
-    if (this.regexp && !whiteSpaceProcessed(value, WhitespaceHandling.COLLAPSE)
-        .match(this.regexp)) {
+    if (whiteSpaceProcessed(value, WhitespaceHandling.COLLAPSE)
+        .match(this.regexp) === null) {
       return [new ValueError(this.typeErrorMsg)];
     }
 
@@ -891,7 +904,7 @@ class integer extends decimal {
 
     function fail(message: string): never {
       const errors: ParamError[] = [new ParamError(message)];
-      if (location) {
+      if (location !== undefined) {
         throw new ParameterParsingError(location, errors);
       }
 
@@ -1185,6 +1198,7 @@ class duration extends Base {
   readonly name: string = "duration";
   readonly typeErrorMsg: string = "not a valid duration";
   readonly regexp: RegExp =
+    // tslint:disable-next-line:max-line-length
     /^-?P(?!$)(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?!$)(?:\d+H)?(?:\d+M)?(?:\d+(\.\d+)?S)?)?$/;
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
@@ -1207,18 +1221,18 @@ const dateGroupingRe: RegExp = new RegExp(
 
 const maxDoms: (number|undefined)[] =
   [undefined, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-function checkDate(value: string): number | true {
+function checkDate(value: string): boolean {
   // The Date.parse method of JavaScript is not reliable.
   const match: RegExpMatchArray | null = value.match(dateGroupingRe);
-  if (!match) {
-    return NaN;
+  if (match === null) {
+    return false;
   }
 
   const year: string = match[1];
   const leap: boolean = isLeapYear(Number(year));
   const month: number = Number(match[2]);
   if (month === 0 || month > 12) {
-    return NaN;
+    return false;
   }
 
   const dom: number = Number(match[3]);
@@ -1227,41 +1241,43 @@ function checkDate(value: string): number | true {
     maxDom = 28;
   }
   if (dom === 0 || dom > maxDom!) {
-    return NaN;
+    return false;
   }
 
   const timeParts: string[] = match[4].split(":");
   const minutes: number = Number(timeParts[1]);
   if (minutes > 59) {
-    return NaN;
+    return false;
   }
 
   const seconds: number = Number(timeParts[2]);
   if (seconds > 59) {
-    return NaN;
+    return false;
   }
 
   // 24 is valid if minutes and seconds are at 0, otherwise 23 is the
   // limit.
-  const hoursLimit: number = (!minutes && !seconds) ? 24 : 23;
+  const hoursLimit: number = (minutes === 0 && seconds === 0) ? 24 : 23;
   if (Number(timeParts[0]) > hoursLimit) {
-    return NaN;
+    return false;
   }
 
-  if (match[5] && match[5] !== "Z") { // We have a TZ
+  if (match[5] !== undefined && match[5] !== "" && match[5] !== "Z") {
+    // We have a TZ
     const tzParts: string[] = match[5].split(":");
-    const tzHours: number = Number(tzParts[0].slice(1)); // Slice: skip the sign.
+    // Slice: skip the sign.
+    const tzHours: number = Number(tzParts[0].slice(1));
     if (tzHours > 14) {
-      return NaN;
+      return false;
     }
 
     const tzSeconds: number = Number(tzParts[1]);
     if (tzSeconds > 59) {
-      return NaN;
+      return false;
     }
 
     if (tzHours === 14 && tzSeconds !== 0) {
-      return NaN;
+      return false;
     }
   }
 
@@ -1276,9 +1292,9 @@ class dateTime extends Base {
     `T${timePattern}${tzPattern}?$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: any, params?: any): ValueError[] | false {
+  disallows(value: string, params?: any): ValueError[] | false {
     const ret: ValueError[] | false  = super.disallows(value, params);
-    if (ret) {
+    if (ret instanceof Array) {
       return ret;
     }
 
@@ -1296,7 +1312,7 @@ class time extends Base {
   readonly regexp: RegExp = new RegExp(`^${timePattern}${tzPattern}?$`);
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
-  disallows(value: any, params?: any): ValueError[] | false {
+  disallows(value: string, params?: any): ValueError[] | false {
     const ret: ValueError[] | false = super.disallows(value, params);
     if (ret) {
       return ret;
@@ -1318,15 +1334,16 @@ class date extends Base {
     `^${yearPattern}-${monthPattern}-${domPattern}${tzPattern}?$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: any, params?: any): ValueError[] | false {
+  disallows(value: string, params?: any): ValueError[] | false {
     const ret: ValueError[] | false = super.disallows(value, params);
     if (ret) {
       return ret;
     }
 
     // We have to add time for Date() to parse it.
-    const match: RegExpMatchArray = value.match(tzRe);
-    value = match ? `${value.slice(0, match.index)}T00:00:00${match[0]}` :
+    const match: RegExpMatchArray | null = value.match(tzRe);
+    value = match !== null ?
+      `${value.slice(0, match.index)}T00:00:00${match[0]}` :
       `${value}T00:00:00`;
     if (!checkDate(value)) {
       return [new ValueError(this.typeErrorMsg)];
@@ -1343,15 +1360,16 @@ class gYearMonth extends Base {
     `^${yearPattern}-${monthPattern}${tzPattern}?$`);
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
-  disallows(value: any, params?: any): ValueError[] | false {
+  disallows(value: string, params?: any): ValueError[] | false {
     const ret: ValueError[] | false = super.disallows(value, params);
     if (ret) {
       return ret;
     }
 
     // We have to add a day and time for Date() to parse it.
-    const match: RegExpMatchArray = value.match(tzRe);
-    value = match ? `${value.slice(0, match.index)}-01T00:00:00${match[0]}` :
+    const match: RegExpMatchArray | null = value.match(tzRe);
+    value = match !== null ?
+      `${value.slice(0, match.index)}-01T00:00:00${match[0]}` :
       `${value}-01T00:00:00`;
     if (!checkDate(value)) {
       return [new ValueError(this.typeErrorMsg)];
@@ -1367,15 +1385,16 @@ class gYear extends Base {
   readonly regexp: RegExp = new RegExp(`^${yearPattern}${tzPattern}?$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: any, params?: any): ValueError[] | false {
+  disallows(value: string, params?: any): ValueError[] | false {
     const ret: ValueError [] | false = super.disallows(value, params);
     if (ret) {
       return ret;
     }
 
     // We have to add a month, a day and a time for Date() to parse it.
-    const match: RegExpMatchArray = value.match(tzRe);
-    value = match ? `${value.slice(0, match.index)}-01-01T00:00:00${match[0]}` :
+    const match: RegExpMatchArray | null = value.match(tzRe);
+    value = match !== null ?
+      `${value.slice(0, match.index)}-01-01T00:00:00${match[0]}` :
       `${value}-01-01T00:00:00`;
     if (!checkDate(value)) {
       return [new ValueError(this.typeErrorMsg)];
@@ -1392,15 +1411,16 @@ class gMonthDay extends Base {
     `^${monthPattern}-${domPattern}${tzPattern}?$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: any, params?: any): ValueError[] | false {
+  disallows(value: string, params?: any): ValueError[] | false {
     const ret: ValueError [] | false = super.disallows(value, params);
     if (ret) {
       return ret;
     }
 
     // We have to add a year and a time for Date() to parse it.
-    const match: RegExpMatchArray = value.match(tzRe);
-    value = match ? `${value.slice(0, match.index)}T00:00:00${match[0]}` :
+    const match: RegExpMatchArray | null = value.match(tzRe);
+    value = match !== null ?
+      `${value.slice(0, match.index)}T00:00:00${match[0]}` :
       `${value}T00:00:00`;
     // We always add 2000, which is a leap year, so 01-29 won't raise an
     // error.
@@ -1418,15 +1438,16 @@ class gDay extends Base {
   readonly regexp: RegExp = new RegExp(`^${domPattern}${tzPattern}?$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: any, params?: any): ValueError[] | false {
+  disallows(value: string, params?: any): ValueError[] | false {
     const ret: ValueError [] | false = super.disallows(value, params);
     if (ret) {
       return ret;
     }
 
     // We have to add a year and a time for Date() to parse it.
-    const match: RegExpMatchArray = value.match(tzRe);
-    value = match ? `${value.slice(0, match.index)}T00:00:00${match[0]}` :
+    const match: RegExpMatchArray | null = value.match(tzRe);
+    value = match !== null ?
+      `${value.slice(0, match.index)}T00:00:00${match[0]}` :
       `${value}T00:00:00`;
     // We always add 2000, which is a leap year, so 01-29 won't raise an
     // error.
@@ -1444,15 +1465,16 @@ class gMonth extends Base {
   readonly regexp: RegExp = new RegExp(`^${monthPattern}${tzPattern}?$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: any, params?: any): ValueError[] | false {
+  disallows(value: string, params?: any): ValueError[] | false {
     const ret: ValueError [] | false = super.disallows(value, params);
     if (ret) {
       return ret;
     }
 
     // We have to add a year and a time for Date() to parse it.
-    const match: RegExpMatchArray = value.match(tzRe);
-    value = match ? `${value.slice(0, match.index)}-01T00:00:00${match[0]}` :
+    const match: RegExpMatchArray | null = value.match(tzRe);
+    value = match !== null ?
+      `${value.slice(0, match.index)}-01T00:00:00${match[0]}` :
       `${value}-01T00:00:00`;
     // We always add 2000, which is a leap year, so 01-29 won't raise an
     // error.

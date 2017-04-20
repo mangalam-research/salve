@@ -56,7 +56,7 @@ export class Registry {
   // tslint:disable-next-line: no-reserved-keywords
   get(uri: string): TypeLibrary {
     const ret: TypeLibrary | undefined = this.find(uri);
-    if (!ret) {
+    if (ret === undefined) {
       throw new Error(`can't get library with URI: ${uri}`);
     }
     return ret;

@@ -2,8 +2,13 @@ dist: trusty
 language: node_js
 node_js:
   - "6"
-  - "5"
   - "4"
+env:
+  # We set our own flag to tell our test code that it is running in a continuous
+  # integration environment. (Travis sets CI and TRAVIS but the former is too
+  # liable to collision (some other tool may use CI) and the latter is too
+  # specific (we could use something else than Travis).)
+  - CONTINUOUS_INTEGRATION=1
 before_install:
   # On Node v4 the version of npm is too old.
   - if [[ `npm -v` != 3* ]]; then npm i -g npm@3; fi

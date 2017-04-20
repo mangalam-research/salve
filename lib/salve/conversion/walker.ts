@@ -13,7 +13,7 @@ import { Element } from "./parser";
 const nameToConstructor: any = formats.__protected.nameToConstructor;
 const constructors: Function[] = [];
 let ntocIx: number = 0;
-while (nameToConstructor[ntocIx]) {
+while (nameToConstructor[ntocIx] !== undefined) {
   constructors[ntocIx] = nameToConstructor[ntocIx];
   ntocIx++;
 }
@@ -24,7 +24,8 @@ const constructorNameToIndex: {[name: string]: number} = Object.create(null);
 for (const name in nameToConstructor) {
   if (!(name in constructors)) {
     // Not a number
-    constructorNameToIndex[name] = constructors.indexOf(nameToConstructor[name]);
+    constructorNameToIndex[name] =
+      constructors.indexOf(nameToConstructor[name]);
   }
 }
 
@@ -65,12 +66,12 @@ export abstract class ConversionWalker {
    * @param close The closing string. This will be used to check that the
    * construct is closed properly.
    *
-   * @throws {Error} If the ``close`` parameter does not match what was passed to
-   * [[openConstruct]].
+   * @throws {Error} If the ``close`` parameter does not match what was passed
+   * to [[openConstruct]].
    */
   closeConstruct(close: string): void {
     const top: ConstructState | undefined = this._constructState.shift();
-    if (top) {
+    if (top !== undefined) {
       if (close !== top.close) {
         throw new Error(`construct mismatch: ${top.close} vs ${close}`);
       }
@@ -104,9 +105,10 @@ export abstract class ConversionWalker {
   }
 
   /**
-   * Outputs a string in the current construct. Outputs a separator (",") if this
-   * is not the first item in the construct. The double-quotes in the string will
-   * be escaped and the string will be surrounded by double quotes in the output.
+   * Outputs a string in the current construct. Outputs a separator (",") if
+   * this is not the first item in the construct. The double-quotes in the
+   * string will be escaped and the string will be surrounded by double quotes
+   * in the output.
    *
    * @param str The string to output.
    */
@@ -145,7 +147,7 @@ export abstract class ConversionWalker {
   walkChildren(el: Element, startAt: number = 0, endAt?: number): void {
     const children: (Element | string)[] = el.children;
 
-    if (!endAt) {
+    if (endAt === undefined) {
       endAt = children.length;
     }
 
@@ -210,7 +212,7 @@ export class DefaultConversionWalker extends ConversionWalker {
     let ctor: number;
 
     // This is the SAX node.
-    const node: any = el.node;
+    const node = el.node;
     switch (node.local) {
     case "start":
       this.walkChildren(el);
@@ -224,7 +226,7 @@ export class DefaultConversionWalker extends ConversionWalker {
       this.outputItem(`"v":3,"o":${this.includePaths ? 0 : 1},"d":`);
       // tslint:disable:no-string-literal
       ctor = constructorNameToIndex["Grammar"];
-      if (!ctor) {
+      if (ctor === undefined) {
         throw new Error("can't find constructor for Grammar");
       }
       this.openConstruct("[", "]");
@@ -246,7 +248,8 @@ export class DefaultConversionWalker extends ConversionWalker {
       this.closeConstruct("}");
       break;
     default:
-      let capitalized: string = node.local.charAt(0).toUpperCase() + node.local.slice(1);
+      let capitalized: string = node.local.charAt(0).toUpperCase() +
+        node.local.slice(1);
       const skipToChildren: boolean = (capitalized === "Except");
       if (this.inNameClass) {
         // When we are in an name class, some elements are converted
@@ -269,7 +272,7 @@ export class DefaultConversionWalker extends ConversionWalker {
 
       this.newItem();
       ctor = constructorNameToIndex[capitalized];
-      if (!ctor) {
+      if (ctor === undefined) {
         throw new Error(`can't find constructor for ${capitalized}`);
       }
 
@@ -389,10 +392,11 @@ export class DefaultConversionWalker extends ConversionWalker {
         break;
       case "element":
       case "attribute":
-        // The first element of `<element>` or `<attribute>` is necessarily a name
-        // class. Note that there is no need to owrry about recursivity since it
-        // is not possible to get here recursively from the `this.walk` call that
-        // follows. (A name class cannot contain `<element>` or `<attribute>`.
+        // The first element of `<element>` or `<attribute>` is necessarily a
+        // name class. Note that there is no need to owrry about recursivity
+        // since it is not possible to get here recursively from the `this.walk`
+        // call that follows. (A name class cannot contain `<element>` or
+        // `<attribute>`.
         this.inNameClass = true;
         this.walk(el.children[0] as Element);
         this.inNameClass = false;
@@ -484,8 +488,8 @@ const warnAboutTheseTypes: string[] = [
  */
 function inAttribute(el: Element): boolean {
   let current: Element | undefined = el;
-  while (current) {
-    if (current.node && (current.node.local === "attribute")) {
+  while (current !== undefined) {
+    if (current.node !== undefined && (current.node.local === "attribute")) {
       return true;
     }
     current = current.parent;
@@ -509,8 +513,9 @@ function inAttribute(el: Element): boolean {
  */
 function findAttributeUpwards(el: Element, name: string): string | undefined {
   let current: Element | undefined = el;
-  while (current) {
-    if (current.node && current.node.attributes[name]) {
+  while (current !== undefined) {
+    if (current.node !== undefined &&
+        current.node.attributes[name] !== undefined) {
       return current.node.attributes[name].value;
     }
 
@@ -553,7 +558,7 @@ function fromQNameToURI(value: string, el: Element): string {
   const uri: string | undefined =
     findAttributeUpwards(el, (parts[0] === "") ? "xmlns" :
                          (`xmlns:${parts[0]}`));
-  if (!uri) {
+  if (uri === undefined) {
     throw new Error(`cannot resolve prefix: ${parts[0]}`);
   }
   return uri;
@@ -591,13 +596,13 @@ export class DatatypeProcessor extends ConversionWalker {
 
       const lib: datatypes.TypeLibrary | undefined =
         datatypes.registry.find(libname!);
-      if (!lib) {
+      if (lib === undefined) {
         throw new datatypes.ValueValidationError(
           [new datatypes.ValueError(`unknown datatype library: ${libname}`)]);
       }
 
       const datatype: datatypes.Datatype = lib.types[type!];
-      if (!datatype) {
+      if (datatype === undefined) {
         throw new datatypes.ValueValidationError(
           [new datatypes.ValueError(`unknown datatype ${type} in ` +
                                     ((libname === "") ? "default library" :
@@ -638,12 +643,12 @@ export class DatatypeProcessor extends ConversionWalker {
       libname = node.attributes.datatypeLibrary.value;
       const lib: datatypes.TypeLibrary | undefined =
         datatypes.registry.find(libname!);
-      if (!lib) {
+      if (lib === undefined) {
         throw new datatypes.ValueValidationError(
           [new datatypes.ValueError(`unknown datatype library: ${libname}`)]);
       }
 
-      if (!lib.types[type!]) {
+      if (lib.types[type!] === undefined) {
         throw new datatypes.ValueValidationError(
           [new datatypes.ValueError(`unknown datatype ${type} in ` +
                                     ((libname === "") ? "default library" :
@@ -657,10 +662,11 @@ export class DatatypeProcessor extends ConversionWalker {
               value: child.children.join(""),
           }));
 
-      // Generating the element will cause salve to perform checks on the params,
-      // etc. We do not need to record the return value. Also, we do not need to
-      // pass the possible exception, as it will be dealt when children of this
-      // element are walked.
+      // Generating the element will cause salve to perform checks on the
+      // params, etc. We do not need to record the return value. Also, we do not
+      // need to pass the possible exception, as it will be dealt when children
+      // of this element are walked.
+      //
       // eslint-disable-next-line no-new
       new nameToConstructor.Data(el.path, type, libname, params);
     }
