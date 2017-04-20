@@ -21,8 +21,7 @@ const webpack = require("webpack");
 const sourcemaps = require("gulp-sourcemaps");
 const ts = require("gulp-typescript");
 const webpackConfig = require("../webpack.config");
-const { execFileAsync } = require("./util");
-const { spawn } = require("child-process-promise");
+const { execFile, spawn } = require("child-process-promise");
 
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
@@ -212,9 +211,9 @@ gulp.task("webpack", ["tsc", "copy", "jison"], (callback) => {
 let packname;
 
 gulp.task("pack", ["default"],
-          () => execFileAsync("npm", ["pack", "dist"], { cwd: "build" })
-          .then((_packname) => {
-            packname = _packname.trim();
+          () => execFile("npm", ["pack", "dist"], { cwd: "build" })
+          .then(({ stdout }) => {
+            packname = stdout.trim();
           }));
 
 gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
@@ -222,19 +221,18 @@ gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
   yield del(testDir);
   yield fs.mkdirAsync(testDir);
   yield fs.mkdirAsync(path.join(testDir, "node_modules"));
-  yield execFileAsync("npm", ["install", `../${packname}`, "sax", "@types/sax"],
-                      { cwd: testDir });
+  yield execFile("npm", ["install", `../${packname}`, "sax", "@types/sax"],
+                 { cwd: testDir });
   let module = yield fs.readFileAsync("lib/salve/parse.ts");
   module = module.toString();
   module = module.replace("./validate", "salve");
   yield fs.writeFileAsync(path.join(testDir, "parse.ts"), module);
-  yield execFileAsync("../../node_modules/.bin/tsc", ["parse.ts"],
-                      { cwd: testDir });
+  yield execFile("../../node_modules/.bin/tsc", ["parse.ts"], { cwd: testDir });
   yield del(testDir);
 }));
 
 gulp.task("publish", ["install_test"],
-          () => execFileAsync("npm", ["publish", packname], { cwd: "build" }));
+          () => execFile("npm", ["publish", packname], { cwd: "build" }));
 
 gulp.task("typedoc", ["lint"], (callback) => {
   const stamp = "build/api.stamp";
