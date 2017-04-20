@@ -11,7 +11,8 @@
     "declaration": true,
     "sourceMap": true,
     "strictNullChecks": true,
-    "target": "es5"
+    "target": "es5",
+    "lib": ["es5"]
   },
   "include": [
     "lib/salve/**/*.ts"
