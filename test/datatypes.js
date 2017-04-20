@@ -5,7 +5,7 @@
  */
 
 /* global it, describe, before */
-const { assert } = require("chai");
+const assert = require("chai").assert;
 const _ = require("lodash");
 const datatypes = require("../build/dist/lib/salve/datatypes");
 const nameResolver = require("../build/dist/lib/salve/name_resolver");

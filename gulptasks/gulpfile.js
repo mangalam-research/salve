@@ -14,13 +14,16 @@ const del = require("del");
 const touch = require("touch");
 const reduce = require("stream-reduce");
 const es = require("event-stream");
-const { ArgumentParser } = require("argparse");
+const argparse = require("argparse");
 const eslint = require("gulp-eslint");
 const versync = require("versync");
 const sourcemaps = require("gulp-sourcemaps");
 const ts = require("gulp-typescript");
-const { execFile, spawn } = require("child-process-promise");
+const cpp = require("child-process-promise");
 
+const ArgumentParser = argparse.ArgumentParser;
+const execFile = cpp.execFile;
+const spawn = cpp.spawn;
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
 
@@ -196,7 +199,8 @@ gulp.task("tsc", () => {
 
 gulp.task("webpack", ["tsc", "copy", "jison"], () =>
           execFile("./node_modules/.bin/webpack", ["--color"])
-          .then(({ stdout }) => {
+          .then((result) => {
+            const stdout = result.stdout;
             gutil.log(stdout);
           }));
 
@@ -204,7 +208,8 @@ let packname;
 
 gulp.task("pack", ["default"],
           () => execFile("npm", ["pack", "dist"], { cwd: "build" })
-          .then(({ stdout }) => {
+          .then((result) => {
+            const stdout = result.stdout;
             packname = stdout.trim();
           }));
 

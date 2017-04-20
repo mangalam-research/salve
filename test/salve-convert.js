@@ -5,8 +5,8 @@
  */
 
 /* global it, describe, afterEach */
-const { assert } = require("chai");
-const { spawn } = require("child_process");
+const assert = require("chai").assert;
+const spawn = require("child_process").spawn;
 const fs = require("fs");
 
 describe("salve-convert", function convert() {
