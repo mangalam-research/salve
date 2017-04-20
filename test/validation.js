@@ -475,6 +475,28 @@ describe("GrammarWalker.fireEvent", () => {
         assert.isFalse(ret);
       }
     });
+
+    it("missing attributes", () => {
+      // Read the RNG tree.
+      const source = fileAsString(
+        "test/attribute-order/simplified-rng.js");
+
+      const tree = salve.constructTree(source);
+      const walker = tree.newWalker();
+      let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
+      assert.isFalse(ret);
+      ret = walker.fireEvent(new salve.Event("leaveStartTag", "", "html"));
+      assert.isFalse(ret);
+
+      ret = walker.fireEvent(new salve.Event("enterStartTag", "", "em"));
+      assert.isFalse(ret, "entering em");
+      ret = walker.fireEvent(new salve.Event("leaveStartTag"));
+      assert.deepEqual(ret.map(x => x.toString()), [
+        "attribute missing: {\"ns\":\"\",\"name\":\"attr-a\"}",
+        "attribute missing: {\"ns\":\"\",\"name\":\"attr-b\"}",
+        "attribute missing: {\"ns\":\"\",\"name\":\"attr-c\"}",
+      ]);
+    });
   });
 
   // These tests deal with situations that would probably occur if

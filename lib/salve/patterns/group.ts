@@ -169,20 +169,52 @@ class GroupWalker extends Walker<Group> {
   }
 
   end(attribute: boolean = false): EndResult {
-    if (this.canEnd()) {
+    if (this.canEnd(attribute)) {
       return false;
     }
 
     let ret: EndResult;
 
-    if (!this.endedA) { // Don't end it more than once.
-      ret = this.walkerA!.end(attribute);
+    if (attribute) {
+      const aHas: boolean = this.el.patA._hasAttrs();
+      const bHas: boolean = this.el.patB._hasAttrs();
+      if (aHas) {
+        // Don't end it more than once.
+        if (!this.endedA) {
+          ret = this.walkerA!.end(true);
+          this.endedA = true;
+        }
+        else {
+          ret = false;
+        }
+
+        if (bHas) {
+          const endB = this.walkerB!.end(true);
+          if (endB) {
+            ret = ret ? ret.concat(endB) : endB;
+          }
+        }
+
+        return ret;
+      }
+
+      if (bHas) {
+        return this.walkerB!.end(true);
+      }
+
+      return false;
+    }
+
+    // Don't end it more than once.
+    if (!this.endedA) {
+      ret = this.walkerA!.end(false);
+      this.endedA = true;
       if (ret) {
         return ret;
       }
     }
 
-    ret = this.walkerB!.end(attribute);
+    ret = this.walkerB!.end(false);
     if (ret) {
       return ret;
     }
