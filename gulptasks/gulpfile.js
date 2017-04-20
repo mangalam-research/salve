@@ -17,10 +17,8 @@ const es = require("event-stream");
 const { ArgumentParser } = require("argparse");
 const eslint = require("gulp-eslint");
 const versync = require("versync");
-const webpack = require("webpack");
 const sourcemaps = require("gulp-sourcemaps");
 const ts = require("gulp-typescript");
-const webpackConfig = require("../webpack.config");
 const { execFile, spawn } = require("child-process-promise");
 
 const touchAsync = Promise.promisify(touch);
@@ -196,17 +194,11 @@ gulp.task("tsc", () => {
 });
 
 
-gulp.task("webpack", ["tsc", "copy", "jison"], (callback) => {
-  webpack(webpackConfig, (err, stats) => {
-    if (err) {
-      throw new gutil.PluginError("webpack", err);
-    }
-
-    gutil.log("[webpack]", stats.toString({ colors: true }));
-
-    callback();
-  });
-});
+gulp.task("webpack", ["tsc", "copy", "jison"], () =>
+          execFile("./node_modules/.bin/webpack", ["--color"])
+          .then(({ stdout }) => {
+            gutil.log(stdout);
+          }));
 
 let packname;
 
