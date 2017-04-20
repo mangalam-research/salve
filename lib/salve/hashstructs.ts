@@ -153,7 +153,7 @@ export abstract class HashBase {
     for (const key of keys) {
       const data: any = backing[key];
       const args: any[] = data instanceof Array ? data : [data];
-      if (f.apply(undefined, args)) {
+      if (f.apply(undefined, args) as boolean) {
         ret._store(key, data);
       }
     }
@@ -170,7 +170,7 @@ export abstract class HashBase {
    */
   has(obj: any): boolean {
     const hash: any = this.hashF(obj);
-    return !!this.backing[hash];
+    return this.backing[hash] !== undefined;
   }
 
   /**

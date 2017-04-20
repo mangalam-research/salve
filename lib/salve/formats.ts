@@ -292,7 +292,7 @@ class V2Constructor extends V2JSONWalker {
  */
 export function constructTree(code: string | {}): patterns.Grammar {
   const parsed: any = (typeof code === "string" ? JSON.parse(code) : code);
-  if (typeof parsed === "object" && !parsed.v) {
+  if (typeof parsed === "object" && parsed.v === undefined) {
     throw new OldFormatError(); // version 0
   }
 

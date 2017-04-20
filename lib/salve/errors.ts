@@ -42,9 +42,9 @@ export class ValidationError {
    * This method transforms the ValidationError object to a string but uses the
    * names in the parameter passed to it to format the string.
    *
-   * Since salve does not work with namespace prefixes, someone using salve would
-   * typically use this method so as to replace the name patterns passed in error
-   * messages with qualified names.
+   * Since salve does not work with namespace prefixes, someone using salve
+   * would typically use this method so as to replace the name patterns passed
+   * in error messages with qualified names.
    *
    * @param names The array of names to use. This should be an array of the same
    * length as that returned by [[getNames]] . Each element of the array

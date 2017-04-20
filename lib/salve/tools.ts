@@ -44,11 +44,11 @@ export function extend(target: any, ...sources: any[]): any {
  * See https://github.com/Microsoft/TypeScript/issues/12123.
  */
 export function fixPrototype(obj: any, parent: Function): void {
-  const oldProto: Function = Object.getPrototypeOf ? Object.getPrototypeOf(obj) :
-    (obj as any).__proto__;
+  const oldProto: Function = Object.getPrototypeOf !== undefined ?
+    Object.getPrototypeOf(obj) : (obj as any).__proto__;
 
   if (oldProto !== parent) {
-    if (Object.setPrototypeOf) {
+    if (Object.setPrototypeOf !== undefined) {
       Object.setPrototypeOf(obj, parent.prototype);
     }
     else {

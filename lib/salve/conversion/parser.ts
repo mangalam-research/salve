@@ -57,23 +57,18 @@ export class Element {
    */
   constructor(readonly parent: Element | undefined,
               readonly node: sax.QualifiedTag) {
-    if (parent) {
+    if (parent !== undefined) {
       parent.children.push(this);
     }
   }
 
   makePath(): void {
-    if (this.path) {
-      return;
-    }
-
-    if (!this.node) {
-      this.path = "";
+    if (this.path !== undefined) {
       return;
     }
 
     let pPath: string = "";
-    if (this.parent) {
+    if (this.parent !== undefined) {
       this.parent.makePath();
       // this.parent.path cannot be undefined here because we just ran makePath.
       pPath = this.parent.path as string;
@@ -121,7 +116,7 @@ export class ConversionParser extends Parser {
    * The root of the parsed XML.
    */
   get root(): Element {
-    if (!this._recordedRoot) {
+    if (this._recordedRoot === undefined) {
       throw new Error("cannot get root");
     }
     return this._recordedRoot;
@@ -133,13 +128,13 @@ export class ConversionParser extends Parser {
       throw new Error(`node in unexpected namespace: ${node.uri}`);
     }
 
-    const parent: Element = this.stack[0];
+    const parent: Element | undefined = this.stack[0];
 
     const me: Element = new Element(parent, node);
 
     this.stack.unshift(me);
 
-    if (!parent) {
+    if (parent === undefined) {
       this._recordedRoot = me;
     }
   }
@@ -149,8 +144,8 @@ export class ConversionParser extends Parser {
   }
 
   ontext(text: string): void {
-    const top: Element = this.stack[0];
-    if (!top) {
+    const top: Element | undefined = this.stack[0];
+    if (top === undefined) {
       return;
     }
 

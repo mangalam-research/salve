@@ -131,7 +131,9 @@ export class NaiveSet {
    * called on each value.
    */
   forEach(f: (value: any, index: number, set: NaiveSet) => void): void {
-    this.b.forEach((value: any, index: number) => f(value, index, this));
+    this.b.forEach((value: any, index: number) => {
+      f(value, index, this);
+    });
   }
 
   /**

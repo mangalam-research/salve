@@ -75,8 +75,8 @@ export interface Datatype {
   parseParams(location?: string, params?: RawParameter[]): any;
 
   /**
-   * Parses a value. Checks that the value is allowed by the type and converts it
-   * to an internal representation.
+   * Parses a value. Checks that the value is allowed by the type and converts
+   * it to an internal representation.
    *
    * @param value The value to parse
    *

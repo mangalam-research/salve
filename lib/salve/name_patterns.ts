@@ -44,13 +44,13 @@ export abstract class Base {
   abstract wildcardMatch(ns: string, name: string): boolean;
 
   /**
-   * Determines whether a pattern is simple or not. A pattern is deemed simple if
-   * it does not use ``<except>``, ``<anyName>`` or ``<NsName>``.  Put in
-   * practical terms, non-simple patterns cannot generally be presented as a list
-   * of choices to the user. In most cases, the appropriate input from the user
-   * should be obtained by presenting an input field in which the user can type
-   * the namespace and name of the entity to be named and the GUI reports whether
-   * the name is allowed or not by the schema.
+   * Determines whether a pattern is simple or not. A pattern is deemed simple
+   * if it does not use ``<except>``, ``<anyName>`` or ``<NsName>``.  Put in
+   * practical terms, non-simple patterns cannot generally be presented as a
+   * list of choices to the user. In most cases, the appropriate input from the
+   * user should be obtained by presenting an input field in which the user can
+   * type the namespace and name of the entity to be named and the GUI reports
+   * whether the name is allowed or not by the schema.
    *
    * @returns  ``true`` if the pattern is simple.
    */
@@ -211,12 +211,12 @@ export class NameChoice extends Base {
   toArray(): Name[] | null {
     const aArr: Name[] | null = this.a.toArray();
 
-    if (!aArr) {
+    if (aArr === null) {
       return null;
     }
 
     const bArr: Name[] | null = this.b.toArray();
-    if (!bArr) {
+    if (bArr === null) {
       return null;
     }
 
@@ -248,7 +248,8 @@ export class NsName extends Base {
   }
 
   match(ns: string, name: string): boolean {
-    return this.ns === ns && !(this.except && this.except.match(ns, name));
+    return this.ns === ns && !(this.except !== undefined &&
+                               this.except.match(ns, name));
   }
 
   wildcardMatch(ns: string, name: string): boolean {
@@ -259,7 +260,7 @@ export class NsName extends Base {
     const ret: {ns: string, except?: any} = {
       ns: this.ns,
     };
-    if (this.except) {
+    if (this.except !== undefined) {
       ret.except = this.except.toObject();
     }
     return ret;
@@ -275,7 +276,7 @@ export class NsName extends Base {
 
   _recordNamespaces(namespaces: NamespaceMemo): void {
     namespaces[this.ns] = 1;
-    if (this.except) {
+    if (this.except !== undefined) {
       namespaces["::except"] = 1;
     }
   }
@@ -296,7 +297,7 @@ export class AnyName extends Base {
   }
 
   match(ns: string, name: string): boolean {
-    return !this.except || !this.except.match(ns, name);
+    return (this.except === undefined) || !this.except.match(ns, name);
   }
 
   wildcardMatch(ns: string, name: string): boolean {
@@ -307,7 +308,7 @@ export class AnyName extends Base {
     const ret: {pattern: "AnyName", except?: Base} = {
       pattern: "AnyName",
     };
-    if (this.except) {
+    if (this.except !== undefined) {
       ret.except = this.except.toObject();
     }
     return ret;
@@ -323,7 +324,7 @@ export class AnyName extends Base {
 
   _recordNamespaces(namespaces: NamespaceMemo): void {
     namespaces["*"] = 1;
-    if (this.except) {
+    if (this.except !== undefined) {
       namespaces["::except"] = 1;
     }
   }

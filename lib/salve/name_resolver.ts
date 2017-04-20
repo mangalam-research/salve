@@ -60,8 +60,8 @@ export class NameResolver {
   private readonly _contextStack: Context[];
 
   constructor(other?: NameResolver) {
-    this.id = "N" + this.__newID();
-    if (other) {
+    this.id = "N" + String(this.__newID());
+    if (other !== undefined) {
       this._contextStack = other._contextStack.slice();
     }
     else {
@@ -232,8 +232,8 @@ export class NameResolver {
    * </pre>
    *
    * then ``qname === qname2`` is not necessarily true. This would happen if two
-   * prefixes map to the same URI. In such case the prefix provided in the return
-   * value is arbitrarily chosen.
+   * prefixes map to the same URI. In such case the prefix provided in the
+   * return value is arbitrarily chosen.
    *
    * @param uri The URI part of the expanded name. An empty string is
    * valid, and basically means "no namespace". This occurrs for unprefixed

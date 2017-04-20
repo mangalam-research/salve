@@ -37,11 +37,11 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
   function fireEvent(...args: any[]): void {
     const ev: salve.Event = new salve.Event(args);
     const ret: salve.FireEventResult = walker.fireEvent(ev);
-    if (ret) {
+    if (ret instanceof Array) {
       error = true;
       if (!mute) {
         ret.forEach((x: salve.ValidationError) => {
-          console.log("on event " + ev);
+          console.log("on event " + ev.toString());
           console.log(x.toString());
         });
       }
@@ -70,7 +70,7 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
         nsDefinitions.push([attr.local, attr.value]);
       }
     });
-    if (nsDefinitions.length) {
+    if (nsDefinitions.length !== 0) {
       fireEvent("enterContext");
       nsDefinitions.forEach((x: string[]) => {
         fireEvent("definePrefix", x[0], x[1]);
@@ -125,9 +125,9 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
       .replace(/<!--(?:.|\n|\r)*?-->/g, "")
       .trim();
 
-    while (doctype.length) {
+    while (doctype.length !== 0) {
       const match: RegExpMatchArray | null = entityRe.exec(doctype);
-      if (match) {
+      if (match !== null) {
         const name: string = match[1];
         const value: string = match[3];
         doctype = doctype.slice(match[0].length);

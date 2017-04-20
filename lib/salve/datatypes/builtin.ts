@@ -33,17 +33,17 @@ abstract class Base implements Datatype {
   abstract readonly needsContext: boolean;
   abstract readonly regexp: RegExp;
 
-  parseParams(location: string, params: RawParameter[]): void {
-    if (params && params.length > 0) {
-      throw new ParameterParsingError(location,
-                                      [new ParamError("this type does" +
-                                                     " not accept parameters")]);
+  parseParams(location: string, params?: RawParameter[]): void {
+    if (params !== undefined && params.length > 0) {
+      throw new ParameterParsingError(
+        location,
+        [new ParamError("this type does not accept parameters")]);
     }
   }
 
   parseValue(value: string): any {
     const errors: ValueError[] | false = this.disallows(value);
-    if (errors instanceof Array && errors.length) {
+    if (errors instanceof Array && errors.length !== 0) {
       throw new ValueValidationError(errors);
     }
     return { value };

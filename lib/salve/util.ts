@@ -11,8 +11,8 @@
  * A mock of Node's ``util.inspect``. The current implementation merely returns
  * what is passed to it.
  */
-export function inspect(x: any): any {
-  return x;
+export function inspect(x: any): string {
+  return x.toString();
 }
 
 // LocalWords:  util Dubeau MPL Mangalam
