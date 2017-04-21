@@ -508,7 +508,7 @@ describe("GrammarWalker.fireEvent", () => {
       ]);
     });
 
-    it("errors after attributes", () => {
+    it("errors after attributes: report errors", () => {
       // This test was added to check for a problem with the internal state of
       // salve.
 
@@ -551,6 +551,39 @@ describe("GrammarWalker.fireEvent", () => {
         "must choose either {\"ns\":\"\",\"name\":\"bar\"} or " +
           "{\"ns\":\"\",\"name\":\"baz\"}",
       ]);
+    });
+
+    it("errors after attributes: don't report extraneous errors", () => {
+      // This test was added to check for a problem with the internal state of
+      // salve.
+
+      // Read the RNG tree.
+      const source = fileAsString(
+        "test/multiple_missing_attributes/simplified-rng.js");
+
+      const tree = salve.constructTree(source);
+      const walker = tree.newWalker();
+      let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
+      assert.isFalse(ret);
+      ret = walker.fireEvent(new salve.Event("leaveStartTag", "", "html"));
+      assert.isFalse(ret);
+
+      ret = walker.fireEvent(new salve.Event("enterStartTag", "", "em"));
+      assert.isFalse(ret, "entering em");
+      ret = walker.fireEvent(new salve.Event("leaveStartTag"));
+      assert.deepEqual(ret.map(x => x.toString()), [
+        "attribute missing: {\"ns\":\"\",\"name\":\"attr-a\"}",
+        "attribute missing: {\"ns\":\"\",\"name\":\"attr-b\"}",
+        "attribute missing: {\"ns\":\"\",\"name\":\"attr-c\"}",
+      ]);
+
+      ret = walker.fireEvent(new salve.Event("enterStartTag", "", "foo"));
+      assert.isFalse(ret);
+      // ret = walker.fireEvent(new salve.Event("leaveStartTag", "", "foo"));
+      // assert.isFalse(ret);
+      // ret = walker.fireEvent(new salve.Event("endTag", "", "foo"));
+      // assert.isFalse(ret);
+      // ret = walker.fireEvent(new salve.Event("endTag", "", "em"));
     });
   });
 

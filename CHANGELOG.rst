@@ -3,6 +3,15 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 4.1.0:
+
+  - The logic for reporting attribute errors has been improved. In previous
+    iterations a missing attribute could have let to an error saying that the
+    first child element of the element lacking the attribute was incorrect:
+    salve was reporting the presence of an erroneous element, rather than the
+    absence of the attribute. It makes sense if you think in computational terms
+    but is confusing to end users.
+
 * 4.0.7:
 
   - The fix for the attribute problem that was meant to be fixed in 4.0.6 was
