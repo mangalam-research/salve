@@ -149,8 +149,6 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
     // Undefined currentIteration can happen in rare cases.
     this._instantiateCurrentIteration();
 
-    // Release nextIteration, which we won't need anymore.
-    this.nextIteration = undefined;
     return this.currentIteration!.end(attribute);
   }
 

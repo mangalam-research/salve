@@ -485,7 +485,7 @@ describe("GrammarWalker.fireEvent", () => {
     it("missing attributes", () => {
       // Read the RNG tree.
       const source = fileAsString(
-        "test/attribute-order/simplified-rng.js");
+        "test/multiple_missing_attributes/simplified-rng.js");
 
       const tree = salve.constructTree(source);
       const walker = tree.newWalker();
@@ -501,6 +501,55 @@ describe("GrammarWalker.fireEvent", () => {
         "attribute missing: {\"ns\":\"\",\"name\":\"attr-a\"}",
         "attribute missing: {\"ns\":\"\",\"name\":\"attr-b\"}",
         "attribute missing: {\"ns\":\"\",\"name\":\"attr-c\"}",
+      ]);
+      ret = walker.fireEvent(new salve.Event("endTag", "", "em"));
+      assert.deepEqual(ret.map(x => x.toString()), [
+        "tag required: {\"ns\":\"\",\"name\":\"foo\"}",
+      ]);
+    });
+
+    it("errors after attributes", () => {
+      // This test was added to check for a problem with the internal state of
+      // salve.
+
+      // Read the RNG tree.
+      const source = fileAsString(
+        "test/multiple_missing_attributes/simplified-rng.js");
+
+      const tree = salve.constructTree(source);
+      const walker = tree.newWalker();
+      let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
+      assert.isFalse(ret);
+      ret = walker.fireEvent(new salve.Event("leaveStartTag", "", "html"));
+      assert.isFalse(ret);
+
+      ret = walker.fireEvent(new salve.Event("enterStartTag", "", "em"));
+      assert.isFalse(ret, "entering em");
+      ret = walker.fireEvent(new salve.Event("attributeName", "", "attr-a"));
+      assert.isFalse(ret, "attr-a");
+      ret = walker.fireEvent(new salve.Event("attributeValue", "x"));
+      assert.isFalse(ret, "attr-a value");
+      ret = walker.fireEvent(new salve.Event("attributeName", "", "attr-b"));
+      assert.isFalse(ret, "attr-b");
+      ret = walker.fireEvent(new salve.Event("attributeValue", "x"));
+      assert.isFalse(ret, "attr-b value");
+      ret = walker.fireEvent(new salve.Event("attributeName", "", "attr-c"));
+      assert.isFalse(ret, "attr-c");
+      ret = walker.fireEvent(new salve.Event("attributeValue", "x"));
+      assert.isFalse(ret, "attr-c value");
+      ret = walker.fireEvent(new salve.Event("leaveStartTag"));
+      assert.isFalse(ret, "leaveStartTag has no errors");
+
+      ret = walker.fireEvent(new salve.Event("enterStartTag", "", "foo"));
+      assert.isFalse(ret);
+      ret = walker.fireEvent(new salve.Event("leaveStartTag", "", "foo"));
+      assert.isFalse(ret);
+      ret = walker.fireEvent(new salve.Event("endTag", "", "foo"));
+      assert.isFalse(ret);
+      ret = walker.fireEvent(new salve.Event("endTag", "", "em"));
+      assert.deepEqual(ret.map(x => x.toString()), [
+        "must choose either {\"ns\":\"\",\"name\":\"bar\"} or " +
+          "{\"ns\":\"\",\"name\":\"baz\"}",
       ]);
     });
   });

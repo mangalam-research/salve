@@ -3,6 +3,11 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 4.0.7:
+
+  - The fix for the attribute problem that was meant to be fixed in 4.0.6 was
+    not complete.
+
 * 4.0.6:
 
   - Fixed an error whereby if an element had multiple attribute errors, only

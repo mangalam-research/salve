@@ -82,10 +82,12 @@ if (DEBUG) {
   };
   noop(stackTrace);
 
-  let possibleTracer: (oldMethod: Function, name: string, args: any[]) => any;
-  let fireEventTracer: (oldMethod: Function, name: string, args: any[]) => any;
-  let plainTracer: (oldMethod: Function, name: string, args: any[]) => any;
-  let callDump: (msg: string, name: string, me: any) => void;
+  // tslint:disable:no-var-keyword
+  var possibleTracer: (oldMethod: Function, name: string, args: any[]) => any;
+  var fireEventTracer: (oldMethod: Function, name: string, args: any[]) => any;
+  var plainTracer: (oldMethod: Function, name: string, args: any[]) => any;
+  var callDump: (msg: string, name: string, me: any) => void;
+  // tslint:enable:no-var-keyword
 
   // tslint:disable-next-line:only-arrow-functions no-void-expression
   (function buildTracingCode(): void {
@@ -117,54 +119,49 @@ if (DEBUG) {
     };
 
     // tslint:disable-next-line:only-arrow-functions
-    possibleTracer = function possibleTracer(
-      this: any,
-      oldMethod: Function, name: string,
-      args: any[]): any {
-        buf += step;
-        callDump("calling ", name, this);
-        const ret: any = oldMethod.apply(this, args);
-        callDump("called ", name, this);
+    possibleTracer = function possibleTracer(this: any,
+                                             oldMethod: Function, name: string,
+                                             args: any[]): any {
+      buf += step;
+      callDump("calling ", name, this);
+      const ret: any = oldMethod.apply(this, args);
+      callDump("called ", name, this);
+      trace(`${buf}return from the call: ${util.inspect(ret)}`);
+      buf = buf.slice(step.length);
+      return ret;
+    };
+
+    // tslint:disable-next-line:only-arrow-functions
+    fireEventTracer = function fireEventTracer(this: any,
+                                               oldMethod: Function,
+                                               name: string,
+                                               args: any[]): any {
+      buf += step;
+      callDump("calling ", name, this);
+      trace(buf + util.inspect(args[0]));
+
+      const ret: any = oldMethod.apply(this, args);
+      callDump("called ", name, this);
+      if (ret !== false) {
         trace(`${buf}return from the call: ${util.inspect(ret)}`);
-        buf = buf.slice(step.length);
-        return ret;
-      };
+      }
+      buf = buf.slice(step.length);
+      return ret;
+    };
 
     // tslint:disable-next-line:only-arrow-functions
-    fireEventTracer = function fireEventTracer(
-      this: any,
-      oldMethod: Function,
-      name: string,
-      args: any[]): any {
-        buf += step;
-        callDump("calling ", name, this);
-        trace(buf + util.inspect(args[0]));
+    plainTracer = function plainTracer(this: any,
+                                       oldMethod: Function, name: string,
+                                       args: any[]): any {
+      buf += step;
+      callDump("calling ", name, this);
 
-        const ret: any = oldMethod.apply(this, args);
-        callDump("called ", name, this);
-        if (ret !== false) {
-          trace(`${buf}return from the call: ${util.inspect(ret)}`);
-        }
-        buf = buf.slice(step.length);
-        return ret;
-      };
-
-    // tslint:disable-next-line:only-arrow-functions
-    plainTracer = function plainTracer(
-      this: any,
-      oldMethod: Function, name: string,
-      args: any[]): any {
-        buf += step;
-        callDump("calling ", name, this);
-
-        const ret: any = oldMethod.apply(this, args);
-        callDump("called ", name, this);
-        // if (ret !== true) {
-        //    trace(buf + "return from the call: " + util.inspect(ret));
-        // }
-        buf = buf.slice(step.length);
-        return ret;
-      };
+      const ret: any = oldMethod.apply(this, args);
+      callDump("called ", name, this);
+      trace(buf + "return from the call: " + util.inspect(ret));
+      buf = buf.slice(step.length);
+      return ret;
+    };
   }());
 
   /**
@@ -179,8 +176,8 @@ if (DEBUG) {
    * @param f The function that should serve as wrapper.
    *
    */
-  // tslint:disable-next-line:only-arrow-functions
-  const wrap: (me: any, name: string, f: Function) => void =
+  // tslint:disable-next-line:only-arrow-functions no-var-keyword
+  var wrap: (me: any, name: string, f: Function) => void =
     (me: any, name: string, f: Function) => {
       const mangledName: string = `___${name}`;
       me[mangledName] = me[name];
@@ -688,13 +685,13 @@ export abstract class Walker<T extends BasePattern> {
     else {
       this.el = elOrWalker;
     }
-    // if (DEBUG) {
-    //     wrap(this, "_possible", possibleTracer);
-    //     wrap(this, "fireEvent", fireEventTracer);
-    //     wrap(this, "end", plainTracer);
-    //     wrap(this, "_suppressAttributes", plainTracer);
-    //     wrap(this, "_clone", plainTracer);
-    // }
+    if (DEBUG) {
+        wrap(this, "_possible", possibleTracer);
+        wrap(this, "fireEvent", fireEventTracer);
+        wrap(this, "end", plainTracer);
+        wrap(this, "_suppressAttributes", plainTracer);
+        wrap(this, "_clone", plainTracer);
+    }
   }
 
   /**
@@ -762,8 +759,10 @@ export abstract class Walker<T extends BasePattern> {
   }
 
   /**
-   * This method ends the Walker processing. It should not see any further
-   * events after end is called.
+   * Obtain the errors that would occur if the walker were to end here. Note the
+   * conditional phrasing. It **must** be idempotent. Therefore it **must not**
+   * change the state of the walker. The internal code of salve will sometimes
+   * call end more than once on the same walker.
    *
    * @param attribute ``true`` if calling this method while processing
    * attributes, ``false`` otherwise.
