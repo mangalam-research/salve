@@ -8,10 +8,17 @@
  */
 
 /**
- * A mock of Node's ``util.inspect``. The current implementation merely returns
- * what is passed to it.
+ * A mock of Node's ``util.inspect``.
  */
 export function inspect(x: any): string {
+  if (x === undefined) {
+    return "undefined";
+  }
+
+  if (x === null) {
+    return "null";
+  }
+
   return x.toString();
 }
 

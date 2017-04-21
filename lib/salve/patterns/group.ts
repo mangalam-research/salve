@@ -4,6 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
+import { AttributeNameError, AttributeValueError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
@@ -179,14 +180,15 @@ class GroupWalker extends Walker<Group> {
       const aHas: boolean = this.el.patA._hasAttrs();
       const bHas: boolean = this.el.patB._hasAttrs();
       if (aHas) {
-        // Don't end it more than once.
-        if (!this.endedA) {
-          ret = this.walkerA!.end(true);
-          this.endedA = true;
+        // This should not happen. this.endedA is to become true when we run
+        // into a non-attribute event that matches. This can happen only once we
+        // have deal with all attributes.
+        if (this.endedA) {
+          throw new Error(
+            "invalid state: endedA is true but we are processing attributes");
         }
-        else {
-          ret = false;
-        }
+
+        ret = this.walkerA!.end(true);
 
         if (bHas) {
           const endB = this.walkerB!.end(true);
@@ -205,21 +207,35 @@ class GroupWalker extends Walker<Group> {
       return false;
     }
 
+    let retA: EndResult = false;
     // Don't end it more than once.
     if (!this.endedA) {
-      ret = this.walkerA!.end(false);
-      this.endedA = true;
-      if (ret) {
-        return ret;
+      retA = this.walkerA!.end(false);
+
+      // If we get here and the only errors we get are attribute errors,
+      // we must move on to check the second walker too.
+      if (retA) {
+        for (const err of retA) {
+          if (!(err instanceof AttributeValueError ||
+                err instanceof AttributeNameError)) {
+            // We ran into a non-attribute error. We can stop here.
+            return retA;
+          }
+        }
       }
     }
 
-    ret = this.walkerB!.end(false);
-    if (ret) {
-      return ret;
+    const retB = this.walkerB!.end(false);
+    if (retB) {
+      if (!retA) {
+        return retB;
+      }
+      else {
+        return retA.concat(retB);
+      }
     }
 
-    return false;
+    return retA;
   }
 
   /**
