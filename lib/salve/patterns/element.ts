@@ -191,6 +191,13 @@ class ElementWalker extends Walker<Element> {
                 err instanceof AttributeNameError) {
               ret.push(err);
             }
+
+            if (err instanceof AttributeNameError) {
+              // We generate an internal event designed to neutralize the
+              // attributes that errored.
+              this.walker!.fireEvent(new Event(["neutralizeAttribute",
+                                                err.name]));
+            }
           }
         }
 

@@ -59,6 +59,7 @@ class AttributeWalker extends Walker<Attribute> {
   private subwalker: Walker<BasePattern> | undefined;
   private readonly attrNameEvent: Event;
   private readonly nameResolver: NameResolver;
+  private neutralized: boolean;
 
   /**
    * @param el The pattern for which this walker was
@@ -82,6 +83,7 @@ class AttributeWalker extends Walker<Attribute> {
         walker.subwalker._clone(memo) : undefined;
       // No need to clone; values are immutable.
       this.attrNameEvent = walker.attrNameEvent;
+      this.neutralized = walker.neutralized;
     }
     else {
       const el: Attribute = elOrWalker;
@@ -91,6 +93,7 @@ class AttributeWalker extends Walker<Attribute> {
       this.attrNameEvent = new Event("attributeName", el.name);
       this.seenName = false;
       this.seenValue = false;
+      this.neutralized = false;
     }
   }
 
@@ -129,8 +132,14 @@ class AttributeWalker extends Walker<Attribute> {
   }
 
   fireEvent(ev: Event): FireEventResult {
-    if (this.suppressedAttributes) {
+    if (this.suppressedAttributes || this.neutralized) {
       return undefined;
+    }
+
+    if ((ev.params[0] === "neutralizeAttribute") &&
+        this.el.name.toString() === ev.params[1].toString()) {
+      this.neutralized = true;
+      return false;
     }
 
     if (this.seenName) {
@@ -173,10 +182,14 @@ class AttributeWalker extends Walker<Attribute> {
   }
 
   canEnd(attribute: boolean = false): boolean {
-    return this.seenValue;
+    return this.seenValue || this.neutralized;
   }
 
   end(attribute: boolean = false): EndResult {
+    if (this.neutralized) {
+      return false;
+    }
+
     if (!this.seenName) {
       return [new AttributeNameError("attribute missing", this.el.name)];
     }
