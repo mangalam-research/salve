@@ -3,6 +3,10 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
+* 4.1.1:
+
+  - Export BaseName.
+
 * 4.1.0:
 
   - The logic for reporting attribute errors has been improved. In previous
