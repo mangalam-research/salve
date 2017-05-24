@@ -21,7 +21,8 @@ export { AttributeNameError, AttributeValueError, ChoiceError,
 
 export { NameResolver } from "./name_resolver";
 
-export { Name, NameChoice, NsName, AnyName } from "./name_patterns";
+export { Base as BaseName, Name, NameChoice, NsName,
+         AnyName } from "./name_patterns";
 
 /**
  * Do not use this. This is here only for historical reasons and may be yanked
