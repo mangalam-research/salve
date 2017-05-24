@@ -236,7 +236,7 @@ export class NameResolver {
    * return value is arbitrarily chosen.
    *
    * @param uri The URI part of the expanded name. An empty string is
-   * valid, and basically means "no namespace". This occurrs for unprefixed
+   * valid, and basically means "no namespace". This occurs for unprefixed
    * attributes but could also happen if the default namespace is undeclared.
    *
    * @param  name The name part.
