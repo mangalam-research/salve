@@ -545,7 +545,7 @@ export class Event {
 }
 
 /**
- * Utility function used mainly in testing to transform a [["set".Set]] of
+ * Utility function used mainly in testing to transform a [["set".NaiveSet]] of
  * events into a string containing a tree structure.  The principle is to
  * combine events of a same type together and among events of a same type
  * combine those which are in the same namespace. So for instance if there is a

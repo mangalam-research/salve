@@ -8,8 +8,9 @@ import { Pattern } from "./base";
 
 /**
  * This is a defunct pattern. During the processing of the RNG file all
- * ``param`` elements are converted into parameters to [["./data".Data]] so we
- * never end up with a converted file that contains an instance of this class.
+ * ``param`` elements are converted into parameters to [["patterns/data".Data]]
+ * so we never end up with a converted file that contains an instance of this
+ * class.
  */
 export class Param extends Pattern {
   constructor(xmlPath: string) {
