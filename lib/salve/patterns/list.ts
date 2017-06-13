@@ -76,6 +76,7 @@ class ListWalker extends SingleSubwalker<List> {
     }
 
     this.matched = true;
+
     return false;
   }
 
@@ -87,6 +88,7 @@ class ListWalker extends SingleSubwalker<List> {
     if (!this.seenTokens) {
       return (this.subwalker.fireEvent(emptyEvent) === false);
     }
+
     return this.subwalker.canEnd(attribute);
   }
 

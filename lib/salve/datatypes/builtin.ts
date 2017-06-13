@@ -46,6 +46,7 @@ abstract class Base implements Datatype {
     if (errors instanceof Array && errors.length !== 0) {
       throw new ValueValidationError(errors);
     }
+
     return { value };
   }
 

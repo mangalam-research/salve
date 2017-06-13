@@ -91,8 +91,10 @@ class ChoiceWalker extends Walker<Choice> {
       this.chosen = true;
       if (retB === undefined) {
         this.walkerB = undefined;
+
         return retA;
       }
+
       return retA;
     }
 
@@ -101,6 +103,7 @@ class ChoiceWalker extends Walker<Choice> {
       // We do not need to test if retA is undefined because we would not get
       // here if it were not.
       this.walkerA = undefined;
+
       return retB;
     }
 
@@ -170,6 +173,7 @@ class ChoiceWalker extends Walker<Choice> {
     const namesA: namePatterns.Base[] = [];
     const namesB: namePatterns.Base[] = [];
     let notAChoiceError: boolean = false;
+    // tslint:disable-next-line:no-non-null-assertion
     this.walkerA!.possible().forEach((ev: Event) => {
       if (ev.params[0] === "enterStartTag") {
         namesA.push(ev.params[1] as namePatterns.Base);
@@ -183,6 +187,7 @@ class ChoiceWalker extends Walker<Choice> {
     // done by TS. Without the cast, TS thinks notAChoiceError is necessarily
     // false here and tslint issues a warning.
     if (!(notAChoiceError as boolean)) {
+      // tslint:disable-next-line:no-non-null-assertion
       this.walkerB!.possible().forEach((ev: Event) => {
         if (ev.params[0] === "enterStartTag") {
           namesB.push(ev.params[1] as namePatterns.Base);

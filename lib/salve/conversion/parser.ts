@@ -74,15 +74,14 @@ export class Element {
       pPath = this.parent.path as string;
     }
 
-    this.path = pPath + "/" + this.node.local;
+    this.path = `${pPath}/${this.node.local}`;
 
     if ("name" in this.node.attributes) {
       // tslint:disable-next-line:no-string-literal
       this.path += `[@name='${this.node.attributes["name"].value}']`;
     }
 
-    for (let i: number = 0; i < this.children.length; ++i) {
-      const child: Element | string = this.children[i];
+    for (const child of this.children) {
       if (child instanceof Element && child.node.local === "name") {
         const val: string = child.children.join("");
         this.path += `[@name='${val}']`;
@@ -119,6 +118,7 @@ export class ConversionParser extends Parser {
     if (this._recordedRoot === undefined) {
       throw new Error("cannot get root");
     }
+
     return this._recordedRoot;
   }
 

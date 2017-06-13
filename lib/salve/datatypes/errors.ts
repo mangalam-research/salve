@@ -65,8 +65,8 @@ export class ParameterParsingError extends Error {
     // This is crap to work around the fact that Error is a terribly badly
     // designed class or prototype or whatever. Unfortunately the stack trace is
     // off...
-    const msg: string = `${location}: ` +
-      errors.map((x: ParamError) => x.toString()).join("\n");
+    const msg: string =
+      `${location}: ${errors.map((x: ParamError) => x.toString()).join("\n")}`;
     const err: Error = new Error(msg);
     this.name = "ParameterParsingError";
     this.stack = err.stack;

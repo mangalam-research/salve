@@ -99,6 +99,9 @@ class ValueWalker extends Walker<Value> {
   }
 
   _possible(): EventSet {
+    // possibleCached is necessarily defined because of the constructor's
+    // logic.
+    // tslint:disable-next-line:no-non-null-assertion
     return this.possibleCached!;
   }
 
@@ -118,6 +121,7 @@ class ValueWalker extends Walker<Value> {
 
     this.matched = true;
     this.possibleCached = new EventSet();
+
     return false;
   }
 

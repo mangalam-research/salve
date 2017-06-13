@@ -237,6 +237,7 @@ export class DefaultConversionWalker extends ConversionWalker {
         this.outputItem(ctor);
       }
       if (this.includePaths) {
+        // tslint:disable-next-line:no-non-null-assertion
         this.outputString(el.path!);
       }
       this.walk(el.children[0] as Element);
@@ -267,6 +268,7 @@ export class DefaultConversionWalker extends ConversionWalker {
       // straight to its children.
       if (skipToChildren) {
         this.walkChildren(el);
+
         return;
       }
 
@@ -284,6 +286,7 @@ export class DefaultConversionWalker extends ConversionWalker {
         this.outputItem(ctor);
       }
       if (this.includePaths) {
+        // tslint:disable-next-line:no-non-null-assertion
         this.outputString(el.path!);
       }
 
@@ -527,6 +530,7 @@ function findAttributeUpwards(el: Element, name: string): string | undefined {
 
 function localName(value: string): string {
   const sep: number = value.indexOf(":");
+
   return (sep === -1) ? value : value.slice(sep + 1);
 }
 
@@ -561,6 +565,7 @@ function fromQNameToURI(value: string, el: Element): string {
   if (uri === undefined) {
     throw new Error(`cannot resolve prefix: ${parts[0]}`);
   }
+
   return uri;
 }
 
@@ -588,25 +593,25 @@ export class DatatypeProcessor extends ConversionWalker {
 
     if (el.node.local === "value") {
       el.makePath();
-      const node: any = el.node;
-      let value: string = el.children.join("");
+      const node = el.node;
+      let value = el.children.join("");
       type = node.attributes.type.value;
       libname = node.attributes.datatypeLibrary.value;
-      let ns: string = node.attributes.ns.value;
+      let ns = node.attributes.ns.value;
 
-      const lib: datatypes.TypeLibrary | undefined =
-        datatypes.registry.find(libname!);
+      // tslint:disable-next-line:no-non-null-assertion
+      const lib = datatypes.registry.find(libname!);
       if (lib === undefined) {
         throw new datatypes.ValueValidationError(
           [new datatypes.ValueError(`unknown datatype library: ${libname}`)]);
       }
 
-      const datatype: datatypes.Datatype = lib.types[type!];
+      // tslint:disable-next-line:no-non-null-assertion
+      const datatype = lib.types[type!];
       if (datatype === undefined) {
         throw new datatypes.ValueValidationError(
-          [new datatypes.ValueError(`unknown datatype ${type} in ` +
-                                    ((libname === "") ? "default library" :
-                                     (`library ${libname}`)))]);
+          [new datatypes.ValueError(`unknown datatype ${type} in \
+${(libname === "") ? "default library" : `library ${libname}`}`)]);
       }
 
       if (datatype.needsContext &&
@@ -627,39 +632,38 @@ export class DatatypeProcessor extends ConversionWalker {
 
       // Generating the element will cause salve to perform checks on the
       // params, etc. We do not need to record the return value.
-      // tslint:disable:no-unused-new
+      // tslint:disable-next-line:no-unused-expression
       new nameToConstructor.Value(el.path, value, type, libname, ns);
     }
     else if (el.node.local === "data") {
       el.makePath();
-      const node: any = el.node;
+      const node = el.node;
       // Except is necessarily last.
-      const hasExcept: boolean =
-        (el.children.length !== 0 &&
-         (el.children[el.children.length - 1] as Element)
-         .node.local === "except");
+      const hasExcept = (el.children.length !== 0 &&
+                         (el.children[el.children.length - 1] as Element)
+                         .node.local === "except");
 
       type = node.attributes.type.value;
       libname = node.attributes.datatypeLibrary.value;
-      const lib: datatypes.TypeLibrary | undefined =
-        datatypes.registry.find(libname!);
+      // tslint:disable-next-line:no-non-null-assertion
+      const lib = datatypes.registry.find(libname!);
       if (lib === undefined) {
         throw new datatypes.ValueValidationError(
           [new datatypes.ValueError(`unknown datatype library: ${libname}`)]);
       }
 
+      // tslint:disable-next-line:no-non-null-assertion
       if (lib.types[type!] === undefined) {
         throw new datatypes.ValueValidationError(
-          [new datatypes.ValueError(`unknown datatype ${type} in ` +
-                                    ((libname === "") ? "default library" :
-                                     `library ${libname}`))]);
+          [new datatypes.ValueError(`unknown datatype ${type} in \
+${(libname === "") ? "default library" : `library ${libname}`}`)]);
       }
 
-      const params: any = el.children.slice(
+      const params = el.children.slice(
         0, hasExcept ? el.children.length - 1 : undefined).map(
           (child: Element) => ({
-              name: child.node.attributes["name"].value,
-              value: child.children.join(""),
+            name: child.node.attributes["name"].value,
+            value: child.children.join(""),
           }));
 
       // Generating the element will cause salve to perform checks on the
@@ -667,15 +671,17 @@ export class DatatypeProcessor extends ConversionWalker {
       // need to pass the possible exception, as it will be dealt when children
       // of this element are walked.
       //
-      // eslint-disable-next-line no-new
+      // tslint:disable-next-line:no-unused-expression
       new nameToConstructor.Data(el.path, type, libname, params);
     }
 
     // tslint:disable-next-line: no-http-string
     if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+        // tslint:disable-next-line:no-non-null-assertion
         warnAboutTheseTypes.indexOf(type!) !== -1) {
       this.warnings.push(
         `WARNING: ${el.path} uses the ${type} type in library ${libname}`);
+      // tslint:disable-next-line:no-non-null-assertion
       this.incompleteTypesUsed[type!] = true;
     }
     this.walkChildren(el);

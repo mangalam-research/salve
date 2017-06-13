@@ -108,7 +108,7 @@ class AttributeWalker extends Walker<Attribute> {
     }
     else if (!this.seenValue) {
       if (this.subwalker === undefined) {
-        this.subwalker = this.el!.pat.newWalker(this.nameResolver);
+        this.subwalker = this.el.pat.newWalker(this.nameResolver);
       }
 
       const sub: EventSet = this.subwalker._possible();
@@ -120,6 +120,7 @@ class AttributeWalker extends Walker<Attribute> {
         }
         ret.add(new Event("attributeValue", ev.params[1]));
       });
+
       return ret;
     }
 
@@ -139,6 +140,7 @@ class AttributeWalker extends Walker<Attribute> {
     if ((ev.params[0] === "neutralizeAttribute") &&
         this.el.name.toString() === ev.params[1].toString()) {
       this.neutralized = true;
+
       return false;
     }
 
@@ -147,7 +149,7 @@ class AttributeWalker extends Walker<Attribute> {
         this.seenValue = true;
 
         if (this.subwalker === undefined) {
-          this.subwalker = this.el!.pat.newWalker(this.nameResolver);
+          this.subwalker = this.el.pat.newWalker(this.nameResolver);
         }
 
         // Convert the attributeValue event to a text event.
@@ -171,6 +173,7 @@ class AttributeWalker extends Walker<Attribute> {
              this.el.name.match(ev.params[1] as string,
                                 ev.params[2] as string)) {
       this.seenName = true;
+
       return false;
     }
 
@@ -196,6 +199,7 @@ class AttributeWalker extends Walker<Attribute> {
     else if (!this.seenValue) {
       return [new AttributeValueError("attribute value missing", this.el.name)];
     }
+
     return false;
   }
 }

@@ -70,16 +70,24 @@ class InterleaveWalker extends Walker<Interleave> {
       throw new Error("impossible state");
     }
 
-    if (this.inA && !this.walkerA!.canEnd()) {
-      this.possibleCached = this.walkerA!._possible();
+    // Both walkers are necessarily defined because of the call to
+    // _instantiateWalkers.
+    //
+    // tslint:disable:no-non-null-assertion
+    const walkerA = this.walkerA!;
+    const walkerB = this.walkerB!;
+    // tslint:enable:no-non-null-assertion
+
+    if (this.inA && !walkerA.canEnd()) {
+      this.possibleCached = walkerA._possible();
     }
-    else if (this.inB && !this.walkerB!.canEnd()) {
-      this.possibleCached = this.walkerB!._possible();
+    else if (this.inB && !walkerB.canEnd()) {
+      this.possibleCached = walkerB._possible();
     }
 
     if (this.possibleCached === undefined) {
-      this.possibleCached = this.walkerA!.possible();
-      this.possibleCached.union(this.walkerB!._possible());
+      this.possibleCached = walkerA.possible();
+      this.possibleCached.union(walkerB._possible());
     }
 
     return this.possibleCached;
@@ -96,12 +104,21 @@ class InterleaveWalker extends Walker<Interleave> {
       throw new Error("impossible state");
     }
 
+    // Both walkers are necessarily defined because of the call to
+    // _instantiateWalkers.
+    //
+    // tslint:disable:no-non-null-assertion
+    const walkerA = this.walkerA!;
+    const walkerB = this.walkerB!;
+    // tslint:enable:no-non-null-assertion
+
     let retA: FireEventResult;
     let retB: FireEventResult;
     if (!this.inA && !this.inB) {
-      retA = this.walkerA!.fireEvent(ev);
+      retA = walkerA.fireEvent(ev);
       if (retA === false) {
         this.inA = true;
+
         return false;
       }
 
@@ -109,9 +126,10 @@ class InterleaveWalker extends Walker<Interleave> {
       // interleave to match. So if the first walker matched, the second
       // cannot. So we don't have to fireEvent on the second walker if the first
       // matched.
-      retB = this.walkerB!.fireEvent(ev);
+      retB = walkerB.fireEvent(ev);
       if (retB === false) {
         this.inB = true;
+
         return false;
       }
 
@@ -126,32 +144,34 @@ class InterleaveWalker extends Walker<Interleave> {
       return retA.concat(retB);
     }
     else if (this.inA) {
-      retA = this.walkerA!.fireEvent(ev);
+      retA = walkerA.fireEvent(ev);
       if (retA instanceof Array || retA === false) {
         return retA;
       }
 
       // If we got here, retA === undefined
-      retB = this.walkerB!.fireEvent(ev);
+      retB = walkerB.fireEvent(ev);
 
       if (retB === false) {
         this.inA = false;
         this.inB = true;
+
         return false;
       }
     }
     else { // inB
-      retB = this.walkerB!.fireEvent(ev);
+      retB = walkerB.fireEvent(ev);
       if (retB instanceof Array || retB === false) {
         return retB;
       }
 
       // If we got here, retB === undefined
-      retA = this.walkerA!.fireEvent(ev);
+      retA = walkerA.fireEvent(ev);
 
       if (retA === false) {
         this.inA = true;
         this.inB = false;
+
         return false;
       }
     }
@@ -165,20 +185,36 @@ class InterleaveWalker extends Walker<Interleave> {
       this.possibleCached = undefined; // no longer valid
       this.suppressedAttributes = true;
 
+      // Both walkers are necessarily defined because of the call to
+      // _instantiateWalkers.
+      //
+      // tslint:disable:no-non-null-assertion
       this.walkerA!._suppressAttributes();
       this.walkerB!._suppressAttributes();
+      // tslint:enable:no-non-null-assertion
     }
   }
 
   canEnd(attribute: boolean = false): boolean {
     this._instantiateWalkers();
+
+    // Both walkers are necessarily defined because of the call to
+    // _instantiateWalkers.
+    //
+    // tslint:disable-next-line:no-non-null-assertion
     return this.walkerA!.canEnd(attribute) && this.walkerB!.canEnd(attribute);
   }
 
   end(attribute: boolean = false): EndResult {
     this._instantiateWalkers();
+
+    // Both walkers are necessarily defined because of the call to
+    // _instantiateWalkers.
+    //
+    // tslint:disable:no-non-null-assertion
     const retA: EndResult = this.walkerA!.end(attribute);
     const retB: EndResult = this.walkerB!.end(attribute);
+    // tslint:enable:no-non-null-assertion
 
     if (retA && !retB) {
       return retA;

@@ -123,6 +123,7 @@ export class Grammar extends BasePattern {
     const newDef: TrivialMap<ElementI[]> =
       this._elementDefinitions = Object.create(null);
     this._gatherElementDefinitions(newDef);
+
     return newDef;
   }
 
@@ -203,6 +204,7 @@ export class Grammar extends BasePattern {
    * @returns A walker.
    */
   newWalker(): GrammarWalker {
+    // tslint:disable-next-line:no-use-before-declare
     return GrammarWalker.makeWalker(this);
   }
 }
@@ -349,6 +351,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       default:
         throw new Error(`unexpected event: ${ev.params[0]}`);
       }
+
       return false;
     }
 
@@ -360,6 +363,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       else {
         this.suspendedWs = ev.params[1] as string;
       }
+
       return false;
     }
 
@@ -513,8 +517,8 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
         /* falls through */
       default:
         throw new Error(
-          "unexpected event type in GrammarWalker's fireEvent: " +
-            ev.params[0].toString());
+          `unexpected event type in GrammarWalker's fireEvent: \
+${ev.params[0].toString()}`);
       }
     }
 
@@ -537,6 +541,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
   possible(): EventSet {
     if (this._misplacedElements.length !== 0) {
       const mpe: any = this._misplacedElements[0];
+
       // Return an empty set if the tags are unknown to us.
       return mpe instanceof Walker ? mpe.possible() : new EventSet();
     }
