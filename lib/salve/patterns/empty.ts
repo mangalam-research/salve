@@ -41,6 +41,9 @@ export class EmptyWalker extends Walker<Empty> {
   }
 
   _possible(): EventSet {
+    // possibleCached is necessarily defined because of the constructor's
+    // logic.
+    // tslint:disable-next-line:no-non-null-assertion
     return this.possibleCached!;
   }
 

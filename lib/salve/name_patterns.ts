@@ -73,6 +73,7 @@ export abstract class Base {
   getNamespaces(): string[] {
     const namespaces: NamespaceMemo = Object.create(null);
     this._recordNamespaces(namespaces);
+
     return Object.keys(namespaces);
   }
 
@@ -263,6 +264,7 @@ export class NsName extends Base {
     if (this.except !== undefined) {
       ret.except = this.except.toObject();
     }
+
     return ret;
   }
 
@@ -311,6 +313,7 @@ export class AnyName extends Base {
     if (this.except !== undefined) {
       ret.except = this.except.toObject();
     }
+
     return ret;
   }
 

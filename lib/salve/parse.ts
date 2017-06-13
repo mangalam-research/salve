@@ -41,7 +41,7 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
       error = true;
       if (!mute) {
         ret.forEach((x: salve.ValidationError) => {
-          console.log("on event " + ev.toString());
+          console.log(`on event ${ev}`);
           console.log(x.toString());
         });
       }
@@ -132,12 +132,12 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
         const value: string = match[3];
         doctype = doctype.slice(match[0].length);
         if (parser.ENTITIES[name] !== undefined) {
-          throw new Error("redefining entity: " + name);
+          throw new Error(`redefining entity: ${name}`);
         }
         parser.ENTITIES[name] = value;
       }
       else {
-        throw new Error("unexpected construct in DOCTYPE: " + doctype);
+        throw new Error(`unexpected construct in DOCTYPE: ${doctype}`);
       }
     }
 
@@ -145,6 +145,7 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
   };
 
   parser.write(xmlSource).close();
+
   return error;
 }
 

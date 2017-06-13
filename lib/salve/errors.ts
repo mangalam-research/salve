@@ -128,6 +128,7 @@ export class ChoiceError extends ValidationError {
   toStringWithNames(names: any[]): string {
     const first: any[] = names.slice(0, this.namesA.length);
     const second: any[] = names.slice(this.namesA.length);
+
     return `must choose either ${first.join(", ")} or ${second.join(", ")}`;
   }
 }

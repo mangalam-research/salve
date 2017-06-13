@@ -296,8 +296,7 @@ export function constructTree(code: string | {}): patterns.Grammar {
     throw new OldFormatError(); // version 0
   }
 
-  const { v: version, o: options, d: data }: { v: number, o: number, d: any }
-    = parsed;
+  const { v: version, o: options, d: data } = parsed;
   if (version === 3) {
     return new V2Constructor(options as number).walkObject(data);
   }

@@ -60,7 +60,7 @@ export class NameResolver {
   private readonly _contextStack: Context[];
 
   constructor(other?: NameResolver) {
-    this.id = "N" + String(this.__newID());
+    this.id = `N${this.__newID()}`;
     if (other !== undefined) {
       this._contextStack = other._contextStack.slice();
     }
@@ -263,7 +263,7 @@ export class NameResolver {
 
     const pre: string = prefixes[0];
 
-    return (pre !== "") ? (pre + ":" + name) : name;
+    return (pre !== "") ? `${pre}:${name}` : name;
   }
 
   /**

@@ -67,23 +67,30 @@ class GroupWalker extends Walker<Group> {
       return this.possibleCached;
     }
 
-    this.possibleCached = (!this.endedA) ?
-      this.walkerA!._possible() : undefined;
+    // Both walkers are necessarily defined because of the call to
+    // _instantiateWalkers.
+    //
+    // tslint:disable:no-non-null-assertion
+    const walkerA = this.walkerA!;
+    const walkerB = this.walkerB!;
+    // tslint:enable:no-non-null-assertion
+
+    this.possibleCached = (!this.endedA) ? walkerA._possible() : undefined;
 
     if (this.suppressedAttributes) {
       // If we are in the midst of processing walker a and it cannot end yet,
       // then we do not want to see anything from b.
-      if (this.endedA || this.walkerA!.canEnd()) {
+      if (this.endedA || walkerA.canEnd()) {
         this.possibleCached = new EventSet(this.possibleCached);
-        this.possibleCached.union(this.walkerB!._possible());
+        this.possibleCached.union(walkerB._possible());
       }
     }
     else {
-      let possibleB: EventSet = this.walkerB!._possible();
+      let possibleB: EventSet = walkerB._possible();
 
       // Attribute events are still possible event if the first walker is not
       // done with.
-      if ((!this.endedA || this.hitB) && !this.walkerA!.canEnd()) {
+      if ((!this.endedA || this.hitB) && !walkerA.canEnd()) {
         // Narrow it down to attribute events...
         possibleB = possibleB.filter((x: Event) => x.isAttributeEvent());
       }
@@ -91,28 +98,39 @@ class GroupWalker extends Walker<Group> {
       this.possibleCached.union(possibleB);
     }
 
+    // Necessarily defined once we get here.
+    // tslint:disable-next-line:no-non-null-assertion
     return this.possibleCached!;
   }
 
   fireEvent(ev: Event): FireEventResult {
     this._instantiateWalkers();
 
+    // Both walkers are necessarily defined because of the call to
+    // _instantiateWalkers.
+    //
+    // tslint:disable:no-non-null-assertion
+    const walkerA = this.walkerA!;
+    const walkerB = this.walkerB!;
+    // tslint:enable:no-non-null-assertion
+
     this.possibleCached = undefined;
     if (!this.endedA) {
-      const retA: FireEventResult = this.walkerA!.fireEvent(ev);
+      const retA: FireEventResult = walkerA.fireEvent(ev);
       if (retA !== undefined) {
         this.hitA = true;
+
         return retA;
       }
 
       // We must return right away if walkerA cannot yet end. Only attribute
       // events are allowed to move forward.
-      if (!ev.isAttributeEvent() && !this.walkerA!.canEnd()) {
+      if (!ev.isAttributeEvent() && !walkerA.canEnd()) {
         return undefined;
       }
     }
 
-    let retB: FireEventResult = this.walkerB!.fireEvent(ev);
+    let retB: FireEventResult = walkerB.fireEvent(ev);
     if (retB !== undefined) {
       this.hitB = true;
     }
@@ -120,7 +138,7 @@ class GroupWalker extends Walker<Group> {
     // Non-attribute event: if walker b matched the event then we must end
     // walkerA, if we've not already done so.
     if (!ev.isAttributeEvent() && retB !== undefined && !this.endedA) {
-      const endRet: EndResult = this.walkerA!.end();
+      const endRet: EndResult = walkerA.end();
       this.endedA = true;
 
       // Combine the possible errors.
@@ -133,6 +151,7 @@ class GroupWalker extends Walker<Group> {
         retB = retB.concat(endRet);
       }
     }
+
     return retB;
   }
 
@@ -142,31 +161,44 @@ class GroupWalker extends Walker<Group> {
       this.possibleCached = undefined; // no longer valid
       this.suppressedAttributes = true;
 
+      // Both walkers are necessarily defined because of the call to
+      // _instantiateWalkers.
+      //
+      // tslint:disable:no-non-null-assertion
       this.walkerA!._suppressAttributes();
       this.walkerB!._suppressAttributes();
+      // tslint:enable:no-non-null-assertion
     }
   }
 
   canEnd(attribute: boolean = false): boolean {
     this._instantiateWalkers();
+
+    // Both walkers are necessarily defined because of the call to
+    // _instantiateWalkers.
+    //
+    // tslint:disable:no-non-null-assertion
+    const walkerA = this.walkerA!;
+    const walkerB = this.walkerB!;
+    // tslint:enable:no-non-null-assertion
+
     if (attribute) {
       const aHas: boolean = this.el.patA._hasAttrs();
       const bHas: boolean = this.el.patB._hasAttrs();
       if (aHas && bHas) {
-        return this.walkerA!.canEnd(attribute) &&
-          this.walkerB!.canEnd(attribute);
+        return walkerA.canEnd(attribute) && walkerB.canEnd(attribute);
       }
       else if (aHas) {
-        return this.walkerA!.canEnd(true);
+        return walkerA.canEnd(true);
       }
       else if (bHas) {
-        return this.walkerB!.canEnd(true);
+        return walkerB.canEnd(true);
       }
 
       return true;
     }
 
-    return this.walkerA!.canEnd(attribute) && this.walkerB!.canEnd(attribute);
+    return walkerA.canEnd(attribute) && walkerB.canEnd(attribute);
   }
 
   end(attribute: boolean = false): EndResult {
@@ -175,6 +207,13 @@ class GroupWalker extends Walker<Group> {
     }
 
     let ret: EndResult;
+
+    // Both walkers are necessarily defined because of the call to canEnd.
+    //
+    // tslint:disable:no-non-null-assertion
+    const walkerA = this.walkerA!;
+    const walkerB = this.walkerB!;
+    // tslint:enable:no-non-null-assertion
 
     if (attribute) {
       const aHas: boolean = this.el.patA._hasAttrs();
@@ -188,10 +227,10 @@ class GroupWalker extends Walker<Group> {
             "invalid state: endedA is true but we are processing attributes");
         }
 
-        ret = this.walkerA!.end(true);
+        ret = walkerA.end(true);
 
         if (bHas) {
-          const endB = this.walkerB!.end(true);
+          const endB = walkerB.end(true);
           if (endB) {
             ret = ret ? ret.concat(endB) : endB;
           }
@@ -201,7 +240,7 @@ class GroupWalker extends Walker<Group> {
       }
 
       if (bHas) {
-        return this.walkerB!.end(true);
+        return walkerB.end(true);
       }
 
       return false;
@@ -210,7 +249,7 @@ class GroupWalker extends Walker<Group> {
     let retA: EndResult = false;
     // Don't end it more than once.
     if (!this.endedA) {
-      retA = this.walkerA!.end(false);
+      retA = walkerA.end(false);
 
       // If we get here and the only errors we get are attribute errors,
       // we must move on to check the second walker too.
@@ -225,7 +264,7 @@ class GroupWalker extends Walker<Group> {
       }
     }
 
-    const retB = this.walkerB!.end(false);
+    const retB = walkerB.end(false);
     if (retB) {
       if (!retA) {
         return retB;

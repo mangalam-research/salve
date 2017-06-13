@@ -99,9 +99,8 @@ export abstract class HashBase {
     }
 
     if (!(s instanceof this.constructor)) {
-      throw new Error("union invalid class object; my class " +
-                      this.constructor.name + " other class " +
-                      s.constructor.name);
+      throw new Error(`union invalid class object; my class \
+${this.constructor.name} other class ${s.constructor.name}`);
     }
 
     const backing: Backing = s.backing;
@@ -157,6 +156,7 @@ export abstract class HashBase {
         ret._store(key, data);
       }
     }
+
     return ret;
   }
 
@@ -170,6 +170,7 @@ export abstract class HashBase {
    */
   has(obj: any): boolean {
     const hash: any = this.hashF(obj);
+
     return this.backing[hash] !== undefined;
   }
 
@@ -195,6 +196,7 @@ export abstract class HashBase {
     for (const key of keys) {
       t.push(backing[key]);
     }
+
     return t;
   }
 
@@ -238,7 +240,7 @@ export class HashSet extends HashBase {
    */
   add(x: any): void {
     this._store(this.hashF(x), x);
-  };
+  }
 }
 
 /**

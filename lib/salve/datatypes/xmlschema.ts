@@ -265,6 +265,7 @@ class PatternP extends Parameter {
     if (internal === undefined) {
       internal = reCache[value] = regexp.parse(value);
     }
+
     return {
       rng: value,
       internal,
@@ -288,6 +289,7 @@ class PatternP extends Parameter {
       // Rethrow
       throw ex;
     }
+
     return false;
   }
 
@@ -375,6 +377,7 @@ class MaxInclusiveP extends NumericTypeDependentParameter {
     if (value > param) {
       return new ValueError(`value must be less than or equal to ${param}`);
     }
+
     return false;
   }
 }
@@ -387,6 +390,7 @@ class MaxExclusiveP extends NumericTypeDependentParameter {
     if (value >= param) {
       return new ValueError(`value must be less than ${param}`);
     }
+
     return false;
   }
 }
@@ -399,6 +403,7 @@ class MinInclusiveP extends NumericTypeDependentParameter {
     if (value < param) {
       return new ValueError(`value must be greater than or equal to ${param}`);
     }
+
     return false;
   }
 }
@@ -411,6 +416,7 @@ class MinExclusiveP extends NumericTypeDependentParameter {
     if (value <= param) {
       return new ValueError(`value must be greater than ${param}`);
     }
+
     return false;
   }
 }
@@ -441,6 +447,7 @@ function whiteSpaceProcessed(value: string, param: WhitespaceHandling): string {
   default:
     throw new Error(`unexpected value: ${param}`);
   }
+
   return value;
 }
 
@@ -513,6 +520,7 @@ abstract class Base implements Datatype {
 
     let ret: any[];
     this._defaultParams = ret = this.parseParams();
+
     return ret;
   }
 
@@ -548,6 +556,7 @@ abstract class Base implements Datatype {
     if (errors) {
       throw new ValueValidationError(errors);
     }
+
     return { value: this.convertValue(value, context) };
   }
 
@@ -564,6 +573,7 @@ abstract class Base implements Datatype {
       // Do we know this parameter?
       if (prop === undefined) {
         errors.push(new ParamError(`unexpected parameter: ${name}`));
+
         return;
       }
 
@@ -1172,6 +1182,7 @@ class QName extends Base {
       throw new ValueValidationError(
         [new ValueError(`cannot resolve the name ${value}`)]);
     }
+
     return `{${ret.ns}}${ret.name}`;
   }
 }
@@ -1190,6 +1201,7 @@ class NOTATION extends Base {
       throw new ValueValidationError(
         [new ValueError(`cannot resolve the name ${value}`)]);
     }
+
     return `{${ret.ns}}${ret.name}`;
   }
 }
@@ -1236,11 +1248,13 @@ function checkDate(value: string): boolean {
   }
 
   const dom: number = Number(match[3]);
-  let maxDom: number | undefined = maxDoms[month];
+  // We cannot have an undefined value here... so...
+  // tslint:disable-next-line:no-non-null-assertion
+  let maxDom: number = maxDoms[month]!;
   if (month === 2 && !leap) {
     maxDom = 28;
   }
-  if (dom === 0 || dom > maxDom!) {
+  if (dom === 0 || dom > maxDom) {
     return false;
   }
 

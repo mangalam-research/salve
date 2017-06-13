@@ -59,6 +59,7 @@ export class Registry {
     if (ret === undefined) {
       throw new Error(`can't get library with URI: ${uri}`);
     }
+
     return ret;
   }
 }

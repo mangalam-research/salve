@@ -128,6 +128,7 @@ if (DEBUG) {
       callDump("called ", name, this);
       trace(`${buf}return from the call: ${util.inspect(ret)}`);
       buf = buf.slice(step.length);
+
       return ret;
     };
 
@@ -146,6 +147,7 @@ if (DEBUG) {
         trace(`${buf}return from the call: ${util.inspect(ret)}`);
       }
       buf = buf.slice(step.length);
+
       return ret;
     };
 
@@ -158,8 +160,9 @@ if (DEBUG) {
 
       const ret: any = oldMethod.apply(this, args);
       callDump("called ", name, this);
-      trace(buf + "return from the call: " + util.inspect(ret));
+      trace(`${buf}return from the call: ${util.inspect(ret)}`);
       buf = buf.slice(step.length);
+
       return ret;
     };
   }());
@@ -176,7 +179,7 @@ if (DEBUG) {
    * @param f The function that should serve as wrapper.
    *
    */
-  // tslint:disable-next-line:only-arrow-functions no-var-keyword
+  // tslint:disable-next-line:only-arrow-functions no-var-keyword prefer-const
   var wrap: (me: any, name: string, f: Function) => void =
     (me: any, name: string, f: Function) => {
       const mangledName: string = `___${name}`;
@@ -357,7 +360,7 @@ export class BasePattern {
    * @returns The new id.
    */
   private __newID(): number {
-    return Pattern.__id++;
+    return BasePattern.__id++;
   }
 }
 
@@ -495,6 +498,7 @@ export class Event {
     this.key = key;
 
     Event.__cache[key] = this;
+
     return this;
   }
 
@@ -609,6 +613,7 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
     (function makeDumpTree(): (hash: HashMap) => string {
       let dumpTreeBuf: string = "";
       const dumpTreeIndent: string = "    ";
+
       // tslint:disable-next-line:no-shadowed-variable
       return (hash: HashMap): string => {
         let ret: string = "";
@@ -847,6 +852,7 @@ export abstract class Walker<T extends BasePattern> {
     }
     other = obj.clone();
     memo.add(obj, other);
+
     return other;
   }
 
@@ -932,6 +938,7 @@ export class Ref extends Pattern {
     if (this.resolvesTo === undefined) {
       return [this];
     }
+
     return undefined;
   }
 
@@ -940,6 +947,8 @@ export class Ref extends Pattern {
   // returns the walker for whatever it is that the Define element this
   // refers to ultimately contains.
   newWalker(resolver: NameResolver): Walker<BasePattern> {
+    // _resolve must have been called before any walker can be created.
+    // tslint:disable-next-line:no-non-null-assertion
     return this.resolvesTo!.pat.newWalker(resolver);
   }
 }

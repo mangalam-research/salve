@@ -40,8 +40,8 @@ export class NaiveSet {
       }
       else if (initial instanceof Array) {
         this.b = [];
-        for (let i: number = 0; i < initial.length; ++i) {
-          this.add(initial[i]);
+        for (const item of initial) {
+          this.add(item);
         }
       }
       else {
@@ -97,6 +97,7 @@ export class NaiveSet {
     // The fat arrow is used to prevent a caller from accessing ``this.b``
     // through the 3rd parameter that would be passed to ``f``.
     ret.b = this.b.filter((value: any, index: number) => f(value, index, this));
+
     return ret;
   }
 
@@ -121,6 +122,7 @@ export class NaiveSet {
         ret.add(result);
       }
     }
+
     return ret;
   }
 
