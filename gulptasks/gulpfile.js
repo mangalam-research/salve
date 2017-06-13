@@ -108,21 +108,27 @@ gulp.task("eslint",
           .pipe(eslint.format())
           .pipe(eslint.failAfterError()));
 
+function dumpBufferedContent(obj) {
+  const stdout = obj.stdout.toString().trim();
+  if (stdout !== "") {
+    gutil.log(`\n${stdout}`);
+  }
+
+  const stderr = obj.stderr.toString().trim();
+  if (stderr !== "") {
+    gutil.log(`\n${stderr}`);
+  }
+}
+
 function runTslint(tsconfig, tslintConfig) {
   return spawn(
     "./node_modules/.bin/tslint",
     ["--type-check", "--format", "verbose", "--project", tsconfig,
      "-c", tslintConfig],
-    { capture: ["stdout", "stderr"] }).then((result) => {
-      const stdout = result.stdout.toString().trim();
-      if (stdout !== "") {
-        gutil.log(stdout);
-      }
-
-      const stderr = result.stderr.toString().trim();
-      if (stderr !== "") {
-        gutil.log(stderr);
-      }
+    { capture: ["stdout", "stderr"] }).then(dumpBufferedContent)
+    .catch((err) => {
+      dumpBufferedContent(err);
+      throw err;
     });
 }
 
