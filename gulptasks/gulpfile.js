@@ -6,14 +6,12 @@ const path = require("path");
 
 const gulp = require("gulp");
 const gutil = require("gulp-util");
-const newer = require("gulp-newer");
+const gulpNewer = require("gulp-newer");
 const rename = require("gulp-rename");
 const jison = require("gulp-jison");
-const typedoc = require("gulp-typedoc");
 const Promise = require("bluebird");
 const del = require("del");
 const touch = require("touch");
-const reduce = require("stream-reduce");
 const es = require("event-stream");
 const argparse = require("argparse");
 const eslint = require("gulp-eslint");
@@ -21,12 +19,14 @@ const versync = require("versync");
 const sourcemaps = require("gulp-sourcemaps");
 const ts = require("gulp-typescript");
 const cpp = require("child-process-promise");
+const util = require("./util");
 
 const ArgumentParser = argparse.ArgumentParser;
 const execFile = cpp.execFile;
 const spawn = cpp.spawn;
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
+const newer = util.newer;
 
 //
 // This script accepts configuration options from 3 places, in
@@ -136,7 +136,7 @@ gulp.task("copy-src", () => {
     "lib/**/*.d.ts",
     "lib/**/*.xsl",
   ], { base: "." })
-    .pipe(newer(dest))
+    .pipe(gulpNewer(dest))
     .pipe(gulp.dest(dest));
 });
 
@@ -144,17 +144,17 @@ gulp.task("copy-readme", () => {
   const dest = "build/dist/";
   return gulp.src("NPM_README.md")
     .pipe(rename("README.md"))
-  // Yep, newer has to be after the rename. The rename is done in memory and we
-  // want to have it done *before* the test so that the test tests against the
-  // correct file in the filesystem.
-    .pipe(newer(dest))
+  // Yep, gulpNewer has to be after the rename. The rename is done in memory and
+  // we want to have it done *before* the test so that the test tests against
+  // the correct file in the filesystem.
+    .pipe(gulpNewer(dest))
     .pipe(gulp.dest(dest));
 });
 
 gulp.task("jison", () => {
   const dest = "build/dist/lib/salve/datatypes";
   return gulp.src("lib/salve/datatypes/regexp.jison")
-    .pipe(newer(`${dest}/regexp.js`))
+    .pipe(gulpNewer(`${dest}/regexp.js`))
     .pipe(jison({
       moduleType: "commonjs",
       // Override the default main created by Jison. This module cannot ever be
@@ -232,59 +232,58 @@ gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
 gulp.task("publish", ["install_test"],
           () => execFile("npm", ["publish", packname], { cwd: "build" }));
 
-gulp.task("typedoc", ["lint"], (callback) => {
+// This task also needs to check the hash of the latest commit because typedoc
+// generates links to source based on the latest commit in effect when it is
+// run. So if a commit happened between the time the doc was generated last, and
+// now, we need to regenerate the docs.
+gulp.task("typedoc", ["lint"], Promise.coroutine(function *task() {
+  const sources = ["lib/**/*.ts"];
   const stamp = "build/api.stamp";
+  const hashPath = "./build/typedoc.hash.txt";
 
-  gulp
-    .src(["lib/**/*.ts"])
-    .pipe(newer(stamp))
-    .pipe(reduce((acc, data) => {
-      acc.push(data);
-      return acc;
-    }, []))
-    .on("data", (files) => {
-      if (files.length === 0) {
-        gutil.log("No change, skipping typedoc.");
-        callback();
-        return;
-      }
+  const prelim = yield Promise.all(
+    [fs.readFileAsync(hashPath)
+     .then(hash => hash.toString())
+     .catch(() => undefined),
+     execFile("git", ["rev-parse", "--short", "HEAD"])
+     .then(result => result.stdout),
+    ]);
 
-      const tsoptions = JSON.parse(fs.readFileSync("tsconfig.json"))
-              .compilerOptions;
-      const version = JSON.parse(fs.readFileSync("package.json")).version;
-      Object.assign(tsoptions, {
-        out: `./build/api/salve/${version}`,
-        name: "salve",
-        readme: "doc/api_intro.md",
-        ignoreCompilerErrors: false,
-        version: true,
-        excludePrivate: !options.doc_private,
-      });
+  const savedHash = prelim[0];
+  const currentHash = prelim[1][0];
 
-      // These are not supported by typedoc.
-      delete tsoptions.noImplicitThis;
-      delete tsoptions.declaration;
-      delete tsoptions.sourceMap;
-      delete tsoptions.strictNullChecks;
+  if ((currentHash === savedHash) && !(yield newer(sources, stamp))) {
+    gutil.log("No change, skipping typedoc.");
+    return;
+  }
 
-      gulp
-        .src(["lib/**/*.ts"])
-        .pipe(typedoc(tsoptions))
-        .on("end", () => {
-          touchAsync(stamp).asCallback(callback);
-        });
-    });
-});
+  const version = JSON.parse(fs.readFileSync("package.json")).version;
+  const tsoptions = [
+    "--out", `./build/api/salve/${version}`,
+    "--name", "salve",
+    "--tsconfig", "./tsconfig.json",
+    "--listInvalidSymbolLinks",
+  ];
+
+  if (!options.doc_private) {
+    tsoptions.push("--excludePrivate");
+  }
+
+  yield spawn("./node_modules/.bin/typedoc", tsoptions, { stdio: "inherit" });
+
+  yield Promise.all([fs.writeFileAsync(hashPath, currentHash),
+                     touchAsync(stamp)]);
+}));
 
 gulp.task("readme", () => {
   // The following code works fine only with one source and one
   // destination. We're pretty much using gulp in a non-gulp way but this avoids
-  // having to code the logic of newer() ourselves. YMMV as to whether this is
-  // better.
+  // having to code the logic of gulpNewer() ourselves. YMMV as to whether this
+  // is better.
   const dest = "README.html";
   const src = "README.rst";
   return gulp.src(src, { read: false })
-    .pipe(newer(dest))
+    .pipe(gulpNewer(dest))
     .pipe(es.map((file, callback) =>
                  childProcess.execFile(options.rst2html, [src, dest],
                                        () => callback())));
@@ -295,7 +294,7 @@ gulp.task("doc", ["typedoc", "readme"]);
 gulp.task("gh-pages-build", ["typedoc"], () => {
   const dest = "gh-pages-build";
   return gulp.src("**/*", { cwd: "build/api/" })
-    .pipe(newer(dest))
+    .pipe(gulpNewer(dest))
     .pipe(gulp.dest(dest));
 });
 
