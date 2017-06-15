@@ -13,8 +13,9 @@ import * as temp from "temp";
 
 // We load individual modules rather than the build module because the
 // conversion code uses parts of salve that are not public.
-import * as conversion from "../conversion";
-import * as datatypes from "../datatypes";
+import { ConversionParser, DatatypeProcessor, DefaultConversionWalker,
+         NameGatherer, Renamer} from "../conversion";
+import { ParameterParsingError, ValueValidationError } from "../datatypes";
 import { fixPrototype } from "../tools";
 import { version } from "../validate";
 
@@ -364,9 +365,8 @@ function convert(simplifiedPath: string): void {
   }
 
   if (args.simplify_only) {
-    const xmllint = spawn("xmllint",
-                          ["--format", "--output", args.output_path,
-                           simplifiedPath],
+    const xmllint = spawn("xmllint", ["--format", "--output", args.output_path,
+                                      simplifiedPath],
                           { stdio: "inherit" });
     xmllint.on("exit", process.exit.bind(undefined, 0));
 
@@ -381,12 +381,11 @@ function convert(simplifiedPath: string): void {
     }
   }
 
-  const convParser = new conversion.ConversionParser(
-    sax.parser(true, { xmlns: true }));
+  const convParser = new ConversionParser(sax.parser(true, { xmlns: true }));
   let walker;
   switch (args.format_version) {
   case 3:
-    walker = new conversion.DefaultConversionWalker(
+    walker = new DefaultConversionWalker(
       args.format_version, args.include_paths, args.verbose_format);
     break;
   default:
@@ -396,67 +395,59 @@ function convert(simplifiedPath: string): void {
     fs.readFileSync(simplifiedPath).toString()).close();
 
   if (!args.no_optimize_ids) {
-    if (args.format_version === 3) {
-      // Gather names
-      const g = new conversion.NameGatherer();
-      g.walk(convParser.root);
-      const names = g.names;
+    // Gather names
+    const g = new NameGatherer();
+    g.walk(convParser.root);
+    const names = g.names;
 
-      // Now assign new names with shorter new names being assigned to those
-      // original names that are most frequent.
-      const sorted = Object.keys(names)
-        .map((key) => ({ key: key, freq: names[key] }));
-      // Yes, we want to sort in reverse order of frequency
-      sorted.sort((a, b) => b.freq - a.freq);
-      let id = 1;
-      const newNames: Record<string, string> = {};
-      sorted.forEach((elem) => {
-        newNames[elem.key] = String(id++);
-      });
+    // Now assign new names with shorter new names being assigned to those
+    // original names that are most frequent.
+    const sorted = Object.keys(names)
+      .map((key) => ({ key: key, freq: names[key] }));
+    // Yes, we want to sort in reverse order of frequency
+    sorted.sort((a, b) => b.freq - a.freq);
+    let id = 1;
+    const newNames: Record<string, string> = {};
+    sorted.forEach((elem) => {
+      newNames[elem.key] = String(id++);
+    });
 
-      // Perform the renaming.
-      const renamer = new conversion.Renamer(newNames);
-      renamer.walk(convParser.root);
+    // Perform the renaming.
+    const renamer = new Renamer(newNames);
+    renamer.walk(convParser.root);
+  }
 
-      const typeChecker = new conversion.DatatypeProcessor();
-      try {
-        typeChecker.walk(convParser.root);
-      }
-      catch (ex) {
-        if (ex instanceof datatypes.ValueValidationError) {
-          throw new Fatal(ex.message);
-        }
+  const typeChecker = new DatatypeProcessor();
+  try {
+    typeChecker.walk(convParser.root);
+  }
+  catch (ex) {
+    if (ex instanceof ValueValidationError ||
+        ex instanceof ParameterParsingError) {
+      throw new Fatal(ex.message);
+    }
 
-        if (ex instanceof datatypes.ParameterParsingError) {
-          throw new Fatal(ex.message);
-        }
+    throw ex;
+  }
 
-        throw ex;
-      }
-
-      const stderr = process.stderr;
-      if (typeChecker.warnings.length !== 0 &&
-          args.allow_incomplete_types !== "quiet") {
-        stderr.write(`${prog}: WARNING: the following incomplete types are \
+  const stderr = process.stderr;
+  if (typeChecker.warnings.length !== 0 &&
+      args.allow_incomplete_types !== "quiet") {
+    stderr.write(`${prog}: WARNING: the following incomplete types are \
 used in the schema: `);
-        stderr.write(Object.keys(typeChecker.incompleteTypesUsed).join(", "));
-        stderr.write("\n");
-        stderr.write(`${prog}: details follow\n`);
+    stderr.write(Object.keys(typeChecker.incompleteTypesUsed).join(", "));
+    stderr.write("\n");
+    stderr.write(`${prog}: details follow\n`);
 
-        typeChecker.warnings.forEach((x) => {
-          stderr.write(`${prog}: ${x}\n`);
-        });
-        if (!args.allow_incomplete_types) {
-          throw new Fatal("use --allow-incomplete-types to convert a file " +
-                          "using these types");
-        }
-        else {
-          stderr.write(`${prog}: allowing as requested\n`);
-        }
-      }
+    typeChecker.warnings.forEach((x) => {
+      stderr.write(`${prog}: ${x}\n`);
+    });
+    if (!args.allow_incomplete_types) {
+      throw new Fatal("use --allow-incomplete-types to convert a file " +
+                      "using these types");
     }
     else {
-      throw new Fatal(`unknown version: ${args.format_version}`);
+      stderr.write(`${prog}: allowing as requested\n`);
     }
   }
 
