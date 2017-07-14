@@ -24,6 +24,8 @@ import { version } from "../validate";
 temp.track();
 
 const prog = path.basename(process.argv[1]);
+const stdout = process.stdout;
+const stderr = process.stderr;
 
 //
 // Safety harness
@@ -245,7 +247,7 @@ interface Step {
   name: string;
   path: string;
   repeatWhen?: Function;
-  repeat_no?: number;
+  repeat_no: number;
 }
 
 let simplifyingStartTime: number;
@@ -270,7 +272,11 @@ function simplify(): void {
                  parseInt(b.match(stepRe)![1]));
 
   const steps = stepFiles.map((file) => {
-    const ret: Step = { name: file, path: path.join(libPath, file) };
+    const ret: Step = {
+      name: file,
+      path: path.join(libPath, file),
+      repeat_no: 0,
+    };
     if (file === "rng-simplification_step1.xsl") {
       ret.repeatWhen = (output: string): boolean => {
         // We want to check whether we need to run the
@@ -287,7 +293,6 @@ function simplify(): void {
 
         return incParser.found;
       };
-      ret.repeat_no = 0;
     }
 
     return ret;
@@ -301,6 +306,13 @@ function simplify(): void {
   }
 
   executeStep(steps, 0, fs.readFileSync(args.input_path).toString(), convert);
+}
+
+let stepStart: number;
+function stepTiming(): void {
+  if (stepStart !== undefined) {
+    console.log(`${Date.now() - stepStart}ms`);
+  }
 }
 
 /**
@@ -321,6 +333,16 @@ function executeStep(steps: Step[], stepNo: number, input: string,
   }
 
   const step = steps[stepNo];
+
+  if (args.verbose) {
+    stepTiming();
+    stdout.write(
+      `Simplification step ${stepNo}, repetition ${step.repeat_no}...`);
+    if (args.timing) {
+      stepStart = Date.now();
+    }
+  }
+
   // const outBase = `out${String((stepNo + 1)) +
   // (step.repeatWhen !== undefined ? `.${step.repeat_no! + 1}` : "")}.rng`;
   // const outPath = path.join(tempDir, outBase);
@@ -348,7 +370,7 @@ function executeStep(steps: Step[], stepNo: number, input: string,
 
     if (step.repeatWhen !== undefined) {
       if (step.repeatWhen(output)) {
-        step.repeat_no = step.repeat_no! + 1;
+        step.repeat_no = step.repeat_no + 1;
         executeStep(steps, stepNo, output, after);
 
         return;
@@ -367,6 +389,7 @@ function executeStep(steps: Step[], stepNo: number, input: string,
  */
 function convert(simplified: string): void {
   if (args.timing) {
+    stepTiming();
     console.log(`Simplification delta: ${Date.now() - simplifyingStartTime}`);
   }
 
@@ -436,7 +459,6 @@ function convert(simplified: string): void {
     throw ex;
   }
 
-  const stderr = process.stderr;
   if (typeChecker.warnings.length !== 0 &&
       args.allow_incomplete_types !== "quiet") {
     stderr.write(`${prog}: WARNING: the following incomplete types are \
