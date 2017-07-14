@@ -7,7 +7,7 @@
 /* global it, describe, before */
 "use strict";
 const assert = require("chai").assert;
-const _ = require("lodash");
+const mergeOptions = require("merge-options");
 const datatypes = require("../build/dist/lib/salve/datatypes");
 const nameResolver = require("../build/dist/lib/salve/name_resolver");
 
@@ -384,25 +384,28 @@ const nonPositiveIntegerProgram = {
   },
 };
 
-const negativeIntegerProgram = _.clone(nonPositiveIntegerProgram);
-
-negativeIntegerProgram.disallows = _.clone(negativeIntegerProgram.disallows);
-negativeIntegerProgram.disallows.NONE = {
-  false: [
-    ["what is within spec", "-1234"],
-    ["what is within spec", "-001234"],
-  ],
-  true: [
-    ["a value with a fraction part", "-1.2",
-     ["value is not a negativeInteger"],
-    ],
-    ["a positive value", "1.2",
-     ["value is not a negativeInteger"],
-    ],
-    ["zero", "0", ["value is not a negativeInteger"],
-    ],
-  ],
-};
+const negativeIntegerProgram = mergeOptions(
+  nonPositiveIntegerProgram,
+  {
+    disallows: {
+      NONE: {
+        false: [
+          ["what is within spec", "-1234"],
+          ["what is within spec", "-001234"],
+        ],
+        true: [
+          ["a value with a fraction part", "-1.2",
+           ["value is not a negativeInteger"],
+          ],
+          ["a positive value", "1.2",
+           ["value is not a negativeInteger"],
+          ],
+          ["zero", "0", ["value is not a negativeInteger"],
+          ],
+        ],
+      },
+    },
+  });
 
 const nonNegativeIntegerProgram = {
   equal: {
@@ -519,188 +522,229 @@ const nonNegativeIntegerProgram = {
   },
 };
 
-const positiveIntegerProgram = _.clone(nonNegativeIntegerProgram);
-
-positiveIntegerProgram.disallows = _.clone(positiveIntegerProgram.disallows);
-positiveIntegerProgram.disallows.NONE = {
-  false: [
-    ["what is within spec", "1234"],
-    ["what is within spec", "+001234"],
-  ],
-  true: [
-    ["a value with a fraction part", "1.2", ["value is not a positiveInteger"]],
-    ["a negative value", "-1.2", ["value is not a positiveInteger"]],
-    ["zero", "0", ["value must be greater than or equal to 1"]],
-  ],
-};
-
-
-const longProgram = _.clone(integerProgram);
-longProgram.disallows = _.clone(longProgram.disallows);
-longProgram.disallows.NONE = {
-  false: [
-    ["what is within spec", " 1234"],
-  ],
-  true: [
-    ["a value with a fraction part", "1.2", ["value is not a long"]],
-  ],
-};
-
-const intProgram = _.clone(longProgram);
-intProgram.disallows = _.clone(intProgram.disallows);
-intProgram.disallows.NONE = {
-  false: [
-    ["what is within spec", " 1234"],
-  ],
-  true: [
-    ["a value with a fraction part", "1.2", ["value is not an int"]],
-    ["too high a value", "999999999999999",
-     ["value must be less than or equal to 2147483647"],
-    ],
-    ["too low a value", "-999999999999999",
-     ["value must be greater than or equal to -2147483648"],
-    ],
-  ],
-};
-
-const shortProgram = _.clone(longProgram);
-shortProgram.disallows = _.clone(shortProgram.disallows);
-shortProgram.disallows.NONE = {
-  false: [
-    ["what is within spec", " 1234"],
-  ],
-  true: [
-    ["a value with a fraction part", "1.2", ["value is not a short"]],
-    ["too high a value", "999999999999999",
-     ["value must be less than or equal to 32767"],
-    ],
-    ["too low a value", "-999999999999999",
-     ["value must be greater than or equal to -32768"],
-    ],
-  ],
-};
-
-const byteProgram = _.clone(longProgram);
-byteProgram.disallows = _.clone(byteProgram.disallows);
-byteProgram.disallows.NONE = {
-  false: [
-    ["what is within spec", " 123"],
-  ],
-  true: [
-    ["a value with a fraction part", "1.2", ["value is not a byte"]],
-    ["too high a value", "999999999999999",
-     ["value must be less than or equal to 127"],
-    ],
-    ["too low a value", "-999999999999999",
-     ["value must be greater than or equal to -128"],
-    ],
-  ],
-};
-
-
-const unsignedLongProgram = _.clone(integerProgram);
-unsignedLongProgram.disallows = _.clone(unsignedLongProgram.disallows);
-unsignedLongProgram.disallows.NONE = {
-  false: [
-    ["what is within spec", " 1234"],
-  ],
-  true: [
-    ["a value with a fraction part", "1.2", ["value is not an unsignedLong"]],
-  ],
-};
-
-const unsignedIntProgram = _.clone(integerProgram);
-unsignedIntProgram.disallows = _.clone(unsignedIntProgram.disallows);
-unsignedIntProgram.disallows.NONE = {
-  false: [
-    ["what is within spec", " 1234"],
-  ],
-  true: [
-    ["a value with a fraction part", "1.2", ["value is not an unsignedInt"]],
-    ["value to high", "4294967296",
-     ["value must be less than or equal to 4294967295"],
-    ],
-  ],
-};
-
-const unsignedShortProgram = _.clone(integerProgram);
-unsignedShortProgram.disallows = _.clone(unsignedShortProgram.disallows);
-unsignedShortProgram.disallows.NONE = {
-  false: [
-    ["what is within spec", " 1234"],
-  ],
-  true: [
-    ["a value with a fraction part", "1.2", ["value is not an unsignedShort"]],
-    ["value to high", "4294967296",
-     ["value must be less than or equal to 65535"],
-    ],
-  ],
-};
-
-
-const unsignedByteProgram = _.clone(integerProgram);
-unsignedByteProgram.disallows = _.clone(unsignedByteProgram.disallows);
-unsignedByteProgram.disallows.NONE = {
-  false: [
-    ["what is within spec", " 123"],
-  ],
-  true: [
-    ["a value with a fraction part", "1.2", ["value is not an unsignedByte"]],
-    ["value to high", "4294967296",
-     ["value must be less than or equal to 255"],
-    ],
-  ],
-};
-
-const floatProgram = _.clone(decimalProgram);
-floatProgram.parseParams = [
-  // title, array to parse, expected object
-  [
-    "all except minInclusive and maxInclusive",
-    [
-      { name: "pattern", value: "abc" },
-      { name: "minExclusive", value: "1" },
-      { name: "maxExclusive", value: "10" },
-    ],
-    {
-      pattern: { rng: "abc", internal: new RegExp("^abc$") },
-      minExclusive: 1,
-      maxExclusive: 10,
+const positiveIntegerProgram = mergeOptions(
+  nonNegativeIntegerProgram,
+  {
+    disallows: {
+      NONE: {
+        false: [
+          ["what is within spec", "1234"],
+          ["what is within spec", "+001234"],
+        ],
+        true: [
+          ["a value with a fraction part", "1.2", ["value is not a positiveInteger"]],
+          ["a negative value", "-1.2", ["value is not a positiveInteger"]],
+          ["zero", "0", ["value must be greater than or equal to 1"]],
+        ],
+      },
     },
-  ],
-  [
-    "minInclusive and maxInclusive",
-    [
-      { name: "minInclusive", value: "1" },
-      { name: "maxInclusive", value: "10" },
-    ],
-    {
-      minInclusive: 1,
-      maxInclusive: 10,
-    },
-  ],
-];
-floatProgram.disallows = _.clone(floatProgram.disallows);
-floatProgram.disallows.NONE = {
-  false: [
-    ["number with mantissa and exponent", "-1E10"],
-    ["negative infinity", "-INF"],
-    ["infinity", "INF"],
-    ["number NaN", "NaN"],
-  ],
-  true: [
-    ["random stuff", "ABC", ["not a valid float"]],
-  ],
-};
-delete floatProgram.disallows.totalDigits;
-delete floatProgram.disallows.fractionDigits;
+  });
 
-const doubleProgram = _.clone(floatProgram);
-doubleProgram.disallows = _.clone(doubleProgram.disallows);
-doubleProgram.disallows.NONE = _.clone(doubleProgram.disallows.NONE);
-doubleProgram.disallows.NONE.true = [
-  ["random stuff", "ABC", ["not a valid double"]],
-];
+const longProgram = mergeOptions(
+  integerProgram,
+  {
+    disallows: {
+      NONE: {
+        false: [
+          ["what is within spec", " 1234"],
+        ],
+        true: [
+          ["a value with a fraction part", "1.2", ["value is not a long"]],
+        ],
+      },
+    },
+  });
+
+const intProgram = mergeOptions(
+  longProgram,
+  {
+    disallows: {
+      NONE: {
+        false: [
+          ["what is within spec", " 1234"],
+        ],
+        true: [
+          ["a value with a fraction part", "1.2", ["value is not an int"]],
+          ["too high a value", "999999999999999",
+             ["value must be less than or equal to 2147483647"],
+          ],
+          ["too low a value", "-999999999999999",
+           ["value must be greater than or equal to -2147483648"],
+          ],
+        ],
+      },
+    },
+  });
+
+const shortProgram = mergeOptions(
+  longProgram,
+  {
+    disallows: {
+      NONE: {
+        false: [
+          ["what is within spec", " 1234"],
+        ],
+        true: [
+          ["a value with a fraction part", "1.2", ["value is not a short"]],
+          ["too high a value", "999999999999999",
+           ["value must be less than or equal to 32767"],
+          ],
+          ["too low a value", "-999999999999999",
+           ["value must be greater than or equal to -32768"],
+          ],
+        ],
+      },
+    },
+  });
+
+const byteProgram = mergeOptions(
+  longProgram,
+  {
+    disallows: {
+      NONE: {
+        false: [
+          ["what is within spec", " 123"],
+        ],
+        true: [
+          ["a value with a fraction part", "1.2", ["value is not a byte"]],
+          ["too high a value", "999999999999999",
+           ["value must be less than or equal to 127"],
+          ],
+          ["too low a value", "-999999999999999",
+           ["value must be greater than or equal to -128"],
+          ],
+        ],
+      },
+    },
+  });
+
+const unsignedLongProgram = mergeOptions(
+  integerProgram,
+  {
+    disallows: {
+      NONE: {
+        false: [
+          ["what is within spec", " 1234"],
+        ],
+        true: [
+          ["a value with a fraction part", "1.2", ["value is not an unsignedLong"]],
+        ],
+      },
+    },
+  });
+
+const unsignedIntProgram = mergeOptions(
+  integerProgram,
+  {
+    disallows: {
+      NONE: {
+        false: [
+          ["what is within spec", " 1234"],
+        ],
+        true: [
+          ["a value with a fraction part", "1.2", ["value is not an unsignedInt"]],
+          ["value to high", "4294967296",
+           ["value must be less than or equal to 4294967295"],
+          ],
+        ],
+      },
+    },
+  });
+
+const unsignedShortProgram = mergeOptions(
+  integerProgram,
+  {
+    disallows: {
+      NONE: {
+        false: [
+          ["what is within spec", " 1234"],
+        ],
+        true: [
+          ["a value with a fraction part", "1.2", ["value is not an unsignedShort"]],
+          ["value to high", "4294967296",
+           ["value must be less than or equal to 65535"],
+          ],
+        ],
+      },
+    },
+  });
+
+const unsignedByteProgram = mergeOptions(
+  integerProgram,
+  {
+    disallows: {
+      NONE: {
+        false: [
+          ["what is within spec", " 123"],
+        ],
+        true: [
+          ["a value with a fraction part", "1.2", ["value is not an unsignedByte"]],
+          ["value to high", "4294967296",
+           ["value must be less than or equal to 255"],
+          ],
+        ],
+      },
+    },
+  });
+
+const floatProgram = mergeOptions(
+  decimalProgram,
+  {
+    parseParams: [
+      // title, array to parse, expected object
+      [
+        "all except minInclusive and maxInclusive",
+        [
+          { name: "pattern", value: "abc" },
+          { name: "minExclusive", value: "1" },
+          { name: "maxExclusive", value: "10" },
+        ],
+        {
+          pattern: { rng: "abc", internal: new RegExp("^abc$") },
+          minExclusive: 1,
+          maxExclusive: 10,
+        },
+      ],
+      [
+        "minInclusive and maxInclusive",
+        [
+          { name: "minInclusive", value: "1" },
+          { name: "maxInclusive", value: "10" },
+        ],
+        {
+          minInclusive: 1,
+          maxInclusive: 10,
+        },
+      ],
+    ],
+    disallows: {
+      NONE: {
+        false: [
+          ["number with mantissa and exponent", "-1E10"],
+          ["negative infinity", "-INF"],
+          ["infinity", "INF"],
+          ["number NaN", "NaN"],
+        ],
+        true: [
+          ["random stuff", "ABC", ["not a valid float"]],
+        ],
+      },
+      totalDigits: undefined,
+      fractionDigits: undefined,
+    },
+  });
+
+const doubleProgram = mergeOptions(
+  floatProgram,
+  {
+    disallows: {
+      NONE: {
+        true: [
+          ["random stuff", "ABC", ["not a valid double"]],
+        ],
+      },
+    },
+  });
 
 const dateTimeProgram = {
   equal: {
@@ -1066,15 +1110,20 @@ const QNameProgram = {
   },
 };
 
-const NOTATIONProgram = _.clone(QNameProgram);
-NOTATIONProgram.disallows = _.clone(NOTATIONProgram.disallows);
-NOTATIONProgram.disallows.NONE = _.clone(NOTATIONProgram.disallows.NONE);
-NOTATIONProgram.disallows.NONE.true = [
-  ["spaces", "foo zh", ["not a valid NOTATION"]],
-  ["curly braces", "{foo} zh", ["not a valid NOTATION"]],
-  ["colons appearing twice", "foo:zh:zh", ["not a valid NOTATION"]],
-  ["unresovable names", "foo:zh", ["cannot resolve the name foo:zh"]],
-];
+const NOTATIONProgram = mergeOptions(
+  QNameProgram,
+  {
+    disallows: {
+      NONE: {
+        true: [
+          ["spaces", "foo zh", ["not a valid NOTATION"]],
+          ["curly braces", "{foo} zh", ["not a valid NOTATION"]],
+          ["colons appearing twice", "foo:zh:zh", ["not a valid NOTATION"]],
+          ["unresovable names", "foo:zh", ["cannot resolve the name foo:zh"]],
+        ],
+      },
+    },
+  });
 
 function testProgram(name, lib, program, disallows) {
   const type = lib.types[name];
@@ -1163,8 +1212,11 @@ function testProgram(name, lib, program, disallows) {
         if (!(paramName === "NONE" ||
               // eslint-disable-next-line no-prototype-builtins
               !programDisallows.hasOwnProperty(paramName))) {
-          describe(`with a ${paramName} parameter`,
-                   makeParameterTest(paramName, programDisallows[paramName]));
+          const paramProgram = programDisallows[paramName];
+          if (paramProgram != null) {
+            describe(`with a ${paramName} parameter`,
+                     makeParameterTest(paramName, paramProgram));
+          }
         }
       }
     });
@@ -1219,11 +1271,25 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
           { name: "pattern", value: "def" },
         ]);
 
-        assert.deepEqual(_.sortBy(parsed.pattern, "rng"),
-                         _.sortBy(
-                           [{ rng: "abc", internal: new RegExp("^abc$") },
-                            { rng: "def", internal: new RegExp("^def$") }],
-                           "rng"));
+        const sorted = parsed.pattern.sort((a, b) => {
+          const arng = a.rng;
+          const brng = b.rng;
+
+          if (arng > brng) {
+            return 1;
+          }
+
+          if (arng < brng) {
+            return -1;
+          }
+
+          return 0;
+        });
+
+        assert.deepEqual(
+          sorted,
+          [{ rng: "abc", internal: new RegExp("^abc$") },
+           { rng: "def", internal: new RegExp("^def$") }]);
       });
 
       it("non-repeatables", () => {
