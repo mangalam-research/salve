@@ -190,7 +190,7 @@ if (args.format_version < 3) {
 let tempDir: string;
 let startTime: number;
 if (args.simplified_input) {
-  convert(args.input_path);
+  convert(fs.readFileSync(args.input_path).toString());
 }
 else {
   if (args.verbose) {
@@ -272,13 +272,12 @@ function simplify(): void {
   const steps = stepFiles.map((file) => {
     const ret: Step = { name: file, path: path.join(libPath, file) };
     if (file === "rng-simplification_step1.xsl") {
-      ret.repeatWhen = (outPath: string): boolean => {
+      ret.repeatWhen = (output: string): boolean => {
         // We want to check whether we need to run the
         // step again to include more files.
         const incParser = new IncludeParser(sax.parser(true, { xmlns: true }));
-        const data = fs.readFileSync(outPath).toString();
         try {
-          incParser.saxParser.write(data).close();
+          incParser.saxParser.write(output).close();
         }
         catch (ex) {
           if (!(ex instanceof Found)) {
@@ -301,7 +300,7 @@ function simplify(): void {
     console.log(`Temporary files in: ${tempDir}`);
   }
 
-  executeStep(steps, 0, args.input_path, convert);
+  executeStep(steps, 0, fs.readFileSync(args.input_path).toString(), convert);
 }
 
 /**
@@ -309,47 +308,54 @@ function simplify(): void {
  *
  * @param stepNo The index in ``steps`` of the step we are running.
  *
- * @param inPath Path of the input file for this step.
+ * @param input The data to process.
  *
  * @param after Callback to run after all steps.
  */
-function executeStep(steps: Step[], stepNo: number, inPath: string,
+function executeStep(steps: Step[], stepNo: number, input: string,
                      after: Function): void {
   if (stepNo >= steps.length) {
-    after(inPath);
+    after(input);
 
     return;
   }
 
   const step = steps[stepNo];
-  const outBase = `out${String((stepNo + 1)) +
-(step.repeatWhen !== undefined ? `.${step.repeat_no! + 1}` : "")}.rng`;
-  const outPath = path.join(tempDir, outBase);
+  // const outBase = `out${String((stepNo + 1)) +
+  // (step.repeatWhen !== undefined ? `.${step.repeat_no! + 1}` : "")}.rng`;
+  // const outPath = path.join(tempDir, outBase);
+  const originalInputDir = `${path.dirname(path.resolve(args.input_path))}/`;
   const xsltproc = spawn("xsltproc",
-                         ["-o", outPath, "--stringparam",
-                          "originalDir",
-                          `${path.resolve(path.dirname(args.input_path))}/`,
-                          step.path, inPath],
-                         { stdio: "inherit" });
+                         ["--stringparam", "originalDir", originalInputDir,
+                          step.path, "-"],
+                         {
+                            stdio: ["pipe", "pipe", "inherit"],
+                            cwd: originalInputDir,
+                         });
+
+  xsltproc.stdin.end(input);
+
+  const outputBuf: string[] = [];
+  xsltproc.stdout.on("data", (data) => {
+    outputBuf.push(data.toString());
+  });
+
   xsltproc.on("exit", (status) => {
+    const output = outputBuf.join("");
     if (status !== 0) {
       throw new Fatal(`xsltproc terminated with status: ${status}`);
     }
 
-    if (!fs.existsSync(outPath)) {
-      throw new Fatal(`xsltproc step ${stepNo} failed to create output`);
-    }
-
     if (step.repeatWhen !== undefined) {
-      if (step.repeatWhen(outPath)) {
+      if (step.repeatWhen(output)) {
         step.repeat_no = step.repeat_no! + 1;
-        executeStep(steps, stepNo, outPath, after);
+        executeStep(steps, stepNo, output, after);
 
         return;
       }
     }
 
-    executeStep(steps, stepNo + 1, outPath, after);
+    executeStep(steps, stepNo + 1, output, after);
   });
 }
 
@@ -357,17 +363,18 @@ function executeStep(steps: Step[], stepNo: number, inPath: string,
  * Meant to be used as the ``after`` call back for ``executeStep``. Performs the
  * conversion from RNG to JS.
  *
- * @param simplifiedPath Path pointing to the result of the simplification.
+ * @param simplified The result of the simplification.
  */
-function convert(simplifiedPath: string): void {
+function convert(simplified: string): void {
   if (args.timing) {
     console.log(`Simplification delta: ${Date.now() - simplifyingStartTime}`);
   }
 
   if (args.simplify_only) {
     const xmllint = spawn("xmllint", ["--format", "--output", args.output_path,
-                                      simplifiedPath],
-                          { stdio: "inherit" });
+                                      "-"],
+                          { stdio: ["pipe", "inherit", "inherit"] });
+    xmllint.stdin.end(simplified);
     xmllint.on("exit", process.exit.bind(undefined, 0));
 
     return;
@@ -391,8 +398,7 @@ function convert(simplifiedPath: string): void {
   default:
     throw new Error(`unknown version: ${args.format_version}`);
   }
-  convParser.saxParser.write(
-    fs.readFileSync(simplifiedPath).toString()).close();
+  convParser.saxParser.write(simplified).close();
 
   if (!args.no_optimize_ids) {
     // Gather names
