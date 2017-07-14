@@ -189,7 +189,20 @@ if (args.format_version < 3) {
   throw new Fatal(`can't produce format version ${args.format_version}`);
 }
 
-let tempDir: string;
+let _tempDir: string;
+function ensureTempDir(): string {
+  if (_tempDir === undefined) {
+    _tempDir = temp.mkdirSync({ prefix: "salve-convert" });
+
+    if (args.keep_temp) {
+      temp.track(false);
+      console.log(`Temporary files in: ${_tempDir}`);
+    }
+  }
+
+  return _tempDir;
+}
+
 let startTime: number;
 if (args.simplified_input) {
   convert(fs.readFileSync(args.input_path).toString());
@@ -298,13 +311,6 @@ function simplify(): void {
     return ret;
   });
 
-  tempDir = temp.mkdirSync({ prefix: "salve-convert" });
-
-  if (args.keep_temp) {
-    temp.track(false);
-    console.log(`Temporary files in: ${tempDir}`);
-  }
-
   executeStep(steps, 0, fs.readFileSync(args.input_path).toString(), convert);
 }
 
@@ -343,9 +349,6 @@ function executeStep(steps: Step[], stepNo: number, input: string,
     }
   }
 
-  // const outBase = `out${String((stepNo + 1)) +
-  // (step.repeatWhen !== undefined ? `.${step.repeat_no! + 1}` : "")}.rng`;
-  // const outPath = path.join(tempDir, outBase);
   const originalInputDir = `${path.dirname(path.resolve(args.input_path))}/`;
   const xsltproc = spawn("xsltproc",
                          ["--stringparam", "originalDir", originalInputDir,
@@ -366,6 +369,14 @@ function executeStep(steps: Step[], stepNo: number, input: string,
     const output = outputBuf.join("");
     if (status !== 0) {
       throw new Fatal(`xsltproc terminated with status: ${status}`);
+    }
+
+    if (args.keep_temp) {
+      const tempDir = ensureTempDir();
+      const outBase = `out${String((stepNo + 1)) +
+(step.repeatWhen !== undefined ? `.${step.repeat_no + 1}` : "")}.rng`;
+      const outPath = path.join(tempDir, outBase);
+      fs.writeFileSync(outPath, output);
     }
 
     if (step.repeatWhen !== undefined) {
