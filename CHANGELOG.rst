@@ -3,7 +3,9 @@ patch part of the version number (i.e. the number after the 2nd dot)
 are generally not listed here unless they include a fix to a specific
 issue reported on github.
 
-* 4.1.3:
+* 4.2.0:
+
+  - Improved handling of ``float`` and ``double`` types.
 
   - ``salve-convert`` has been reworked to clean the old code and now avoids
     using intermediary files on disk to perform its transformation.

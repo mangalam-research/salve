@@ -734,6 +734,60 @@ const floatProgram = mergeOptions(
     },
   });
 
+floatProgram.equal.true.push(
+  ["two NaNs", "NaN", "NaN"],
+  ["two INFs", "INF", "INF"],
+  ["two -INFs", "-INF", "-INF"]
+);
+
+floatProgram.equal.false.push(
+  ["NaN and number", "NaN", "1"],
+  ["NaN and INF", "NaN", "INF"],
+  ["NaN and -INF", "NaN", "-INF"],
+  ["INF and -INF", "INF", "-INF"],
+  ["INF and number", "INF", "1"],
+  ["-INF and number", "-INF", "1"]
+);
+
+floatProgram.disallows.minInclusive.true.push(
+  ["set to NaN allows only NaN", "1", "NaN",
+   ["value must be greater than or equal to NaN"]],
+  ["set to INF", "1", "INF", ["value must be greater than or equal to INF"]]
+);
+
+floatProgram.disallows.minInclusive.false.push(
+  ["set to NaN allows NaN", "NaN", "NaN"],
+  ["set to INF allows INF", "INF", "INF"]
+);
+
+floatProgram.disallows.maxInclusive.true.push(
+  ["set to NaN allows only NaN", "1", "NaN",
+   ["value must be less than or equal to NaN"]],
+  ["set to -INF", "1", "-INF", ["value must be less than or equal to -INF"]]
+);
+
+floatProgram.disallows.maxInclusive.false.push(
+  ["set to NaN allows NaN", "NaN", "NaN"],
+  ["set to -INF allows INF", "-INF", "-INF"]
+);
+
+floatProgram.disallows.minExclusive.true.push(
+  ["set to NaN allows nothing", "1", "NaN", ["value must be greater than NaN"]],
+  ["set to NaN allows nothing", "NaN", "NaN",
+   ["value must be greater than NaN"]],
+  ["set to INF allows nothing", "1", "INF", ["value must be greater than INF"]],
+  ["set to INF allows nothing", "INF", "INF",
+   ["value must be greater than INF"]]
+);
+
+floatProgram.disallows.maxExclusive.true.push(
+  ["set to NaN allows nothing", "1", "NaN", ["value must be less than NaN"]],
+  ["set to NaN allows nothing", "NaN", "NaN", ["value must be less than NaN"]],
+  ["set to -INF allows nothing", "1", "-INF", ["value must be less than -INF"]],
+  ["set to -INF allows nothing", "-INF", "-INF",
+   ["value must be less than -INF"]]
+);
+
 const doubleProgram = mergeOptions(
   floatProgram,
   {

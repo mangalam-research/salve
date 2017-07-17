@@ -29,8 +29,8 @@ enum WhitespaceHandling {
    */
   REPLACE = 2,
   /**
-   * Replace all instances of whitespace by spaces and collapse consecutive
-   * spaces.
+   * Replace all instances of whitespace by spaces, collapse consecutive
+   * spaces, and remove leading and trailing spaces.
    */
   COLLAPSE = 3,
 }
@@ -95,6 +95,47 @@ ParamError | false {
   }
 
   return new ParamError(`${name} must have a positive value`);
+}
+
+/**
+ * Convert a number to an internal representation. This takes care of the
+ * differences between JavaScript and XML Schema (e.g. "Infinity" vs "INF").
+ *
+ * @param value The value as expressed in an XML file or schema.
+ *
+ * @returns The number, in its internal representation.
+ */
+function convertToInternalNumber(value: string): number {
+    if (value === "INF") {
+      return Infinity;
+    }
+
+    if (value === "-INF") {
+      return -Infinity;
+    }
+
+    return Number(value);
+}
+
+/**
+ * Convert an internal representation of a number to a string. This takes care
+ * of the differences between JavaScript and XML Schema. For instance, a value
+ * of ``Infinity`` will be represented as the string ``"INF"``.
+ *
+ * @param number The internal representation.
+ *
+ * @returns The string representation.
+ */
+function convertInternalNumberToString(value: number): string {
+  if (value === Infinity) {
+    return "INF";
+  }
+
+  if (value === -Infinity) {
+    return "-INF";
+  }
+
+  return value.toString();
 }
 
 //
@@ -180,7 +221,7 @@ abstract class Parameter {
 
 abstract class NumericParameter extends Parameter {
   convert(value: string): any {
-    return Number(value);
+    return convertToInternalNumber(value);
   }
 }
 
@@ -374,8 +415,10 @@ const fractionDigitsP: FractionDigitsP = new FractionDigitsP();
 class MaxInclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "maxInclusive";
   isInvalidValue(value: any, param: any): ValueError | false {
-    if (value > param) {
-      return new ValueError(`value must be less than or equal to ${param}`);
+    if ((isNaN(value) !== isNaN(param)) || value > param) {
+      const repr = convertInternalNumberToString(param);
+
+      return new ValueError(`value must be less than or equal to ${repr}`);
     }
 
     return false;
@@ -387,8 +430,12 @@ const maxInclusiveP: MaxInclusiveP = new MaxInclusiveP();
 class MaxExclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "maxExclusive";
   isInvalidValue(value: any, param: any): ValueError | false {
-    if (value >= param) {
-      return new ValueError(`value must be less than ${param}`);
+    // The negation of a less-than test allows handling a parameter value of NaN
+    // automatically.
+    if (!(value < param)) {
+      const repr = convertInternalNumberToString(param);
+
+      return new ValueError(`value must be less than ${repr}`);
     }
 
     return false;
@@ -400,8 +447,10 @@ const maxExclusiveP: MaxExclusiveP = new MaxExclusiveP();
 class MinInclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "minInclusive";
   isInvalidValue(value: any, param: any): ValueError | false {
-    if (value < param) {
-      return new ValueError(`value must be greater than or equal to ${param}`);
+    if ((isNaN(value) !== isNaN(param)) || value < param) {
+      const repr = convertInternalNumberToString(param);
+
+      return new ValueError(`value must be greater than or equal to ${repr}`);
     }
 
     return false;
@@ -413,8 +462,12 @@ const minInclusiveP: MinInclusiveP = new MinInclusiveP();
 class MinExclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "minExclusive";
   isInvalidValue(value: any, param: any): ValueError | false {
-    if (value <= param) {
-      return new ValueError(`value must be greater than ${param}`);
+    // The negation of a greater-than test allows handling a parameter value of
+    // NaN automatically.
+    if (!(value > param)) {
+      const repr = convertInternalNumberToString(param);
+
+      return new ValueError(`value must be greater than ${repr}`);
     }
 
     return false;
@@ -741,6 +794,13 @@ abstract class Base implements Datatype {
         return false;
       }
       throw ex;
+    }
+
+    // In the IEEE 754-1985 standard, which is what XMLSChema 1.0 follows, NaN
+    // is equal to NaN. In JavaScript NaN is equal to nothing, not even itself.
+    // So we need to handle this difference.
+    if (typeof converted === "number" && isNaN(converted)) {
+      return isNaN(schemaValue.value);
     }
 
     return converted === schemaValue.value;
@@ -1150,22 +1210,13 @@ class float_ extends Base {
   ];
 
   convertValue(value: string, context?: Context): any {
-    return parseFloat(value);
+    return convertToInternalNumber(value);
   }
 }
 
-class double_ extends Base {
+class double_ extends float_ {
   readonly name: string = "double";
   readonly typeErrorMsg: string = "not a valid double";
-  readonly regexp: RegExp = doubleRe;
-  readonly needsContext: boolean = false;
-  readonly validParams: Parameter[] = [
-    patternP, minInclusiveP, minExclusiveP, maxInclusiveP, maxExclusiveP,
-  ];
-
-  convertValue(value: string, context?: Context): any {
-    return parseFloat(value);
-  }
 }
 
 class QName extends Base {
