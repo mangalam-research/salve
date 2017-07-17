@@ -475,8 +475,6 @@ export class Renamer extends ConversionWalker {
 }
 
 const warnAboutTheseTypes: string[] = [
-  "float",
-  "double",
   "ENTITY",
   "ENTITIES",
 ];

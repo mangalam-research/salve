@@ -5,6 +5,8 @@ issue reported on github.
 
 * 4.2.0:
 
+  - Salve no longer warns on usage of ``float`` and ``double``.
+
   - Improved handling of ``float`` and ``double`` types.
 
   - ``salve-convert`` has been reworked to clean the old code and now avoids
