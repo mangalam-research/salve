@@ -3,11 +3,14 @@
 
 <xsl:output method="xml"/>
 
-<!-- 7.20 
+<!-- 7.20
 For each element that isn't the unique child of a define element, a named pattern is created to embed its definition.
 
 For each named pattern that isn't embedded, a single element pattern is suppressed. References to this named pattern are replaced by its definition.
 -->
+
+<xsl:key name="define-wo-element"
+         match="rng:define[not(rng:element)]" use="@name"/>
 
 <xsl:template match="*|text()|@*">
 	<xsl:copy>
@@ -39,8 +42,8 @@ For each named pattern that isn't embedded, a single element pattern is suppress
 
 <xsl:template match="rng:define[not(rng:element)]"/>
 
-<xsl:template match="rng:ref[@name=/*/rng:define[not(rng:element)]/@name]">
-	<xsl:apply-templates select="/*/rng:define[@name=current()/@name]/*"/>
+<xsl:template match="rng:ref[key('define-wo-element', @name)]">
+	<xsl:apply-templates select="key('define-wo-element', @name)/*"/>
 </xsl:template>
 
 </xsl:stylesheet>

@@ -94,8 +94,14 @@ describe("spectest", function spectest() {
   const outpath = ".tmp_rng_to_js_test";
 
   function clean() {
-    if (fs.existsSync(outpath)) {
+    try {
       fs.unlinkSync(outpath);
+    }
+    catch (ex) {
+      // Ignore if non-existing.
+      if (ex.code !== "ENOENT") {
+        throw ex;
+      }
     }
   }
 

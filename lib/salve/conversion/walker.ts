@@ -294,8 +294,8 @@ export class DefaultConversionWalker extends ConversionWalker {
       switch (node.local) {
       case "ref":
         name = node.attributes.name.value;
-        if (typeof name === "number") {
-          this.outputItem(name);
+        if (/^\d+$/.test(name)) {
+          this.outputItem(parseInt(name));
         }
         else {
           this.outputString(name);
@@ -303,8 +303,8 @@ export class DefaultConversionWalker extends ConversionWalker {
         break;
       case "define":
         name = node.attributes.name.value;
-        if (typeof name === "number") {
-          this.outputItem(name);
+        if (/^\d+$/.test(name)) {
+          this.outputItem(parseInt(name));
         }
         else {
           this.outputString(name);
@@ -475,8 +475,6 @@ export class Renamer extends ConversionWalker {
 }
 
 const warnAboutTheseTypes: string[] = [
-  "float",
-  "double",
   "ENTITY",
   "ENTITIES",
 ];

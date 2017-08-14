@@ -28,18 +28,17 @@ limitations that salve has. We've also validated files that use the
 DocBook v5.0 schema. We want to support as much Relax NG as reasonably
 possible. For now salve has the following limitations:
 
-* Support for XML Schema ``float`` and ``double`` types is not
-  thorough. Simple value comparisons work but if you put ``NaN`` or
-  ``INF`` or ``-INF`` in parameters like ``maxInclusive``, etc., it is
-  likely that salve won't behave correctly. Salve furthermore does not
-  verify that the numerical values fit within the limits of ``float``
-  or ``double``.
-
 * XML Schema types ``ENTITY`` and ``ENTITIES`` are treated as a ``string``.
 
 * None of the XML Schema types that deal with time allow the
   parameters ``minInclusive``, ``minExclusive``, ``maxInclusive`` and
   ``maxExclusive``.
+
+* Salve does not verify that numerical values validated as ``float`` or
+  ``double`` fit within the limits of ``float`` or ``double``. (This is a common
+  limitation. We tested with ``jing`` and ``xmllint --relaxng`` and found they
+  do not raise errors if, for instance, a validation that expects a float is
+  given a value that cannot be represented with a float.)
 
 * Text meant to be contiguous must be passed to salve in one event. In
   particular, comments and processing instructions are invisible to

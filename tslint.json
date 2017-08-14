@@ -6,6 +6,7 @@
     [false, "It may be worth reinstating when we refactor the code."],
     "completed-docs":
     [false, "It  may be worth reinstating when we do a rework of the ",
-     "documentation"]
+     "documentation"],
+    "radix": false
   }
 }
