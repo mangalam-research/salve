@@ -414,7 +414,7 @@ function convert(simplified: string): void {
     return;
   }
 
-  let convStartTime;
+  let convStartTime: number;
   if (args.verbose) {
     console.log("Transforming RNG to JavaScript...");
     if (args.timing) {

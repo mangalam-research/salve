@@ -119,9 +119,9 @@ if (DEBUG) {
     };
 
     // tslint:disable-next-line:only-arrow-functions
-    possibleTracer = function possibleTracer(this: any,
-                                             oldMethod: Function, name: string,
-                                             args: any[]): any {
+    possibleTracer = function _possibleTracer(this: any,
+                                              oldMethod: Function, name: string,
+                                              args: any[]): any {
       buf += step;
       callDump("calling ", name, this);
       const ret: any = oldMethod.apply(this, args);
@@ -133,10 +133,10 @@ if (DEBUG) {
     };
 
     // tslint:disable-next-line:only-arrow-functions
-    fireEventTracer = function fireEventTracer(this: any,
-                                               oldMethod: Function,
-                                               name: string,
-                                               args: any[]): any {
+    fireEventTracer = function _fireEventTracer(this: any,
+                                                oldMethod: Function,
+                                                name: string,
+                                                args: any[]): any {
       buf += step;
       callDump("calling ", name, this);
       trace(buf + util.inspect(args[0]));
@@ -152,9 +152,9 @@ if (DEBUG) {
     };
 
     // tslint:disable-next-line:only-arrow-functions
-    plainTracer = function plainTracer(this: any,
-                                       oldMethod: Function, name: string,
-                                       args: any[]): any {
+    plainTracer = function _plainTracer(this: any,
+                                        oldMethod: Function, name: string,
+                                        args: any[]): any {
       buf += step;
       callDump("calling ", name, this);
 
@@ -845,8 +845,8 @@ export abstract class Walker<T extends BasePattern> {
    *
    * @returns A clone of ``obj``.
    */
-  protected _cloneIfNeeded<T extends Clonable>(obj: T, memo: HashMap): T {
-    let other: T = memo.has(obj);
+  protected _cloneIfNeeded<C extends Clonable>(obj: C, memo: HashMap): C {
+    let other: C = memo.has(obj);
     if (other !== undefined) {
       return other;
     }
