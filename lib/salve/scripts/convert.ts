@@ -491,7 +491,7 @@ used in the schema: `);
   }
 
   walker.walk(convParser.root);
-  fs.writeFileSync(args.output_path, walker.output.join(""));
+  fs.writeFileSync(args.output_path, walker.output);
 
   if (args.timing) {
     console.log(`Conversion delta: ${Date.now() - convStartTime!}`);

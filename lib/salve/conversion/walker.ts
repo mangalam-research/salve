@@ -39,10 +39,12 @@ type ConstructState = {
  * Base class for walkers.
  */
 export abstract class ConversionWalker {
-  /**
-   * The output of the conversion as an array of strings to be concatenated.
-   */
-  readonly output: string[] = [];
+  protected _output: string = "";
+
+  /** The output of the conversion. */
+  get output(): string {
+    return this._output;
+  }
 
   private _constructState: ConstructState[] =
     [{ open: "", close: "", first: true }];
@@ -57,7 +59,7 @@ export abstract class ConversionWalker {
    */
   openConstruct(open: string, close: string): void {
     this._constructState.unshift({ open, close, first: true });
-    this.output.push(open);
+    this._output += open;
   }
 
   /**
@@ -75,7 +77,7 @@ export abstract class ConversionWalker {
       if (close !== top.close) {
         throw new Error(`construct mismatch: ${top.close} vs ${close}`);
       }
-      this.output.push(close);
+      this._output += close;
     }
   }
 
@@ -85,7 +87,7 @@ export abstract class ConversionWalker {
    */
   newItem(): void {
     if (!this._constructState[0].first) {
-      this.output.push(",");
+      this._output += ",";
     }
     this._constructState[0].first = false;
   }
@@ -101,7 +103,7 @@ export abstract class ConversionWalker {
     if (typeof item === "number") {
       item = `${item}`;
     }
-    this.output.push(item);
+    this._output += item;
   }
 
   /**
@@ -114,7 +116,7 @@ export abstract class ConversionWalker {
    */
   outputString(str: string): void {
     this.newItem();
-    this.output.push(JSON.stringify(str));
+    this._output += JSON.stringify(str);
   }
 
   /**
@@ -129,9 +131,7 @@ export abstract class ConversionWalker {
   outputKeyValue(key: string, value: string): void {
     this.newItem();
 
-    this.output.push(JSON.stringify(key));
-    this.output.push(":");
-    this.output.push(JSON.stringify(value));
+    this._output += `${JSON.stringify(key)}:${JSON.stringify(value)}`;
   }
 
   /**
@@ -688,4 +688,4 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
 
 //  LocalWords:  MPL DefaultConversionWalker param includePaths NameChoice ns
 //  LocalWords:  datatypeLibrary params oneOrMore nsName RNG xmlns libname el
-//  LocalWords:  QName
+//  LocalWords:  QName stringify
