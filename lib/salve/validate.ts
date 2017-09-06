@@ -31,4 +31,4 @@ export { Base as BaseName, Name, NameChoice, NsName,
  */
 export { HashMap } from "./hashstructs";
 
-//  LocalWords:  validator constructTree RNG MPL Dubeau Mangalam rng
+//  LocalWords:  rng Mangalam Dubeau MPL RNG constructTree validator

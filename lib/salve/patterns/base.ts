@@ -194,7 +194,7 @@ if (DEBUG) {
 }
 
 /**
- * Sets up a newWalker method in a prototype.
+ * Sets up a ``newWalker`` method in a prototype.
  *
  * @private
  * @param elCls The class that will get the new method.
@@ -206,7 +206,6 @@ export function addWalker<T>(elCls: any, walkerCls: any): void {
   // tslint:disable-next-line:only-arrow-functions
   elCls.prototype.newWalker = function newWalker(this: any,
                                                  resolver: NameResolver): T {
-    // eslint-disable-next-line new-cap
     return new walkerCls(this, resolver) as T;
   };
 }
@@ -255,10 +254,10 @@ export interface ElementI {
 /**
  *
  * This is the base class for all patterns created from the file passed to
- * constructTree. These patterns form a JavaScript representation of the
- * simplified RNG tree. The base class implements a leaf in the RNG tree. In
- * other words, it does not itself refer to children Patterns. (To put it in
- * other words, it has no subpatterns.)
+ * [["validate".constructTree]]. These patterns form a JavaScript representation
+ * of the simplified RNG tree. The base class implements a leaf in the RNG
+ * tree. In other words, it does not itself refer to children Patterns. (To put
+ * it in other words, it has no subpatterns.)
  */
 export class BasePattern {
   /**
@@ -446,7 +445,7 @@ export class TwoSubpatterns extends Pattern {
 }
 
 /**
- * This class modelizes events occurring during parsing. Upon encountering the
+ * This class models events occurring during parsing. Upon encountering the
  * start of a start tag, an "enterStartTag" event is generated, etc. Event
  * objects are held to be immutable. No precautions have been made to enforce
  * this. Users of these objects simply must not modify them. Moreover, there is
@@ -553,8 +552,8 @@ export class Event {
  * events into a string containing a tree structure.  The principle is to
  * combine events of a same type together and among events of a same type
  * combine those which are in the same namespace. So for instance if there is a
- * set of events that are all attributeName events plus one leaveStartTag event,
- * the output could be:
+ * set of events that are all attributeName events plus one ``leaveStartTag``
+ * event, the output could be:
  *
  * <pre>``
  * attributeName:
@@ -641,14 +640,14 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
 }
 
 /**
- * Special event to which only the EmptyWalker responds positively. This object
- * is meant to be used internally by salve.
+ * Special event to which only the [["empty".EmptyWalker]] responds
+ * positively. This object is meant to be used internally by salve.
  */
 export const emptyEvent: Event = new Event("<empty>");
 
 /**
  * Roughly speaking each [[Pattern]] object has a corresponding ``Walker`` class
- * that modelizes an object which is able to walk the pattern to which it
+ * that models an object which is able to walk the pattern to which it
  * belongs. So an ``Element`` has an ``ElementWalker`` and an ``Attribute`` has
  * an ``AttributeWalker``. A ``Walker`` object responds to parsing events and
  * reports whether the structure represented by these events is valid.
@@ -1004,3 +1003,10 @@ class DefineWalker extends SingleSubwalker<Define> {
 }
 
 addWalker(Define, DefineWalker);
+
+//  LocalWords:  RNG MPL lookahead xmlns uri CodeMirror tokenizer enterStartTag
+//  LocalWords:  EOF attributeName el xmlPath buf nameOrPath util ret EventSet
+//  LocalWords:  NameResolver args unshift HashSet subpatterns newID NG vm pre
+//  LocalWords:  firstName lastName attributeValue leaveStartTag dumpTree const
+//  LocalWords:  dumpTreeBuf subwalker fireEvent suppressAttributes HashMap
+//  LocalWords:  ValidationError addWalker RefWalker DefineWalker

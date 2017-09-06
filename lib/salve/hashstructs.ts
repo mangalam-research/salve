@@ -206,8 +206,8 @@ ${this.constructor.name} other class ${s.constructor.name}`);
    * mapping from hash to value is unique. This method cannot be used to
    * **change** such mapping.
    *
-   * @param hash Hash to which to associate the value. Can be any type that can
-   * be used as an array index.
+   * @param hash The hash with which to associate the value. Can be any type
+   * that can be used as an array index.
    *
    * @param val The value to associate with the hash.
    *
@@ -301,5 +301,5 @@ export class HashMap extends HashBase {
   }
 }
 
-//  LocalWords:  hashstructs MPL oop HashBase noop HashSet HashMap
-//  LocalWords:  Dubeau Mangalam LocalWords truthy
+//  LocalWords:  truthy Mangalam Dubeau hashable HashMap HashSet noop HashBase
+//  LocalWords:  MPL

@@ -53,3 +53,5 @@ export class NotAllowedWalker extends Walker<NotAllowed> {
 }
 
 addWalker(NotAllowed, NotAllowedWalker);
+
+//  LocalWords:  RNG's MPL possibleCached

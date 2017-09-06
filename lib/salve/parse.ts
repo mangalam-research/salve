@@ -151,5 +151,6 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
 
 module.exports = parse;
 
-// LocalWords:  namespace xmlns attributeName attributeValue endTag
-// LocalWords:  leaveStartTag enterStartTag amd utf fs LocalWords
+//  LocalWords:  doctype DOCTYPE leaveContext definePrefix enterContext ev MPL
+//  LocalWords:  enterStartTag leaveStartTag endTag attributeValue xmlns
+//  LocalWords:  attributeName namespace

@@ -217,7 +217,7 @@ else {
 
   // This is a bit of a hack. We want to make sure that the schema is a valid
   // RNG schema as per RNG specs. Running validation on our schema with a
-  // schema that defines a valid schema sctructure does not trap import errors
+  // schema that defines a valid schema structure does not trap import errors
   // or errors that are not expressible in a schema language. So we run jing
   // with our schema as the schema to use for validation and /dev/null as the
   // document to validate. This does catch errors but there is no clean way to
@@ -499,3 +499,8 @@ used in the schema: `);
 
   process.exit(0);
 }
+
+//  LocalWords:  cli MPL uncaughtException externalRef RNG storeTrue args jing
+//  LocalWords:  tempDir dev startTime xsl rng stepStart stepNo xsltproc JS
+//  LocalWords:  stringparam originalDir repeatWhen simplifyingStartTime prog
+//  LocalWords:  xmllint convStartTime

@@ -8,7 +8,7 @@
 import { Base } from "./name_patterns";
 
 /**
- * The fireEvent methods return an array of objects of this class to
+ * The ``fireEvent`` methods return an array of objects of this class to
  * notify the caller of errors in the file being validated.
  */
 export class ValidationError {
@@ -39,8 +39,8 @@ export class ValidationError {
   }
 
   /**
-   * This method transforms the ValidationError object to a string but uses the
-   * names in the parameter passed to it to format the string.
+   * This method transforms this object to a string but uses the names in the
+   * parameter passed to it to format the string.
    *
    * Since salve does not work with namespace prefixes, someone using salve
    * would typically use this method so as to replace the name patterns passed
@@ -49,7 +49,7 @@ export class ValidationError {
    * @param names The array of names to use. This should be an array of the same
    * length as that returned by [[getNames]] . Each element of the array
    * corresponds to each name in [[getNames]] and should be something that can
-   * be converted to a meanigful string.
+   * be converted to a meaningful string.
    *
    * @returns The object formatted as a string.
    */
@@ -132,3 +132,5 @@ export class ChoiceError extends ValidationError {
     return `must choose either ${first.join(", ")} or ${second.join(", ")}`;
   }
 }
+
+//  LocalWords:  MPL ValidationError

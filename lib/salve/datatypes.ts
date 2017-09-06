@@ -71,3 +71,5 @@ registry.add(xmlschema);
 export { ParameterParsingError, ValueValidationError, ValueError }
 from "./datatypes/errors";
 export { Datatype, RawParameter, TypeLibrary } from "./datatypes/library";
+
+//  LocalWords:  datatypes RNG MPL uri

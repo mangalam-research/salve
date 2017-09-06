@@ -198,3 +198,6 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
 }
 
 addWalker(OneOrMore, OneOrMoreWalker);
+
+//  LocalWords:  RNG's MPL currentIteration nextIteration canEnd oneOrMore rng
+//  LocalWords:  anyName suppressAttributes instantiateCurrentIteration

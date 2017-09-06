@@ -35,3 +35,5 @@ export class EName {
     return this.ns === other.ns && this.name === other.name;
   }
 }
+
+//  LocalWords:  MPL ns

@@ -23,7 +23,7 @@ const xmlCombiningChar: string = "\u0300-\u0345\u0360-\u0361\u0483-\u0486\u0591-
 
 const xmlExtender: string = "\u00B7\u02D0\u02D1\u0387\u0640\u0E46\u0EC6\u3005\u3031-\u3035\u309D-\u309E\u30FC-\u30FE";
 
-// It is improtant to have the dash first to avoid issues with ranges in
+// It is important to have the dash first to avoid issues with ranges in
 // regexps. Also, the following contain periods. However, they are doing to
 // appear inside square bracket in the regexps.
 
@@ -39,3 +39,5 @@ export const xmlNcname: string =
   `${xmlExtender}])*`;
 
 export const xmlNcnameRe: RegExp = new RegExp(`^${xmlNcname}$`);
+
+//  LocalWords:  MPL

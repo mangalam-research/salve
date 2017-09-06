@@ -223,3 +223,6 @@ class ChoiceWalker extends Walker<Choice> {
 }
 
 addWalker(Choice, ChoiceWalker);
+
+//  LocalWords:  RNG's MPL retA ChoiceWalker enterStartTag notAChoiceError
+//  LocalWords:  tslint ChoiceError

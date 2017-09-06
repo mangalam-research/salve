@@ -301,6 +301,6 @@ export class NameResolver {
   }
 }
 
-// LocalWords:  namespace unresolving MPL xml resolveName Dubeau URI
-// LocalWords:  Mangalam LocalWords NameResolver lt html lang ename
-// LocalWords:  qname redeclarations Unresolves
+//  LocalWords:  unprefixed nameResolver pre definePrefix Unresolves qname vm
+//  LocalWords:  redeclarations newID ename lang html NameResolver Mangalam uri
+//  LocalWords:  xmlns URI Dubeau resolveName xml MPL unresolving namespace
