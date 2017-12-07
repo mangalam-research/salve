@@ -309,3 +309,7 @@ class ElementWalker extends Walker<Element> {
     return false;
   }
 }
+
+//  LocalWords:  RNG's MPL RNG addWalker ElementWalker leaveStartTag valueEvs
+//  LocalWords:  enterStartTag attributeValue endTag errored subwalker
+//  LocalWords:  neutralizeAttribute boundName fireEvent suppressAttributes

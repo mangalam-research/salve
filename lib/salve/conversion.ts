@@ -12,3 +12,5 @@
 export { ConversionParser, Element } from "./conversion/parser";
 export { DatatypeProcessor, DefaultConversionWalker, NameGatherer,
          Renamer } from "./conversion/walker";
+
+//  LocalWords:  NG MPL

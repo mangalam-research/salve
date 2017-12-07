@@ -39,7 +39,7 @@ export class Value extends Pattern {
     super(xmlPath);
     this.datatype = registry.get(this.datatypeLibrary).types[this.type];
     if (this.datatype === undefined) {
-      throw new Error(`unkown type: ${type}`);
+      throw new Error(`unknown type: ${type}`);
     }
     this.rawValue = value;
   }
@@ -143,3 +143,5 @@ class ValueWalker extends Walker<Value> {
 }
 
 addWalker(Value, ValueWalker);
+
+//  LocalWords:  RNG's MPL RNG nd possibleCached

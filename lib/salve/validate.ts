@@ -6,7 +6,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-export const version: string = "4.2.0";
+export const version: string = "4.3.0";
 
 export { eventsToTreeString, Event, EventSet, Grammar, GrammarWalker,
          BasePattern, RefError, Walker, __test, FireEventResult,
@@ -31,4 +31,4 @@ export { Base as BaseName, Name, NameChoice, NsName,
  */
 export { HashMap } from "./hashstructs";
 
-//  LocalWords:  validator constructTree RNG MPL Dubeau Mangalam rng
+//  LocalWords:  rng Mangalam Dubeau MPL RNG constructTree validator

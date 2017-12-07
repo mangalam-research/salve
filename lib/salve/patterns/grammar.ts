@@ -50,7 +50,7 @@ export class RefError extends Error {
 
 /**
  * Grammar object. Users of this library normally do not create objects
- * of this class themselves but rely on constructTree().
+ * of this class themselves but rely on [["validate".constructTree]].
  */
 export class Grammar extends BasePattern {
   private definitions: TrivialMap<Define> = Object.create(null);
@@ -100,10 +100,10 @@ export class Grammar extends BasePattern {
   /**
    * Populates a memo with a mapping of (element name, [list of patterns]).  In
    * a Relax NG schema, the same element name may appear in multiple contexts,
-   * with multiple contents. For instance an element named "name" could require
-   * the sequence of elements "firstName", "lastName" in a certain context and
-   * text in a different context. This method allows determining whether this
-   * happens or not within a pattern.
+   * with multiple contents. For instance an element named ``name`` could
+   * require the sequence of elements ``firstName, lastName`` in a certain
+   * context and text in a different context. This method allows determining
+   * whether this happens or not within a pattern.
    *
    * @param memo The memo in which to store the information.
    */
@@ -218,7 +218,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
   // A stack that keeps state for misplace elements. The elements of this
   // stack are either Array or Walker objects. They are arrays when we are
   // dealing with an element which is unknown to the schema (or which
-  // cannot be unambigiously determined. They are Walker objects when we
+  // cannot be unambiguously determined. They are Walker objects when we
   // can find a definition in the schema.
   private readonly _misplacedElements: any[];
 
@@ -299,8 +299,8 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
   }
 
   /**
-   * On a GrammarWalker this method cannot return ``undefined``. An undefined
-   * value would mean nothing matched, which is a validation error.
+   * On a [[GrammarWalker]] this method cannot return ``undefined``. An
+   * undefined value would mean nothing matched, which is a validation error.
    *
    * @param ev The event to fire.
    *
@@ -419,7 +419,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
     if (this._misplacedElements.length > 0 &&
         this._misplacedElements[0] instanceof Array) {
       // We are in a misplaced element which is foreign to the schema (or
-      // which cannot be infered unambiguously.
+      // which cannot be inferred unambiguously.
       const mpe: any = this._misplacedElements[0];
       switch (ev.params[0]) {
       case "enterStartTag":
@@ -472,7 +472,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
             candidates[0].newWalker(this.nameResolver);
           this._misplacedElements.unshift(newWalker);
           if (newWalker.fireEvent(ev) !== false) {
-            throw new Error("internal error: the infered element " +
+            throw new Error("internal error: the inferred element " +
                             "does not accept its initial event");
           }
         }
@@ -557,3 +557,9 @@ ${ev.params[0].toString()}`);
 
 // Nope, we're using a custom function.
 // addWalker(Grammar, GrammarWalker);
+
+//  LocalWords:  RNG's MPL unresolvable runtime RNG NG firstName enterContext
+//  LocalWords:  leaveContext definePrefix whitespace enterStartTag endTag
+//  LocalWords:  fireEvent attributeValue attributeName leaveStartTag addWalker
+//  LocalWords:  misplacedElements ElementNameError GrammarWalker's
+//  LocalWords:  suppressAttributes GrammarWalker

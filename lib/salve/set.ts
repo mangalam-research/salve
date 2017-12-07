@@ -175,5 +175,4 @@ export class NaiveSet {
   }
 }
 
-// LocalWords:  hashstructs HashSet Dubeau MPL Mangalam LocalWords
-// LocalWords:  param truthy
+//  LocalWords:  param NaiveSet Mangalam MPL Dubeau HashSet hashstructs

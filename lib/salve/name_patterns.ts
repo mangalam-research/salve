@@ -15,7 +15,7 @@ export type NamespaceMemo = {[key: string]: number};
 export abstract class Base {
   /**
    * @param path The XML path of the element that corresponds to this
-   * object in the Relax NG schema from which this object was contructed.
+   * object in the Relax NG schema from which this object was constructed.
    */
   constructor(readonly path: string) {
   }
@@ -332,3 +332,5 @@ export class AnyName extends Base {
     }
   }
 }
+
+//  LocalWords:  MPL NG Stringify stringified AnyName

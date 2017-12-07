@@ -22,4 +22,4 @@ export function inspect(x: any): string {
   return x.toString();
 }
 
-// LocalWords:  util Dubeau MPL Mangalam
+//  LocalWords:  Mangalam MPL Dubeau util

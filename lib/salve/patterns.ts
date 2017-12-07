@@ -65,20 +65,5 @@ export const __protected: {[name: string]: any} = {
 };
 /*  tslint:enable */
 
-//  LocalWords:  namespaces validator namespace xmlns validators EOF
-//  LocalWords:  lookahead enterStartTag attributeName newWalker URI
-//  LocalWords:  makeSingletonConstructor HashSet constructTree RNG
-//  LocalWords:  subpatterns hashstructs cleanAttrs fireEvent HashMap
-//  LocalWords:  EName ValidationError msg modelizes args uri RelaxNG
-//  LocalWords:  attributeValue leaveStartTag AttributeWalker API MPL
-//  LocalWords:  ElementWalker subwalkers NotAllowed RefWalker Mixin
-//  LocalWords:  DefineWalker oneOrMore ChoiceWalker subwalker Dubeau
-//  LocalWords:  ChoiceError GroupWalker unresolvable addWalker el lt
-//  LocalWords:  useNameResolver GrammarWalker formedness notAllowed
-//  LocalWords:  ElementNameError GrammarWalker's Mangalam util oop
-//  LocalWords:  CodeMirror tokenizer jshint newcap validthis canEnd
-//  LocalWords:  SingleNameError NoSubwalker SingleSubwalker ATTRS ev
-//  LocalWords:  endTag TwoSubpatterns GroupWalkers rng attr vm
-//  LocalWords:  OneSubpattern enterContext leaveContext NG ret
-//  LocalWords:  definePrefix firstName lastName ttt EventSet unshift
-//  LocalWords:  suppressAttributes
+//  LocalWords:  EName NotAllowed oneOrMore RNG MPL Dubeau GrammarWalker rng
+//  LocalWords:  notAllowed Mangalam EventSet

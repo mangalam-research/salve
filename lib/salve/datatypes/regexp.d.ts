@@ -27,3 +27,5 @@ export declare function parse(value: string,
  * Reports an error in parsing.
  */
 export declare class SalveParsingError extends Error {}
+
+//  LocalWords:  XMLSchema MPL RegExp XRegExp

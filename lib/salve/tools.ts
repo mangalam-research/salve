@@ -56,3 +56,5 @@ export function fixPrototype(obj: any, parent: Function): void {
     }
   }
 }
+
+//  LocalWords:  MPL jQuery Lodash

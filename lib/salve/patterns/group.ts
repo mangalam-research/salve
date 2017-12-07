@@ -291,3 +291,5 @@ class GroupWalker extends Walker<Group> {
 }
 
 addWalker(Group, GroupWalker);
+
+//  LocalWords:  RNG's MPL instantiateWalkers walkerA retB canEnd endedA

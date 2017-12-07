@@ -10,7 +10,7 @@ import { NameResolver } from "../name_resolver";
 import { ValueError } from "./errors";
 
 /**
- * A "raw" parameter taken straight from the rng.
+ * A "raw" parameter taken straight from the Relax NG.
  */
 export type RawParameter = {
   /**
@@ -130,3 +130,5 @@ export interface TypeLibrary {
    */
   readonly types: { [name: string]: Datatype };
 }
+
+//  LocalWords:  MPL NG

@@ -162,7 +162,7 @@ abstract class Parameter {
    * Convert the parameter value from a string to a value to be used internally
    * by this code.
    *
-   * @param value Value to convert.
+   * @param value The value to convert.
    *
    * @returns The converted value.
    */
@@ -177,7 +177,7 @@ abstract class Parameter {
    * @param name The name of the parameter. This allows using generic functions
    * to check on values.
    *
-   * @param type The typefor which this parameter is checked.
+   * @param type The type for which this parameter is checked.
    *
    * @returns ``false`` if there is no problem. Otherwise, an error.
    */
@@ -288,7 +288,7 @@ const maxLengthP: MaxLengthP = new MaxLengthP();
 //
 
 /**
- * A mapping of raw schema values to the corresponding RegExp object.
+ * A mapping of raw schema values to the corresponding [[RegExp]] object.
  */
 const reCache: TrivialMap<RegExp> = Object.create(null);
 
@@ -1626,3 +1626,15 @@ for (const type of types) {
  * The XML Schema datatype library.
  */
 export const xmlschema: TypeLibrary = library;
+
+//  LocalWords:  XMLSchema datatypes MPL whitespace param minLength maxLength
+//  LocalWords:  RNG rng failedOn totalDigits fractionDigits ValueError repr zA
+//  LocalWords:  ParamError maxInclusive maxExclusive NaN minInclusive params
+//  LocalWords:  minExclusive whitespaces parseParams unparsed XMLSChema NCName
+//  LocalWords:  normalizedString xmlNameChar NMTOKEN NMTOKENS IDREF xmlNcname
+//  LocalWords:  IDREFS decimalPattern integerPattern highestVal lowestVal AQgw
+//  LocalWords:  nonPositiveInteger negativeInteger nonNegativeInteger Za fA Ee
+//  LocalWords:  positiveInteger unsignedLong unsignedInt unsignedShort QName
+//  LocalWords:  unsignedByte AEIMQUYcgkosw hexBinary tzPattern yearPattern TZ
+//  LocalWords:  monthPattern domPattern timePattern dateTime gYearMonth gYear
+//  LocalWords:  gMonthDay gDay gMonth anyURI

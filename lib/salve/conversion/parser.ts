@@ -8,8 +8,7 @@
 import * as sax from "sax";
 
 /**
- * A base class for classes that perform parsing based on SAX
- * parsers.
+ * A base class for classes that perform parsing based on SAX parsers.
  *
  * Derived classes should add methods named ``on<eventname>`` so as to form a
  * full name which matches the ``on<eventname>`` methods supported by SAX
@@ -20,7 +19,7 @@ import * as sax from "sax";
  */
 export class Parser {
   /**
-   * @param saxParser A parser created by the ``sax-js`` libary or something
+   * @param saxParser A parser created by the ``sax-js`` library or something
    * compatible.
    */
   constructor(readonly saxParser: sax.SAXParser) {
@@ -154,3 +153,5 @@ export class ConversionParser extends Parser {
     }
   }
 }
+
+//  LocalWords:  MPL

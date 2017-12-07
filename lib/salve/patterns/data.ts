@@ -38,7 +38,7 @@ export class Data extends Pattern {
     super(xmlPath);
     this.datatype = registry.get(this.datatypeLibrary).types[this.type];
     if (this.datatype === undefined) {
-      throw new Error(`unkown type: ${type}`);
+      throw new Error(`unknown type: ${type}`);
     }
     this.rngParams = params !== undefined ? params : [];
   }
@@ -181,3 +181,5 @@ class DataWalker extends Walker<Data> {
 }
 
 addWalker(Data, DataWalker);
+
+//  LocalWords:  RNG's MPL RNG nd possibleCached

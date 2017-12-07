@@ -317,5 +317,6 @@ export const __protected: any = {
   OPTION_NO_PATHS,
 };
 
-//  LocalWords:  MPL util oop rng js xsl JSON constructObjectV
-//  LocalWords:  JSONWalker RNG
+//  LocalWords:  deserialized PatternTwoPatterns PatternOnePattern OneOrMore js
+//  LocalWords:  codeToConstructor nameToConstructor RNG subpattern JSON xsl
+//  LocalWords:  rng MPL

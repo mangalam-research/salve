@@ -1,7 +1,16 @@
-Only major changes are reported here. Releases that only bump the
-patch part of the version number (i.e. the number after the 2nd dot)
-are generally not listed here unless they include a fix to a specific
-issue reported on github.
+Only major changes are reported here. Releases that only bump the patch part of
+the version number (i.e. the number after the 2nd dot) are generally not listed
+here unless they include a fix to a specific issue reported on github.
+
+* 4.3.0:
+
+  - ``ValidationError`` objects now have an ``equals`` method that allows
+    comparing two such objects.
+
+  - The default implementation of ``toString`` on ``ValidationError`` and its
+    derived classes has changed. This is not considered a breaking change since
+    ``ValidationError`` and its derived classes are not meant to be further
+    derived by users of salve.
 
 * 4.2.0:
 

@@ -205,3 +205,6 @@ class AttributeWalker extends Walker<Attribute> {
 }
 
 addWalker(Attribute, AttributeWalker);
+
+//  LocalWords:  RNG's MPL RNG attributeName attributeValue ev params
+//  LocalWords:  neutralizeAttribute

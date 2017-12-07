@@ -50,3 +50,5 @@ class TextWalker extends Walker<Text> {
   }
 }
 addWalker(Text, TextWalker);
+
+//  LocalWords:  RNG's MPL possibleCached
