@@ -10,6 +10,17 @@ import { Base } from "./name_patterns";
 /**
  * The ``fireEvent`` methods return an array of objects of this class to
  * notify the caller of errors in the file being validated.
+ *
+ * Note that these error objects do not record what (element, attribute, text,
+ * etc.) in the XML document was responsible for the error. It is the
+ * responsibility of the code that uses salve to combine the error message with
+ * an object that points into the document being validated.
+ *
+ * This is particularly important when considering the equality of errors. Two
+ * errors are considered equal if their messages (with names) are the
+ * same. *They could still be associated with two different locations in the
+ * document being validated.* The code calling salve must distinguish such
+ * cases.
  */
 export class ValidationError {
   /**
@@ -22,10 +33,13 @@ export class ValidationError {
   }
 
   /**
+   * The default implementation is to return the value of calling
+   * ``this.toStringWithNames(this.getNames())``.
+   *
    * @returns The text representation of the error.
    */
   toString(): string {
-    return this.msg;
+    return this.toStringWithNames(this.getNames());
   }
 
   /**
@@ -57,6 +71,18 @@ export class ValidationError {
     // We do not have names in ValidationError
     return this.msg;
   }
+
+  /**
+   * Two [[ValidationError]] objects are considered equal if the values returned
+   * by [[toString]] are equal.
+   *
+   * @param other The other validation error to compare against.
+   *
+   * @returns Whether ``this`` and ``other`` are equal.
+   */
+  equals(other: ValidationError): boolean {
+    return (this === other) || (this.toString() === other.toString());
+  }
 }
 
 /**
@@ -73,16 +99,12 @@ export class SingleNameError extends ValidationError {
     super(msg);
   }
 
-  toString(): string {
-    return this.toStringWithNames([this.name]);
-  }
-
   getNames(): Base[] {
     return [this.name];
   }
 
   toStringWithNames(names: any[]): string {
-    return `${this.msg}: ${names[0]}`;
+    return `${this.msg}: ${names[0].toString()}`;
   }
 }
 
@@ -117,10 +139,6 @@ export class ChoiceError extends ValidationError {
     super("");
   }
 
-  toString(): string {
-    return this.toStringWithNames(this.namesA.concat(this.namesB));
-  }
-
   getNames(): Base[] {
     return this.namesA.concat(this.namesB);
   }
@@ -133,4 +151,4 @@ export class ChoiceError extends ValidationError {
   }
 }
 
-//  LocalWords:  MPL ValidationError
+//  LocalWords:  MPL ValidationError toStringWithNames getNames toString

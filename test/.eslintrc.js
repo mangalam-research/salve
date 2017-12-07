@@ -9,5 +9,7 @@ module.exports = {
   },
   rules: {
     "import/no-extraneous-dependencies": "off",
+    // expect().to.be.true gives a false positive...
+    "no-unused-expressions": "off",
   }
 };
