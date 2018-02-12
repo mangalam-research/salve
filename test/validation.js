@@ -5,10 +5,12 @@
  */
 
 /* global it, describe, before */
+
 "use strict";
+
 const fs = require("fs");
 const path = require("path");
-const assert = require("chai").assert;
+const { assert } = require("chai");
 const sax = require("sax");
 const salve = require("../salve");
 
@@ -35,9 +37,7 @@ function makeParser(er, walker) {
     names.sort();
     for (const name of names) {
       const attr = node.attributes[name];
-      const local = attr.local;
-      const prefix = attr.prefix;
-      const value = attr.value;
+      const { local, prefix, value } = attr;
       if (// xmlns="..."
         (local === "" && name === "xmlns") ||
           // xmlns:...=...
@@ -52,9 +52,8 @@ function makeParser(er, walker) {
     er.recordEvent(walker, "enterStartTag", node.uri, node.local);
     for (const name of names) {
       const attr = node.attributes[name];
-      const local = attr.local;
-      const prefix = attr.prefix;
-      const value = attr.value;
+      const { local, prefix, value } = attr;
+      // eslint-disable-next-line prefer-destructuring
       let uri = attr.uri;
       if (// xmlns="..."
         (local === "" && name === "xmlns") ||
@@ -209,8 +208,7 @@ function makeValidTest(dir) {
     // Roll back; >> gives us an integer
     // eslint-disable-next-line no-bitwise
     const startAt = (er.recorded_states.length / 2) >> 0;
-    walker = er.recorded_states[startAt][0];
-    ce.exp_ix = er.recorded_states[startAt][1];
+    [walker, ce.exp_ix] = er.recorded_states[startAt];
     let evIx = er.recorded_states[startAt][2];
 
     er.dont_record_state = true; // stop recording.
@@ -891,10 +889,10 @@ describe("Name pattern", () => {
     it("converts to an object", () => {
       assert.deepEqual(np.toObject(), { ns: "a" });
       assert.deepEqual(withExcept.toObject(),
-        {
-          ns: "a",
-          except: { ns: "a", name: "b" },
-        });
+                       {
+                         ns: "a",
+                         except: { ns: "a", name: "b" },
+                       });
     });
 
     it("holds a single namespace", () => {
@@ -938,10 +936,10 @@ describe("Name pattern", () => {
     it("converts to an object", () => {
       assert.deepEqual(np.toObject(), { pattern: "AnyName" });
       assert.deepEqual(withExcept.toObject(),
-        {
-          pattern: "AnyName",
-          except: { ns: "a", name: "b" },
-        });
+                       {
+                         pattern: "AnyName",
+                         except: { ns: "a", name: "b" },
+                       });
     });
 
     it("holds all namespaces", () => {

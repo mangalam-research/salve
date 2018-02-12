@@ -5,12 +5,11 @@
  */
 
 /* global it, describe, before, beforeEach */
-"use strict";
-const assert = require("chai").assert;
-const salve = require("../salve");
 
-const EName = salve.EName;
-const NameResolver = salve.NameResolver;
+"use strict";
+
+const { assert } = require("chai");
+const { EName, NameResolver } = require("../salve");
 
 const mapping = {
   btw: "http://lddubeau.com/ns/btw-storage",
@@ -93,17 +92,17 @@ describe("NameResolver", () => {
     });
 
     it("fails if trying to define xmlns", () => {
-      assert.throws(resolver.definePrefix.bind(
-        resolver, "xmlns", "http://www.w3.org/2000/xmlns/"),
-                   Error,
-                   "trying to define 'xmlns' but the XML Namespaces " +
-                   "standard stipulates that 'xmlns' cannot be " +
-                   "declared (= \"defined\")");
+      assert.throws(
+        resolver.definePrefix.bind(resolver, "xmlns",
+                                   "http://www.w3.org/2000/xmlns/"),
+        Error,
+        "trying to define 'xmlns' but the XML Namespaces standard stipulates " +
+          "that 'xmlns' cannot be declared (= \"defined\")");
     });
 
     it("fails if trying to define xml to an invalid URI", () => {
       assert.throws(resolver.definePrefix.bind(resolver, "xml", "foo"),
-                   Error, "trying to define 'xml' to an incorrect URI");
+                    Error, "trying to define 'xml' to an incorrect URI");
     });
 
     it("allows defining xml", () =>

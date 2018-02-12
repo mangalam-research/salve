@@ -1,5 +1,7 @@
 /* eslint-env node */
+
 "use strict";
+
 const fs_ = require("fs");
 const childProcess = require("child_process");
 const path = require("path");
@@ -13,20 +15,16 @@ const Promise = require("bluebird");
 const del = require("del");
 const touch = require("touch");
 const es = require("event-stream");
-const argparse = require("argparse");
+const { ArgumentParser } = require("argparse");
 const eslint = require("gulp-eslint");
 const versync = require("versync");
 const sourcemaps = require("gulp-sourcemaps");
 const ts = require("gulp-typescript");
-const cpp = require("child-process-promise");
-const util = require("./util");
+const { spawn, execFile } = require("child-process-promise");
+const { newer } = require("./util");
 
-const ArgumentParser = argparse.ArgumentParser;
-const execFile = cpp.execFile;
-const spawn = cpp.spawn;
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
-const newer = util.newer;
 
 //
 // This script accepts configuration options from 3 places, in
@@ -76,7 +74,7 @@ parser.addArgument(["--no-doc-private"], {
 });
 
 parser.addArgument(["--mocha-grep"], {
-    // We do not have a default for this one.
+  // We do not have a default for this one.
   help: "A pattern to pass to mocha to select tests.",
 });
 
@@ -175,8 +173,8 @@ gulp.task("jison", () => {
 
 gulp.task("default", ["webpack"]);
 
-gulp.task("copy", ["copy-src", "copy-readme"], () =>
-          fs.writeFileAsync("build/dist/.npmignore", "bin/parse.js"));
+gulp.task("copy", ["copy-src", "copy-readme"],
+          () => fs.writeFileAsync("build/dist/.npmignore", "bin/parse.js"));
 
 const project = ts.createProject("tsconfig.json");
 gulp.task("tsc", () => {
@@ -207,8 +205,7 @@ gulp.task("tsc", () => {
 gulp.task("webpack", ["tsc", "copy", "jison"], () =>
           execFile("./node_modules/.bin/webpack", ["--color"])
           .then((result) => {
-            const stdout = result.stdout;
-            gutil.log(stdout);
+            gutil.log(result.stdout);
           }));
 
 let packname;
@@ -216,7 +213,7 @@ let packname;
 gulp.task("pack", ["default"],
           () => execFile("npm", ["pack", "dist"], { cwd: "build" })
           .then((result) => {
-            const stdout = result.stdout;
+            const { stdout } = result;
             packname = stdout.trim();
           }));
 
@@ -263,7 +260,7 @@ gulp.task("typedoc", ["lint"], Promise.coroutine(function *task() {
     return;
   }
 
-  const version = JSON.parse(fs.readFileSync("package.json")).version;
+  const { version } = JSON.parse(fs.readFileSync("package.json"));
   const tsoptions = [
     "--out", `./build/api/salve/${version}`,
     "--name", "salve",

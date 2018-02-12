@@ -1,11 +1,9 @@
 /* global it, describe */
-"use strict";
-const expect = require("chai").expect;
-const salve = require("../../salve");
 
-const ValidationError = salve.ValidationError;
-const ElementNameError = salve.ElementNameError;
-const Name = salve.Name;
+"use strict";
+
+const { expect } = require("chai");
+const { ValidationError, ElementNameError, Name } = require("../../salve");
 
 describe("ValidationError", () => {
   describe("#equals", () => {
