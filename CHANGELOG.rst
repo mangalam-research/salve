@@ -13,6 +13,28 @@ here unless they include a fix to a specific issue reported on github.
   - Fix a couple of bugs in ``bin/parse.js``. That example code is not used
     much. Some issues went unnoticed.
 
+  - Bug fix: the XML parser that reads the Relax NG schema for conversion to
+    salve's internal representation would omit text nodes consisting entirely of
+    white space because they are *usually* insignificant. Omitting such nodes
+    is helpful for simplifying the conversion code. However, the parser also
+    erroneously omitted significant nodes. Text nodes that are entirely white
+    space are potentially significant in ``value`` and ``param``. This version
+    fixes the problem and preserves the potentially significant text nodes. (I
+    write "potentially" because Relax NG cannot know a priori whether the spaces
+    are significant: it depends on the type library in use.)
+
+    Schemas that were converted in earlier versions of salve *and* that use
+    ``value`` or ``param`` with text entirely consisting of white space should be
+    reprocessed with this version.
+
+    The likelihood of running into this problem in practice is remote. Among the
+    type parameters (``param``) supported by salve, the only one that can make
+    meaningful usage of a value consisting of white spaces is
+    ``pattern``. However, specifying through ``pattern`` that an attribute or
+    element content can contain **only** *a specific number of white spaces* is
+    definitely bizarre. The usefulness of ``value`` consisting entirely of
+    white space is similarly unlikely. (Not *impossible*, but *rare*.)
+
 * 5.0.0:
 
   - Salve no longer officially supports Node 4.x. This is enough by itself to
@@ -341,5 +363,5 @@ here unless they include a fix to a specific issue reported on github.
   would have to test the return value for identity with the value
   ``true``, which is more verbose.)
 
-..  LocalWords:  rng js xsl README xsltproc JSON API fireEvent
+..  LocalWords:  rng js xsl README xsltproc JSON API fireEvent param NG
 ..  LocalWords:  boolean

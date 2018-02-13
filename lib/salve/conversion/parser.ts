@@ -148,10 +148,25 @@ export class ConversionParser extends Parser {
       return;
     }
 
-    if (text.trim() !== "") {
+    const local = top.node.local;
+
+    // This parser is specifically dedicated to the task of reading Relax NG
+    // schemas. In a Relax NG schema, text nodes that consist entirely of white
+    // space are expandable, except in the ``param`` and ``value`` elements,
+    // where they do potentially carry significant information.
+    //
+    // We strip nodes that consist entirely of white space because this
+    // simplifies code that needs to process the resulting tree, but preserve
+    // those nodes that are potentially significant.
+    //
+    // The parser does not allow non-RNG nodes, so we don't need to check the
+    // namespace.
+    const keepWhitespaceNodes = local === "param" || local === "value";
+
+    if (keepWhitespaceNodes || text.trim() !== "") {
       top.children.push(text);
     }
   }
 }
 
-//  LocalWords:  MPL
+//  LocalWords:  MPL NG param RNG
