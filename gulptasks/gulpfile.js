@@ -18,10 +18,8 @@ const es = require("event-stream");
 const { ArgumentParser } = require("argparse");
 const eslint = require("gulp-eslint");
 const versync = require("versync");
-const sourcemaps = require("gulp-sourcemaps");
-const ts = require("gulp-typescript");
 const { spawn, execFile } = require("child-process-promise");
-const { newer } = require("./util");
+const { execFileAndReport, newer } = require("./util");
 
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
@@ -176,31 +174,12 @@ gulp.task("default", ["webpack"]);
 gulp.task("copy", ["copy-src", "copy-readme"],
           () => fs.writeFileAsync("build/dist/.npmignore", "bin/parse.js"));
 
-const project = ts.createProject("tsconfig.json");
-gulp.task("tsc", () => {
-  // The .once nonsense is to work around a gulp-typescript bug
-  //
-  // See: https://github.com/ivogabe/gulp-typescript/issues/295
-  //
-  // For the fix see:
-  // https://github.com/ivogabe/gulp-typescript/issues/295#issuecomment-197299175
-  //
-  const result = project.src()
-          .pipe(sourcemaps.init({ loadMaps: true }))
-          .pipe(project())
-          .once("error", function onError() {
-            this.once("finish", () => {
-              process.exit(1);
-            });
-          });
+function tsc(tsconfigPath, dest) {
+  return execFileAndReport("./node_modules/.bin/tsc", ["-p", tsconfigPath,
+                                                       "--outDir", dest]);
+}
 
-  const dest = "build/dist/lib";
-  return es.merge(result.js
-                  .pipe(sourcemaps.write("."))
-                  .pipe(gulp.dest(dest)),
-                  result.dts.pipe(gulp.dest(dest)));
-});
-
+gulp.task("tsc", () => tsc("tsconfig.json", "build/dist/lib"));
 
 gulp.task("webpack", ["tsc", "copy", "jison"], () =>
           execFile("./node_modules/.bin/webpack", ["--color"])
