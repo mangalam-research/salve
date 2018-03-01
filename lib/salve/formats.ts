@@ -91,10 +91,6 @@ const nameToConstructor: any = {
   21: pro.AnyName,
 };
 
-//
-// MODIFICATIONS TO THESE VARIABLES MUST BE REFLECTED IN rng-to-js.xsl
-//
-
 // This is a bit field
 export const OPTION_NO_PATHS = 1;
 // var OPTION_WHATEVER = 2;
