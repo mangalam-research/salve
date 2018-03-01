@@ -96,7 +96,7 @@ const nameToConstructor: any = {
 //
 
 // This is a bit field
-const OPTION_NO_PATHS: number = 1;
+export const OPTION_NO_PATHS = 1;
 // var OPTION_WHATEVER = 2;
 // var OPTION_WHATEVER_PLUS_1 = 4;
 // etc...

@@ -223,7 +223,8 @@ export class DefaultConversionWalker extends ConversionWalker {
       break;
     case "grammar":
       this.openConstruct("{", "}");
-      this.outputItem(`"v":3,"o":${this.includePaths ? 0 : 1},"d":`);
+      this.outputItem(`"v":3,"o":${this.includePaths ? 0 :
+formats.OPTION_NO_PATHS},"d":`);
       // tslint:disable:no-string-literal
       ctor = constructorNameToIndex["Grammar"];
       if (ctor === undefined) {
