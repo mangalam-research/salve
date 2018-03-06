@@ -10,7 +10,7 @@ const gulp = require("gulp");
 const log = require("fancy-log");
 const gulpNewer = require("gulp-newer");
 const rename = require("gulp-rename");
-const jison = require("gulp-jison");
+const jison = require("jison-gho");
 const Promise = require("bluebird");
 const del = require("del");
 const touch = require("touch");
@@ -156,14 +156,20 @@ gulp.task("jison", () => {
   const dest = "build/dist/lib/salve/datatypes";
   return gulp.src("lib/salve/datatypes/regexp.jison")
     .pipe(gulpNewer(`${dest}/regexp.js`))
-    .pipe(jison({
-      moduleType: "commonjs",
-      // Override the default main created by Jison. This module cannot ever be
-      // used as a main script. And the default that Jison uses does
-      // `require("fs")` which causes problems.
-      moduleMain: function main() {
-        throw new Error("this module cannot be used as main");
-      },
+  // eslint-disable-next-line array-callback-return
+    .pipe(es.map((data, callback) => {
+      const generated = new jison.Generator(data.contents.toString(), {
+        moduleType: "commonjs",
+        // Override the default main created by Jison. This module cannot ever
+        // be used as a main script. And the default that Jison uses does
+        // `require("fs")` which causes problems.
+        moduleMain: function main() {
+          throw new Error("this module cannot be used as main");
+        },
+      }).generate();
+      data.contents = Buffer.from(generated);
+      data.path = data.path.replace(/.jison$/, ".js");
+      callback(null, data);
     }))
     .pipe(gulp.dest(dest));
 });
