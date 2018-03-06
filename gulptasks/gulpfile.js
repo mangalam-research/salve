@@ -195,10 +195,12 @@ gulp.task("webpack", ["tsc", "copy", "jison"], () =>
 let packname;
 
 gulp.task("pack", ["default"],
-          () => execFile("npm", ["pack", "dist"], { cwd: "build" })
+          () => execFile("npm", ["pack"], { cwd: "build/dist" })
           .then((result) => {
             const { stdout } = result;
             packname = stdout.trim();
+            return fs.renameAsync(`build/dist/${packname}`,
+                                  `build/${packname}`);
           }));
 
 gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
@@ -212,7 +214,8 @@ gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
   module = module.toString();
   module = module.replace("./validate", "salve");
   yield fs.writeFileAsync(path.join(testDir, "parse.ts"), module);
-  yield execFile("../../node_modules/.bin/tsc", ["parse.ts"], { cwd: testDir });
+  yield execFileAndReport("../../node_modules/.bin/tsc", ["parse.ts"],
+                          { cwd: testDir });
   yield del(testDir);
 }));
 
