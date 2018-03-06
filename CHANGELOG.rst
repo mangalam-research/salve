@@ -2,6 +2,16 @@ Only major changes are reported here. Releases that only bump the patch part of
 the version number (i.e. the number after the 2nd dot) are generally not listed
 here unless they include a fix to a specific issue reported on github.
 
+* 4.3.1:
+
+  - Spring cleaning (so to speak):
+
+    + updated some obsolete dependencies,
+
+    + linting,
+
+    + some code cleanups.
+
 * 4.3.0:
 
   - ``ValidationError`` objects now have an ``equals`` method that allows
