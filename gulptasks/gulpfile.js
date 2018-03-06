@@ -119,8 +119,7 @@ function dumpBufferedContent(obj) {
 function runTslint(tsconfig, tslintConfig) {
   return spawn(
     "./node_modules/.bin/tslint",
-    ["--type-check", "--format", "verbose", "--project", tsconfig,
-     "-c", tslintConfig],
+    ["--format", "verbose", "--project", tsconfig, "-c", tslintConfig],
     { capture: ["stdout", "stderr"] }).then(dumpBufferedContent)
     .catch((err) => {
       dumpBufferedContent(err);
