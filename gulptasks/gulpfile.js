@@ -226,7 +226,7 @@ gulp.task("publish", ["install_test"],
 // generates links to source based on the latest commit in effect when it is
 // run. So if a commit happened between the time the doc was generated last, and
 // now, we need to regenerate the docs.
-gulp.task("typedoc", ["lint"], Promise.coroutine(function *task() {
+gulp.task("typedoc", ["tslint"], Promise.coroutine(function *task() {
   const sources = ["lib/**/*.ts"];
   const stamp = "build/api.stamp";
   const hashPath = "./build/typedoc.hash.txt";
