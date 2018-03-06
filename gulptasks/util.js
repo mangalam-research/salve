@@ -1,8 +1,8 @@
 "use strict";
 
 const gulp = require("gulp");
+const log = require("fancy-log");
 const gulpNewer = require("gulp-newer");
-const gutil = require("gulp-util");
 const { execFile } = require("child-process-promise");
 
 exports.newer = function newer(src, dest, forceDestFile) {
@@ -48,11 +48,11 @@ exports.execFileAndReport = function execFileAndReport(...args) {
   return execFile(...args)
     .then((result) => {
       if (result.stdout) {
-        gutil.log(result.stdout);
+        log(result.stdout);
       }
     }, (err) => {
       if (err.stdout) {
-        gutil.log(err.stdout);
+        log(err.stdout);
       }
       throw err;
     });

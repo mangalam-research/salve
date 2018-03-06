@@ -7,7 +7,7 @@ const childProcess = require("child_process");
 const path = require("path");
 
 const gulp = require("gulp");
-const gutil = require("gulp-util");
+const log = require("fancy-log");
 const gulpNewer = require("gulp-newer");
 const rename = require("gulp-rename");
 const jison = require("gulp-jison");
@@ -107,12 +107,12 @@ gulp.task("eslint",
 function dumpBufferedContent(obj) {
   const stdout = obj.stdout.toString().trim();
   if (stdout !== "") {
-    gutil.log(`\n${stdout}`);
+    log(`\n${stdout}`);
   }
 
   const stderr = obj.stderr.toString().trim();
   if (stderr !== "") {
-    gutil.log(`\n${stderr}`);
+    log(`\n${stderr}`);
   }
 }
 
@@ -184,7 +184,7 @@ gulp.task("tsc", () => tsc("tsconfig.json", "build/dist/lib"));
 gulp.task("webpack", ["tsc", "copy", "jison"], () =>
           execFile("./node_modules/.bin/webpack", ["--color"])
           .then((result) => {
-            gutil.log(result.stdout);
+            log(result.stdout);
           }));
 
 let packname;
@@ -235,7 +235,7 @@ gulp.task("typedoc", ["lint"], Promise.coroutine(function *task() {
   const currentHash = prelim[1][0];
 
   if ((currentHash === savedHash) && !(yield newer(sources, stamp))) {
-    gutil.log("No change, skipping typedoc.");
+    log("No change, skipping typedoc.");
     return;
   }
 
@@ -282,7 +282,7 @@ gulp.task("gh-pages-build", ["typedoc"], () => {
 
 gulp.task("versync", () => versync.run({
   verify: true,
-  onMessage: gutil.log,
+  onMessage: log,
 }));
 
 //
