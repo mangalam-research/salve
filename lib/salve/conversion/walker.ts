@@ -30,9 +30,9 @@ for (const name in nameToConstructor) {
 }
 
 type ConstructState = {
-  open: string,
-  close: string,
-  first: boolean,
+  open: string;
+  close: string;
+  first: boolean;
 };
 
 /**
@@ -100,10 +100,7 @@ export abstract class ConversionWalker {
    */
   outputItem(item: string | number): void {
     this.newItem();
-    if (typeof item === "number") {
-      item = `${item}`;
-    }
-    this._output += item;
+    this._output += (typeof item === "number") ? item.toString() : item;
   }
 
   /**
@@ -146,15 +143,13 @@ export abstract class ConversionWalker {
    */
   walkChildren(el: Element, startAt: number = 0, endAt?: number): void {
     const children: (Element | string)[] = el.children;
+    const limit: number = (endAt === undefined) ? children.length :
+      Math.min(endAt, children.length);
 
-    if (endAt === undefined) {
-      endAt = children.length;
-    }
-
-    const limit: number = Math.min(endAt, children.length);
     if (limit < startAt) {
       throw new Error("invalid parameters passed");
     }
+
     for (let i: number = startAt; i < limit; ++i) {
       const child: Element | string = children[i];
       if (child instanceof Element) {
@@ -421,7 +416,6 @@ formats.OPTION_NO_PATHS},"d":`);
         this.walkChildren(el);
       }
       this.closeConstruct("]");
-      break;
     }
   }
 }
@@ -598,15 +592,13 @@ export class DatatypeProcessor extends ConversionWalker {
       libname = node.attributes.datatypeLibrary.value;
       let ns = node.attributes.ns.value;
 
-      // tslint:disable-next-line:no-non-null-assertion
-      const lib = datatypes.registry.find(libname!);
+      const lib = datatypes.registry.find(libname);
       if (lib === undefined) {
         throw new datatypes.ValueValidationError(
           [new datatypes.ValueError(`unknown datatype library: ${libname}`)]);
       }
 
-      // tslint:disable-next-line:no-non-null-assertion
-      const datatype = lib.types[type!];
+      const datatype = lib.types[type];
       if (datatype === undefined) {
         throw new datatypes.ValueValidationError(
           [new datatypes.ValueError(`unknown datatype ${type} in \
@@ -644,15 +636,13 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
 
       type = node.attributes.type.value;
       libname = node.attributes.datatypeLibrary.value;
-      // tslint:disable-next-line:no-non-null-assertion
-      const lib = datatypes.registry.find(libname!);
+      const lib = datatypes.registry.find(libname);
       if (lib === undefined) {
         throw new datatypes.ValueValidationError(
           [new datatypes.ValueError(`unknown datatype library: ${libname}`)]);
       }
 
-      // tslint:disable-next-line:no-non-null-assertion
-      if (lib.types[type!] === undefined) {
+      if (lib.types[type] === undefined) {
         throw new datatypes.ValueValidationError(
           [new datatypes.ValueError(`unknown datatype ${type} in \
 ${(libname === "") ? "default library" : `library ${libname}`}`)]);

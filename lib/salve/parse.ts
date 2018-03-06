@@ -19,13 +19,14 @@ declare module "sax" {
 const parser: sax.SAXParser = sax.parser(true, { xmlns: true });
 
 type TagInfo = {
-  uri: string,
-  local: string,
-  hasContext: boolean,
+  uri: string;
+  local: string;
+  hasContext: boolean;
 };
 
 // tslint:disable-next-line: max-func-body-length
 function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
+  // tslint:disable-next-line:no-parameter-reassignment
   mute = !!mute;
 
   const tree: salve.Grammar = salve.constructTree(rngSource);
@@ -119,18 +120,18 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
     // If a reminder need be given then: THIS PARSER IS NOT MEANT TO BE A
     // GENERAL SOLUTION TO PARSING XML FILES!!! It supports just enough to
     // perform some testing.
-    doctype = doctype
+    let cleaned = doctype
       .replace(/^.*?\[/, "")
       .replace(/].*?$/, "")
       .replace(/<!--(?:.|\n|\r)*?-->/g, "")
       .trim();
 
-    while (doctype.length !== 0) {
-      const match: RegExpMatchArray | null = entityRe.exec(doctype);
+    while (cleaned.length !== 0) {
+      const match: RegExpMatchArray | null = entityRe.exec(cleaned);
       if (match !== null) {
         const name: string = match[1];
         const value: string = match[3];
-        doctype = doctype.slice(match[0].length);
+        cleaned = cleaned.slice(match[0].length);
         if (parser.ENTITIES[name] !== undefined) {
           throw new Error(`redefining entity: ${name}`);
         }

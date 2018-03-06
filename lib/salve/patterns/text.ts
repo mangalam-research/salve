@@ -28,9 +28,7 @@ class TextWalker extends Walker<Text> {
   protected constructor(el: Text);
   protected constructor(elOrWalker: NotAllowedWalker | Text, memo?: HashMap) {
     if (elOrWalker instanceof NotAllowedWalker) {
-      const walker: NotAllowedWalker = elOrWalker;
-      memo = isHashMap(memo);
-      super(walker, memo);
+      super(elOrWalker, isHashMap(memo));
     }
     else {
       super(elOrWalker);

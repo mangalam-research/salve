@@ -95,7 +95,7 @@ if (DEBUG) {
     const step: string = " ";
 
     const nameOrPath: (walker: any) => string = (walker: any) => {
-      const el: any = walker.el as any;
+      const el = walker.el;
 
       if (el == null) {
         return "";
@@ -254,7 +254,7 @@ export interface ElementI {
 /**
  *
  * This is the base class for all patterns created from the file passed to
- * [["validate".constructTree]]. These patterns form a JavaScript representation
+ * [["formats".constructTree]]. These patterns form a JavaScript representation
  * of the simplified RNG tree. The base class implements a leaf in the RNG
  * tree. In other words, it does not itself refer to children Patterns. (To put
  * it in other words, it has no subpatterns.)
@@ -472,6 +472,9 @@ export class Event {
 
   readonly id: string;
   readonly params: (string|namePatterns.Base)[];
+  // This field is never read but we still want it present on the object so that
+  // we can use it for diagnosis.
+  // @ts-ignore
   private readonly key: string;
 
   /**
@@ -578,12 +581,10 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
     return x;
   }
 
-  if (evs instanceof EventSet) {
-    evs = evs.toArray();
-  }
+  const eventArray = (evs instanceof EventSet) ? evs.toArray() : evs;
 
   const hash: HashMap = new HashMap(hashF);
-  evs.forEach((ev: Event) => {
+  eventArray.forEach((ev: Event) => {
     const params: (string|namePatterns.Base)[] = ev.params;
 
     let node: HashMap = hash;
@@ -640,7 +641,7 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
 }
 
 /**
- * Special event to which only the [["empty".EmptyWalker]] responds
+ * Special event to which only the [["patterns/empty".EmptyWalker]] responds
  * positively. This object is meant to be used internally by salve.
  */
 export const emptyEvent: Event = new Event("<empty>");

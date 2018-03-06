@@ -286,11 +286,8 @@ const kindToArgFilter: (ArgFilter | undefined)[] = [
 class V2Constructor extends V2JSONWalker {
   _processObject(kind: number, ctor: PatternCtor, args: any[]): any {
     const filter = kindToArgFilter[kind];
-    if (filter !== undefined) {
-      args = filter(args);
-    }
 
-    return new ctor(...args);
+    return new ctor(...(filter === undefined ? args : filter(args)));
   }
 }
 
