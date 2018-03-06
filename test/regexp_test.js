@@ -4,8 +4,10 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 /* global it, describe */
+
 "use strict";
-const assert = require("chai").assert;
+
+const { assert } = require("chai");
 const XRegExp = require("xregexp");
 const regexp = require("../build/dist/lib/salve/datatypes/regexp");
 

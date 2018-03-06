@@ -288,7 +288,7 @@ const maxLengthP: MaxLengthP = new MaxLengthP();
 //
 
 /**
- * A mapping of raw schema values to the corresponding [[RegExp]] object.
+ * A mapping of raw schema values to the corresponding ``RegExp`` object.
  */
 const reCache: TrivialMap<RegExp> = Object.create(null);
 
@@ -488,20 +488,21 @@ const minExclusiveP: MinExclusiveP = new MinExclusiveP();
  * passed. See the XML Schema Datatype standard for the meaning.
  */
 function whiteSpaceProcessed(value: string, param: WhitespaceHandling): string {
+  let ret = value;
   switch (param) {
   case WhitespaceHandling.PRESERVE:
     break;
   case WhitespaceHandling.REPLACE:
-    value = value.replace(/\r\n\t/g, " ");
+    ret = value.replace(/\r\n\t/g, " ");
     break;
   case WhitespaceHandling.COLLAPSE:
-    value = value.replace(/\r\n\t/g, " ").trim().replace(/\s{2,}/g, " ");
+    ret = value.replace(/\r\n\t/g, " ").trim().replace(/\s{2,}/g, " ");
     break;
   default:
     throw new Error(`unexpected value: ${param}`);
   }
 
-  return value;
+  return ret;
 }
 
 type NameToParameterMap = TrivialMap<Parameter>;
@@ -614,12 +615,11 @@ abstract class Base implements Datatype {
   }
 
   // tslint:disable-next-line: max-func-body-length
-  parseParams(location?: string, params?: RawParameter[]): any {
+  parseParams(location?: string, params: RawParameter[] = []): any {
     const errors: ParamError[] = [];
     const names: TrivialMap<any[]> = Object.create(null);
-    params = params !== undefined ? params : [];
     for (const x of params) {
-      const {name, value}: {name: string, value: string} = x;
+      const {name, value}: { name: string; value: string } = x;
 
       const prop: Parameter | undefined = this.paramNameToObj[name];
 
@@ -814,6 +814,7 @@ abstract class Base implements Datatype {
     }
     else if (params === undefined || Object.keys(params).length === 0) {
       // If no params were passed, get the default params.
+      // tslint:disable-next-line:no-parameter-reassignment
       params = this.defaultParams;
     }
 
@@ -1406,11 +1407,11 @@ class date extends Base {
     }
 
     // We have to add time for Date() to parse it.
-    const match: RegExpMatchArray | null = value.match(tzRe);
-    value = match !== null ?
+    const match = value.match(tzRe);
+    const withTime = match !== null ?
       `${value.slice(0, match.index)}T00:00:00${match[0]}` :
       `${value}T00:00:00`;
-    if (!checkDate(value)) {
+    if (!checkDate(withTime)) {
       return [new ValueError(this.typeErrorMsg)];
     }
 
@@ -1432,11 +1433,11 @@ class gYearMonth extends Base {
     }
 
     // We have to add a day and time for Date() to parse it.
-    const match: RegExpMatchArray | null = value.match(tzRe);
-    value = match !== null ?
+    const match = value.match(tzRe);
+    const withTime = match !== null ?
       `${value.slice(0, match.index)}-01T00:00:00${match[0]}` :
       `${value}-01T00:00:00`;
-    if (!checkDate(value)) {
+    if (!checkDate(withTime)) {
       return [new ValueError(this.typeErrorMsg)];
     }
 
@@ -1457,11 +1458,11 @@ class gYear extends Base {
     }
 
     // We have to add a month, a day and a time for Date() to parse it.
-    const match: RegExpMatchArray | null = value.match(tzRe);
-    value = match !== null ?
+    const match = value.match(tzRe);
+    const withTime = match !== null ?
       `${value.slice(0, match.index)}-01-01T00:00:00${match[0]}` :
       `${value}-01-01T00:00:00`;
-    if (!checkDate(value)) {
+    if (!checkDate(withTime)) {
       return [new ValueError(this.typeErrorMsg)];
     }
 
@@ -1483,13 +1484,13 @@ class gMonthDay extends Base {
     }
 
     // We have to add a year and a time for Date() to parse it.
-    const match: RegExpMatchArray | null = value.match(tzRe);
-    value = match !== null ?
+    const match = value.match(tzRe);
+    const withTime = match !== null ?
       `${value.slice(0, match.index)}T00:00:00${match[0]}` :
       `${value}T00:00:00`;
     // We always add 2000, which is a leap year, so 01-29 won't raise an
     // error.
-    if (!checkDate(`2000-${value}`)) {
+    if (!checkDate(`2000-${withTime}`)) {
       return [new ValueError(this.typeErrorMsg)];
     }
 
@@ -1510,13 +1511,13 @@ class gDay extends Base {
     }
 
     // We have to add a year and a time for Date() to parse it.
-    const match: RegExpMatchArray | null = value.match(tzRe);
-    value = match !== null ?
+    const match = value.match(tzRe);
+    const withTime = match !== null ?
       `${value.slice(0, match.index)}T00:00:00${match[0]}` :
       `${value}T00:00:00`;
     // We always add 2000, which is a leap year, so 01-29 won't raise an
     // error.
-    if (!checkDate(`2000-01-${value}`)) {
+    if (!checkDate(`2000-01-${withTime}`)) {
       return [new ValueError(this.typeErrorMsg)];
     }
 
@@ -1537,13 +1538,13 @@ class gMonth extends Base {
     }
 
     // We have to add a year and a time for Date() to parse it.
-    const match: RegExpMatchArray | null = value.match(tzRe);
-    value = match !== null ?
+    const match = value.match(tzRe);
+    const withTime = match !== null ?
       `${value.slice(0, match.index)}-01T00:00:00${match[0]}` :
       `${value}-01T00:00:00`;
     // We always add 2000, which is a leap year, so 01-29 won't raise an
     // error.
-    if (!checkDate(`2000-${value}`)) {
+    if (!checkDate(`2000-${withTime}`)) {
       return [new ValueError(this.typeErrorMsg)];
     }
 
@@ -1637,4 +1638,4 @@ export const xmlschema: TypeLibrary = library;
 //  LocalWords:  positiveInteger unsignedLong unsignedInt unsignedShort QName
 //  LocalWords:  unsignedByte AEIMQUYcgkosw hexBinary tzPattern yearPattern TZ
 //  LocalWords:  monthPattern domPattern timePattern dateTime gYearMonth gYear
-//  LocalWords:  gMonthDay gDay gMonth anyURI
+//  LocalWords:  gMonthDay gDay gMonth anyURI withTime

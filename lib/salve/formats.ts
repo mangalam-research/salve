@@ -10,93 +10,93 @@
 import * as patterns from "./patterns";
 import { fixPrototype } from "./tools";
 
-const pro: any = patterns.__protected;
+const { Empty, Data, List, Param, Value, NotAllowed, Text, Ref, OneOrMore,
+        Choice, Group, Attribute, Element, Define, Grammar, EName, Interleave,
+        Name, NameChoice, NsName, AnyName } = patterns.__protected;
+
+export type PatternCtor = { new (...args: any[]): patterns.BasePattern };
 
 //
 // MODIFICATIONS TO THIS TABLE MUST BE REFLECTED IN nameToConstructor
 //
-const codeToConstructor: Function[] = [
+const codeToConstructor: (PatternCtor | typeof Array)[] = [
   Array,
-  pro.Empty,
-  pro.Data,
-  pro.List,
-  pro.Param,
-  pro.Value,
-  pro.NotAllowed,
-  pro.Text,
-  pro.Ref,
-  pro.OneOrMore,
-  pro.Choice,
-  pro.Group,
-  pro.Attribute,
-  pro.Element,
-  pro.Define,
-  pro.Grammar,
-  pro.EName,
-  pro.Interleave,
-  pro.Name,
-  pro.NameChoice,
-  pro.NsName,
-  pro.AnyName,
+  Empty,
+  Data,
+  List,
+  Param,
+  Value,
+  NotAllowed,
+  Text,
+  Ref,
+  OneOrMore,
+  Choice,
+  Group,
+  Attribute,
+  Element,
+  Define,
+  Grammar,
+  EName,
+  Interleave,
+  Name,
+  NameChoice,
+  NsName,
+  AnyName,
 ];
 
 //
 // MODIFICATIONS TO THIS TABLE MUST BE REFLECTED IN codeToConstructor
 //
-const nameToConstructor: any = {
+const nameToConstructor: Record<string, PatternCtor | typeof Array> = {
   // Array = 0 is hard-coded elsewhere in the conversion code so don't change
   // it.
   0: Array,
-  Empty: pro.Empty,
-  1: pro.Empty,
-  Data: pro.Data,
-  2: pro.Data,
-  List: pro.List,
-  3: pro.List,
-  Param: pro.Param,
-  4: pro.Param,
-  Value: pro.Value,
-  5: pro.Value,
-  NotAllowed: pro.NotAllowed,
-  6: pro.NotAllowed,
-  Text: pro.Text,
-  7: pro.Text,
-  Ref: pro.Ref,
-  8: pro.Ref,
-  OneOrMore: pro.OneOrMore,
-  9: pro.OneOrMore,
-  Choice: pro.Choice,
-  10: pro.Choice,
-  Group: pro.Group,
-  11: pro.Group,
-  Attribute: pro.Attribute,
-  12: pro.Attribute,
-  Element: pro.Element,
-  13: pro.Element,
-  Define: pro.Define,
-  14: pro.Define,
-  Grammar: pro.Grammar,
-  15: pro.Grammar,
-  EName: pro.EName,
-  16: pro.EName,
-  Interleave: pro.Interleave,
-  17: pro.Interleave,
-  Name: pro.Name,
-  18: pro.Name,
-  NameChoice: pro.NameChoice,
-  19: pro.NameChoice,
-  NsName: pro.NsName,
-  20: pro.NsName,
-  AnyName: pro.AnyName,
-  21: pro.AnyName,
+  Empty,
+  1: Empty,
+  Data,
+  2: Data,
+  List,
+  3: List,
+  Param,
+  4: Param,
+  Value,
+  5: Value,
+  NotAllowed,
+  6: NotAllowed,
+  Text,
+  7: Text,
+  Ref,
+  8: Ref,
+  OneOrMore,
+  9: OneOrMore,
+  Choice,
+  10: Choice,
+  Group,
+  11: Group,
+  Attribute,
+  12: Attribute,
+  Element,
+  13: Element,
+  Define,
+  14: Define,
+  Grammar,
+  15: Grammar,
+  EName,
+  16: EName,
+  Interleave,
+  17: Interleave,
+  Name,
+  18: Name,
+  NameChoice,
+  19: NameChoice,
+  NsName,
+  20: NsName,
+  AnyName,
+  21: AnyName,
 };
 
-//
-// MODIFICATIONS TO THESE VARIABLES MUST BE REFLECTED IN rng-to-js.xsl
-//
-
 // This is a bit field
-const OPTION_NO_PATHS: number = 1;
+export const OPTION_NO_PATHS = 1;
 // var OPTION_WHATEVER = 2;
 // var OPTION_WHATEVER_PLUS_1 = 4;
 // etc...
@@ -113,12 +113,15 @@ class OldFormatError extends Error {
  * A class for walking the JSON object representing a schema.
  */
 export class V2JSONWalker {
+  private readonly addPath: boolean;
   /**
    *
    * @param options The options object from the file that contains the
    * schema.
    */
   constructor(private options: number) {
+    // tslint:disable-next-line:no-bitwise
+    this.addPath = (this.options & OPTION_NO_PATHS) !== 0;
   }
 
   /**
@@ -132,7 +135,7 @@ export class V2JSONWalker {
    */
   walkObject(array: any[]): any {
     const kind: number = array[0];
-    const ctor: Function = codeToConstructor[kind];
+    const ctor = codeToConstructor[kind];
     if (ctor === undefined) {
       if (array.length < 1) {
         throw new Error("array too small to contain object");
@@ -141,37 +144,26 @@ export class V2JSONWalker {
     }
 
     if (ctor === Array) {
-      throw new Error("trying to build array with _constructObjectV2");
+      throw new Error("trying to build array with walkObject");
     }
 
-    const addPath: boolean =
-      // tslint:disable-next-line:no-bitwise
-      ((this.options & OPTION_NO_PATHS) !== 0) && ctor !== pro.EName;
-
-    let args: any[];
-    if (array.length > 1) {
-      args = array.slice(1);
-      if (addPath) {
-        args.unshift(0, "");
-      }
-      else {
-        args.unshift(0);
-      }
+    const args = array.slice(1);
+    if (args.length !== 0) {
       this._transformArray(args);
     }
-    else if (addPath) {
-      args = [""];
-    }
-    else {
-      args = [];
+    if (this.addPath && ctor !== EName) {
+      args.unshift("");
     }
 
-    return this._processObject(ctor, args);
+    // We do not pass Array to this function.
+    return this._processObject(kind, ctor as PatternCtor, args);
   }
 
   /**
    * Processes an object. Derived classes will want to override this method to
    * perform their work.
+   *
+   * @param kind The object "kind". A numeric code.
    *
    * @param ctor The object's constructor.
    *
@@ -182,18 +174,13 @@ export class V2JSONWalker {
    * instance is meant to check the JSON data, then it should return
    * ``undefined``.
    */
-  _processObject(ctor: Function, args: any[]): any {
+  _processObject(kind: number, ctor: PatternCtor, args: any[]): any {
     return undefined; // Do nothing
   }
 
   _transformArray(arr: any[]): void {
-    if (arr[0] !== 0) {
-      throw new Error(`array type not 0, but ${arr[0]} for array ${arr}`);
-    }
-
-    arr.splice(0, 1);
-    const limit: number = arr.length;
-    for (let elIx: number = 0; elIx < limit; elIx++) {
+    const limit = arr.length;
+    for (let elIx = 0; elIx < limit; elIx++) {
       const el: any = arr[elIx];
 
       if (el instanceof Array) {
@@ -201,6 +188,7 @@ export class V2JSONWalker {
           arr[elIx] = this.walkObject(el);
         }
         else {
+          el.shift(); // Drop the leading 0.
           this._transformArray(el);
         }
       }
@@ -208,14 +196,34 @@ export class V2JSONWalker {
   }
 }
 
-/**
- * A JSON walker that constructs a pattern tree as it walks the JSON object.
- *
- * @private
- */
-class V2Constructor extends V2JSONWalker {
-  _processObject(ctor: Function, args: any[]): any {
-    if (ctor === pro.Data && args.length >= 4) {
+type ArgFilter = (args: any[]) => any[];
+
+function namedOnePatternFilter(args: any[]): any[] {
+  // Same thing as for OneOrMore, but for these elements the array of patterns
+  // is at index 2 rather than index 1 because index 1 contains a name.
+  if (args[2].length !== 1) {
+    throw new Error("PatternOnePattern with an array of patterns that " +
+                    "contains other than 1 pattern");
+  }
+
+  return [args[0], args[1], args[2][0]];
+}
+
+function twoPatternFilter(args: any[]): any[] {
+  if (args[1].length !== 2) {
+    throw new Error("PatternTwoPatterns with an array of patterns that " +
+                    "contains other than 2 pattern");
+  }
+
+  return [args[0], args[1][0], args[1][1]];
+}
+
+const kindToArgFilter: (ArgFilter | undefined)[] = [
+  undefined, // Array
+  undefined, // Empty,
+  // Data
+  (args: any[]) => {
+    if (args.length >= 4) {
       // Parameters are represented as an array of strings in the file.
       // Transform this array of strings into an array of objects.
       const params: any[] = args[3];
@@ -224,54 +232,62 @@ class V2Constructor extends V2JSONWalker {
       }
 
       // tslint:disable-next-line: prefer-array-literal
-      const newParams: any[] = new Array(params.length / 2);
-      const limit: number = params.length;
-      for (let i: number = 0; i < limit; i += 2) {
+      const newParams = new Array(params.length / 2);
+      const limit = params.length;
+      for (let i = 0; i < limit; i += 2) {
         newParams[i / 2] = { name: params[i], value: params[i + 1] };
       }
+
       args[3] = newParams;
     }
-    else if (ctor === pro.OneOrMore) {
-      //
-      // In the file we have two arguments:
-      //
-      // * the XML path.
-      // * An array of length 1 that contains the one subpattern.
-      //
-      // Here we ditch the array and replace it with its lone subpattern.
-      //
-      if (args[1].length !== 1) {
-        throw new Error("OneOrMore with an array of patterns that " +
-                        "contains other than 1 pattern");
-      }
-      args = [args[0], args[1][0]];
-    }
-    else if (ctor === pro.Attribute ||
-             ctor === pro.Element ||
-             ctor === pro.Define) {
-      // Same thing as above, but for these elements the array of patterns is at
-      // index 2 rather than index 1.
-      if (args[2].length !== 1) {
-        throw new Error("PatternOnePattern with an array of patterns that " +
-                        "contains other than 1 pattern");
-      }
-      args = [args[0], args[1], args[2][0]];
-    }
-    else if (ctor === pro.Choice ||
-             ctor === pro.Group ||
-             ctor === pro.Interleave) {
-      if (args[1].length !== 2) {
-        throw new Error("PatternTwoPatterns with an array of patterns that " +
-                        "contains other than 2 pattern");
-      }
-      args = [args[0], args[1][0], args[1][1]];
+
+    return args;
+  },
+  undefined, // List,
+  undefined, // Param,
+  undefined, // Value,
+  undefined, // NotAllowed,
+  undefined, // Text,
+  undefined, // Ref,
+  // OneOrMore
+  (args: any[]) => {
+    //
+    // In the file we have two arguments: the XML path, an array of length 1
+    // that contains the one subpattern.
+    //
+    // Here we ditch the array and replace it with its lone subpattern.
+    //
+    if (args[1].length !== 1) {
+      throw new Error("OneOrMore with an array of patterns that " +
+                      "contains other than 1 pattern");
     }
 
-    const newObj: any = Object.create(ctor.prototype);
-    const ctorRet: any = ctor.apply(newObj, args);
+    return [args[0], args[1][0]];
+  },
+  twoPatternFilter, // Choice,
+  twoPatternFilter, // Group,
+  namedOnePatternFilter, // Attribute
+  namedOnePatternFilter, // Element,
+  namedOnePatternFilter, // Define,
+  undefined, // Grammar,
+  undefined, // EName,
+  twoPatternFilter, // Interleave,
+  undefined, // Name,
+  undefined, // NameChoice,
+  undefined, // NsName,
+  undefined, // AnyName,
+];
 
-    // Some constructors return a value; make sure to use it!
-    return ctorRet !== undefined ? ctorRet : newObj;
+/**
+ * A JSON walker that constructs a pattern tree as it walks the JSON object.
+ *
+ * @private
+ */
+class V2Constructor extends V2JSONWalker {
+  _processObject(kind: number, ctor: PatternCtor, args: any[]): any {
+    const filter = kindToArgFilter[kind];
+
+    return new ctor(...(filter === undefined ? args : filter(args)));
   }
 }
 
@@ -291,14 +307,14 @@ class V2Constructor extends V2JSONWalker {
  * @returns The tree.
  */
 export function constructTree(code: string | {}): patterns.Grammar {
-  const parsed: any = (typeof code === "string" ? JSON.parse(code) : code);
+  const parsed = (typeof code === "string" ? JSON.parse(code) : code);
   if (typeof parsed === "object" && parsed.v === undefined) {
     throw new OldFormatError(); // version 0
   }
 
   const { v: version, o: options, d: data } = parsed;
   if (version === 3) {
-    return new V2Constructor(options as number).walkObject(data);
+    return new V2Constructor(options).walkObject(data);
   }
 
   throw new Error(`unknown version: ${version}`);

@@ -200,7 +200,7 @@ start
       // method does not allow recovering from recoverable parsing
       // errors.
       this.parseError = parseError;
-      outputType = outputType || "re";
+      var outputType = yy.outputType || "re";
       switch(outputType) {
       case "string":
         return $1;

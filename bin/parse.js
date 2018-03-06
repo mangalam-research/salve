@@ -1,5 +1,7 @@
 /* eslint-env node */
+
 "use strict";
+
 // eslint-disable-next-line import/no-unresolved
 var parse = require("../lib/salve/parse");
 var fs = require("fs");

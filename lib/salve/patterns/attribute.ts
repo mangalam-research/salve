@@ -62,11 +62,10 @@ class AttributeWalker extends Walker<Attribute> {
   private neutralized: boolean;
 
   /**
-   * @param el The pattern for which this walker was
-   * created.
+   * @param el The pattern for which this walker was created.
    *
-   * @param nameResolver The name resolver that
-   * can be used to convert namespace prefixes to namespaces.
+   * @param nameResolver The name resolver that can be used to convert namespace
+   * prefixes to namespaces.
    */
   protected constructor(walker: AttributeWalker, memo: HashMap);
   protected constructor(el: Attribute, nameResolver: NameResolver);

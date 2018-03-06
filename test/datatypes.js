@@ -5,8 +5,10 @@
  */
 
 /* global it, describe, before */
+
 "use strict";
-const assert = require("chai").assert;
+
+const { assert } = require("chai");
 const mergeOptions = require("merge-options");
 const datatypes = require("../build/dist/lib/salve/datatypes");
 const nameResolver = require("../build/dist/lib/salve/name_resolver");
@@ -1181,8 +1183,7 @@ const NOTATIONProgram = mergeOptions(
 
 function testProgram(name, lib, program, disallows) {
   const type = lib.types[name];
-  const schemaContext = program.schemaContext;
-  const docContext = program.docContext;
+  const { schemaContext, docContext } = program;
   describe(name, () => {
     describe("equal", () => {
       for (const x of program.equal.true) {
@@ -1413,7 +1414,7 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
 
       describe("with a pattern parameter", () => {
         // Extract the pattern processor from the type.
-        const pattern = type.paramNameToObj.pattern;
+        const { pattern } = type.paramNameToObj;
         it("allows the pattern", () =>
            assert.isFalse(
              type.disallows("foo", { pattern: pattern.convert("[fb].*") })));

@@ -50,7 +50,7 @@ export class RefError extends Error {
 
 /**
  * Grammar object. Users of this library normally do not create objects
- * of this class themselves but rely on [["validate".constructTree]].
+ * of this class themselves but rely on [["formats".constructTree]].
  */
 export class Grammar extends BasePattern {
   private definitions: TrivialMap<Define> = Object.create(null);
@@ -240,6 +240,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
                         memo?: HashMap) {
     if (elOrWalker instanceof GrammarWalker) {
       const walker: GrammarWalker = elOrWalker;
+      // tslint:disable-next-line:no-parameter-reassignment
       memo = isHashMap(memo); // Checks for undefined.
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
@@ -392,6 +393,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
         this.suspendedWs = undefined;
         const trimmed: string = (ev.params[1] as string).replace(/^\s+/, "");
         if (trimmed.length !== (ev.params[1] as string).length) {
+          // tslint:disable-next-line:no-parameter-reassignment
           ev = new Event("text", trimmed);
         }
       }
@@ -430,7 +432,6 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
         break;
       default:
         // We don't care
-        break;
       }
 
       // We're done with this context.

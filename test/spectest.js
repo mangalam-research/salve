@@ -6,9 +6,11 @@
 
 /* global it, describe, before, after */
 /* eslint-env node */
+
 "use strict";
-const assert = require("chai").assert;
-const spawn = require("child_process").spawn;
+
+const { assert } = require("chai");
+const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 const salveParse = require("../build/dist/lib/salve/parse");
@@ -64,20 +66,19 @@ function Test(test) {
                     "per test.");
   }
 
-  this.correct = correct[0];
-  this.incorrect = incorrect[0];
+  [this.correct] = correct;
+  [this.incorrect] = incorrect;
 }
 
 const tests = testDirs.filter(
-  x => fs.statSync(path.join(spectestDir, x)).isDirectory())
-        .map((x) => {
-          const ret = new Test(x);
-          // test384 uses double
-          if (x === "test384") {
-            ret.convert_args = ["--allow-incomplete-types=quiet"];
-          }
-          return ret;
-        });
+  x => fs.statSync(path.join(spectestDir, x)).isDirectory()).map((x) => {
+    const ret = new Test(x);
+    // test384 uses double
+    if (x === "test384") {
+      ret.convert_args = ["--allow-incomplete-types=quiet"];
+    }
+    return ret;
+  });
 
 function salveConvert(args, callback) {
   const child = spawn("build/dist/bin/salve-convert", args);

@@ -25,8 +25,7 @@ export class EmptyWalker extends Walker<Empty> {
   protected constructor(el: Empty);
   protected constructor(elOrWalker: Empty | EmptyWalker, memo?: HashMap) {
     if (elOrWalker instanceof EmptyWalker) {
-      memo = isHashMap(memo);
-      super(elOrWalker, memo);
+      super(elOrWalker, isHashMap(memo));
     }
     else {
       super(elOrWalker);

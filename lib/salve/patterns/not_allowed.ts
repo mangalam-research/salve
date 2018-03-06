@@ -24,13 +24,10 @@ export class NotAllowedWalker extends Walker<NotAllowed> {
   protected constructor(elOrWalker: NotAllowedWalker | NotAllowed,
                         memo?: HashMap) {
     if (elOrWalker instanceof NotAllowedWalker) {
-      const walker: NotAllowedWalker = elOrWalker;
-      memo = isHashMap(memo); // Makes sure it is not undefined.
-      super(walker, memo);
+      super(elOrWalker, isHashMap(memo));
     }
     else {
-      const el: NotAllowed = elOrWalker;
-      super(el);
+      super(elOrWalker);
       this.possibleCached = new EventSet();
     }
   }

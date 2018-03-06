@@ -16,11 +16,11 @@ export type RawParameter = {
   /**
    * The parameter's name.
    */
-  name: string,
+  name: string;
   /**
    * It's value.
    */
-  value: string,
+  value: string;
 };
 
 /**

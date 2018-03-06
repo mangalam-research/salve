@@ -150,7 +150,7 @@ export class Name extends Base {
     return false; // This is not a wildcard.
   }
 
-  toObject(): {ns: string, name: string} {
+  toObject(): { ns: string; name: string } {
     return {
       ns: this.ns,
       name: this.name,
@@ -198,7 +198,7 @@ export class NameChoice extends Base {
     return this.a.wildcardMatch(ns, name) || this.b.wildcardMatch(ns, name);
   }
 
-  toObject(): {a: any, b: any} {
+  toObject(): { a: any; b: any } {
     return {
       a: this.a.toObject(),
       b: this.b.toObject(),
@@ -257,8 +257,8 @@ export class NsName extends Base {
     return this.match(ns, name);
   }
 
-  toObject(): {ns: string, except?: any} {
-    const ret: {ns: string, except?: any} = {
+  toObject(): { ns: string; except?: any } {
+    const ret: { ns: string; except?: any } = {
       ns: this.ns,
     };
     if (this.except !== undefined) {
@@ -306,8 +306,8 @@ export class AnyName extends Base {
     return this.match(ns, name);
   }
 
-  toObject(): {pattern: "AnyName", except?: Base} {
-    const ret: {pattern: "AnyName", except?: Base} = {
+  toObject(): { pattern: "AnyName"; except?: Base } {
+    const ret: { pattern: "AnyName"; except?: Base } = {
       pattern: "AnyName",
     };
     if (this.except !== undefined) {

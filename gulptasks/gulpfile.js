@@ -1,32 +1,28 @@
 /* eslint-env node */
+
 "use strict";
+
 const fs_ = require("fs");
 const childProcess = require("child_process");
 const path = require("path");
 
 const gulp = require("gulp");
-const gutil = require("gulp-util");
+const log = require("fancy-log");
 const gulpNewer = require("gulp-newer");
 const rename = require("gulp-rename");
-const jison = require("gulp-jison");
+const jison = require("jison-gho");
 const Promise = require("bluebird");
 const del = require("del");
 const touch = require("touch");
 const es = require("event-stream");
-const argparse = require("argparse");
+const { ArgumentParser } = require("argparse");
 const eslint = require("gulp-eslint");
 const versync = require("versync");
-const sourcemaps = require("gulp-sourcemaps");
-const ts = require("gulp-typescript");
-const cpp = require("child-process-promise");
-const util = require("./util");
+const { spawn, execFile } = require("child-process-promise");
+const { execFileAndReport, newer } = require("./util");
 
-const ArgumentParser = argparse.ArgumentParser;
-const execFile = cpp.execFile;
-const spawn = cpp.spawn;
 const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
-const newer = util.newer;
 
 //
 // This script accepts configuration options from 3 places, in
@@ -76,7 +72,7 @@ parser.addArgument(["--no-doc-private"], {
 });
 
 parser.addArgument(["--mocha-grep"], {
-    // We do not have a default for this one.
+  // We do not have a default for this one.
   help: "A pattern to pass to mocha to select tests.",
 });
 
@@ -111,20 +107,19 @@ gulp.task("eslint",
 function dumpBufferedContent(obj) {
   const stdout = obj.stdout.toString().trim();
   if (stdout !== "") {
-    gutil.log(`\n${stdout}`);
+    log(`\n${stdout}`);
   }
 
   const stderr = obj.stderr.toString().trim();
   if (stderr !== "") {
-    gutil.log(`\n${stderr}`);
+    log(`\n${stderr}`);
   }
 }
 
 function runTslint(tsconfig, tslintConfig) {
   return spawn(
     "./node_modules/.bin/tslint",
-    ["--type-check", "--format", "verbose", "--project", tsconfig,
-     "-c", tslintConfig],
+    ["--format", "verbose", "--project", tsconfig, "-c", tslintConfig],
     { capture: ["stdout", "stderr"] }).then(dumpBufferedContent)
     .catch((err) => {
       dumpBufferedContent(err);
@@ -161,63 +156,51 @@ gulp.task("jison", () => {
   const dest = "build/dist/lib/salve/datatypes";
   return gulp.src("lib/salve/datatypes/regexp.jison")
     .pipe(gulpNewer(`${dest}/regexp.js`))
-    .pipe(jison({
-      moduleType: "commonjs",
-      // Override the default main created by Jison. This module cannot ever be
-      // used as a main script. And the default that Jison uses does
-      // `require("fs")` which causes problems.
-      moduleMain: function main() {
-        throw new Error("this module cannot be used as main");
-      },
+  // eslint-disable-next-line array-callback-return
+    .pipe(es.map((data, callback) => {
+      const generated = new jison.Generator(data.contents.toString(), {
+        moduleType: "commonjs",
+        // Override the default main created by Jison. This module cannot ever
+        // be used as a main script. And the default that Jison uses does
+        // `require("fs")` which causes problems.
+        moduleMain: function main() {
+          throw new Error("this module cannot be used as main");
+        },
+      }).generate();
+      data.contents = Buffer.from(generated);
+      data.path = data.path.replace(/.jison$/, ".js");
+      callback(null, data);
     }))
     .pipe(gulp.dest(dest));
 });
 
 gulp.task("default", ["webpack"]);
 
-gulp.task("copy", ["copy-src", "copy-readme"], () =>
-          fs.writeFileAsync("build/dist/.npmignore", "bin/parse.js"));
+gulp.task("copy", ["copy-src", "copy-readme"],
+          () => fs.writeFileAsync("build/dist/.npmignore", "bin/parse.js"));
 
-const project = ts.createProject("tsconfig.json");
-gulp.task("tsc", () => {
-  // The .once nonsense is to work around a gulp-typescript bug
-  //
-  // See: https://github.com/ivogabe/gulp-typescript/issues/295
-  //
-  // For the fix see:
-  // https://github.com/ivogabe/gulp-typescript/issues/295#issuecomment-197299175
-  //
-  const result = project.src()
-          .pipe(sourcemaps.init({ loadMaps: true }))
-          .pipe(project())
-          .once("error", function onError() {
-            this.once("finish", () => {
-              process.exit(1);
-            });
-          });
+function tsc(tsconfigPath, dest) {
+  return execFileAndReport("./node_modules/.bin/tsc", ["-p", tsconfigPath,
+                                                       "--outDir", dest]);
+}
 
-  const dest = "build/dist/lib";
-  return es.merge(result.js
-                  .pipe(sourcemaps.write("."))
-                  .pipe(gulp.dest(dest)),
-                  result.dts.pipe(gulp.dest(dest)));
-});
-
+gulp.task("tsc", () => tsc("tsconfig.json", "build/dist/lib"));
 
 gulp.task("webpack", ["tsc", "copy", "jison"], () =>
           execFile("./node_modules/.bin/webpack", ["--color"])
           .then((result) => {
-            const stdout = result.stdout;
-            gutil.log(stdout);
+            log(result.stdout);
           }));
 
 let packname;
 
 gulp.task("pack", ["default"],
-          () => execFile("npm", ["pack", "dist"], { cwd: "build" })
+          () => execFile("npm", ["pack"], { cwd: "build/dist" })
           .then((result) => {
-            const stdout = result.stdout;
+            const { stdout } = result;
             packname = stdout.trim();
+            return fs.renameAsync(`build/dist/${packname}`,
+                                  `build/${packname}`);
           }));
 
 gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
@@ -231,7 +214,8 @@ gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
   module = module.toString();
   module = module.replace("./validate", "salve");
   yield fs.writeFileAsync(path.join(testDir, "parse.ts"), module);
-  yield execFile("../../node_modules/.bin/tsc", ["parse.ts"], { cwd: testDir });
+  yield execFileAndReport("../../node_modules/.bin/tsc", ["parse.ts"],
+                          { cwd: testDir });
   yield del(testDir);
 }));
 
@@ -259,11 +243,11 @@ gulp.task("typedoc", ["lint"], Promise.coroutine(function *task() {
   const currentHash = prelim[1][0];
 
   if ((currentHash === savedHash) && !(yield newer(sources, stamp))) {
-    gutil.log("No change, skipping typedoc.");
+    log("No change, skipping typedoc.");
     return;
   }
 
-  const version = JSON.parse(fs.readFileSync("package.json")).version;
+  const { version } = JSON.parse(fs.readFileSync("package.json"));
   const tsoptions = [
     "--out", `./build/api/salve/${version}`,
     "--name", "salve",
@@ -306,7 +290,7 @@ gulp.task("gh-pages-build", ["typedoc"], () => {
 
 gulp.task("versync", () => versync.run({
   verify: true,
-  onMessage: gutil.log,
+  onMessage: log,
 }));
 
 //

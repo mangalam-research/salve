@@ -45,14 +45,14 @@ export function extend(target: any, ...sources: any[]): any {
  */
 export function fixPrototype(obj: any, parent: Function): void {
   const oldProto: Function = Object.getPrototypeOf !== undefined ?
-    Object.getPrototypeOf(obj) : (obj as any).__proto__;
+    Object.getPrototypeOf(obj) : obj.__proto__;
 
   if (oldProto !== parent) {
     if (Object.setPrototypeOf !== undefined) {
       Object.setPrototypeOf(obj, parent.prototype);
     }
     else {
-      (obj as any).__proto__ = parent.prototype;
+      obj.__proto__ = parent.prototype;
     }
   }
 }
