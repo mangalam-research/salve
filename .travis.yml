@@ -3,7 +3,6 @@ language: node_js
 node_js:
   - "8"
   - "6"
-  - "4"
 env:
   # We set our own flag to tell our test code that it is running in a continuous
   # integration environment. (Travis sets CI and TRAVIS but the former is too
