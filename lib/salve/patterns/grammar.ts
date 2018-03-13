@@ -12,9 +12,8 @@ import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
-import { BasePattern, Define, ElementI, EndResult, Event, EventSet,
-         FireEventResult, isHashMap, Pattern, Ref, SingleSubwalker,
-         Walker } from "./base";
+import { BasePattern, Define, ElementI, Event, EventSet, FireEventResult,
+         isHashMap, Pattern, Ref, SingleSubwalker, Walker } from "./base";
 
 /**
  * This is an exception raised to indicate references to undefined entities in a
@@ -72,11 +71,11 @@ export class Grammar extends BasePattern {
               definitions?: Define[]) {
     super(xmlPath);
     if (definitions !== undefined) {
-      definitions.forEach((x: Define) => {
+      definitions.forEach((x) => {
         this.add(x);
       });
     }
-    const missing: Ref[] | undefined = this._resolve(this.definitions);
+    const missing = this._resolve(this.definitions);
 
     if (missing !== undefined) {
       throw new RefError(missing);
@@ -115,7 +114,7 @@ export class Grammar extends BasePattern {
   }
 
   get elementDefinitions(): TrivialMap<ElementI[]> {
-    const ret: TrivialMap<ElementI[]> | undefined = this._elementDefinitions;
+    const ret = this._elementDefinitions;
     if (ret !== undefined) {
       return ret;
     }
@@ -133,7 +132,7 @@ export class Grammar extends BasePattern {
    * knowing its expanded name. ``false`` otherwise.
    */
   whollyContextIndependent(): boolean {
-    const defs: TrivialMap<ElementI[]> = this.elementDefinitions;
+    const defs = this.elementDefinitions;
     for (const v in defs) {
       if (defs[v].length > 1) {
         return false;
@@ -242,7 +241,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
   protected constructor(elOrWalker: GrammarWalker | Grammar,
                         memo?: HashMap) {
     if (elOrWalker instanceof GrammarWalker) {
-      const walker: GrammarWalker = elOrWalker;
+      const walker = elOrWalker;
       // tslint:disable-next-line:no-parameter-reassignment
       memo = isHashMap(memo); // Checks for undefined.
       super(walker, memo);
@@ -261,14 +260,13 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       this._prevEvWasText = walker._prevEvWasText;
     }
     else {
-      const el: Grammar = elOrWalker;
-      super(el);
+      super(elOrWalker);
       this.nameResolver = new NameResolver();
       this._misplacedElements = [];
       this._swallowAttributeValue = false;
       this.ignoreNextWs = false;
       this._prevEvWasText = false;
-      this.subwalker = el.start.newWalker(this.nameResolver);
+      this.subwalker = elOrWalker.start.newWalker(this.nameResolver);
     }
   }
 
@@ -343,18 +341,18 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
         ev.params[0] === "leaveContext" ||
         ev.params[0] === "definePrefix") {
       switch (ev.params[0]) {
-      case "enterContext":
-        this.nameResolver.enterContext();
-        break;
-      case "leaveContext":
-        this.nameResolver.leaveContext();
-        break;
-      case "definePrefix":
-        this.nameResolver.definePrefix(ev.params[1] as string,
-                                       ev.params[2] as string);
-        break;
-      default:
-        throw new Error(`unexpected event: ${ev.params[0]}`);
+        case "enterContext":
+          this.nameResolver.enterContext();
+          break;
+        case "leaveContext":
+          this.nameResolver.leaveContext();
+          break;
+        case "definePrefix":
+          this.nameResolver.definePrefix(ev.params[1] as string,
+                                         ev.params[2] as string);
+          break;
+        default:
+          throw new Error(`unexpected event: ${ev.params[0]}`);
       }
 
       return false;
@@ -380,7 +378,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       // infer.
       (topMisplacedElement instanceof Walker ? topMisplacedElement : undefined);
 
-    const ignoreNextWsNow: boolean = this.ignoreNextWs;
+    const ignoreNextWsNow = this.ignoreNextWs;
     this.ignoreNextWs = false;
     switch (ev.params[0]) {
       case "enterStartTag":
@@ -395,7 +393,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
 
         if (ignoreNextWsNow) {
           this.suspendedWs = undefined;
-          const trimmed: string = (ev.params[1] as string).replace(/^\s+/, "");
+          const trimmed = (ev.params[1] as string).replace(/^\s+/, "");
           if (trimmed.length !== (ev.params[1] as string).length) {
             // tslint:disable-next-line:no-parameter-reassignment
             ev = new Event("text", trimmed);
@@ -428,14 +426,14 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       // We are in a misplaced element which is foreign to the schema (or
       // which cannot be inferred unambiguously.
       switch (ev.params[0]) {
-      case "enterStartTag":
-        topMisplacedElement.unshift(ev.params.slice(1));
-        break;
-      case "endTag":
-        topMisplacedElement.shift();
-        break;
-      default:
-        // We don't care
+        case "enterStartTag":
+          topMisplacedElement.unshift(ev.params.slice(1));
+          break;
+        case "endTag":
+          topMisplacedElement.shift();
+          break;
+        default:
+          // We don't care
       }
 
       // We're done with this context.
@@ -461,70 +459,65 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
 
     // Walker cannot be undefined if we get here.
     // tslint:disable-next-line:no-non-null-assertion
-    let ret: FireEventResult = walker!.fireEvent(ev);
+    let ret = walker!.fireEvent(ev);
 
     if (ret === undefined) {
       switch (ev.params[0]) {
-      case "enterStartTag":
-        const name: namePatterns.Name = new namePatterns.Name(
-          "", ev.params[1] as string, ev.params[2] as string);
-        ret = [new ElementNameError("tag not allowed here", name)];
+        case "enterStartTag":
+          const name = new namePatterns.Name("", ev.params[1] as string,
+                                             ev.params[2] as string);
+          ret = [new ElementNameError("tag not allowed here", name)];
 
-        // Try to infer what element is meant by this errant tag. If we can't
-        // find a candidate, then fall back to a dumb mode.
-        const candidates: ElementI[] | undefined =
-          this.el.elementDefinitions[name.toString()];
-        if (candidates !== undefined && candidates.length === 1) {
-          const newWalker: Walker<BasePattern> =
-            candidates[0].newWalker(this.nameResolver);
-          this._misplacedElements.unshift(newWalker);
-          if (newWalker.fireEvent(ev) !== false) {
-            throw new Error("internal error: the inferred element " +
-                            "does not accept its initial event");
+          // Try to infer what element is meant by this errant tag. If we can't
+          // find a candidate, then fall back to a dumb mode.
+          const candidates = this.el.elementDefinitions[name.toString()];
+          if (candidates !== undefined && candidates.length === 1) {
+            const newWalker = candidates[0].newWalker(this.nameResolver);
+            this._misplacedElements.unshift(newWalker);
+            if (newWalker.fireEvent(ev) !== false) {
+              throw new Error("internal error: the inferred element " +
+                              "does not accept its initial event");
+            }
           }
-        }
-        else {
-          // Dumb mode...
-          this._misplacedElements.unshift([ev.params.slice(1)]);
-        }
-        break;
-      case "endTag":
-        ret = [new ElementNameError(
-          "unexpected end tag",
-          new namePatterns.Name("",
-                                ev.params[1] as string,
-                                ev.params[2] as string))];
-        break;
-      case "attributeName":
-        ret = [new AttributeNameError(
-          "attribute not allowed here",
-          new namePatterns.Name("",
-                                ev.params[1] as string,
-                                ev.params[2] as string))];
-        this._swallowAttributeValue = true;
-        break;
-      case "attributeValue":
-        ret = [new ValidationError(
-          "unexpected attributeValue event; it is likely " +
-            "that fireEvent is incorrectly called")];
-        break;
-      case "text":
-        ret = [new ValidationError("text not allowed here")];
-        break;
-      case "leaveStartTag":
-        // If the _misplacedElements stack did not exist then we would get here
-        // if a file being validated contains a tag which is not allowed. An
-        // ElementNameError will already have been issued. So rather than
-        // violate our contract (which says no undefined value may be returned)
-        // or require that callers do something special with 'undefined' as a
-        // return value, just treat this event as a non-error.
-        //
-        // But the stack exists, so we cannot get here. If we do end up here,
-        // then there is an internal error somewhere.
-        /* falls through */
-      default:
-        throw new Error(
-          `unexpected event type in GrammarWalker's fireEvent: \
+          else {
+            // Dumb mode...
+            this._misplacedElements.unshift([ev.params.slice(1)]);
+          }
+          break;
+        case "endTag":
+          ret = [new ElementNameError(
+            "unexpected end tag",
+            new namePatterns.Name("", ev.params[1] as string,
+                                  ev.params[2] as string))];
+          break;
+        case "attributeName":
+          ret = [new AttributeNameError(
+            "attribute not allowed here",
+            new namePatterns.Name("", ev.params[1] as string,
+                                  ev.params[2] as string))];
+          this._swallowAttributeValue = true;
+          break;
+        case "attributeValue":
+          ret = [new ValidationError("unexpected attributeValue event; it \
+is likely that fireEvent is incorrectly called")];
+          break;
+        case "text":
+          ret = [new ValidationError("text not allowed here")];
+          break;
+        case "leaveStartTag":
+          // If the _misplacedElements stack did not exist then we would get
+          // here if a file being validated contains a tag which is not
+          // allowed. An ElementNameError will already have been issued. So
+          // rather than violate our contract (which says no undefined value may
+          // be returned) or require that callers do something special with
+          // 'undefined' as a return value, just treat this event as a
+          // non-error.
+          //
+          // But the stack exists, so we cannot get here. If we do end up here,
+          // then there is an internal error somewhere.
+          /* falls through */
+        default:
+          throw new Error(`unexpected event type in GrammarWalker's fireEvent: \
 ${ev.params[0].toString()}`);
       }
     }
@@ -535,7 +528,7 @@ ${ev.params[0].toString()}`);
     if (topMisplacedElement instanceof Walker &&
         topMisplacedElement.canEnd()) {
       this._misplacedElements.shift();
-      const endRet: EndResult = topMisplacedElement.end();
+      const endRet = topMisplacedElement.end();
       if (endRet) {
         ret = ret ? ret.concat(endRet) : endRet;
       }
