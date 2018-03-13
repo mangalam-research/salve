@@ -12,8 +12,9 @@ import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
-import { BasePattern, Define, ElementI, Event, EventSet, FireEventResult,
-         isHashMap, Pattern, Ref, SingleSubwalker, Walker } from "./base";
+import { BasePattern, Define, ElementI, EndResult, Event, EventSet,
+         FireEventResult, isHashMap, Pattern, Ref,
+         SingleSubwalker } from "./base";
 
 /**
  * This is an exception raised to indicate references to undefined entities in a
@@ -208,7 +209,62 @@ export class Grammar extends BasePattern {
   }
 }
 
-type MisplacedElementStub = (string | namePatterns.Base)[][];
+interface IWalker {
+  fireEvent(ev: Event): FireEventResult;
+  canEnd(): boolean;
+  end(): EndResult;
+  _clone(memo: HashMap): IWalker;
+  possible(): EventSet;
+}
+
+class MisplacedElementWalker implements IWalker {
+  private readonly stack: Event[] = [];
+
+  constructor(ev: Event) {
+    this.stack.push(ev);
+  }
+
+  fireEvent(ev: Event): FireEventResult {
+    switch (ev.params[0] as string) {
+      case "enterStartTag":
+        this.stack.unshift(ev);
+        break;
+      case "endTag":
+        this.stack.shift();
+        break;
+      default:
+    }
+
+    return false;
+  }
+
+  canEnd(): boolean {
+    return this.stack.length === 0;
+  }
+
+  end(): EndResult {
+    return false;
+  }
+
+  possible(): EventSet {
+    return new EventSet();
+  }
+
+  _clone<T extends this>(this: T, memo: HashMap): T {
+    const clone =
+      new (this.constructor as { new (...args: any[]): T })(this.stack[0]);
+    // We don't need to do more than this. And we don't need to mess with the
+    // memo, as walkers don't engage in circular references.
+    (clone as any).stack = this.stack.concat([]);
+
+    return clone;
+  }
+}
+
+interface MisplacedElementStub {
+  walker: IWalker;
+  event: Event;
+}
 
 /**
  * Walker for [[Grammar]].
@@ -221,8 +277,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
   // dealing with an element which is unknown to the schema (or which
   // cannot be unambiguously determined. They are Walker objects when we
   // can find a definition in the schema.
-  private readonly _misplacedElements:
-  (MisplacedElementStub| Walker<BasePattern>)[];
+  private readonly _misplacedElements: MisplacedElementStub[];
 
   private _swallowAttributeValue: boolean;
 
@@ -250,9 +305,10 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       this._misplacedElements = [];
       const misplacedElements = this._misplacedElements;
       for (const mpe of walker._misplacedElements) {
-        misplacedElements.push(mpe instanceof Walker ?
-                               mpe._clone(memo) :
-                               mpe.concat([]));
+        misplacedElements.push({
+          walker: mpe.walker._clone(memo),
+          event: mpe.event,
+        });
       }
       this._swallowAttributeValue = walker._swallowAttributeValue;
       this.suspendedWs = walker.suspendedWs;
@@ -372,11 +428,8 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
 
     let topMisplacedElement = this._misplacedElements[0];
     // This is the walker we must fire all our events on.
-    const walker = topMisplacedElement === undefined ?
-      this.subwalker :
-      // This happens if we ran into a misplaced element that we were able to
-      // infer.
-      (topMisplacedElement instanceof Walker ? topMisplacedElement : undefined);
+    const walker = topMisplacedElement === undefined ? this.subwalker :
+      topMisplacedElement.walker;
 
     const ignoreNextWsNow = this.ignoreNextWs;
     this.ignoreNextWs = false;
@@ -400,9 +453,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
           }
         }
         else if (this.suspendedWs !== undefined && this.suspendedWs !== "") {
-          if (walker !== undefined) {
-            wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
-          }
+          wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
           this.suspendedWs = undefined;
         }
         break;
@@ -412,7 +463,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       default:
         // Process the whitespace that was suspended.
         if (this.suspendedWs !== undefined && this.suspendedWs !== "" &&
-            !ignoreNextWsNow && walker !== undefined) {
+            !ignoreNextWsNow) {
           wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
         }
         this.suspendedWs = undefined;
@@ -421,28 +472,6 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
     // We can update it here because we're done examining the value that was
     // set from the previous call to fireEvent.
     this._prevEvWasText = (ev.params[0] === "text");
-
-    if (topMisplacedElement instanceof Array) {
-      // We are in a misplaced element which is foreign to the schema (or
-      // which cannot be inferred unambiguously.
-      switch (ev.params[0]) {
-        case "enterStartTag":
-          topMisplacedElement.unshift(ev.params.slice(1));
-          break;
-        case "endTag":
-          topMisplacedElement.shift();
-          break;
-        default:
-          // We don't care
-      }
-
-      // We're done with this context.
-      if (topMisplacedElement.length === 0) {
-        this._misplacedElements.shift();
-      }
-
-      return false;
-    }
 
     // This would happen if the user puts an attribute on a tag that does not
     // allow one. Instead of generating errors for both the attribute name
@@ -457,9 +486,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       return [new ValidationError("attribute value required")];
     }
 
-    // Walker cannot be undefined if we get here.
-    // tslint:disable-next-line:no-non-null-assertion
-    let ret = walker!.fireEvent(ev);
+    let ret = walker.fireEvent(ev);
 
     if (ret === undefined) {
       switch (ev.params[0]) {
@@ -473,7 +500,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
           const candidates = this.el.elementDefinitions[name.toString()];
           if (candidates !== undefined && candidates.length === 1) {
             const newWalker = candidates[0].newWalker(this.nameResolver);
-            this._misplacedElements.unshift(newWalker);
+            this._misplacedElements.unshift({ walker: newWalker, event: ev });
             if (newWalker.fireEvent(ev) !== false) {
               throw new Error("internal error: the inferred element " +
                               "does not accept its initial event");
@@ -481,7 +508,10 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
           }
           else {
             // Dumb mode...
-            this._misplacedElements.unshift([ev.params.slice(1)]);
+            this._misplacedElements.unshift({
+              walker: new MisplacedElementWalker(ev),
+              event: ev,
+            });
           }
           break;
         case "endTag":
@@ -525,13 +555,28 @@ ${ev.params[0].toString()}`);
     // The top may have changed.
     topMisplacedElement = this._misplacedElements[0];
     // Check whether the context should end
-    if (topMisplacedElement instanceof Walker &&
-        topMisplacedElement.canEnd()) {
-      this._misplacedElements.shift();
-      const endRet = topMisplacedElement.end();
+    if (topMisplacedElement !== undefined &&
+        topMisplacedElement.walker.canEnd()) {
+      const endRet = topMisplacedElement.walker.end();
       if (endRet) {
         ret = ret ? ret.concat(endRet) : endRet;
       }
+
+      // When we drop a context from this._misplacedElements, we have to issue
+      // an "endTag" event on the walker (if any!) that was in effect when the
+      // context was added to this._misplacedElements. The endTag event
+      // corresponds to the enterStartTag event that was issued for the
+      // misplaced element.
+      const startEvent = topMisplacedElement.event;
+      const endTagEvent = new Event("endTag",
+                                    startEvent.params[1],
+                                    startEvent.params[2]);
+      this._misplacedElements.shift();
+      topMisplacedElement = this._misplacedElements[0];
+      const previousWalker = (topMisplacedElement === undefined) ?
+        this.subwalker : topMisplacedElement.walker;
+
+      previousWalker.fireEvent(endTagEvent);
     }
 
     return combineWsErrWith(ret);
@@ -542,7 +587,7 @@ ${ev.params[0].toString()}`);
       const mpe = this._misplacedElements[0];
 
       // Return an empty set if the tags are unknown to us.
-      return mpe instanceof Walker ? mpe.possible() : new EventSet();
+      return mpe.walker.possible();
     }
 
     // There's no point in calling this._possible.
