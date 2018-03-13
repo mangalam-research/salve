@@ -2,6 +2,11 @@ Only major changes are reported here. Releases that only bump the patch part of
 the version number (i.e. the number after the 2nd dot) are generally not listed
 here unless they include a fix to a specific issue reported on github.
 
+* 6.0.0:
+
+  - Fix a couple of bugs in ``bin/parse.js``. That example code is not used
+    much. Some issues went unnoticed.
+
 * 5.0.0:
 
   - Salve no longer officially supports Node 4.x. This is enough by itself to

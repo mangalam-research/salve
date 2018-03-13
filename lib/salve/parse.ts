@@ -25,7 +25,8 @@ type TagInfo = {
 };
 
 // tslint:disable-next-line: max-func-body-length
-function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
+export function parse(rngSource: string, xmlSource: string,
+                      mute: boolean): boolean {
   // tslint:disable-next-line:no-parameter-reassignment
   mute = !!mute;
 
@@ -149,8 +150,6 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
 
   return error;
 }
-
-module.exports = parse;
 
 //  LocalWords:  doctype DOCTYPE leaveContext definePrefix enterContext ev MPL
 //  LocalWords:  enterStartTag leaveStartTag endTag attributeValue xmlns

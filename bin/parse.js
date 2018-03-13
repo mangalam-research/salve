@@ -2,12 +2,12 @@
 
 "use strict";
 
-// eslint-disable-next-line import/no-unresolved
-var parse = require("../lib/salve/parse");
+// eslint-disable-next-line import/no-unresolved, prefer-destructuring
+var parse = require("../lib/salve/parse").parse;
 var fs = require("fs");
 var path = require("path");
 
-process.on("uncaughtException", function process(ex) {
+process.on("uncaughtException", function uncaught(ex) {
   if (ex instanceof Error) {
     process.stderr.write(ex.stack);
   }

@@ -13,7 +13,7 @@ const { assert } = require("chai");
 const { spawn } = require("child_process");
 const fs = require("fs");
 const path = require("path");
-const salveParse = require("../build/dist/lib/salve/parse");
+const salveParse = require("../build/dist/lib/salve/parse").parse;
 
 function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();
