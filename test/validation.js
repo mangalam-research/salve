@@ -399,6 +399,12 @@ describe("GrammarWalker.fireEvent", () => {
       it("NameChoice fails a match", makeErrorTest("name_error2"));
 
       it("Except fails a match", makeErrorTest("name_error3"));
+
+      it("Element in Interleave",
+         makeErrorTest("element_in_interleave"));
+
+      it("Text in Interleave",
+         makeErrorTest("text_in_interleave"));
     });
 
     it("an attribute without value", () => {
