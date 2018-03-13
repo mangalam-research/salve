@@ -209,6 +209,8 @@ export class Grammar extends BasePattern {
   }
 }
 
+type MisplacedElementStub = (string | namePatterns.Base)[][];
+
 /**
  * Walker for [[Grammar]].
  */
@@ -220,7 +222,8 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
   // dealing with an element which is unknown to the schema (or which
   // cannot be unambiguously determined. They are Walker objects when we
   // can find a definition in the schema.
-  private readonly _misplacedElements: any[];
+  private readonly _misplacedElements:
+  (MisplacedElementStub| Walker<BasePattern>)[];
 
   private _swallowAttributeValue: boolean;
 
@@ -245,7 +248,8 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.subwalker = walker.subwalker._clone(memo);
-      const misplacedElements: any[] = this._misplacedElements = [];
+      this._misplacedElements = [];
+      const misplacedElements = this._misplacedElements;
       for (const mpe of walker._misplacedElements) {
         misplacedElements.push(mpe instanceof Walker ?
                                mpe._clone(memo) :
@@ -368,74 +372,74 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       return false;
     }
 
+    let topMisplacedElement = this._misplacedElements[0];
     // This is the walker we must fire all our events on.
-    let walker: Walker<BasePattern> =
-      (this._misplacedElements.length > 0 &&
-       this._misplacedElements[0] instanceof Walker) ?
-      // This happens if we ran into a misplaced element that we were
-      // able to infer.
-      this._misplacedElements[0] : this.subwalker;
+    const walker = topMisplacedElement === undefined ?
+      this.subwalker :
+      // This happens if we ran into a misplaced element that we were able to
+      // infer.
+      (topMisplacedElement instanceof Walker ? topMisplacedElement : undefined);
 
     const ignoreNextWsNow: boolean = this.ignoreNextWs;
     this.ignoreNextWs = false;
     switch (ev.params[0]) {
-    case "enterStartTag":
-      // Absorb the whitespace: poof, gone!
-      this.suspendedWs = undefined;
-      break;
-    case "text":
-      if (this._prevEvWasText) {
-        throw new Error("fired two text events in a row: this is " +
-                        "disallowed by salve");
-      }
-
-      if (ignoreNextWsNow) {
+      case "enterStartTag":
+        // Absorb the whitespace: poof, gone!
         this.suspendedWs = undefined;
-        const trimmed: string = (ev.params[1] as string).replace(/^\s+/, "");
-        if (trimmed.length !== (ev.params[1] as string).length) {
-          // tslint:disable-next-line:no-parameter-reassignment
-          ev = new Event("text", trimmed);
+        break;
+      case "text":
+        if (this._prevEvWasText) {
+          throw new Error("fired two text events in a row: this is " +
+                          "disallowed by salve");
         }
-      }
-      else if (this.suspendedWs !== undefined && this.suspendedWs !== "") {
-        wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
+
+        if (ignoreNextWsNow) {
+          this.suspendedWs = undefined;
+          const trimmed: string = (ev.params[1] as string).replace(/^\s+/, "");
+          if (trimmed.length !== (ev.params[1] as string).length) {
+            // tslint:disable-next-line:no-parameter-reassignment
+            ev = new Event("text", trimmed);
+          }
+        }
+        else if (this.suspendedWs !== undefined && this.suspendedWs !== "") {
+          if (walker !== undefined) {
+            wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
+          }
+          this.suspendedWs = undefined;
+        }
+        break;
+      case "endTag":
+        this.ignoreNextWs = true;
+        /* falls through */
+      default:
+        // Process the whitespace that was suspended.
+        if (this.suspendedWs !== undefined && this.suspendedWs !== "" &&
+            !ignoreNextWsNow && walker !== undefined) {
+          wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
+        }
         this.suspendedWs = undefined;
-      }
-      break;
-    case "endTag":
-      this.ignoreNextWs = true;
-      /* falls through */
-    default:
-      // Process the whitespace that was suspended.
-      if (this.suspendedWs !== undefined && this.suspendedWs !== "" &&
-          !ignoreNextWsNow) {
-        wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
-      }
-      this.suspendedWs = undefined;
     }
 
     // We can update it here because we're done examining the value that was
     // set from the previous call to fireEvent.
     this._prevEvWasText = (ev.params[0] === "text");
 
-    if (this._misplacedElements.length > 0 &&
-        this._misplacedElements[0] instanceof Array) {
+    if (topMisplacedElement instanceof Array) {
       // We are in a misplaced element which is foreign to the schema (or
       // which cannot be inferred unambiguously.
-      const mpe: any = this._misplacedElements[0];
       switch (ev.params[0]) {
       case "enterStartTag":
-        mpe.unshift(ev.params.slice(1));
+        topMisplacedElement.unshift(ev.params.slice(1));
         break;
       case "endTag":
-        mpe.shift();
+        topMisplacedElement.shift();
         break;
       default:
         // We don't care
       }
 
       // We're done with this context.
-      if (mpe.length === 0) {
+      if (topMisplacedElement.length === 0) {
         this._misplacedElements.shift();
       }
 
@@ -455,7 +459,9 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       return [new ValidationError("attribute value required")];
     }
 
-    let ret: FireEventResult = walker.fireEvent(ev);
+    // Walker cannot be undefined if we get here.
+    // tslint:disable-next-line:no-non-null-assertion
+    let ret: FireEventResult = walker!.fireEvent(ev);
 
     if (ret === undefined) {
       switch (ev.params[0]) {
@@ -523,16 +529,15 @@ ${ev.params[0].toString()}`);
       }
     }
 
+    // The top may have changed.
+    topMisplacedElement = this._misplacedElements[0];
     // Check whether the context should end
-    if (this._misplacedElements.length > 0 &&
-        this._misplacedElements[0] instanceof Walker) {
-      walker = this._misplacedElements[0];
-      if (walker.canEnd()) {
-        this._misplacedElements.shift();
-        const endRet: EndResult = walker.end();
-        if (endRet) {
-          ret = ret ? ret.concat(endRet) : endRet;
-        }
+    if (topMisplacedElement instanceof Walker &&
+        topMisplacedElement.canEnd()) {
+      this._misplacedElements.shift();
+      const endRet: EndResult = topMisplacedElement.end();
+      if (endRet) {
+        ret = ret ? ret.concat(endRet) : endRet;
       }
     }
 
@@ -541,7 +546,7 @@ ${ev.params[0].toString()}`);
 
   possible(): EventSet {
     if (this._misplacedElements.length !== 0) {
-      const mpe: any = this._misplacedElements[0];
+      const mpe = this._misplacedElements[0];
 
       // Return an empty set if the tags are unknown to us.
       return mpe instanceof Walker ? mpe.possible() : new EventSet();
