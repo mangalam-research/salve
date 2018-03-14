@@ -13,7 +13,7 @@
     "sourceMap": true,
     "strictNullChecks": true,
     "target": "es5",
-    "lib": ["es5"]
+    "lib": ["es5", "es6"]
   },
   "include": [
     "lib/salve/**/*.ts"

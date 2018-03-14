@@ -4,6 +4,12 @@ here unless they include a fix to a specific issue reported on github.
 
 * 6.0.0:
 
+  - Fixed a bug in validation logic. There was a bug which caused salve to
+    erroneously miss some validation errors. Fortunately, the bug was not often
+    triggered as it required the use of <interleave> with a rather specific
+    pattern inside. (Salve has been in production for *many* years without ever
+    triggering this bug.)
+
   - Fix a couple of bugs in ``bin/parse.js``. That example code is not used
     much. Some issues went unnoticed.
 
