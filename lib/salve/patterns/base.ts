@@ -252,12 +252,10 @@ export interface ElementI {
 }
 
 /**
- *
- * This is the base class for all patterns created from the file passed to
- * [["formats".constructTree]]. These patterns form a JavaScript representation
- * of the simplified RNG tree. The base class implements a leaf in the RNG
- * tree. In other words, it does not itself refer to children Patterns. (To put
- * it in other words, it has no subpatterns.)
+ * These patterns form a JavaScript representation of the simplified RNG
+ * tree. The base class implements a leaf in the RNG tree. In other words, it
+ * does not itself refer to children Patterns. (To put it in other words, it has
+ * no subpatterns.)
  */
 export class BasePattern {
   /**

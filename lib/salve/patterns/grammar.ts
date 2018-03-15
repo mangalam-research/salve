@@ -49,8 +49,9 @@ export class RefError extends Error {
 }
 
 /**
- * Grammar object. Users of this library normally do not create objects
- * of this class themselves but rely on [["formats".constructTree]].
+ * Grammar object. Users of this library normally do not create objects of this
+ * class themselves but rely on the conversion facilities of salve to create
+ * these objects.
  */
 export class Grammar extends BasePattern {
   private definitions: TrivialMap<Define> = Object.create(null);

@@ -9,10 +9,10 @@
 export const version: string = "5.0.1";
 
 export { eventsToTreeString, Event, EventSet, Grammar, GrammarWalker,
-         BasePattern, RefError, Walker, __test, FireEventResult,
+         BasePattern, RefError, Walker, FireEventResult,
          EndResult } from "./patterns";
 
-export { constructTree } from "./formats";
+export { constructTree } from "./json-format/read";
 
 export { EName }  from "./ename";
 

@@ -22,12 +22,13 @@ import fileURL = require("file-url");
 
 // We load individual modules rather than the build module because the
 // conversion code uses parts of salve that are not public.
-import { ConversionParser, DatatypeProcessor, DefaultConversionWalker, Element,
-         getAvailableSimplifiers, getAvailableValidators, makeResourceLoader,
-         makeSimplifier, makeValidator, NameGatherer, Renamer,
-         SchemaValidationError, SchemaValidationResult,
+import { ConversionParser, Element, getAvailableSimplifiers,
+         getAvailableValidators, makeResourceLoader, makeSimplifier,
+         makeValidator, SchemaValidationError, SchemaValidationResult,
          serialize } from "../conversion";
 import { ParameterParsingError, ValueValidationError } from "../datatypes";
+import { DatatypeProcessor, DefaultConversionWalker, NameGatherer,
+         Renamer } from "../json-format/write";
 import { version } from "../validate";
 import { Fatal } from "./convert/fatal";
 

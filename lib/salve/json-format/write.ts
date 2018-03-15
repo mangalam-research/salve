@@ -5,29 +5,10 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+import { Element, Node, Text } from "../conversion/parser";
 import * as datatypes from "../datatypes";
-import * as formats from "../formats";
-import { Element, Node, Text } from "./parser";
-
-// Table of names (string) to constructors.(function).
-const nameToConstructor: any = formats.__protected.nameToConstructor;
-const constructors: Function[] = [];
-let ntocIx: number = 0;
-while (nameToConstructor[ntocIx] !== undefined) {
-  constructors[ntocIx] = nameToConstructor[ntocIx];
-  ntocIx++;
-}
-
-// Table of names (string) to corresponding type number.
-const constructorNameToIndex: {[name: string]: number} = Object.create(null);
-
-for (const name in nameToConstructor) {
-  if (!(name in constructors)) {
-    // Not a number
-    constructorNameToIndex[name] =
-      constructors.indexOf(nameToConstructor[name]);
-  }
-}
+import { Data, Value } from "../patterns";
+import { nameToCode, OPTION_NO_PATHS } from "./common";
 
 type ConstructState = {
   open: string;
@@ -222,9 +203,9 @@ export class DefaultConversionWalker extends ConversionWalker {
       case "grammar": {
         this.openConstruct("{", "}");
         this.outputItem(`"v":3,"o":${this.includePaths ? 0 :
-formats.OPTION_NO_PATHS},"d":`);
+OPTION_NO_PATHS},"d":`);
         // tslint:disable:no-string-literal
-        const ctor = constructorNameToIndex["Grammar"];
+        const ctor = nameToCode["Grammar"];
         if (ctor === undefined) {
           throw new Error("can't find constructor for Grammar");
         }
@@ -272,7 +253,7 @@ formats.OPTION_NO_PATHS},"d":`);
         }
 
         this.newItem();
-        const ctor = constructorNameToIndex[capitalized];
+        const ctor = nameToCode[capitalized];
         if (ctor === undefined) {
           throw new Error(`can't find constructor for ${capitalized}`);
         }
@@ -602,8 +583,7 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
           el.append(new Text(value));
         }
 
-        const valuePattern =
-          new nameToConstructor.Value(el.path, value, type, libname, ns);
+        const valuePattern = new Value(el.path, value, type, libname, ns);
 
         // Accessing the value will cause it to be validated.
         // tslint:disable-next-line:no-unused-expression
@@ -633,11 +613,11 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
         const params = el.children.slice(
           0, hasExcept ? el.children.length - 1 : undefined).map(
             (child: Element) => ({
-              name: child.getAttribute("name"),
+              name: child.mustGetAttribute("name"),
               value: child.text,
             }));
 
-        const data = new nameToConstructor.Data(el.path, type, libname, params);
+        const data = new Data(el.path, type, libname, params);
 
         // This causes the parameters to be checked. We do not need to do
         // anything with the value.
