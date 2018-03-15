@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" xmlns:exsl="http://exslt.org/common" extension-element-prefixes="exsl" exclude-result-prefixes="exsl rng">
+<xsl:stylesheet version="1.1" xmlns="http://relaxng.org/ns/structure/1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" xmlns:exsl="http://exslt.org/common" extension-element-prefixes="exsl" exclude-result-prefixes="exsl rng">
 
 <xsl:output method="xml"/>
 
@@ -55,7 +55,7 @@ Move useful empty elements so that they are the first child in choice elements.
 </xsl:template>
 
 <xsl:template match="rng:group[count(rng:empty)=2]|rng:interleave[count(rng:empty)=2]|rng:choice[count(rng:empty)=2]|rng:oneOrMore[rng:empty]">
-	<rng:empty updated="1"/>
+	<empty updated="1"/>
 </xsl:template>
 
 </xsl:stylesheet>

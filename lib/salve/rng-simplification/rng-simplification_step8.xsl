@@ -1,4 +1,4 @@
-<xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:nsp="namespace_declaration" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
+<xsl:stylesheet version="1.1" xmlns="http://relaxng.org/ns/structure/1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:nsp="namespace_declaration" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng nsp">
 
 <xsl:output method="xml"/>
 
@@ -15,17 +15,16 @@ The QName (qualified name) used in name elements is replaced by their local part
 
 <xsl:template match="rng:name[contains(., ':')]">
 	<xsl:variable name="prefix" select="substring-before(., ':')"/>
-	<rng:name>
+	<name>
 		<xsl:attribute name="ns">
 		  <xsl:choose>
 		    <xsl:when test="$prefix = 'xml'">
 		      <xsl:text>http://www.w3.org/XML/1998/namespace</xsl:text>
 		    </xsl:when>
-		    <xsl:when test="namespace::node()[local-name()=$prefix]">	
+		    <xsl:when test="namespace::node()[local-name()=$prefix]">
 		      <xsl:value-of select="namespace::node()[local-name()=$prefix]"/>
 		    </xsl:when>
-		    <!-- This is a hack for Firefox. Part of the
-		         original code. -->
+		    <!-- This is a hack for Firefox. Part of the original code. -->
 		    <xsl:otherwise>
 		      <xsl:for-each select="ancestor-or-self::*[nsp:namespace]/nsp:namespace">
 			<xsl:if test="current()/@prefix = $prefix">
@@ -36,7 +35,7 @@ The QName (qualified name) used in name elements is replaced by their local part
 		  </xsl:choose>
 		</xsl:attribute>
 		<xsl:value-of select="substring-after(., ':')"/>
-	</rng:name>
+	</name>
 </xsl:template>
 
 </xsl:stylesheet>

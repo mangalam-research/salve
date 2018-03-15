@@ -4,6 +4,17 @@ here unless they include a fix to a specific issue reported on github.
 
 * 6.0.0:
 
+  - New feature: salve now has its own native logic for validating and
+    simplifying the schemas passed to it. Previous versions of ``salve``
+    required using the command line tool ``salve-convert``, which relied on
+    external processed for validation and simplification of the schema, which
+    had two consequences. First, the validation and simplification of the schema
+    was slower that it should be, due to the cost of launching external
+    processes. Second, although salve was able since day one to validate XML in
+    the browser, the schemas it used had to be pre-converted to a JSON
+    representation first, and this conversion could not be done *in the
+    browser*. Now it can.
+
   - Fixed a bug in validation logic. There was a bug which caused salve to
     erroneously miss some validation errors. Fortunately, the bug was not often
     triggered as it required the use of <interleave> with a rather specific

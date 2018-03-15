@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0">
+  <start>
+    <ref name="foo"/>
+  </start>
+  <include href="inc_sub1/y">
+    <div>
+      <define name="foo">
+        <element name="foo">
+          <ref name="bwip"/>
+        </element>
+      </define>
+    </div>
+  </include>
+</grammar>

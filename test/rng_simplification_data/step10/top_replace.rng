@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<group xmlns="http://relaxng.org/ns/structure/1.0"><choice><interleave><element><name>xx</name><empty/></element></interleave></choice></group>

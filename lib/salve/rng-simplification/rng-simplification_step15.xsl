@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
+<xsl:stylesheet version="1.1" xmlns="http://relaxng.org/ns/structure/1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" xmlns:exsl="http://exslt.org/common" exclude-result-prefixes="rng exsl">
 
 <xsl:output method="xml"/>
 
@@ -17,33 +17,49 @@ A top-level grammar and its start element are created, if not already present. A
 </xsl:template>
 
 <xsl:template match="/rng:grammar">
-	<rng:grammar>
+	<grammar>
 		<xsl:apply-templates/>
-		<xsl:apply-templates select="//rng:define" mode="step7.19-define"/>
-	</rng:grammar>
+    <!-- We do our children first so that they appear first. -->
+		<xsl:apply-templates select="rng:define" mode="step7.19-define"/>
+		<xsl:apply-templates select="*//rng:define" mode="step7.19-define"/>
+	</grammar>
 </xsl:template>
 
 <xsl:template match="/*[not(self::rng:grammar)]">
-	<rng:grammar>
-		<rng:start>
-			<xsl:copy>
-				<xsl:apply-templates select="@*"/>
-				<xsl:apply-templates/>
-			</xsl:copy>
-		</rng:start>
-	</rng:grammar>
+  <!-- Wrap in a new grammar element, and then process as in the default
+       case. -->
+  <xsl:variable name="new-grammar">
+	  <grammar>
+		  <start>
+			  <xsl:copy-of select="."/>
+		  </start>
+	  </grammar>
+  </xsl:variable>
+  <xsl:apply-templates select="exsl:node-set($new-grammar)"/>
 </xsl:template>
 
 <xsl:template match="rng:define|rng:define/@name|rng:ref/@name|rng:parentRef/@name"/>
 
+<!--
+    We've replaced Nicolas' generate-id() with an id generation which is based
+    on the location of the containing grammar element. Given the a grammar
+    element, the grammar's id is the number of grammar elements that appear
+    before it in document reading order, plus 1.
+-->
+<xsl:template name="grammar-id">
+  <xsl:param name="node" select="."/>
+  <xsl:variable name="containing-grammar" select="$node/ancestor::rng:grammar[1]"/>
+  <xsl:value-of select="count($containing-grammar/preceding::rng:grammar | $containing-grammar/ancestor::rng:grammar) + 1"/>
+</xsl:template>
+
 <xsl:template match="rng:define" mode="step7.19-define">
-	<xsl:copy>
-		<xsl:attribute name="name">
-			<xsl:value-of select="concat(@name, '-', generate-id())"/>
-		</xsl:attribute>
+  <xsl:variable name="grammar-id">
+    <xsl:call-template name="grammar-id"/>
+  </xsl:variable>
+	<define name="{@name}-gr-{$grammar-id}">
 		<xsl:apply-templates select="@*"/>
 		<xsl:apply-templates/>
-	</xsl:copy>
+	</define>
 </xsl:template>
 
 <xsl:template match="rng:grammar">
@@ -51,23 +67,27 @@ A top-level grammar and its start element are created, if not already present. A
 </xsl:template>
 
 <xsl:template match="rng:ref">
-	<xsl:copy>
-		<xsl:attribute name="name">
-			<xsl:value-of select="concat(@name, '-', generate-id(ancestor::rng:grammar[1]/rng:define[@name=current()/@name]))"/>
-		</xsl:attribute>
+  <xsl:variable name="grammar-id">
+    <xsl:call-template name="grammar-id"/>
+  </xsl:variable>
+	<ref name="{@name}-gr-{$grammar-id}">
 		<xsl:apply-templates select="@*"/>
 		<xsl:apply-templates/>
-	</xsl:copy>
+	</ref>
 </xsl:template>
 
 <xsl:template match="rng:parentRef">
-	<rng:ref>
-		<xsl:attribute name="name">
-			<xsl:value-of select="concat(@name, '-', generate-id(ancestor::rng:grammar[2]/rng:define[@name=current()/@name]))"/>
-		</xsl:attribute>
+  <xsl:variable name="grammar-id">
+    <xsl:call-template name="grammar-id">
+      <!-- We have to get the id of the grammar which *contains* the grammar
+           that contains the reference. -->
+      <xsl:with-param name="node" select="ancestor::rng:grammar[1]"/>
+    </xsl:call-template>
+  </xsl:variable>
+	<ref name="{@name}-gr-{$grammar-id}">
 		<xsl:apply-templates select="@*"/>
 		<xsl:apply-templates/>
-	</rng:ref>
+	</ref>
 </xsl:template>
 
 </xsl:stylesheet>

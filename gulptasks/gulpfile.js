@@ -186,7 +186,14 @@ function tsc(tsconfigPath, dest) {
 
 gulp.task("tsc", () => tsc("tsconfig.json", "build/dist/lib"));
 
-gulp.task("webpack", ["tsc", "copy", "jison"], () =>
+gulp.task("convert-schema", ["tsc", "copy-src"], () =>
+          // We use the previous version of salve to convert the validation
+          // schema.
+          execFileAndReport("./node_modules/.bin/salve-convert",
+                            ["lib/salve/schemas/relaxng.rng",
+                             "build/dist/lib/salve/schemas/relaxng.json"]));
+
+gulp.task("webpack", ["tsc", "copy", "jison", "convert-schema"], () =>
           execFile("./node_modules/.bin/webpack", ["--color"])
           .then((result) => {
             log(result.stdout);

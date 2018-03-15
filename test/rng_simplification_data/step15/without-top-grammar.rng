@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<element xmlns="http://relaxng.org/ns/structure/1.0"><name>q</name><grammar><start><ref name="def1"/></start><define name="def1"><element><name>def1el1</name><empty/></element></define><define name="def2"><element><name>def2el1</name><grammar><start><choice><ref name="def1"/><parentRef name="def2"/></choice></start><define name="def1"><element><name>def1el2</name><empty/></element></define></grammar></element></define></grammar></element>

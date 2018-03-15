@@ -72,13 +72,16 @@ export interface Datatype {
    * @throws {"datatypes".ParameterParsingError} If the parameters are
    * erroneous.
    */
-  parseParams(location?: string, params?: RawParameter[]): any;
+  parseParams(location: string, params?: RawParameter[]): any;
 
   /**
    * Parses a value. Checks that the value is allowed by the type and converts
    * it to an internal representation.
    *
-   * @param value The value to parse
+   * @param location: A string indicating the location of the ``<value>``
+   * element for which we are parsing a value.
+   *
+   * @param value The value to parse.
    *
    * @param context The context of the value.
    *
@@ -88,7 +91,7 @@ export interface Datatype {
    * @throws {"datatypes".ValueValidationError} If the value is
    * erroneous.
    */
-  parseValue(value: string, context?: Context): any;
+  parseValue(location: string, value: string, context?: Context): any;
 
   /**
    * Checks whether two strings are equal according to the type.

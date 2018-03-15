@@ -41,10 +41,10 @@ abstract class Base implements Datatype {
     }
   }
 
-  parseValue(value: string): any {
+  parseValue(location: string, value: string): any {
     const errors: ValueError[] | false = this.disallows(value);
     if (errors instanceof Array && errors.length !== 0) {
-      throw new ValueValidationError(errors);
+      throw new ValueValidationError(location, errors);
     }
 
     return { value };

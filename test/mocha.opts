@@ -1,3 +1,4 @@
+--require source-map-support/register
 --require test/boot.js
 test/*.js
 test/lib/**/*.js

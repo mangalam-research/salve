@@ -573,7 +573,7 @@ abstract class Base implements Datatype {
     }
 
     let ret: any[];
-    this._defaultParams = ret = this.parseParams();
+    this._defaultParams = ret = this.parseParams("**INTERNAL**");
 
     return ret;
   }
@@ -583,13 +583,18 @@ abstract class Base implements Datatype {
    * string to an internal representation. It is never interchangeable with
    * [[parseValue]].
    *
+   * @param location The location of the value. It must be a string meaningful
+   * to the user. (In some scenarios, it is not possible to produce such a
+   * string. The code calling then can use a placeholder and strip that
+   * placeholder from reports to the user.)
+   *
    * @param value The value from the XML document.
    *
    * @param context The context of the value in the XML document.
    *
    * @returns An internal representation.
    */
-  convertValue(value: string, context?: Context): any {
+  convertValue(location: string, value: string, context?: Context): any {
     return whiteSpaceProcessed(value, this.whiteSpaceDefault);
   }
 
@@ -605,17 +610,17 @@ abstract class Base implements Datatype {
     return value.length;
   }
 
-  parseValue(value: string, context?: Context): any {
+  parseValue(location: string, value: string, context?: Context): any {
     const errors: ValueError[] | false = this.disallows(value, {}, context);
     if (errors) {
-      throw new ValueValidationError(errors);
+      throw new ValueValidationError(location, errors);
     }
 
-    return { value: this.convertValue(value, context) };
+    return { value: this.convertValue(location, value, context) };
   }
 
   // tslint:disable-next-line: max-func-body-length
-  parseParams(location?: string, params: RawParameter[] = []): any {
+  parseParams(location: string, params: RawParameter[] = []): any {
     const errors: ParamError[] = [];
     const names: TrivialMap<any[]> = Object.create(null);
     for (const x of params) {
@@ -627,7 +632,7 @@ abstract class Base implements Datatype {
       if (prop === undefined) {
         errors.push(new ParamError(`unexpected parameter: ${name}`));
 
-        return;
+        continue;
       }
 
       // Is the value valid at all?
@@ -652,11 +657,7 @@ abstract class Base implements Datatype {
     }
 
     if (errors.length !== 0) {
-      if (location !== undefined) {
-        throw new ParameterParsingError(location, errors);
-      }
-
-      Base.throwMissingLocation(errors);
+      throw new ParameterParsingError(location, errors);
     }
 
     // We just modify the ``names`` object to produce a return value.
@@ -733,11 +734,7 @@ abstract class Base implements Datatype {
 
     /* tslint:enable: no-string-literal */
     if (errors.length !== 0) {
-      if (location !== undefined) {
-        throw new ParameterParsingError(location, errors);
-      }
-
-      Base.throwMissingLocation(errors);
+      throw new ParameterParsingError(location, errors);
     }
 
     return ret;
@@ -786,7 +783,11 @@ abstract class Base implements Datatype {
     let converted: any;
 
     try {
-      converted = this.convertValue(value, context);
+      // We pass an empty string as location because we do not generally keep
+      // track of locations in the XML file being validated. The
+      // ValueValidationError is caught and turned into a boolean below so the
+      // specific location is not important here.
+      converted = this.convertValue("", value, context);
     }
     catch (ex) {
       // An invalid value cannot be equal.
@@ -827,7 +828,11 @@ abstract class Base implements Datatype {
 
     let converted: any;
     try {
-      converted = this.convertValue(value, context);
+      // We pass an empty string as location because we do not generally keep
+      // track of locations in the XML file being validated. The
+      // ValueValidationError is caught below and its errors are extracted and
+      // returned.
+      converted = this.convertValue("", value, context);
     }
     catch (ex) {
       // An invalid value is not allowed.
@@ -948,8 +953,8 @@ class decimal extends Base {
     maxExclusiveP, maxInclusiveP,
   ];
 
-  convertValue(value: string): number {
-    return Number(super.convertValue(value));
+  convertValue(location: string, value: string): number {
+    return Number(super.convertValue(location, value));
   }
 
 }
@@ -968,18 +973,13 @@ class integer extends decimal {
     maxInclusiveP,
   ];
 
-  parseParams(location?: string, params?: RawParameter[]): any {
+  parseParams(location: string, params?: RawParameter[]): any {
     let me: any;
     let mi: any;
     const ret: any = super.parseParams(location, params);
 
     function fail(message: string): never {
-      const errors: ParamError[] = [new ParamError(message)];
-      if (location !== undefined) {
-        throw new ParameterParsingError(location, errors);
-      }
-
-      return Base.throwMissingLocation(errors);
+      throw new ParameterParsingError(location, [new ParamError(message)]);
     }
 
     const highestVal: number | undefined = this.highestVal;
@@ -1147,7 +1147,7 @@ class boolean_ extends Base {
   readonly regexp: RegExp = /^(1|0|true|false)$/;
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
-  convertValue(value: string): boolean {
+  convertValue(_location: string, value: string): boolean {
     return (value === "1" || value === "true");
   }
 }
@@ -1171,7 +1171,7 @@ class base64Binary extends Base {
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] =
     [lengthP, minLengthP, maxLengthP, patternP];
-  convertValue(value: string): string {
+  convertValue(_location: string, value: string): string {
     // We don't need to actually decode it.
     return value.replace(/\s/g, "");
   }
@@ -1188,7 +1188,7 @@ class hexBinary extends Base {
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] =
     [lengthP, minLengthP, maxLengthP, patternP];
-  convertValue(value: string): string {
+  convertValue(_location: string, value: string): string {
     return value;
   }
 
@@ -1210,7 +1210,7 @@ class float_ extends Base {
     patternP, minInclusiveP, minExclusiveP, maxInclusiveP, maxExclusiveP,
   ];
 
-  convertValue(value: string, context?: Context): any {
+  convertValue(_location: string, value: string, context?: Context): any {
     return convertToInternalNumber(value);
   }
 }
@@ -1227,11 +1227,11 @@ class QName extends Base {
   readonly needsContext: boolean = true;
   readonly validParams: Parameter[] =
     [patternP, lengthP, minLengthP, maxLengthP];
-  convertValue(value: string, context: Context): string {
+  convertValue(location: string, value: string, context: Context): string {
     const ret: EName | undefined =
-      context.resolver.resolveName(super.convertValue(value));
+      context.resolver.resolveName(super.convertValue(location, value));
     if (ret === undefined) {
-      throw new ValueValidationError(
+      throw new ValueValidationError(location,
         [new ValueError(`cannot resolve the name ${value}`)]);
     }
 
@@ -1246,11 +1246,11 @@ class NOTATION extends Base {
   readonly needsContext: boolean = true;
   readonly validParams: Parameter[] =
     [patternP, lengthP, minLengthP, maxLengthP];
-  convertValue(value: string, context: Context): string {
+  convertValue(location: string, value: string, context: Context): string {
     const ret: EName | undefined =
-      context.resolver.resolveName(super.convertValue(value));
+      context.resolver.resolveName(super.convertValue(location, value));
     if (ret === undefined) {
-      throw new ValueValidationError(
+      throw new ValueValidationError(location,
         [new ValueError(`cannot resolve the name ${value}`)]);
     }
 

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<grammar xml:base="inc_sub1/" xmlns="http://relaxng.org/ns/structure/1.0">
+  <div datatypeLibrary="" xml:base="file:/home/ldd/src/git-repos/salve/test/rng_simplification_data/step1/inc_sub1/"><div>
+  <div datatypeLibrary="" xml:base="file:/home/ldd/src/git-repos/salve/test/rng_simplification_data/step1/inc_sub1/throughBase"><div>
+  <start>
+    <element name="foo">
+      <empty/>
+    </element>
+  </start>
+</div></div>
+</div></div>
+</grammar>

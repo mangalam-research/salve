@@ -1,1 +1,1 @@
-salve-convert: error in schema; run with --verbose to see what the problem was
+salve-convert: /grammar/define[@name='1']/element[@name='foo']/data: unknown datatype foo in library http://www.w3.org/2001/XMLSchema-datatypes

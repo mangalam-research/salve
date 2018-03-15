@@ -1,1 +1,1 @@
-salve-convert: error in schema; run with --verbose to see what the problem was
+salve-convert: /grammar/define[@name='1']/element[@name='foo']/value: value not a decimal number

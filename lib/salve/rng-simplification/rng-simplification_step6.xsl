@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
+<xsl:stylesheet version="1.1" xmlns="http://relaxng.org/ns/structure/1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
 
 <xsl:output method="xml"/>
 
@@ -22,9 +22,9 @@ The name attribute of the element and attribute patterns is replaced by the name
 		<xsl:if test="self::rng:attribute and not(@ns)">
 			<xsl:attribute name="ns"/>
 		</xsl:if>
-		<rng:name>
+		<name>
 			<xsl:value-of select="@name"/>
-		</rng:name>
+		</name>
 		<xsl:apply-templates/>
 	</xsl:copy>
 </xsl:template>

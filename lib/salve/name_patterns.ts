@@ -30,6 +30,26 @@ export abstract class Base {
   abstract match(ns: string, name: string): boolean;
 
   /**
+   * Test whether a pattern intersects another pattern. Two pattern intersect if
+   * there exist a name that can be matched by both.
+   *
+   * @param other The other pattern to check.
+   */
+  intersects(other: ConcreteName): boolean {
+    return this.intersection(other) !== 0;
+  }
+
+  /**
+   * Computes the intersection of two patterns.
+   *
+   * @param other The other pattern to check.
+   *
+   * @returns 0 if the intersection is the empty set. Otherwise, a ConcreteName
+   * representing the intersection.
+   */
+  abstract intersection(other: ConcreteName | 0): ConcreteName | 0;
+
+  /**
    * Tests whether the pattern matches a name and this match is due only to a
    * wildcard match (``nsName`` or ``anyName``).
    *
@@ -124,6 +144,8 @@ export abstract class Base {
   }
 }
 
+export type ConcreteName = Name | NameChoice | NsName | AnyName;
+
 /**
  * Models the Relax NG ``<name>`` element.
  *
@@ -144,6 +166,19 @@ export class Name extends Base {
 
   match(ns: string, name: string): boolean {
     return this.ns === ns && this.name === name;
+  }
+
+  intersection(other: ConcreteName | 0): ConcreteName | 0 {
+    if (other === 0) {
+      return 0;
+    }
+
+    if (other instanceof Name) {
+      return this.match(other.ns, other.name) ? this : 0;
+    }
+
+    // Delegate to the other classes.
+    return other.intersection(this);
   }
 
   wildcardMatch(ns: string, name: string): boolean {
@@ -176,8 +211,8 @@ export class Name extends Base {
  */
 export class NameChoice extends Base {
 
-  readonly a: Base;
-  readonly b: Base;
+  readonly a: ConcreteName;
+  readonly b: ConcreteName;
 
   /**
    * @param path See parent class.
@@ -185,13 +220,93 @@ export class NameChoice extends Base {
    * @param pats An array of length 2 which
    * contains the two choices allowed by this object.
    */
-  constructor(path: string, pats: Base[]) {
+  constructor(path: string, pats: ConcreteName[]) {
     super(path);
     [this.a, this.b] = pats;
   }
 
+  /**
+   * Makes a tree of NameChoice objects out of a list of names.
+   *
+   * @param names The names from which to build a tree.
+   *
+   * @return If the list is a single name, then just that name. Otherwise,
+   * the names from the list in a tree of [[NameChoice]].
+   */
+  static makeTree(names: ConcreteName[]): ConcreteName {
+    if (names.length === 0) {
+      throw new Error("trying to make a tree out of nothing");
+    }
+
+    let ret: ConcreteName;
+    if (names.length > 1) {
+      // More than one name left. Convert them to a tree.
+      let top = new NameChoice("", [names[0], names[1]]);
+      for (let ix = 2; ix < names.length; ix++) {
+        top = new NameChoice("", [top, names[ix]]);
+      }
+
+      ret = top;
+    }
+    else {
+      // Only one name: we can use it as-is for the except.
+      ret = names[0];
+    }
+
+    return ret;
+  }
+
   match(ns: string, name: string): boolean {
     return this.a.match(ns, name) || this.b.match(ns, name);
+  }
+
+  intersection(other: ConcreteName | 0): ConcreteName | 0 {
+    if (other === 0) {
+      return 0;
+    }
+
+    const a = this.a.intersection(other);
+    const b = this.b.intersection(other);
+
+    if (a !== 0 && b !== 0) {
+      return new NameChoice("", [a, b]);
+    }
+
+    if (a !== 0) {
+      return a;
+    }
+
+    return (b !== 0) ? b : 0;
+  }
+
+  /**
+   * Recursively apply a transformation to a NameChoice tree.
+   *
+   * @param fn The transformation to apply. It may return 0 to indicate that the
+   * child has been transformed to the empty set.
+   *
+   * @returns The transformed tree, or 0 if the tree has been transformed to
+   * nothing.
+   */
+  applyRecursively(fn: (child: Name | NsName | AnyName) => ConcreteName | 0):
+  ConcreteName | 0 {
+    const { a, b } = this;
+    const newA = a instanceof NameChoice ? a.applyRecursively(fn) : fn(a);
+    const newB = b instanceof NameChoice ? b.applyRecursively(fn) : fn(b);
+
+    if (newA !== 0 && newB !== 0) {
+      return new NameChoice(this.path, [newA, newB]);
+    }
+
+    if (newA !== 0) {
+      return newA;
+    }
+
+    if (newB !== 0) {
+      return newB;
+    }
+
+    return 0;
   }
 
   wildcardMatch(ns: string, name: string): boolean {
@@ -244,13 +359,139 @@ export class NsName extends Base {
    * @param except Corresponds to an ``<except>`` element appearing as a child
    * of the ``<nsName>`` element in the Relax NG schema.
    */
-  constructor(path: string, readonly ns: string, readonly except?: Base) {
+  constructor(path: string, readonly ns: string,
+              readonly except?: ConcreteName) {
     super(path);
   }
 
   match(ns: string, name: string): boolean {
     return this.ns === ns && !(this.except !== undefined &&
                                this.except.match(ns, name));
+  }
+
+  intersection(other: ConcreteName | 0): ConcreteName | 0 {
+    if (other === 0) {
+      return 0;
+    }
+
+    if (other instanceof Name) {
+      if (this.ns !== other.ns) {
+        return 0;
+      }
+
+      if (this.except !== undefined) {
+        // We're computing other - other ^ this.except
+        //
+        // Since other is a single name, there are only two possible values for
+        // other ^ this.except: other and 0.
+        //
+        // Consequently the whole equation can also only resolve to other and 0.
+        return other.intersection(this.except) === 0 ? other : 0;
+      }
+
+      return other;
+    }
+
+    if (other instanceof NsName) {
+      if (this.ns !== other.ns) {
+        return 0;
+      }
+
+      if (this.except !== undefined && other.except !== undefined) {
+        // We have to create a new except that does not duplicate exceptions.
+        // For instance if this excepts {q}foo and other excepts {q}foo too, we
+        // don't want to have an exception that has {q}foo twice.
+
+        // Due to Relax NG restrictions on NsName, both excepts necessarily
+        // contain only Name or NameChoice elements.
+        const theseNames = this.except.toArray();
+        const otherNames = other.except.toArray();
+
+        // And so these cannot be null.
+        if (theseNames === null || otherNames === null) {
+          throw new Error("complex pattern found in NsName except");
+        }
+
+        // Find the unique names.
+        const map = theseNames.concat(otherNames).reduce((acc, name) => {
+          acc.set(`{${name.ns}}${name.name}`, name);
+
+          return acc;
+        }, new Map() as Map<string, Name>);
+
+        const names = Array.from(map.values());
+
+        return new NsName(this.path, this.ns, NameChoice.makeTree(names));
+      }
+
+      return (other.except !== undefined) ? other : this;
+    }
+
+    // Delegate the logic to the other classes.
+    return other.intersection(this);
+  }
+
+  /**
+   * Subtract a [[Name]] or [[NsName]] from this one, or a [[NameChoice]] that
+   * contains only a mix of these two. We support subtracting only these two
+   * types because only these two cases are required by Relax NG.
+   *
+   * @param other The object to subtract from this one.
+   *
+   * @returns An object that represents the subtraction. If the result is the
+   * empty set, 0 is returned.
+   */
+  subtract(other: Name | NsName | NameChoice): ConcreteName | 0 {
+    if (other instanceof NameChoice) {
+      // x - (a U b) = x - a U x - b
+      return other
+        .applyRecursively((child: Name | NsName | AnyName) => {
+          if (!(child instanceof Name || child instanceof NsName)) {
+            throw new Error("child is not Name or NsName");
+          }
+
+          return this.subtract(child);
+        });
+    }
+
+    if (this.ns !== other.ns) {
+      return this;
+    }
+
+    if (other instanceof Name) {
+      return new NsName(this.path, this.ns,
+                        (this.except === undefined) ?
+                        other :
+                        new NameChoice(this.path, [this.except, other]));
+    }
+
+    if (other.except === undefined) {
+      return 0;
+    }
+
+    if (this.except === undefined) {
+      return other.except;
+    }
+
+    // Otherwise, return other.except - this.except. Yes, the order is
+    // correct.
+
+    // Due to Relax NG restrictions on NsName, both excepts may contain only
+    // Name or NameChoice, so only simple patterns that can be converted to
+    // arrays.
+    const theseNames = this.except.toArray();
+    const otherNames = other.except.toArray();
+
+    if (theseNames === null || otherNames === null) {
+      throw new Error("NsName contains an except pattern which is not simple.");
+    }
+
+    const result = otherNames
+      .filter((name) =>
+              !theseNames.some((thisName) => name.ns === thisName.ns &&
+                               name.name === thisName.name));
+
+    return result.length === 0 ? 0 : NameChoice.makeTree(result);
   }
 
   wildcardMatch(ns: string, name: string): boolean {
@@ -294,7 +535,7 @@ export class AnyName extends Base {
    * @param except Corresponds to an ``<except>`` element appearing as a child
    * of the ``<anyName>`` element in the Relax NG schema.
    */
-  constructor(path: string, readonly except?: Base) {
+  constructor(path: string, readonly except?: ConcreteName) {
     super(path);
   }
 
@@ -302,12 +543,54 @@ export class AnyName extends Base {
     return (this.except === undefined) || !this.except.match(ns, name);
   }
 
+  intersection(other: ConcreteName | 0): ConcreteName | 0 {
+    if (other === 0) {
+      return 0;
+    }
+
+    if (this.except === undefined) {
+      return other;
+    }
+
+    if (other instanceof Name) {
+      return this.except.intersection(other) === 0 ? other : 0;
+    }
+
+    if (other instanceof NsName) {
+      // Reminder: the except can only be one of three things: Name, NsName or
+      // NameChoice so negation can only be 0, Name, NsName or NameChoice.
+      const negation = this.except.intersection(other);
+      if (negation === 0) {
+        return other;
+      }
+
+      if (negation instanceof Name || negation instanceof NsName ||
+          negation instanceof NameChoice) {
+        return other.subtract(negation);
+      }
+
+      throw new Error("negation should be 0, Name, NsName or NameChoice");
+    }
+
+    if (other instanceof AnyName) {
+      if (other.except !== undefined && this.except !== undefined) {
+        return new AnyName(this.path,
+                           new NameChoice(this.path,
+                                          [this.except, other.except]));
+      }
+
+      return (other.except !== undefined) ? other : this;
+    }
+
+    throw new Error("cannot compute intersection!");
+  }
+
   wildcardMatch(ns: string, name: string): boolean {
     return this.match(ns, name);
   }
 
-  toObject(): { pattern: "AnyName"; except?: Base } {
-    const ret: { pattern: "AnyName"; except?: Base } = {
+  toObject(): { pattern: "AnyName"; except?: any } {
+    const ret: { pattern: "AnyName"; except?: any } = {
       pattern: "AnyName",
     };
     if (this.except !== undefined) {

@@ -7,7 +7,7 @@
 
 import * as datatypes from "../datatypes";
 import * as formats from "../formats";
-import { Element } from "./parser";
+import { Element, Node, Text } from "./parser";
 
 // Table of names (string) to constructors.(function).
 const nameToConstructor: any = formats.__protected.nameToConstructor;
@@ -48,6 +48,15 @@ export abstract class ConversionWalker {
 
   private _constructState: ConstructState[] =
     [{ open: "", close: "", first: true }];
+
+  /**
+   * Resets the walker to a blank state. This allows using the same walker for
+   * multiple walks.
+   */
+  reset(): void {
+    this._output = "";
+    this._constructState = [{ open: "", close: "", first: true }];
+  }
 
   /**
    * Opens a construct in the output.
@@ -109,11 +118,11 @@ export abstract class ConversionWalker {
    * string will be escaped and the string will be surrounded by double quotes
    * in the output.
    *
-   * @param str The string to output.
+   * @param thing The string to output.
    */
-  outputString(str: string): void {
+  outputAsString(thing: string | Node): void {
     this.newItem();
-    this._output += JSON.stringify(str);
+    this._output += JSON.stringify(thing instanceof Node ? thing.text : thing);
   }
 
   /**
@@ -142,16 +151,16 @@ export abstract class ConversionWalker {
    * of the children of ``el``.
    */
   walkChildren(el: Element, startAt: number = 0, endAt?: number): void {
-    const children: (Element | string)[] = el.children;
-    const limit: number = (endAt === undefined) ? children.length :
+    const children = el.children;
+    const limit = (endAt === undefined) ? children.length :
       Math.min(endAt, children.length);
 
     if (limit < startAt) {
       throw new Error("invalid parameters passed");
     }
 
-    for (let i: number = startAt; i < limit; ++i) {
-      const child: Element | string = children[i];
+    for (let i = startAt; i < limit; ++i) {
+      const child = children[i];
       if (child instanceof Element) {
         this.walk(child);
       }
@@ -201,221 +210,218 @@ export class DefaultConversionWalker extends ConversionWalker {
 
   // tslint:disable-next-line: max-func-body-length
   walk(el: Element): void {
-    el.makePath();
-
-    // Damn hoisting.
-    let ctor: number;
-
-    // This is the SAX node.
-    const node = el.node;
-    switch (node.local) {
-    case "start":
-      this.walkChildren(el);
-      break;
-    case "param":
-      this.outputString(node.attributes.name.value);
-      this.outputString(el.children[0] as string);
-      break;
-    case "grammar":
-      this.openConstruct("{", "}");
-      this.outputItem(`"v":3,"o":${this.includePaths ? 0 :
+    const elName = el.local;
+    switch (elName) {
+      case "start":
+        this.walkChildren(el);
+        break;
+      case "param":
+        this.outputAsString(el.mustGetAttribute("name"));
+        this.outputAsString(el.children[0]);
+        break;
+      case "grammar": {
+        this.openConstruct("{", "}");
+        this.outputItem(`"v":3,"o":${this.includePaths ? 0 :
 formats.OPTION_NO_PATHS},"d":`);
-      // tslint:disable:no-string-literal
-      ctor = constructorNameToIndex["Grammar"];
-      if (ctor === undefined) {
-        throw new Error("can't find constructor for Grammar");
-      }
-      this.openConstruct("[", "]");
-      if (this.verbose) {
-        this.outputString("Grammar");
-      }
-      else {
-        this.outputItem(ctor);
-      }
-      if (this.includePaths) {
-        // tslint:disable-next-line:no-non-null-assertion
-        this.outputString(el.path!);
-      }
-      this.walk(el.children[0] as Element);
-      this.newItem();
-      this.openArray();
-      this.walkChildren(el, 1);
-      this.closeConstruct("]");
-      this.closeConstruct("]");
-      this.closeConstruct("}");
-      break;
-    default:
-      let capitalized: string = node.local.charAt(0).toUpperCase() +
-        node.local.slice(1);
-      const skipToChildren: boolean = (capitalized === "Except");
-      if (this.inNameClass) {
-        // When we are in an name class, some elements are converted
-        // differently from when outside it. For instance, choice can appear
-        // as a general pattern to encode a choice between two elements or
-        // two attributes, and it can be used inside a name class to encode a
-        // choice between two names. We convert such elements to a different
-        // class.
-        if (capitalized === "Choice") {
-          capitalized = "NameChoice";
+        // tslint:disable:no-string-literal
+        const ctor = constructorNameToIndex["Grammar"];
+        if (ctor === undefined) {
+          throw new Error("can't find constructor for Grammar");
         }
-      }
-
-      // We do not output anything for this element itself but instead go
-      // straight to its children.
-      if (skipToChildren) {
-        this.walkChildren(el);
-
-        return;
-      }
-
-      this.newItem();
-      ctor = constructorNameToIndex[capitalized];
-      if (ctor === undefined) {
-        throw new Error(`can't find constructor for ${capitalized}`);
-      }
-
-      this.openConstruct("[", "]");
-      if (this.verbose) {
-        this.outputString(capitalized);
-      }
-      else {
-        this.outputItem(ctor);
-      }
-      if (this.includePaths) {
-        // tslint:disable-next-line:no-non-null-assertion
-        this.outputString(el.path!);
-      }
-
-      let name: string;
-      switch (node.local) {
-      case "ref":
-        name = node.attributes.name.value;
-        if (/^\d+$/.test(name)) {
-          this.outputItem(parseInt(name));
+        this.openConstruct("[", "]");
+        if (this.verbose) {
+          this.outputAsString("Grammar");
         }
         else {
-          this.outputString(name);
+          this.outputItem(ctor);
         }
-        break;
-      case "define":
-        name = node.attributes.name.value;
-        if (/^\d+$/.test(name)) {
-          this.outputItem(parseInt(name));
+        if (this.includePaths) {
+          this.outputAsString(el.path);
         }
-        else {
-          this.outputString(name);
-        }
-        this.newItem();
-        this.openArray();
-        this.walkChildren(el);
-        this.closeConstruct("]");
-        break;
-      case "value":
-        // Output a variable number of items.
-        // Suppose item 0 is called it0 and so forth. Then:
-        //
-        // Number of items  value  type    datatypeLibrary  ns
-        // 1                it0    "token" ""               ""
-        // 2                it0     it1    ""               ""
-        // 3                it0     it1    it2              ""
-        // 4                it0     it1    it2              it3
-        //
-        this.outputString(el.children.join(""));
-        if (node.attributes.type.value !== "token" ||
-            node.attributes.datatypeLibrary.value !== "" ||
-            node.attributes.ns.value !== "") {
-          this.outputString(node.attributes.type.value);
-          if (node.attributes.datatypeLibrary.value !== "" ||
-              node.attributes.ns.value !== "") {
-            this.outputString(node.attributes.datatypeLibrary.value);
-            // No value === empty string.
-            if (node.attributes.ns.value !== "") {
-              this.outputString(node.attributes.ns.value);
-            }
-          }
-        }
-        break;
-      case "data":
-        // Output a variable number of items.
-        // Suppose item 0 is called it0 and so forth. Then:
-        //
-        // Number of items  type    datatypeLibrary params except
-        // 0                "token" ""              {}     undefined
-        // 1                it0     ""              {}     undefined
-        // 2                it0     it1             {}     undefined
-        // 3                it0     it1             it2    undefined
-        // 4                it0     it1             it2    it3
-        //
-        // Parameters are necessarily first among the children.
-        const hasParams: boolean =
-          (el.children.length !== 0 &&
-           ((el.children[0] as Element).node.local === "param"));
-        // Except is necessarily last.
-        const hasExcept: boolean =
-          (el.children.length !== 0 &&
-           (el.children[el.children.length - 1] as Element).node.local ===
-           "except");
-
-        if (node.attributes.type.value !== "token" ||
-            node.attributes.datatypeLibrary.value !== "" ||
-            hasParams ||
-            hasExcept) {
-          this.outputString(node.attributes.type.value);
-          if (node.attributes.datatypeLibrary.value !== "" ||
-              hasParams ||
-              hasExcept) {
-            this.outputString(node.attributes.datatypeLibrary.value);
-            if (hasParams || hasExcept) {
-              this.newItem();
-              this.openArray();
-              if (hasParams) {
-                this.walkChildren(el, 0, hasExcept ? el.children.length - 1 :
-                                  undefined);
-              }
-              this.closeConstruct("]");
-              if (hasExcept) {
-                this.walk(el.children[el.children.length - 1] as Element);
-              }
-            }
-          }
-        }
-        break;
-      case "group":
-      case "interleave":
-      case "choice":
-      case "oneOrMore":
-        this.newItem();
-        this.openArray();
-        this.walkChildren(el);
-        this.closeConstruct("]");
-        break;
-      case "element":
-      case "attribute":
-        // The first element of `<element>` or `<attribute>` is necessarily a
-        // name class. Note that there is no need to worry about recursion
-        // since it is not possible to get here recursively from the `this.walk`
-        // call that follows. (A name class cannot contain `<element>` or
-        // `<attribute>`.
-        this.inNameClass = true;
         this.walk(el.children[0] as Element);
-        this.inNameClass = false;
         this.newItem();
         this.openArray();
         this.walkChildren(el, 1);
         this.closeConstruct("]");
+        this.closeConstruct("]");
+        this.closeConstruct("}");
         break;
-      case "name":
-        this.outputString(node.attributes.ns.value);
-        this.outputString(el.children.join(""));
-        break;
-      case "nsName":
-        this.outputString(node.attributes.ns.value);
-        this.walkChildren(el);
-        break;
-      default:
-        this.walkChildren(el);
       }
-      this.closeConstruct("]");
+      default: {
+        let capitalized: string = el.local.charAt(0).toUpperCase() +
+          el.local.slice(1);
+        const skipToChildren: boolean = (capitalized === "Except");
+        if (this.inNameClass) {
+          // When we are in an name class, some elements are converted
+          // differently from when outside it. For instance, choice can appear
+          // as a general pattern to encode a choice between two elements or
+          // two attributes, and it can be used inside a name class to encode a
+          // choice between two names. We convert such elements to a different
+          // class.
+          if (capitalized === "Choice") {
+            capitalized = "NameChoice";
+          }
+        }
+
+        // We do not output anything for this element itself but instead go
+        // straight to its children.
+        if (skipToChildren) {
+          this.walkChildren(el);
+
+          return;
+        }
+
+        this.newItem();
+        const ctor = constructorNameToIndex[capitalized];
+        if (ctor === undefined) {
+          throw new Error(`can't find constructor for ${capitalized}`);
+        }
+
+        this.openConstruct("[", "]");
+        if (this.verbose) {
+          this.outputAsString(capitalized);
+        }
+        else {
+          this.outputItem(ctor);
+        }
+        if (this.includePaths) {
+          this.outputAsString(el.path);
+        }
+
+        switch (elName) {
+          case "ref": {
+            const name = el.mustGetAttribute("name");
+            if (/^\d+$/.test(name)) {
+              this.outputItem(parseInt(name));
+            }
+            else {
+              this.outputAsString(name);
+            }
+            break;
+          }
+          case "define": {
+            const name = el.mustGetAttribute("name");
+            if (/^\d+$/.test(name)) {
+              this.outputItem(parseInt(name));
+            }
+            else {
+              this.outputAsString(name);
+            }
+            this.newItem();
+            this.openArray();
+            this.walkChildren(el);
+            this.closeConstruct("]");
+            break;
+          }
+          case "value": {
+            // Output a variable number of items.
+            // Suppose item 0 is called it0 and so forth. Then:
+            //
+            // Number of items  value  type    datatypeLibrary  ns
+            // 1                it0    "token" ""               ""
+            // 2                it0     it1    ""               ""
+            // 3                it0     it1    it2              ""
+            // 4                it0     it1    it2              it3
+            //
+            this.outputAsString(el);
+            const typeAttr = el.mustGetAttribute("type");
+            const datatypeLibraryAttr = el.mustGetAttribute("datatypeLibrary");
+            const nsAttr = el.mustGetAttribute("ns");
+            if (typeAttr !== "token" || datatypeLibraryAttr !== "" ||
+                nsAttr !== "") {
+              this.outputAsString(typeAttr);
+              if (datatypeLibraryAttr !== "" || nsAttr !== "") {
+                this.outputAsString(datatypeLibraryAttr);
+                // No value === empty string.
+                if (nsAttr !== "") {
+                  this.outputAsString(nsAttr);
+                }
+              }
+            }
+            break;
+          }
+          case "data": {
+            // Output a variable number of items.
+            // Suppose item 0 is called it0 and so forth. Then:
+            //
+            // Number of items  type    datatypeLibrary params except
+            // 0                "token" ""              {}     undefined
+            // 1                it0     ""              {}     undefined
+            // 2                it0     it1             {}     undefined
+            // 3                it0     it1             it2    undefined
+            // 4                it0     it1             it2    it3
+            //
+            // Parameters are necessarily first among the children.
+            const hasParams: boolean =
+              (el.children.length !== 0 &&
+               ((el.children[0] as Element).local === "param"));
+            // Except is necessarily last.
+            const hasExcept: boolean =
+              (el.children.length !== 0 &&
+               (el.children[el.children.length - 1] as Element).local ===
+               "except");
+
+            const typeAttr = el.mustGetAttribute("type");
+            const datatypeLibraryAttr = el.mustGetAttribute("datatypeLibrary");
+            if (typeAttr !== "token" || datatypeLibraryAttr !== "" ||
+                hasParams || hasExcept) {
+              this.outputAsString(typeAttr);
+              if (datatypeLibraryAttr !== "" || hasParams || hasExcept) {
+                this.outputAsString(datatypeLibraryAttr);
+                if (hasParams || hasExcept) {
+                  this.newItem();
+                  this.openArray();
+                  if (hasParams) {
+                    this.walkChildren(el, 0,
+                                      hasExcept ? el.children.length - 1 :
+                                      undefined);
+                  }
+                  this.closeConstruct("]");
+                  if (hasExcept) {
+                    this.walk(el.children[el.children.length - 1] as Element);
+                  }
+                }
+              }
+            }
+            break;
+          }
+          case "group":
+          case "interleave":
+          case "choice":
+          case "oneOrMore":
+            this.newItem();
+            this.openArray();
+            this.walkChildren(el);
+            this.closeConstruct("]");
+            break;
+          case "element":
+          case "attribute":
+            // The first element of `<element>` or `<attribute>` is necessarily
+            // a name class. Note that there is no need to worry about recursion
+            // since it is not possible to get here recursively from the
+            // `this.walk` call that follows. (A name class cannot contain
+            // `<element>` or `<attribute>`.
+            this.inNameClass = true;
+            this.walk(el.children[0] as Element);
+            this.inNameClass = false;
+            this.newItem();
+            this.openArray();
+            this.walkChildren(el, 1);
+            this.closeConstruct("]");
+            break;
+          case "name":
+            this.outputAsString(el.mustGetAttribute("ns"));
+            this.outputAsString(el);
+            break;
+          case "nsName":
+            this.outputAsString(el.mustGetAttribute("ns"));
+            this.walkChildren(el);
+            break;
+          default:
+            this.walkChildren(el);
+        }
+        this.closeConstruct("]");
+      }
     }
   }
 }
@@ -434,8 +440,8 @@ export class NameGatherer extends ConversionWalker {
 
   walk(el: Element): void {
     this.walkChildren(el);
-    if (el.node.local === "define" || el.node.local === "ref") {
-      const name: string = el.node.attributes["name"].value;
+    if (el.local === "define" || el.local === "ref") {
+      const name: string = el.mustGetAttribute("name");
       if (!(name in this.names)) {
         this.names[name] = 0;
       }
@@ -461,9 +467,8 @@ export class Renamer extends ConversionWalker {
   }
 
   walk(el: Element): void {
-    if (el.node.local === "define" || el.node.local === "ref") {
-      el.node.attributes["name"].value =
-        this.names[el.node.attributes["name"].value];
+    if (el.local === "define" || el.local === "ref") {
+      el.setAttribute("name", this.names[el.mustGetAttribute("name")]);
     }
     this.walkChildren(el);
   }
@@ -485,40 +490,13 @@ const warnAboutTheseTypes: string[] = [
 function inAttribute(el: Element): boolean {
   let current: Element | undefined = el;
   while (current !== undefined) {
-    if (current.node !== undefined && (current.node.local === "attribute")) {
+    if (current.local === "attribute") {
       return true;
     }
     current = current.parent;
   }
 
   return false;
-}
-
-/**
- * Searches for an attribute on an element or on the ancestors of this element,
- * going from parent, to grand-parent, to grand-grand-parent, etc.
- *
- * @private
- *
- * @param el Element from which to search.
- *
- * @param name The name of the attribute.
- *
- * @returns The value of the attribute on the closest element that has the
- * attribute.
- */
-function findAttributeUpwards(el: Element, name: string): string | undefined {
-  let current: Element | undefined = el;
-  while (current !== undefined) {
-    if (current.node !== undefined &&
-        current.node.attributes[name] !== undefined) {
-      return current.node.attributes[name].value;
-    }
-
-    current = current.parent;
-  }
-
-  return undefined;
 }
 
 function localName(value: string): string {
@@ -547,14 +525,15 @@ function fromQNameToURI(value: string, el: Element): string {
   if (parts[0] === "") {
     // Yes, we return the empty string even if that what @ns is set to:
     // there is no default namespace when @ns is set to ''.
-    return el.node.attributes["ns"].value;
+    return el.mustGetAttribute("ns");
   }
 
   // We have a prefix, in which case @ns is useless. We have to get the
-  // namespace from @xmlns and @xmlns:prefix attributes.
-  const uri: string | undefined =
-    findAttributeUpwards(el, (parts[0] === "") ? "xmlns" :
-                         (`xmlns:${parts[0]}`));
+  // namespace from the namespaces declared in the XML file that contains the
+  // schema. At this stage, @xmlns and @xmlns:prefix attributes are no longer
+  // available. So we just ask the element to use its internal namespace data to
+  // resolve the prefix.
+  const uri: string | undefined = el.resolve(parts[0]);
   if (uri === undefined) {
     throw new Error(`cannot resolve prefix: ${parts[0]}`);
   }
@@ -584,84 +563,89 @@ export class DatatypeProcessor extends ConversionWalker {
     let libname: string | undefined;
     let type: string | undefined; // tslint:disable-line: no-reserved-keywords
 
-    if (el.node.local === "value") {
-      el.makePath();
-      const node = el.node;
-      let value = el.children.join("");
-      type = node.attributes.type.value;
-      libname = node.attributes.datatypeLibrary.value;
-      let ns = node.attributes.ns.value;
+    const name = el.local;
+    switch (name) {
+      case "value": {
+        let value = el.text;
+        type = el.mustGetAttribute("type");
+        libname = el.mustGetAttribute("datatypeLibrary");
+        let ns = el.mustGetAttribute("ns");
 
-      const lib = datatypes.registry.find(libname);
-      if (lib === undefined) {
-        throw new datatypes.ValueValidationError(
-          [new datatypes.ValueError(`unknown datatype library: ${libname}`)]);
-      }
+        const lib = datatypes.registry.find(libname);
+        if (lib === undefined) {
+          throw new datatypes.ValueValidationError(el.path,
+            [new datatypes.ValueError(`unknown datatype library: ${libname}`)]);
+        }
 
-      const datatype = lib.types[type];
-      if (datatype === undefined) {
-        throw new datatypes.ValueValidationError(
-          [new datatypes.ValueError(`unknown datatype ${type} in \
+        const datatype = lib.types[type];
+        if (datatype === undefined) {
+          throw new datatypes.ValueValidationError(el.path,
+            [new datatypes.ValueError(`unknown datatype ${type} in \
 ${(libname === "") ? "default library" : `library ${libname}`}`)]);
+        }
+
+        if (datatype.needsContext &&
+            // tslint:disable-next-line: no-http-string
+            !(libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+              (type === "QName" || type === "NOTATION"))) {
+          throw new Error("datatype needs context but is not " +
+                          "QName or NOTATION form the XML Schema " +
+                          "library: don't know how to handle");
+        }
+
+        if (datatype.needsContext) {
+          // Change ns to the namespace we need.
+          ns = fromQNameToURI(value, el);
+          el.setAttribute("ns", ns);
+          value = localName(value);
+          el.empty();
+          el.append(new Text(value));
+        }
+
+        const valuePattern =
+          new nameToConstructor.Value(el.path, value, type, libname, ns);
+
+        // Accessing the value will cause it to be validated.
+        // tslint:disable-next-line:no-unused-expression
+        valuePattern.value;
+        break;
       }
+      case "data": {
+        // Except is necessarily last.
+        const hasExcept = (el.children.length !== 0 &&
+                           (el.children[el.children.length - 1] as Element)
+                           .local === "except");
 
-      if (datatype.needsContext &&
-          // tslint:disable-next-line: no-http-string
-          !(libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
-            (type === "QName" || type === "NOTATION"))) {
-        throw new Error("datatype needs context but is not " +
-                        "QName or NOTATION form the XML Schema " +
-                        "library: don't know how to handle");
-      }
+        type = el.mustGetAttribute("type");
+        libname = el.mustGetAttribute("datatypeLibrary");
+        const lib = datatypes.registry.find(libname);
+        if (lib === undefined) {
+          throw new datatypes.ValueValidationError(el.path,
+            [new datatypes.ValueError(`unknown datatype library: ${libname}`)]);
+        }
 
-      if (datatype.needsContext) {
-        // Change ns to the namespace we need.
-        ns = node.attributes.ns.value = fromQNameToURI(value, el);
-        value = localName(value);
-        el.children.splice(0, el.children.length, value);
-      }
-
-      // Generating the element will cause salve to perform checks on the
-      // params, etc. We do not need to record the return value.
-      // tslint:disable-next-line:no-unused-expression
-      new nameToConstructor.Value(el.path, value, type, libname, ns);
-    }
-    else if (el.node.local === "data") {
-      el.makePath();
-      const node = el.node;
-      // Except is necessarily last.
-      const hasExcept = (el.children.length !== 0 &&
-                         (el.children[el.children.length - 1] as Element)
-                         .node.local === "except");
-
-      type = node.attributes.type.value;
-      libname = node.attributes.datatypeLibrary.value;
-      const lib = datatypes.registry.find(libname);
-      if (lib === undefined) {
-        throw new datatypes.ValueValidationError(
-          [new datatypes.ValueError(`unknown datatype library: ${libname}`)]);
-      }
-
-      if (lib.types[type] === undefined) {
-        throw new datatypes.ValueValidationError(
-          [new datatypes.ValueError(`unknown datatype ${type} in \
+        if (lib.types[type] === undefined) {
+          throw new datatypes.ValueValidationError(el.path,
+            [new datatypes.ValueError(`unknown datatype ${type} in \
 ${(libname === "") ? "default library" : `library ${libname}`}`)]);
+        }
+
+        const params = el.children.slice(
+          0, hasExcept ? el.children.length - 1 : undefined).map(
+            (child: Element) => ({
+              name: child.getAttribute("name"),
+              value: child.text,
+            }));
+
+        const data = new nameToConstructor.Data(el.path, type, libname, params);
+
+        // This causes the parameters to be checked. We do not need to do
+        // anything with the value.
+        // tslint:disable-next-line:no-unused-expression
+        data.params;
+        break;
       }
-
-      const params = el.children.slice(
-        0, hasExcept ? el.children.length - 1 : undefined).map(
-          (child: Element) => ({
-            name: child.node.attributes["name"].value,
-            value: child.children.join(""),
-          }));
-
-      // Generating the element will cause salve to perform checks on the
-      // params, etc. We do not need to record the return value. Also, we do not
-      // need to pass the possible exception, as it will be dealt when children
-      // of this element are walked.
-      //
-      // tslint:disable-next-line:no-unused-expression
-      new nameToConstructor.Data(el.path, type, libname, params);
+      default:
     }
 
     // tslint:disable-next-line: no-http-string

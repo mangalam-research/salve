@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
+<xsl:stylesheet version="1.1" xmlns="http://relaxng.org/ns/structure/1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
 
 <xsl:output method="xml"/>
 
@@ -15,10 +15,10 @@ optional patterns are transformed into choice patterns between their unique chil
 </xsl:template>
 
 <xsl:template match="rng:optional">
-	<rng:choice>
+	<choice>
 		<xsl:apply-templates/>
-		<rng:empty/>
-	</rng:choice>
+		<empty/>
+	</choice>
 </xsl:template>
 
 </xsl:stylesheet>

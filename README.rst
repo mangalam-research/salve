@@ -521,18 +521,17 @@ Dependencies
 Running ``salve-convert`` additionally requires that ``xmllint``,
 ``xsltproc`` and ``jing`` be installed on your system.
 
-.. note:: Using ``jing`` makes the test suite take twice as long to
-          complete. So why, oh why, use ``jing``? It is used to
-          validate the RNG file before salve's conversion code gets to
-          it. It helps keep salve small. A previous version of
-          ``salve-convert`` used ``xmllint`` for this task but
-          ``xmllint`` would sometimes hang while validating the
-          RNG. It would hang on run-of-the-mill TEI files. This is
-          unacceptable, and debugging ``xmllint`` is just not an option
-          right now. (If you think that debugging ``xmllint`` *is* an
-          option, you are welcome to debug it. We're sure the folks
-          responsible for ``xmllint`` will appreciate your
-          contribution.)
+.. note:: Using ``jing`` makes the test suite take twice as long to complete. So
+          why, oh why, use ``jing``? It is used to validate the RNG file before
+          salve's conversion code gets to it. It helps keep salve small. A
+          previous version of ``salve-convert`` used ``xmllint`` for this task
+          but ``xmllint`` lets some errors pass through and would sometimes hang
+          while validating the RNG. It would hang on run-of-the-mill TEI files.
+
+          This is unacceptable, and debugging ``xmllint`` is just not an option
+          right now. (If you think that debugging ``xmllint`` *is* an option,
+          you are welcome to debug it. We're sure the folks responsible for
+          ``xmllint`` will appreciate your contribution.)
 
 Running salve's tests **additionally** requires that the development
 dependencies be installed. Please see the `<package.json>`_ file for
@@ -679,13 +678,18 @@ Research Center for Buddhist Languages, Berkeley, CA.
 RNG Simplification Code
 -----------------------
 
-The RNG simplification transformation files are adapted from `Nicolas
-Debeissat's code
-<https://code.google.com/p/jsrelaxngvalidator/>`_. They are covered by
-the `CeCILL license <http://www.cecill.info/index.en.html>`_. Multiple
-bugs in them have been corrected, some minor and some major, and some
-changes have been made for salve. For the sake of simplicity, these
-changes are also covered by the CeCILL license.
+The RNG simplification files coded in XSL were adapted from `Nicolas Debeissat's
+code
+<https://github.com/ndebeiss/jsrelaxngvalidator/commit/8d353c73880ff519b31193905638cc97a93d1fad>`_. These
+files were originally released under the `CeCILL license
+<http://www.cecill.info/index.en.html>`_. Nicolas in `March 2016
+<https://github.com/ndebeiss/jsrelaxngvalidator/commit/f7336b2472baec60ab16571b865447e1146196ab>`_
+then changed the license to the Apache License 2.0.
+
+In the version of these files bundled with salve, multiple bugs have been
+corrected, some minor and some major, and some changes have been made for
+salve's own internal purposes. For the sake of simplicity, these changes are
+also covered by the original licenses that apply to Nicolas' code.
 
 Credits
 =======

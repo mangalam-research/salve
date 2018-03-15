@@ -87,14 +87,17 @@ export class ValueValidationError extends Error {
   readonly message: string;
 
   /**
+   * @param location The location of the ``<value>`` in the schema.
+   *
    * @param errors The errors encountered.
    */
-  constructor(readonly errors: ValueError[]) {
+  constructor(location: string, readonly errors: ValueError[]) {
     super();
     // This is crap to work around the fact that Error is a terribly badly
     // designed class or prototype or whatever. Unfortunately the stack trace is
     // off...
-    const msg: string = errors.map((x: ValueError) => x.toString()).join("\n");
+    const msg: string =
+      `${location}: ${errors.map((x: ValueError) => x.toString()).join("\n")}`;
     const err: Error = new Error(msg);
     this.name = "ValueValidationError";
     this.stack = err.stack;
