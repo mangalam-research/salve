@@ -1,6 +1,6 @@
 "use strict";
 
-var tests = [
+const tests = [
   /./, "\t",
   /./, "\r",
   /./, "\n",
@@ -19,9 +19,9 @@ var tests = [
   /(?:(?!(?![c])[bc])[abcd])/, "d",
 ];
 
-for (var i = 0; i < tests.length; i += 2) {
-  var re = tests[i];
-  var text = tests[i + 1];
+for (let i = 0; i < tests.length; i += 2) {
+  const re = tests[i];
+  const text = tests[i + 1];
   // eslint-disable-next-line no-console
   console.log("running:", re, "on", JSON.stringify(text), "result",
               text.match(re));
