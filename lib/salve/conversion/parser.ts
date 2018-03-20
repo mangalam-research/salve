@@ -7,10 +7,10 @@
 
 import * as sax from "sax";
 
+import { ValidationError } from "../errors";
 import { XML1_NAMESPACE, XMLNS_NAMESPACE } from "../name_resolver";
+import { Event, FireEventResult, Grammar, Walker } from "../patterns";
 import { fixPrototype } from "../tools";
-import { Event, FireEventResult, Grammar, ValidationError,
-         Walker } from "../validate";
 
 /**
  * A base class for classes that perform parsing based on SAX parsers.

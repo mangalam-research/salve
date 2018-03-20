@@ -18,7 +18,9 @@ export interface SchemaValidationResult {
    * *as part* of validating the schema, and may provide the simplified schema
    * as a result of validation.
    */
-  simplified?: string | Element;
+  simplified?: Element;
+
+  warnings?: string[];
 }
 
 export class SchemaValidationError extends Error {

@@ -1,1 +1,1 @@
-salve-convert: /grammar/define[@name='1']/element[@name='foo']/value: unknown datatype blah in default library
+salve-convert: /grammar/define[@name='__foo-elt-1']/element[@name='foo']/value: unknown datatype blah in default library

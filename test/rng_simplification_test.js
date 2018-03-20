@@ -1,4 +1,4 @@
-/* global describe it */
+/* global describe it after */
 
 "use strict";
 
@@ -184,6 +184,18 @@ describe("rng simplification", () => {
             }
             expect(actual).to.equal(expected);
           }));
+      });
+
+      after(() => {
+        // Yes, we know about the race condition issue of checking for existence
+        // first and then deleting. No, we don't care.
+        if (fs.existsSync(tmppath)) {
+          fs.unlinkSync(tmppath);
+        }
+
+        if (fs.existsSync(outpath)) {
+          fs.unlinkSync(outpath);
+        }
       });
     });
   }

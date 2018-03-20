@@ -1,12 +1,12 @@
 "use strict";
 
 /* global __dirname */
+const webpack = require("webpack");
 
-var webpack = require("webpack");
-
+const source = "build/dist/lib";
 module.exports = {
   resolve: {
-    modules: ["build/dist/lib", "node_modules"],
+    modules: [source, "node_modules"],
   },
   entry: {
     salve: "salve/validate.js",
@@ -31,13 +31,17 @@ module.exports = {
   //
   devtool: "source-map",
   output: {
-    path: __dirname + "/build/dist", // eslint-disable-line no-path-concat
+    path: `${__dirname}/build/dist`, // eslint-disable-line no-path-concat
     filename: "[name].js",
     sourceMapFilename: "[name].map.js",
     library: "salve",
     libraryTarget: "umd",
   },
   plugins: [
+    // We drop from the bundle everything that is Node-dependent.
+    new webpack.IgnorePlugin(/\/resource-loaders\/node$/),
+    new webpack.IgnorePlugin(/\.\/xsl$/, /schema-simplifiers$/),
+    new webpack.IgnorePlugin(/\.\/(?:jing|xmllint)$/, /schema-validators$/),
     new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
       include: /\.min\.js$/,

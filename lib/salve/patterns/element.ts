@@ -7,7 +7,7 @@
 import { AttributeNameError, AttributeValueError, ElementNameError,
          ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
-import * as namePatterns from "../name_patterns";
+import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { TrivialMap } from "../types";
 import { BasePattern, ElementI, EndResult, Event, EventSet, FireEventResult,
@@ -27,7 +27,7 @@ export class Element extends OneSubpattern implements ElementI {
    *
    * @param pat The pattern contained by this one.
    */
-  constructor(xmlPath: string, readonly name: namePatterns.Name,
+  constructor(xmlPath: string, readonly name: ConcreteName,
               pat: Pattern) {
     super(xmlPath, pat);
   }
@@ -75,7 +75,7 @@ class ElementWalker extends Walker<Element> {
   private walker: Walker<BasePattern> | undefined;
   private startTagEvent: Event;
   private endTagEvent: Event | undefined;
-  private boundName: namePatterns.Name | undefined;
+  private boundName: Name | undefined;
   private readonly nameResolver: NameResolver;
 
   /**
@@ -183,9 +183,8 @@ class ElementWalker extends Walker<Element> {
                                ev.params[2] as string)) {
           this.walker = this.el.pat.newWalker(this.nameResolver);
           this.seenName = true;
-          this.boundName = new namePatterns.Name("",
-                                                 ev.params[1] as string,
-                                                 ev.params[2] as string);
+          this.boundName = new Name("", ev.params[1] as string,
+                                    ev.params[2] as string);
           this.endTagEvent = new Event("endTag", this.boundName);
 
           return false;

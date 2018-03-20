@@ -3,7 +3,7 @@
 "use strict";
 
 const { assert } = require("chai");
-const { Event, Name } = require("../../salve");
+const { Event, Name } = require("../../build/dist");
 
 describe("Event objects are cached", () => {
   it("simple case", () => {

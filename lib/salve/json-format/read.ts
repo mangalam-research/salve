@@ -208,15 +208,15 @@ class V2Constructor extends V2JSONWalker {
  * @param code The JSON representation (a string) or the deserialized JSON. **If
  * you pass an object, it will be mutated while producing the result.** So you
  * cannot pass the same object twice to this function. Note that if you are
- * calling ``constructTree`` on the same input repeatedly, you are probably
- * "doing it wrong". You should be caching the results rather than building
- * multiple identical trees.
+ * calling this function on the same input repeatedly, you are probably "doing
+ * it wrong". You should be caching the results rather than building multiple
+ * identical trees.
  *
  * @throws {Error} When the version of the data is not supported.
  *
  * @returns The tree.
  */
-export function constructTree(code: string | {}): Grammar {
+export function readTreeFromJSON(code: string | {}): Grammar {
   const parsed = (typeof code === "string" ? JSON.parse(code) : code);
   if (typeof parsed === "object" && parsed.v === undefined) {
     throw new OldFormatError(); // version 0
@@ -229,6 +229,8 @@ export function constructTree(code: string | {}): Grammar {
 
   throw new Error(`unknown version: ${version}`);
 }
+
+export const constructTree = readTreeFromJSON;
 
 //  LocalWords:  deserialized PatternTwoPatterns PatternOnePattern OneOrMore js
 //  LocalWords:  codeToConstructor nameToConstructor RNG subpattern JSON xsl

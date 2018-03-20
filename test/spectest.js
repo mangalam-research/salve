@@ -4,16 +4,17 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-/* global it, describe, before, after */
+/* global it, describe, before */
 /* eslint-env node */
 
 "use strict";
 
 const { assert } = require("chai");
-const { spawn } = require("child_process");
+const fileURL = require("file-url");
 const fs = require("fs");
 const path = require("path");
-const salveParse = require("../build/dist/lib/salve/parse").parse;
+const { parse } = require("../build/dist/lib/salve/parse");
+const salve = require("../build/dist");
 
 function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();
@@ -80,91 +81,55 @@ function Test(test) {
 }
 
 const tests = testDirs.filter(
-  x => fs.statSync(path.join(spectestDir, x)).isDirectory()).map((x) => {
-    const ret = new Test(x);
-    // test384 uses double
-    if (x === "test384") {
-      ret.convert_args = ["--allow-incomplete-types=quiet"];
-    }
-    return ret;
-  });
+  x => fs.statSync(path.join(spectestDir, x)).isDirectory())
+      .map(x => new Test(x));
 
-function salveConvert(args, callback) {
-  const child = spawn("build/dist/bin/salve-convert", args);
-
-  child.on("exit", code => callback(code));
+function makeValidityTest(data, vfile, passes) {
+  it(vfile, () =>
+     parse(data.grammar, fileAsString(vfile), !passes).then((error) => {
+       assert.equal(!error, passes, "parse result");
+     }));
 }
 
-function parse(rng, xml, mute, callback) {
-  callback(salveParse(fileAsString(rng), fileAsString(xml), mute));
-}
-
-describe("spectest", function spectest() {
-  this.timeout(0);
-  const outpath = ".tmp_rng_to_js_test";
-
-  function clean() {
-    try {
-      fs.unlinkSync(outpath);
-    }
-    catch (ex) {
-      // Ignore if non-existing.
-      if (ex.code !== "ENOENT") {
-        throw ex;
-      }
-    }
+function makeTests(test) {
+  const skip = skips[test.test] || {};
+  if (!skip.incorrect && test.incorrect) {
+    it(test.incorrect, () =>
+       salve.convertRNGToPattern(new URL(fileURL(test.incorrect)))
+        .then(() => assert.isFalse(true,
+                                   "expected conversion to fail, but it passed"),
+              // A failure is what we want.
+              () => {}));
   }
 
-  for (const t of tests) {
-    const skip = skips[t.test] || {};
-    if (!skip.incorrect && t.incorrect) {
-      it(t.incorrect, (done) => {
-        salveConvert(t.convert_args.concat([t.incorrect, outpath]),
-                     (code) => {
-                       assert.isFalse(code === 0, "salve-convert exit status");
-                       clean();
-                       done();
-                     });
+  if (!skip.correct && test.correct) {
+    const doValid = !skip.valid && test.valid.length;
+    const doInvalid = !skip.invalid && test.invalid.length;
+
+    if (doValid || doInvalid) {
+      describe(`valid and invalid cases (${test.correct})`, () => {
+        const data = {};
+
+        before(() =>
+          salve.convertRNGToPattern(new URL(fileURL(test.correct)))
+               .then((result) => {
+                 data.grammar = result.pattern;
+               }));
+
+        for (const vfile of test.valid) {
+          makeValidityTest(data, vfile, true);
+        }
+
+        for (const vfile of test.invalid) {
+          makeValidityTest(data, vfile, false);
+        }
       });
     }
+  }
+}
 
-    if (!skip.correct && t.correct) {
-      const doValid = !skip.valid && t.valid.length;
-      const doInvalid = !skip.invalid && t.invalid.length;
-
-      if (doValid || doInvalid) {
-        describe("valid and invalid cases", () => {
-          before((done) => {
-            salveConvert(t.convert_args.concat([t.correct, outpath]),
-                         (code) => {
-                           assert.equal(code, 0,
-                                        "salve-convert exit status while " +
-                                        `converting ${t.correct}`);
-                           done();
-                         });
-          });
-
-          for (const vfile of t.valid) {
-            it(vfile, (done) => {
-              parse(outpath, vfile, false, (code) => {
-                assert.equal(code, 0, "parse exit status");
-                done();
-              });
-            });
-          }
-
-          for (const vfile of t.invalid) {
-            it(vfile, (done) => {
-              parse(outpath, vfile, true, (code) => {
-                assert.equal(code, 1, "parse exit status");
-                done();
-              });
-            });
-          }
-
-          after(clean);
-        });
-      }
-    }
+describe("spectest", () => {
+  for (const test of tests) {
+    makeTests(test);
   }
 });

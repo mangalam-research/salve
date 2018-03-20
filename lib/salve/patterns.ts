@@ -20,9 +20,10 @@ export { Param } from "./patterns/param";
 export { Text } from "./patterns/text";
 export { Value } from "./patterns/value";
 
-export { Name, NameChoice, NsName, AnyName } from "./name_patterns";
+export { ConcreteName, Name, NameChoice, NsName,
+         AnyName } from "./name_patterns";
 
-export { eventsToTreeString, Event, EventSet, BasePattern, Walker,
+export { eventsToTreeString, Event, EventSet, BasePattern, Pattern, Walker,
          FireEventResult, EndResult } from "./patterns/base";
 export { Grammar, GrammarWalker, RefError } from "./patterns/grammar";
 

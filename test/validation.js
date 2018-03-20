@@ -12,7 +12,7 @@ const fs = require("fs");
 const path = require("path");
 const { assert } = require("chai");
 const sax = require("sax");
-const salve = require("../salve");
+const salve = require("../build/dist");
 
 function fileAsString(p) {
   return fs.readFileSync(path.resolve(p), "utf8").toString();
@@ -174,7 +174,7 @@ function makeValidTest(dir) {
 
     let tree;
     try {
-      tree = salve.constructTree(source);
+      tree = salve.readTreeFromJSON(source);
     }
     catch (e) {
       if (e instanceof salve.ValidationError) {
@@ -237,11 +237,11 @@ function dropId(obj, memo) {
   }
 }
 
-describe("constructTree", () => {
+describe("readTreeFromJSON", () => {
   it("accepts a string or an object", () => {
     const source = fileAsString("test/simple/simplified-rng.js");
-    const fromString = salve.constructTree(source);
-    const fromObject = salve.constructTree(JSON.parse(source));
+    const fromString = salve.readTreeFromJSON(source);
+    const fromObject = salve.readTreeFromJSON(JSON.parse(source));
     // We have to remove the ids because they are generated to make each object
     // unique.
     assert.deepEqual(dropId(fromString, []), dropId(fromObject, []));
@@ -280,7 +280,7 @@ describe("GrammarWalker.fireEvent", () => {
 
         let tree;
         try {
-          tree = salve.constructTree(source);
+          tree = salve.readTreeFromJSON(source);
         }
         catch (e) {
           if (e instanceof salve.ValidationError) {
@@ -411,7 +411,7 @@ describe("GrammarWalker.fireEvent", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
-      const tree = salve.constructTree(source);
+      const tree = salve.readTreeFromJSON(source);
       const walker = tree.newWalker();
       let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
@@ -431,7 +431,7 @@ describe("GrammarWalker.fireEvent", () => {
       const source = fileAsString(
         "test/attribute-order/simplified-rng.js");
 
-      const tree = salve.constructTree(source);
+      const tree = salve.readTreeFromJSON(source);
       const walker = tree.newWalker();
       let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
@@ -491,7 +491,7 @@ describe("GrammarWalker.fireEvent", () => {
       const source = fileAsString(
         "test/multiple_missing_attributes/simplified-rng.js");
 
-      const tree = salve.constructTree(source);
+      const tree = salve.readTreeFromJSON(source);
       const walker = tree.newWalker();
       let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
@@ -520,7 +520,7 @@ describe("GrammarWalker.fireEvent", () => {
       const source = fileAsString(
         "test/multiple_missing_attributes/simplified-rng.js");
 
-      const tree = salve.constructTree(source);
+      const tree = salve.readTreeFromJSON(source);
       const walker = tree.newWalker();
       let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
@@ -565,7 +565,7 @@ describe("GrammarWalker.fireEvent", () => {
       const source = fileAsString(
         "test/multiple_missing_attributes/simplified-rng.js");
 
-      const tree = salve.constructTree(source);
+      const tree = salve.readTreeFromJSON(source);
       const walker = tree.newWalker();
       let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
@@ -602,7 +602,7 @@ describe("GrammarWalker.fireEvent", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
-      const tree = salve.constructTree(source);
+      const tree = salve.readTreeFromJSON(source);
       const walker = tree.newWalker();
       let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
@@ -615,7 +615,7 @@ describe("GrammarWalker.fireEvent", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
-      const tree = salve.constructTree(source);
+      const tree = salve.readTreeFromJSON(source);
       const walker = tree.newWalker();
       let ret = walker.fireEvent(new salve.Event("enterStartTag", "", "html"));
       assert.isFalse(ret);
@@ -637,7 +637,7 @@ describe("GrammarWalker.fireEvent", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
-      const tree = salve.constructTree(source);
+      const tree = salve.readTreeFromJSON(source);
       const walker = tree.newWalker();
       let ret = walker.fireEvent(
         new salve.Event("enterStartTag", "", "html"));
@@ -658,7 +658,7 @@ describe("GrammarWalker.fireEvent", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
 
-      const tree = salve.constructTree(source);
+      const tree = salve.readTreeFromJSON(source);
       const walker = tree.newWalker();
       let ret = walker.fireEvent(
         new salve.Event("enterStartTag", "", "html"));
@@ -721,7 +721,7 @@ describe("Grammar", () => {
       // Read the RNG tree.
       const source = fileAsString("test/tei/simplified-rng.js");
 
-      const tree = salve.constructTree(source);
+      const tree = salve.readTreeFromJSON(source);
       assert.sameMembers(
         tree.getNamespaces(),
         ["http://www.tei-c.org/ns/1.0", "http://www.w3.org/XML/1998/namespace"]);
@@ -732,7 +732,7 @@ describe("Grammar", () => {
          // Read the RNG tree.
          const source = fileAsString("test/simple/simplified-rng.js");
 
-         const tree = salve.constructTree(source);
+         const tree = salve.readTreeFromJSON(source);
          assert.sameMembers(tree.getNamespaces(), [""]);
        });
 
@@ -741,7 +741,7 @@ describe("Grammar", () => {
          // Read the RNG tree.
          const source = fileAsString("test/names/simplified-rng.js");
 
-         const tree = salve.constructTree(source);
+         const tree = salve.readTreeFromJSON(source);
          assert.sameMembers(tree.getNamespaces(), [
            "",
            "foo:foo",

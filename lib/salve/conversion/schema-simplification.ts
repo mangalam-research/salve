@@ -35,6 +35,12 @@ export interface SchemaSimplifierOptions {
   validate: boolean;
 }
 
+export interface SimplificationResult {
+  simplified: Element;
+
+  warnings: string[];
+}
+
 /** The interface that all simplifiers must follow. */
 export interface SchemaSimplifier {
   /**
@@ -45,7 +51,7 @@ export interface SchemaSimplifier {
    *
    * @returns The result of simplification.
    */
-  simplify(schemaPath: URL): Promise<Element | string>;
+  simplify(schemaPath: URL): Promise<SimplificationResult>;
 }
 
 export interface SchemaSimplifierCtor {

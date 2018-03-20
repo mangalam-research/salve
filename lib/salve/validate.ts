@@ -12,7 +12,10 @@ export { eventsToTreeString, Event, EventSet, Grammar, GrammarWalker,
          BasePattern, RefError, Walker, FireEventResult,
          EndResult } from "./patterns";
 
-export { constructTree } from "./json-format/read";
+export { ConversionResult, convertRNGToPattern } from "./conversion";
+
+export { writeTreeToJSON, renameRefsDefines } from "./json-format/write";
+export { constructTree, readTreeFromJSON } from "./json-format/read";
 
 export { EName }  from "./ename";
 

@@ -6,6 +6,9 @@
 const parse = require("../lib/salve/parse").parse;
 const fs = require("fs");
 const path = require("path");
+const nodeFetch = require("node-fetch");
+
+global.fetch = nodeFetch;
 
 process.on("uncaughtException", (ex) => {
   if (ex instanceof Error) {
@@ -22,9 +25,9 @@ function fileAsString(p) {
 const source = fileAsString(process.argv[2]);
 const xmlSource = fileAsString(process.argv[3]);
 
-const error = parse(source, xmlSource);
-
-process.exit(error ? 1 : 0);
+parse(source, xmlSource).then((error) => {
+  process.exit(error ? 1 : 0);
+});
 
 // LocalWords:  namespace xmlns attributeName attributeValue endTag
 // LocalWords:  leaveStartTag enterStartTag amd utf fs LocalWords

@@ -11,9 +11,9 @@ import * as fs from "fs";
 import * as path from "path";
 import * as sax from "sax";
 
-import { Found, IncludeParser } from "../parser";
-import { registerSimplifier,
-         SchemaSimplifierOptions } from "../schema-simplification";
+import { ConversionParser, Found, IncludeParser } from "../parser";
+import { registerSimplifier, SchemaSimplifierOptions,
+         SimplificationResult } from "../schema-simplification";
 import { BaseSimplifier } from "./base";
 
 interface Step {
@@ -87,7 +87,7 @@ export class XSLSimplifier extends BaseSimplifier {
     });
   }
 
-  async simplify(schemaURL: URL): Promise<string> {
+  async simplify(schemaURL: URL): Promise<SimplificationResult> {
     let schemaPath = schemaURL.toString();
     if (schemaURL.protocol === "file:") {
       schemaPath = schemaPath.replace(/^file:\/\//, "");
@@ -111,13 +111,19 @@ export class XSLSimplifier extends BaseSimplifier {
       await this.executeStep(originalInputDir, 0,
                              fs.readFileSync(schemaPath).toString());
 
+    const convParser = new ConversionParser(sax.parser(true, { xmlns: true }));
+    convParser.saxParser.write(result).close();
+    const simplified = convParser.root;
+    const warnings: string[] = (this.options.simplifyTo >= 18) ?
+      this.processDatatypes(simplified) : [];
+
     this.stepTiming();
     if (this.options.timing) {
       // tslint:disable-next-line:no-non-null-assertion no-console
       console.log(`Simplification delta: ${Date.now() - startTime!}`);
     }
 
-    return result;
+    return { simplified, warnings };
   }
 
   stepTiming(): void {

@@ -1,1 +1,1 @@
-salve-convert: /grammar/define[@name='1']/element[@name='foo']/value: value not a decimal number
+salve-convert: /grammar/define[@name='__foo-elt-1']/element[@name='foo']/value: value not a decimal number

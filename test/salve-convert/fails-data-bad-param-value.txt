@@ -1,1 +1,1 @@
-salve-convert: /grammar/define[@name='1']/element[@name='foo']/data: length must have a non-negative integer value
+salve-convert: /grammar/define[@name='__foo-elt-1']/element[@name='foo']/data: length must have a non-negative integer value

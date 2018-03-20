@@ -15,6 +15,17 @@ here unless they include a fix to a specific issue reported on github.
     representation first, and this conversion could not be done *in the
     browser*. Now it can.
 
+  - New feature: associated with the change above, salve now provides a function
+    (``convertRNGToPattern``) that takes a schema and converts it to a pattern
+    object suitable for validation. This function performs the schema
+    simplification and validation using the native functionality described
+    above. Using this functionality for the test suite has reduced the suite
+    running time from about 10 minutes to 1 minute! (Yes, the old XSLT-based
+    conversion was slow as sin to start with, and using it in the suite also
+    required unnecessary repeated disk accesses, which added to the
+    slowness. The 786 tests that check salve against the Relax NG specification
+    were especially hit hard by this.)
+
   - Fixed a bug in validation logic. There was a bug which caused salve to
     erroneously miss some validation errors. Fortunately, the bug was not often
     triggered as it required the use of <interleave> with a rather specific
@@ -45,6 +56,24 @@ here unless they include a fix to a specific issue reported on github.
     element content can contain **only** *a specific number of white spaces* is
     definitely bizarre. The usefulness of ``value`` consisting entirely of
     white space is similarly unlikely. (Not *impossible*, but *rare*.)
+
+  - The main entry point of the package (``main`` field in ``package.json``)
+    used to be the bundle created with Webpack. It is no longer the case. For
+    most usages, this change should be transparent.
+
+  - Deprecation notice: ``salve-convert`` and the validation/simplification
+    methods that depend on external processes are deprecated. They will be
+    absent (or relegated to the status of debugging tools, not for general use)
+    in the next major release of salve. In the short term this means that:
+
+    + Code that depends on ``salve-convert`` should instead be redesigned to
+      depend on ``convertRNGToPattern``.
+
+    + Issues in the facilities hereby being deprecated won't be fixed quickly,
+      if at all.
+
+  - ``constructTree`` has been renamed ``readTreeFromJSON``. The old name is
+    deprecated and will be removed in the next major version.
 
 * 5.0.0:
 

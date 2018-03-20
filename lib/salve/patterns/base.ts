@@ -7,7 +7,7 @@
 
 import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
-import * as namePatterns from "../name_patterns";
+import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { TrivialMap } from "../types";
 import * as util from "../util";
@@ -247,7 +247,7 @@ export type FireEventResult = false | undefined | ValidationError[];
 export type EndResult = false | ValidationError[];
 
 export interface ElementI {
-  readonly name: namePatterns.Name;
+  readonly name: ConcreteName;
   newWalker(resolver: NameResolver): Walker<BasePattern>;
 }
 
@@ -469,7 +469,7 @@ export class Event {
   private static __id: number = 0;
 
   readonly id: string;
-  readonly params: (string|namePatterns.Base)[];
+  readonly params: (string|ConcreteName)[];
   // This field is never read but we still want it present on the object so that
   // we can use it for diagnosis.
   // @ts-ignore
@@ -482,7 +482,7 @@ export class Event {
    * event parameters must be strings.
    */
   constructor(...args: any[]) {
-    const params: (string|namePatterns.Base)[] =
+    const params: (string|ConcreteName)[] =
       (args.length === 1 && args[0] instanceof Array) ? args[0] : args;
 
     const key: string = params.join();
@@ -583,7 +583,7 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
 
   const hash: HashMap = new HashMap(hashF);
   eventArray.forEach((ev: Event) => {
-    const params: (string|namePatterns.Base)[] = ev.params;
+    const params: (string|ConcreteName)[] = ev.params;
 
     let node: HashMap = hash;
     for (let i: number = 0; i < params.length; ++i) {

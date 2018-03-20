@@ -1,5 +1,4 @@
-salve-convert: WARNING: the following incomplete types are used in the schema: ENTITY, ENTITIES
-salve-convert: details follow
-salve-convert: WARNING: /grammar/define[@name='1']/element[@name='foo']/list/group/data uses the ENTITY type in library http://www.w3.org/2001/XMLSchema-datatypes
-salve-convert: WARNING: /grammar/define[@name='1']/element[@name='foo']/list/group/data uses the ENTITIES type in library http://www.w3.org/2001/XMLSchema-datatypes
+salve-convert: WARNING: incomplete types are used in the schema
+salve-convert: WARNING: /grammar/define[@name='__foo-elt-1']/element[@name='foo']/list/group/data uses the ENTITY type in library http://www.w3.org/2001/XMLSchema-datatypes
+salve-convert: WARNING: /grammar/define[@name='__foo-elt-1']/element[@name='foo']/list/group/data uses the ENTITIES type in library http://www.w3.org/2001/XMLSchema-datatypes
 salve-convert: use --allow-incomplete-types to convert a file using these types

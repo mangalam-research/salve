@@ -7,12 +7,13 @@
  */
 import * as sax from "sax";
 
+import { readTreeFromJSON } from "../../json-format/read";
+import { AnyName, ConcreteName, Grammar, Name, NameChoice,
+         NsName } from "../../patterns";
 import * as relaxng from "../../schemas/relaxng";
-import { AnyName, ConcreteName, constructTree, Grammar, Name, NameChoice,
-         NsName } from "../../validate";
 import { BasicParser, Element, Validator } from "../parser";
-import { registerSimplifier,
-         SchemaSimplifierOptions } from "../schema-simplification";
+import { registerSimplifier, SchemaSimplifierOptions,
+         SimplificationResult } from "../schema-simplification";
 import { SchemaValidationError } from "../schema-validation";
 import * as simplifier from "../simplifier";
 import { findDescendantsByLocalName, findMultiDescendantsByLocalName,
@@ -480,7 +481,7 @@ let cachedGrammar: Grammar | undefined;
 
 function getGrammar(): Grammar {
   if (cachedGrammar === undefined) {
-    cachedGrammar = constructTree(JSON.stringify(relaxng));
+    cachedGrammar = readTreeFromJSON(JSON.stringify(relaxng));
   }
 
   return cachedGrammar;
@@ -542,7 +543,7 @@ export class InternalSimplifier extends BaseSimplifier {
     }
   }
 
-  async simplify(schemaPath: URL): Promise<Element> {
+  async simplify(schemaPath: URL): Promise<SimplificationResult> {
     let startTime: number | undefined;
     if (this.options.verbose) {
       // tslint:disable-next-line:no-console
@@ -552,6 +553,7 @@ export class InternalSimplifier extends BaseSimplifier {
       }
     }
 
+    let warnings: string[] = [];
     let tree = await this.parse(schemaPath);
 
     if (this.options.simplifyTo >= 1) {
@@ -621,6 +623,7 @@ export class InternalSimplifier extends BaseSimplifier {
 
         const cachedQueries = generalCheck(tree);
         checkInterleaveRestriction(cachedQueries, tree);
+        warnings = this.processDatatypes(tree);
 
         if (this.options.timing) {
           // tslint:disable-next-line:no-non-null-assertion no-console
@@ -635,7 +638,7 @@ export class InternalSimplifier extends BaseSimplifier {
       console.log(`Simplification delta: ${Date.now() - startTime!}`);
     }
 
-    return tree;
+    return { simplified: tree, warnings };
   }
 }
 

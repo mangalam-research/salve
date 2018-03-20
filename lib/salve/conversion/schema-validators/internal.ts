@@ -19,11 +19,7 @@ export class InternalValidator implements SchemaValidator {
       simplifyTo: Infinity,
     });
 
-    const result = await simplifier.simplify(schemaPath);
-
-    return {
-      simplified: result,
-    };
+    return simplifier.simplify(schemaPath);
   }
 }
 

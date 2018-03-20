@@ -22,13 +22,12 @@ import fileURL = require("file-url");
 
 // We load individual modules rather than the build module because the
 // conversion code uses parts of salve that are not public.
-import { ConversionParser, Element, getAvailableSimplifiers,
-         getAvailableValidators, makeResourceLoader, makeSimplifier,
-         makeValidator, SchemaValidationError, SchemaValidationResult,
-         serialize } from "../conversion";
+import { ConversionParser, getAvailableSimplifiers, getAvailableValidators,
+         makeResourceLoader, makeSimplifier, makeValidator,
+         SchemaValidationError, serialize,
+         SimplificationResult } from "../conversion";
 import { ParameterParsingError, ValueValidationError } from "../datatypes";
-import { DatatypeProcessor, DefaultConversionWalker, NameGatherer,
-         Renamer } from "../json-format/write";
+import { renameRefsDefines, writeTreeToJSON } from "../json-format/write";
 import { version } from "../validate";
 import { Fatal } from "./convert/fatal";
 
@@ -104,10 +103,6 @@ parser.addArgument(["--simplifier"], {
 });
 
 const availableValidators = getAvailableValidators();
-if (!availableValidators.includes("jing")) {
-  throw new Fatal("jing must be among the available validators on Node!");
-}
-
 if (!availableValidators.includes("internal")) {
   throw new Fatal("internal must be among the available validators on Node!");
 }
@@ -236,87 +231,17 @@ async function prettyPrint(input: string, outputPath: string): Promise<void> {
  *
  * @param simplified The result of the simplification.
  */
-async function convert(simplified: string | Element): Promise<void> {
-  let currentSimplified = simplified;
+async function convert(result: SimplificationResult): Promise<void> {
+  const simplified = result.simplified;
   if (args.simplify_only) {
-    if (typeof currentSimplified !== "string") {
-      currentSimplified = serialize(currentSimplified);
-    }
-
-    return prettyPrint(currentSimplified, args.output_path);
+    return prettyPrint(serialize(simplified), args.output_path);
   }
 
-  let convStartTime: number | undefined;
-  if (args.verbose) {
-    console.log("Transforming RNG to JavaScript...");
-    if (args.timing) {
-      convStartTime = Date.now();
-    }
-  }
-
-  if (typeof currentSimplified === "string") {
-    const convParser = new ConversionParser(sax.parser(true, { xmlns: true }));
-    convParser.saxParser.write(currentSimplified).close();
-    currentSimplified = convParser.root;
-  }
-
-  let walker;
-  switch (args.format_version) {
-  case 3:
-    walker = new DefaultConversionWalker(
-      args.format_version, args.include_paths, args.verbose_format);
-    break;
-  default:
-    throw new Error(`unknown version: ${args.format_version}`);
-  }
-
-  if (!args.no_optimize_ids) {
-    // Gather names
-    const g = new NameGatherer();
-    g.walk(currentSimplified);
-    const names = g.names;
-
-    // Now assign new names with shorter new names being assigned to those
-    // original names that are most frequent.
-    const sorted = Object.keys(names)
-      .map((key) => ({ key: key, freq: names[key] }));
-    // Yes, we want to sort in reverse order of frequency
-    sorted.sort((a, b) => b.freq - a.freq);
-    let id = 1;
-    const newNames: Record<string, string> = {};
-    sorted.forEach((elem) => {
-      newNames[elem.key] = String(id++);
-    });
-
-    // Perform the renaming.
-    const renamer = new Renamer(newNames);
-    renamer.walk(currentSimplified);
-  }
-
-  // Note that we MUST run this processor before conversion because it modifies
-  // the tree.
-  const typeChecker = new DatatypeProcessor();
-  try {
-    typeChecker.walk(currentSimplified);
-  }
-  catch (ex) {
-    if (ex instanceof ValueValidationError ||
-        ex instanceof ParameterParsingError) {
-      throw new Fatal(ex.message);
-    }
-
-    throw ex;
-  }
-
-  if (typeChecker.warnings.length !== 0 &&
+  if (result.warnings.length !== 0 &&
       args.allow_incomplete_types !== "quiet") {
-    stderr.write(`${prog}: WARNING: the following incomplete types are \
-used in the schema: `);
-    stderr.write(Object.keys(typeChecker.incompleteTypesUsed).join(", "));
-    stderr.write("\n");
-    stderr.write(`${prog}: details follow\n`);
+    stderr.write(`${prog}: WARNING: incomplete types are used in the schema\n`);
 
-    typeChecker.warnings.forEach((x) => {
+    result.warnings.forEach((x) => {
       stderr.write(`${prog}: ${x}\n`);
     });
     if (!args.allow_incomplete_types) {
@@ -328,8 +253,21 @@ used in the schema: `);
     }
   }
 
-  walker.walk(currentSimplified);
-  fs.writeFileSync(args.output_path, walker.output);
+  let convStartTime: number | undefined;
+  if (args.verbose) {
+    console.log("Transforming RNG to JavaScript...");
+    if (args.timing) {
+      convStartTime = Date.now();
+    }
+  }
+
+  if (!args.no_optimize_ids) {
+    renameRefsDefines(simplified);
+  }
+
+  fs.writeFileSync(args.output_path,
+                   writeTreeToJSON(simplified, args.format_version,
+                                   args.include_paths, args.verbose_format));
 
   if (args.timing) {
     console.log(`Conversion delta: ${Date.now() - convStartTime!}`);
@@ -339,65 +277,73 @@ used in the schema: `);
 async function start(): Promise<void> {
   let startTime: number | undefined;
   if (args.simplified_input) {
-    return convert(fs.readFileSync(args.input_path).toString());
-  }
-  else {
-    if (args.verbose) {
-      console.log("Validating RNG...");
-      if (args.timing) {
-        startTime = Date.now();
-      }
-    }
+    const convParser = new ConversionParser(sax.parser(true, { xmlns: true }));
+    convParser.saxParser
+      .write(fs.readFileSync(args.input_path).toString()).close();
 
-    const resourceLoader = makeResourceLoader();
-
-    const validator = makeValidator(args.validator, {
-      verbose: args.verbose,
-      timing: args.timing,
-      resourceLoader,
-      keepTemp: args.keep_temp,
-      simplifyTo: Infinity,
-      ensureTempDir,
-      validate: true,
+    return convert({
+      simplified: convParser.root,
+      warnings: [],
     });
+  }
 
-    let result: SchemaValidationResult;
-    try {
-      result = await validator.validate(new URL(fileURL(args.input_path)));
-    }
-    catch (e) {
-      if (e instanceof SchemaValidationError) {
-        throw new Fatal(e.message);
-      }
-
-      throw e;
-    }
-
+  if (args.verbose) {
+    console.log("Validating RNG...");
     if (args.timing) {
-      console.log(`Validation delta: ${Date.now() - startTime!}`);
+      startTime = Date.now();
     }
-
-    if (result.simplified !== undefined) {
-      return convert(result.simplified);
-    }
-
-    const simplifier = makeSimplifier(args.simplifier, {
-      verbose: args.verbose,
-      timing: args.timing,
-      keepTemp: args.keep_temp,
-      simplifyTo: args.simplify_to,
-      ensureTempDir,
-      resourceLoader,
-      validate: false,
-    });
-
-    return simplifier.simplify(new URL(fileURL(args.input_path))).then(convert);
   }
+
+  const resourceLoader = makeResourceLoader();
+
+  const validator = makeValidator(args.validator, {
+    verbose: args.verbose,
+    timing: args.timing,
+    resourceLoader,
+    keepTemp: args.keep_temp,
+    simplifyTo: Infinity,
+    ensureTempDir,
+    validate: true,
+  });
+
+  const { simplified, warnings } =
+    await validator.validate(new URL(fileURL(args.input_path)));
+
+  if (args.timing) {
+    console.log(`Validation delta: ${Date.now() - startTime!}`);
+  }
+
+  if (simplified !== undefined) {
+    return convert({
+      simplified,
+      warnings: warnings === undefined ? [] : warnings,
+    });
+  }
+
+  const simplifier = makeSimplifier(args.simplifier, {
+    verbose: args.verbose,
+    timing: args.timing,
+    keepTemp: args.keep_temp,
+    simplifyTo: args.simplify_to,
+    ensureTempDir,
+    resourceLoader,
+    validate: false,
+  });
+
+  return simplifier.simplify(new URL(fileURL(args.input_path))).then(convert);
 }
 
 // tslint:disable-next-line:no-floating-promises
 start().then(() => {
   process.exit(0);
+}).catch((e) => {
+  if (e instanceof ValueValidationError ||
+      e instanceof ParameterParsingError ||
+      e instanceof SchemaValidationError) {
+    throw new Fatal(e.message);
+  }
+
+  throw e;
 });
 
 //  LocalWords:  cli MPL uncaughtException externalRef RNG storeTrue args jing

@@ -3,7 +3,7 @@
 "use strict";
 
 const { expect } = require("chai");
-const { ValidationError, ElementNameError, Name } = require("../../salve");
+const { ValidationError, ElementNameError, Name } = require("../../build/dist");
 
 describe("ValidationError", () => {
   describe("#equals", () => {

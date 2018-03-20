@@ -16,7 +16,7 @@
     "Jesse Bethel <keisetsu@gmail.com>",
     "Bennett Buchanan <buchanan.3rd@gmail.com>"
   ],
-  "main": "salve.js",
+  "main": "lib/salve/validate.js",
   "types": "lib/salve/validate.d.ts",
   "repository": {
     "type": "git",
