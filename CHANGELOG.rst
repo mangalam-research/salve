@@ -7,7 +7,7 @@ here unless they include a fix to a specific issue reported on github.
   - New feature: salve now has its own native logic for validating and
     simplifying the schemas passed to it. Previous versions of ``salve``
     required using the command line tool ``salve-convert``, which relied on
-    external processed for validation and simplification of the schema, which
+    external processing for validation and simplification of the schema, which
     had two consequences. First, the validation and simplification of the schema
     was slower that it should be, due to the cost of launching external
     processes. Second, although salve was able since day one to validate XML in
@@ -74,6 +74,14 @@ here unless they include a fix to a specific issue reported on github.
 
   - ``constructTree`` has been renamed ``readTreeFromJSON``. The old name is
     deprecated and will be removed in the next major version.
+
+  - There is a function named ``writeTreeToJSON`` which does the reverse of
+    ``readTreeFromJSON``. When you move away from ``salve-convert``, you should
+    be using the ``writeTreeToJSON`` and ``readTreeFromJSON`` to serialize and
+    deserialize a converted schema. Schema conversion is much faster now than it
+    was but it is still a costly process. When at all possible, it is
+    recommended to cache the results of the conversion instead of converting
+    over and over.
 
 * 5.0.0:
 
