@@ -17,7 +17,7 @@ describe("salve-convert", function convert() {
   const outpath = ".tmp_rng_to_js_test";
 
   afterEach(() => {
-    if (fs.exists(outpath)) {
+    if (fs.existsSync(outpath)) {
       fs.unlinkSync(outpath);
     }
   });
