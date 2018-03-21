@@ -3,14 +3,14 @@
 /* global __dirname */
 const webpack = require("webpack");
 
-const source = "build/dist/lib";
+const source = "build/dist";
 module.exports = {
   resolve: {
     modules: [source, "node_modules"],
   },
   entry: {
-    salve: "salve/validate.js",
-    "salve.min": "salve/validate.js",
+    salve: "lib/salve/validate.js",
+    "salve.min": "lib/salve/validate.js",
   },
   //
   // Some stats, as of April 2017,
@@ -31,9 +31,9 @@ module.exports = {
   //
   devtool: "source-map",
   output: {
-    path: `${__dirname}/build/dist`, // eslint-disable-line no-path-concat
+    path: `${__dirname}/build/dist`,
     filename: "[name].js",
-    sourceMapFilename: "[name].map.js",
+    sourceMapFilename: "[name].js.map",
     library: "salve",
     libraryTarget: "umd",
   },

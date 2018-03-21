@@ -3,3 +3,4 @@
 /README.html
 *_flymake.*
 /node_modules
+/localConfig.js

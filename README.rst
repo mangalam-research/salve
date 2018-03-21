@@ -519,6 +519,9 @@ that are implemented in separate modules like ``patterns`` and ``formats``.
 Dependencies
 ============
 
+In Node
+-------
+
 Running ``salve-convert`` additionally **may** require that ``xmllint``,
 ``xsltproc`` and ``jing`` be installed on your system.
 
@@ -547,6 +550,33 @@ If you want to contribute to salve, your code will have to pass the checks
 listed in `<.glerbl/repo_conf.py>`_. So you either have to install glerbl to get
 those checks done for you or run the checks through other means. See
 Contributing_.
+
+In The Browser
+--------------
+
+The following lists the most prominent cases. It is not practical for us to keep
+track of every single feature that old browsers like IE11 don't support.
+
+* ``fetch`` must be present.
+
+* ``Promise`` must be present.
+
+* ``Object.assign`` must be present.
+
+* ``URL`` must be present.
+
+* ``Symbol`` [and ``Symbol.iterator``] must be present.
+
+* The String methods introduced by ES6 (``includes``, ``endsWith``, etc.)
+
+* ``Array.prototype.includes``
+
+* Old ``Set`` and ``Map`` implementations like those in IE11 are either broken
+  or incomplete.
+
+On old browsers, we recomment using ``core-js`` to take care of many of these in
+one fell swoop. You'll have to provide polyfills for ``fetch`` and ``URL`` from
+other sources.
 
 Build System
 ============

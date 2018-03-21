@@ -81,6 +81,11 @@ parser.addArgument(["--rst2html"], {
   defaultValue: localConfig.rst2html || "rst2html",
 });
 
+parser.addArgument(["--browsers"], {
+  help: "The list of browsers to use for Karma.",
+  nargs: "+",
+});
+
 const options = parser.parseArgs(process.argv.slice(2));
 
 gulp.task("lint", ["tslint", "eslint"]);
@@ -193,11 +198,31 @@ gulp.task("convert-schema", ["tsc", "copy-src"], () =>
                             ["lib/salve/schemas/relaxng.rng",
                              "build/dist/lib/salve/schemas/relaxng.json"]));
 
-gulp.task("webpack", ["tsc", "copy", "jison", "convert-schema"], () =>
-          execFile("./node_modules/.bin/webpack", ["--color"])
-          .then((result) => {
-            log(result.stdout);
-          }));
+function webpack(config) {
+  const args = ["--color"];
+  if (config) {
+    args.push("--config", config);
+  }
+
+  return execFile("./node_modules/.bin/webpack", args)
+    .then((result) => {
+      log(result.stdout);
+    });
+}
+
+gulp.task("webpack", ["tsc", "copy", "jison", "convert-schema"],
+          () => webpack());
+
+function runKarma(localOptions) {
+  // We cannot let it be set to ``null`` or ``undefined``.
+  if (options.browsers) {
+    localOptions = localOptions.concat("--browsers", options.browsers);
+  }
+  return spawn("./node_modules/.bin/karma", localOptions, { stdio: "inherit" });
+}
+
+gulp.task("karma", ["webpack"],
+          () => runKarma(["start", "--single-run"]));
 
 let packname;
 
@@ -318,6 +343,6 @@ gulp.task("mocha", ["default"],
             options.mocha_grep ? ["--grep", options.mocha_grep] : [],
             { stdio: "inherit" }));
 
-gulp.task("test", ["default", "lint", "versync", "mocha"]);
+gulp.task("test", ["default", "lint", "versync", "mocha", "karma"]);
 
 gulp.task("clean", () => del(["build", "gh-pages-build"]));
