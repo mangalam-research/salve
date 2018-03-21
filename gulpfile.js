@@ -246,7 +246,9 @@ gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
   module = module.toString();
   module = module.replace("./validate", "salve");
   yield fs.writeFileAsync(path.join(testDir, "parse.ts"), module);
-  yield execFileAndReport("../../node_modules/.bin/tsc", ["parse.ts"],
+  yield execFileAndReport("../../node_modules/.bin/tsc",
+                          ["--lib", "es2015,dom",
+                           "parse.ts"],
                           { cwd: testDir });
   yield del(testDir);
 }));
