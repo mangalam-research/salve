@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0" xml:base="..">
+  <include href="throughBase"/>
+</grammar>

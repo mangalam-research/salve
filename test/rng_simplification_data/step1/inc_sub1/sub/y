@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0">
+  <define name="foo">
+    <element name="bar">
+      <empty/>
+    </element>
+  </define>
+  <div>
+    <define name="foo">
+      <element name="baz">
+        <empty/>
+      </element>
+    </define>
+    <define name="bwip">
+      <element name="bwip">
+        <empty/>
+      </element>
+    </define>
+  </div>
+</grammar>

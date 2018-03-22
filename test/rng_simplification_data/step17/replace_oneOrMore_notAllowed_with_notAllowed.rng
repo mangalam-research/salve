@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"><element name="foo"><choice><oneOrMore><notAllowed/></oneOrMore><oneOrMore><group><element name="blah"/><element name="baz"/></group></oneOrMore></choice></element></grammar>

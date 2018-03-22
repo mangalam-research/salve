@@ -1,7 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
+<!--
+We use version 2 because either version 1 does not have base-uri() or
+resolve-uri().
+
+base-uri() is easy enough to emulate.
+
+resolve-uri() is a different matter.
+-->
+<xsl:stylesheet version="2" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://relaxng.org/ns/structure/1.0" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
 
 <xsl:output method="xml"/>
+
+<!--
+A note on the why we add @datatypeLibrary.
+
+Nicolas Debeissat's code was buggy. In Nicolas' code, step1 resolves external
+references, and step 4 and 5 deal with propagating the @datatypeLibrary and
+cleaning up those instances of the attribute that are unnecessary,
+post-propagation. However, the Relax NG specification performs the propagation
+of @datatypeLibrary (section 4.3) **before** resolving external references
+(sections 4.5-4.7). The way the specification orders the steps has for
+consequence that @datatypeLibrary propagation does not cross file
+boundaries.For instance if a top-level schema contains:
+
+<div datatypeLibrary="foo"><externalRef href="some-fragment.rng"/></div>
+
+Then the schema in "some-fragment.rng" will **NOT** be affected by the presence
+of @datatypeLibrary on the containing div. This is hilighteed in section 4.9
+with the note:
+
+"Since include and externalRef elements are resolved after datatypeLibrary
+attributes are added but before ns attributes are added, ns attributes are
+inherited into external schemas but datatypeLibrary attributes are not."
+
+Nicolas' code originally had no provision for dealing with this: with his code
+@datatypeLibrary propagation *would* erroneously cross file boundaries.
+
+The code below adds @datatypeLibrary attributes with value "" to effectively
+block propagation at the places where it would cross file boundaries.
+
+-->
 
 <!-- 7.7
 externalRef patterns are replaced by the content of the resource referenced by their href attributes. All the simplification steps up to this one must be recursively applied during this replacement to make sure all schemas are merged at the same level of simplification.
@@ -18,29 +56,41 @@ externalRef patterns are replaced by the content of the resource referenced by t
 </xsl:template>
 
 <xsl:template match="rng:externalRef">
-  <xsl:element name="{local-name(document(@href)/*)}"
-               namespace="http://relaxng.org/ns/structure/1.0">
-    <xsl:if test="not(document(@href)/*/@ns) and @ns">
-      <xsl:attribute name="ns">
-	<xsl:value-of select="@ns"/>
-      </xsl:attribute>
+  <xsl:variable name="source"
+                select="resolve-uri(@href, resolve-uri(base-uri(), $originalDir))"/>
+  <xsl:variable name="doc" select="document($source)/*"/>
+  <xsl:apply-templates select="$doc" mode="resolving-ref">
+    <xsl:with-param name="source" select="$source"/>
+    <xsl:with-param name="parent-ns" select="@ns"/>
+  </xsl:apply-templates>
+</xsl:template>
+
+<xsl:template match="*" mode="resolving-ref">
+  <xsl:param name="source"/>
+  <xsl:param name="parent-ns"/>
+  <xsl:copy copy-namespaces="yes" inherit-namespaces="yes">
+    <xsl:if test="not(@ns) and $parent-ns">
+      <xsl:attribute name="ns" select="$parent-ns"/>
     </xsl:if>
-    <xsl:variable name="sourceDir">
-      <xsl:call-template name="joinpaths">
-        <xsl:with-param name="first" select="$originalDir"/>
-        <xsl:with-param name="second">
-          <xsl:call-template name="dirname">
-            <xsl:with-param name="path" select="@href"/>
-          </xsl:call-template>
-        </xsl:with-param>
-      </xsl:call-template>
-    </xsl:variable>
-    <xsl:call-template name="include">
-      <xsl:with-param name="nodes"
-                      select="document(@href)/*/@*|document(@href)/*/*|document(@href)/*/text()"/>
-      <xsl:with-param name="sourceDir" select="$sourceDir"/>
-    </xsl:call-template>
-  </xsl:element>
+    <!-- If there is no @datatypeLibrary we want to set one with an empty value
+         to prevent cross-file propagation of datatypeLibrary in later
+         steps. -->
+    <xsl:if test="not(@datatypeLibrary)">
+      <xsl:attribute name="datatypeLibrary"/>
+    </xsl:if>
+    <xsl:variable name="docBase" select="@xml:base"/>
+    <xsl:attribute name="xml:base">
+      <xsl:choose>
+        <xsl:when test="$docBase">
+          <xsl:value-of select="resolve-uri($docBase, $source)"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$source"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:attribute>
+    <xsl:apply-templates select="@*[not(. is $docBase)]|*|text()"/>
+  </xsl:copy>
 </xsl:template>
 
 <!-- 7.8 The schemas referenced by include patterns are read and all
@@ -53,97 +103,28 @@ externalRef patterns are replaced by the content of the resource referenced by t
 -->
 
 <xsl:template match="rng:include">
-  <rng:div>
+  <xsl:variable name="source"
+                select="resolve-uri(@href, resolve-uri(base-uri(), $originalDir))"/>
+  <xsl:variable name="doc" select="document($source)/*"/>
+    <!-- @datatypeLibrary is set to an empty value to prevent cross-file
+         propagation of datatypeLibrary in later steps. -->
+  <div datatypeLibrary="">
     <xsl:copy-of select="@*[name() != 'href']"/>
-    <xsl:copy-of select="document(@href)/rng:grammar/@*"/>
-    <xsl:copy-of select="*"/>
-    <xsl:variable name="sourceDir">
-      <xsl:call-template name="joinpaths">
-        <xsl:with-param name="first" select="$originalDir"/>
-        <xsl:with-param name="second">
-          <xsl:call-template name="dirname">
-            <xsl:with-param name="path" select="@href"/>
-          </xsl:call-template>
-        </xsl:with-param>
-      </xsl:call-template>
-    </xsl:variable>
-    <xsl:call-template name="include">
-      <xsl:with-param
-          name="nodes"
-          select="document(@href)/rng:grammar/*[not(self::rng:start or self::rng:define)]"/>
-      <xsl:with-param name="sourceDir" select="$sourceDir"/>
-    </xsl:call-template>
-    <xsl:call-template name="include">
-      <xsl:with-param
-          name="nodes"
-          select="document(@href)/rng:grammar/rng:start[not(current()/rng:start)]"/>
-      <xsl:with-param name="sourceDir" select="$sourceDir"/>
-    </xsl:call-template>
-    <xsl:call-template name="include">
-      <xsl:with-param
-          name="nodes"
-          select="document(@href)/rng:grammar/rng:define[not(@name = current()/rng:define/@name)]"/>
-      <xsl:with-param name="sourceDir" select="$sourceDir"/>
-    </xsl:call-template>
-  </rng:div>
+    <xsl:variable name="docBase" select="$doc/@xml:base"/>
+    <xsl:attribute name="xml:base">
+      <xsl:choose>
+        <xsl:when test="$docBase">
+          <xsl:value-of select="resolve-uri($docBase, $source)"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="$source"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:attribute>
+    <div>
+      <xsl:copy-of select="$doc/*[not(self::rng:start or self::rng:define)]|$doc/rng:start[not(current()/rng:start)]|$doc/rng:define[not(@name = current()/rng:define/@name)]|$doc/text()|$doc/@*[not(. is $docBase)]"/>
+    </div>
+    <xsl:copy-of select="*|text()"/>
+  </div>
 </xsl:template>
-
-<xsl:template name="include">
-  <xsl:param name="nodes"/>
-  <xsl:param name="sourceDir"/>
-  <xsl:for-each select="$nodes">
-    <xsl:choose>
-      <!-- Test whether the current node is @href. The count rigmarole
-           is what determines that this node is an attribute node. -->
-      <xsl:when test="count(../@*) = count(.|../@*) and name() = 'href'">
-        <xsl:attribute name="href">
-          <xsl:call-template name="joinpaths">
-            <xsl:with-param name="first" select="$sourceDir"/>
-            <xsl:with-param name="second" select="."/>
-          </xsl:call-template>
-        </xsl:attribute>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:copy>
-          <xsl:call-template name="include">
-            <xsl:with-param name="nodes" select="*|text()|@*"/>
-            <xsl:with-param name="sourceDir" select="$sourceDir"/>
-          </xsl:call-template>
-        </xsl:copy>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:for-each>
-</xsl:template>
-
-<!-- Utilities -->
-
-<!-- Joins two paths together. -->
-<xsl:template name="joinpaths">
-  <xsl:param name="first"/>
-  <xsl:param name="second"/>
-  <xsl:choose>
-    <xsl:when test="contains($second, ':') or starts-with($second, '/')">
-      <xsl:value-of select="$second"/>
-    </xsl:when>
-    <xsl:when test="substring($first, string-length($first)) = '/'">
-      <xsl:value-of select="concat($first, $second)"/>
-    </xsl:when>
-    <xsl:otherwise>
-      <xsl:value-of select="concat($first, '/', $second)"/>
-    </xsl:otherwise>
-  </xsl:choose>
-</xsl:template>
-
-<!-- Computes the dirname part of a path. -->
-<xsl:template name="dirname">
-  <xsl:param name="path"/>
-  <xsl:if test="contains($path, '/')">
-    <xsl:value-of select="concat(substring-before($path, '/'), '/')" />
-    <xsl:call-template name="dirname">
-      <xsl:with-param name="path" select="substring-after($path, '/')" />
-    </xsl:call-template>
-  </xsl:if>
-</xsl:template>
-
-
 </xsl:stylesheet>

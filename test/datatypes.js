@@ -1189,7 +1189,7 @@ function testProgram(name, lib, program, disallows) {
       for (const x of program.equal.true) {
         it(`returns true ${x[0]}`, () => {
           assert.isTrue(type.equal(x[1],
-                                   type.parseValue(x[2], schemaContext),
+                                   type.parseValue("", x[2], schemaContext),
                                    docContext));
         });
       }
@@ -1197,7 +1197,7 @@ function testProgram(name, lib, program, disallows) {
       for (const x of program.equal.false) {
         it(`returns false ${x[0]}`, () => {
           assert.isFalse(type.equal(x[1],
-                                    type.parseValue(x[2], schemaContext),
+                                    type.parseValue("", x[2], schemaContext),
                                     docContext));
         });
       }
@@ -1454,11 +1454,11 @@ describe("datatypes", () => {
 
       describe("equal", () => {
         it("returns true for two equal values", () => {
-          assert.isTrue(type.equal("foo", type.parseValue("foo")));
+          assert.isTrue(type.equal("foo", type.parseValue("", "foo")));
         });
 
         it("returns false for two unequal values", () => {
-          assert.isFalse(type.equal("foo", type.parseValue("bar")));
+          assert.isFalse(type.equal("foo", type.parseValue("", "bar")));
         });
       });
 
@@ -1472,18 +1472,18 @@ describe("datatypes", () => {
 
       describe("equal", () => {
         it("returns true for two equal values", () => {
-          assert.isTrue(type.equal("foo", type.parseValue("foo")));
+          assert.isTrue(type.equal("foo", type.parseValue("", "foo")));
         });
 
         it("returns true for string differing only regarding space (1)",
-           () => assert.isTrue(type.equal("foo", type.parseValue(" foo "))));
+           () => assert.isTrue(type.equal("foo", type.parseValue("", " foo "))));
 
         it("returns true for string differing only regarding space (2)",
            () => assert.isTrue(type.equal(
-             "foo bar   fwip", type.parseValue(" foo   bar fwip"))));
+             "foo bar   fwip", type.parseValue("", " foo   bar fwip"))));
 
         it("returns false for two unequal values", () =>
-           assert.isFalse(type.equal("foobar", type.parseValue("foo bar"))));
+           assert.isFalse(type.equal("foobar", type.parseValue("", "foo bar"))));
       });
 
       describe("disallows", () => {
@@ -1832,28 +1832,28 @@ describe("datatypes", () => {
       const type = lib.types.boolean;
       describe("equal", () => {
         it("returns true for two equal values",
-           () => assert.isTrue(type.equal("1", type.parseValue("1"))));
+           () => assert.isTrue(type.equal("1", type.parseValue("", "1"))));
 
         it("returns true for two equal values",
-           () => assert.isTrue(type.equal("0", type.parseValue("0"))));
+           () => assert.isTrue(type.equal("0", type.parseValue("", "0"))));
 
         it("returns true for two equal values",
-           () => assert.isTrue(type.equal("true", type.parseValue("true"))));
+           () => assert.isTrue(type.equal("true", type.parseValue("", "true"))));
 
         it("returns true for two equal values",
-           () => assert.isTrue(type.equal("false", type.parseValue("false"))));
+           () => assert.isTrue(type.equal("false", type.parseValue("", "false"))));
 
         it("returns true for two equal values",
-           () => assert.isTrue(type.equal("true", type.parseValue("1"))));
+           () => assert.isTrue(type.equal("true", type.parseValue("", "1"))));
 
         it("returns true for two equal values",
-           () => assert.isTrue(type.equal("false", type.parseValue("0"))));
+           () => assert.isTrue(type.equal("false", type.parseValue("", "0"))));
 
         it("returns false for two unequal values",
-           () => assert.isFalse(type.equal("false", type.parseValue("1"))));
+           () => assert.isFalse(type.equal("false", type.parseValue("", "1"))));
 
         it("returns false for two unequal values",
-           () => assert.isFalse(type.equal("true", type.parseValue("0"))));
+           () => assert.isFalse(type.equal("true", type.parseValue("", "0"))));
       });
 
       describe("parseParams", () => {
@@ -1889,10 +1889,10 @@ describe("datatypes", () => {
       const type = lib.types.base64Binary;
       describe("equal", () => {
         it("returns true for two equal values",
-           () => assert.isTrue(type.equal("AAAA", type.parseValue("A A A A"))));
+           () => assert.isTrue(type.equal("AAAA", type.parseValue("", "A A A A"))));
 
         it("returns false for two unequal values",
-           () => assert.isFalse(type.equal("AAAA", type.parseValue("BBBB"))));
+           () => assert.isFalse(type.equal("AAAA", type.parseValue("", "BBBB"))));
       });
 
       describe("parseParams", () => {
@@ -2011,10 +2011,10 @@ describe("datatypes", () => {
       const type = lib.types.hexBinary;
       describe("equal", () => {
         it("returns true for two equal values",
-           () => assert.isTrue(type.equal("AAAA", type.parseValue("AAAA"))));
+           () => assert.isTrue(type.equal("AAAA", type.parseValue("", "AAAA"))));
 
         it("returns false for two unequal values",
-           () => assert.isFalse(type.equal("AAAA", type.parseValue("BBBB"))));
+           () => assert.isFalse(type.equal("AAAA", type.parseValue("", "BBBB"))));
       });
 
       describe("parseParams", () => {
@@ -2114,10 +2114,10 @@ describe("datatypes", () => {
       const type = lib.types.duration;
       describe("equal", () => {
         it("returns true for two equal values",
-           () => assert.isTrue(type.equal("P3Y", type.parseValue("P3Y"))));
+           () => assert.isTrue(type.equal("P3Y", type.parseValue("", "P3Y"))));
 
         it("returns false for two unequal values",
-           () => assert.isFalse(type.equal("P3Y", type.parseValue("P2Y"))));
+           () => assert.isFalse(type.equal("P3Y", type.parseValue("", "P2Y"))));
       });
 
       describe("parseParams", () => {

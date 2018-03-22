@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"><start><element name="a"><element name="b"><element name="c"><value datatypeLibrary="" type="string">moo</value></element><element name="d"><list><value datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="string">  </value><value datatypeLibrary="" type="token">moo</value></list></element><element name="e"><list><data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="string"/></list></element></element></element></start></grammar>

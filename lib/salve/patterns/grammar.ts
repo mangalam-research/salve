@@ -13,8 +13,8 @@ import { NameResolver } from "../name_resolver";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
 import { BasePattern, Define, ElementI, EndResult, Event, EventSet,
-         FireEventResult, isHashMap, Pattern, Ref, SingleSubwalker,
-         Walker } from "./base";
+         FireEventResult, isHashMap, Pattern, Ref,
+         SingleSubwalker } from "./base";
 
 /**
  * This is an exception raised to indicate references to undefined entities in a
@@ -49,8 +49,9 @@ export class RefError extends Error {
 }
 
 /**
- * Grammar object. Users of this library normally do not create objects
- * of this class themselves but rely on [["formats".constructTree]].
+ * Grammar object. Users of this library normally do not create objects of this
+ * class themselves but rely on the conversion facilities of salve to create
+ * these objects.
  */
 export class Grammar extends BasePattern {
   private definitions: TrivialMap<Define> = Object.create(null);
@@ -72,11 +73,11 @@ export class Grammar extends BasePattern {
               definitions?: Define[]) {
     super(xmlPath);
     if (definitions !== undefined) {
-      definitions.forEach((x: Define) => {
+      definitions.forEach((x) => {
         this.add(x);
       });
     }
-    const missing: Ref[] | undefined = this._resolve(this.definitions);
+    const missing = this._resolve(this.definitions);
 
     if (missing !== undefined) {
       throw new RefError(missing);
@@ -115,7 +116,7 @@ export class Grammar extends BasePattern {
   }
 
   get elementDefinitions(): TrivialMap<ElementI[]> {
-    const ret: TrivialMap<ElementI[]> | undefined = this._elementDefinitions;
+    const ret = this._elementDefinitions;
     if (ret !== undefined) {
       return ret;
     }
@@ -133,7 +134,7 @@ export class Grammar extends BasePattern {
    * knowing its expanded name. ``false`` otherwise.
    */
   whollyContextIndependent(): boolean {
-    const defs: TrivialMap<ElementI[]> = this.elementDefinitions;
+    const defs = this.elementDefinitions;
     for (const v in defs) {
       if (defs[v].length > 1) {
         return false;
@@ -209,6 +210,63 @@ export class Grammar extends BasePattern {
   }
 }
 
+interface IWalker {
+  fireEvent(ev: Event): FireEventResult;
+  canEnd(): boolean;
+  end(): EndResult;
+  _clone(memo: HashMap): IWalker;
+  possible(): EventSet;
+}
+
+class MisplacedElementWalker implements IWalker {
+  private readonly stack: Event[] = [];
+
+  constructor(ev: Event) {
+    this.stack.push(ev);
+  }
+
+  fireEvent(ev: Event): FireEventResult {
+    switch (ev.params[0] as string) {
+      case "enterStartTag":
+        this.stack.unshift(ev);
+        break;
+      case "endTag":
+        this.stack.shift();
+        break;
+      default:
+    }
+
+    return false;
+  }
+
+  canEnd(): boolean {
+    return this.stack.length === 0;
+  }
+
+  end(): EndResult {
+    return false;
+  }
+
+  possible(): EventSet {
+    return new EventSet();
+  }
+
+  _clone<T extends this>(this: T, memo: HashMap): T {
+    const clone =
+      new (this.constructor as { new (...args: any[]): T })(this.stack[0]);
+    // We don't need to do more than this. And we don't need to mess with the
+    // memo, as walkers don't engage in circular references.
+    (clone as any).stack = this.stack.concat([]);
+
+    return clone;
+  }
+}
+
+interface MisplacedElementStub {
+  walker: IWalker;
+  event: Event;
+}
+
 /**
  * Walker for [[Grammar]].
  */
@@ -220,7 +278,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
   // dealing with an element which is unknown to the schema (or which
   // cannot be unambiguously determined. They are Walker objects when we
   // can find a definition in the schema.
-  private readonly _misplacedElements: any[];
+  private readonly _misplacedElements: MisplacedElementStub[];
 
   private _swallowAttributeValue: boolean;
 
@@ -239,17 +297,19 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
   protected constructor(elOrWalker: GrammarWalker | Grammar,
                         memo?: HashMap) {
     if (elOrWalker instanceof GrammarWalker) {
-      const walker: GrammarWalker = elOrWalker;
+      const walker = elOrWalker;
       // tslint:disable-next-line:no-parameter-reassignment
       memo = isHashMap(memo); // Checks for undefined.
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.subwalker = walker.subwalker._clone(memo);
-      const misplacedElements: any[] = this._misplacedElements = [];
+      this._misplacedElements = [];
+      const misplacedElements = this._misplacedElements;
       for (const mpe of walker._misplacedElements) {
-        misplacedElements.push(mpe instanceof Walker ?
-                               mpe._clone(memo) :
-                               mpe.concat([]));
+        misplacedElements.push({
+          walker: mpe.walker._clone(memo),
+          event: mpe.event,
+        });
       }
       this._swallowAttributeValue = walker._swallowAttributeValue;
       this.suspendedWs = walker.suspendedWs;
@@ -257,14 +317,13 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       this._prevEvWasText = walker._prevEvWasText;
     }
     else {
-      const el: Grammar = elOrWalker;
-      super(el);
+      super(elOrWalker);
       this.nameResolver = new NameResolver();
       this._misplacedElements = [];
       this._swallowAttributeValue = false;
       this.ignoreNextWs = false;
       this._prevEvWasText = false;
-      this.subwalker = el.start.newWalker(this.nameResolver);
+      this.subwalker = elOrWalker.start.newWalker(this.nameResolver);
     }
   }
 
@@ -339,18 +398,18 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
         ev.params[0] === "leaveContext" ||
         ev.params[0] === "definePrefix") {
       switch (ev.params[0]) {
-      case "enterContext":
-        this.nameResolver.enterContext();
-        break;
-      case "leaveContext":
-        this.nameResolver.leaveContext();
-        break;
-      case "definePrefix":
-        this.nameResolver.definePrefix(ev.params[1] as string,
-                                       ev.params[2] as string);
-        break;
-      default:
-        throw new Error(`unexpected event: ${ev.params[0]}`);
+        case "enterContext":
+          this.nameResolver.enterContext();
+          break;
+        case "leaveContext":
+          this.nameResolver.leaveContext();
+          break;
+        case "definePrefix":
+          this.nameResolver.definePrefix(ev.params[1] as string,
+                                         ev.params[2] as string);
+          break;
+        default:
+          throw new Error(`unexpected event: ${ev.params[0]}`);
       }
 
       return false;
@@ -368,79 +427,52 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       return false;
     }
 
+    let topMisplacedElement = this._misplacedElements[0];
     // This is the walker we must fire all our events on.
-    let walker: Walker<BasePattern> =
-      (this._misplacedElements.length > 0 &&
-       this._misplacedElements[0] instanceof Walker) ?
-      // This happens if we ran into a misplaced element that we were
-      // able to infer.
-      this._misplacedElements[0] : this.subwalker;
+    const walker = topMisplacedElement === undefined ? this.subwalker :
+      topMisplacedElement.walker;
 
-    const ignoreNextWsNow: boolean = this.ignoreNextWs;
+    const ignoreNextWsNow = this.ignoreNextWs;
     this.ignoreNextWs = false;
     switch (ev.params[0]) {
-    case "enterStartTag":
-      // Absorb the whitespace: poof, gone!
-      this.suspendedWs = undefined;
-      break;
-    case "text":
-      if (this._prevEvWasText) {
-        throw new Error("fired two text events in a row: this is " +
-                        "disallowed by salve");
-      }
-
-      if (ignoreNextWsNow) {
+      case "enterStartTag":
+        // Absorb the whitespace: poof, gone!
         this.suspendedWs = undefined;
-        const trimmed: string = (ev.params[1] as string).replace(/^\s+/, "");
-        if (trimmed.length !== (ev.params[1] as string).length) {
-          // tslint:disable-next-line:no-parameter-reassignment
-          ev = new Event("text", trimmed);
+        break;
+      case "text":
+        if (this._prevEvWasText) {
+          throw new Error("fired two text events in a row: this is " +
+                          "disallowed by salve");
         }
-      }
-      else if (this.suspendedWs !== undefined && this.suspendedWs !== "") {
-        wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
+
+        if (ignoreNextWsNow) {
+          this.suspendedWs = undefined;
+          const trimmed = (ev.params[1] as string).replace(/^\s+/, "");
+          if (trimmed.length !== (ev.params[1] as string).length) {
+            // tslint:disable-next-line:no-parameter-reassignment
+            ev = new Event("text", trimmed);
+          }
+        }
+        else if (this.suspendedWs !== undefined && this.suspendedWs !== "") {
+          wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
+          this.suspendedWs = undefined;
+        }
+        break;
+      case "endTag":
+        this.ignoreNextWs = true;
+        /* falls through */
+      default:
+        // Process the whitespace that was suspended.
+        if (this.suspendedWs !== undefined && this.suspendedWs !== "" &&
+            !ignoreNextWsNow) {
+          wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
+        }
         this.suspendedWs = undefined;
-      }
-      break;
-    case "endTag":
-      this.ignoreNextWs = true;
-      /* falls through */
-    default:
-      // Process the whitespace that was suspended.
-      if (this.suspendedWs !== undefined && this.suspendedWs !== "" &&
-          !ignoreNextWsNow) {
-        wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
-      }
-      this.suspendedWs = undefined;
     }
 
     // We can update it here because we're done examining the value that was
     // set from the previous call to fireEvent.
     this._prevEvWasText = (ev.params[0] === "text");
-
-    if (this._misplacedElements.length > 0 &&
-        this._misplacedElements[0] instanceof Array) {
-      // We are in a misplaced element which is foreign to the schema (or
-      // which cannot be inferred unambiguously.
-      const mpe: any = this._misplacedElements[0];
-      switch (ev.params[0]) {
-      case "enterStartTag":
-        mpe.unshift(ev.params.slice(1));
-        break;
-      case "endTag":
-        mpe.shift();
-        break;
-      default:
-        // We don't care
-      }
-
-      // We're done with this context.
-      if (mpe.length === 0) {
-        this._misplacedElements.shift();
-      }
-
-      return false;
-    }
 
     // This would happen if the user puts an attribute on a tag that does not
     // allow one. Instead of generating errors for both the attribute name
@@ -455,85 +487,97 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       return [new ValidationError("attribute value required")];
     }
 
-    let ret: FireEventResult = walker.fireEvent(ev);
+    let ret = walker.fireEvent(ev);
 
     if (ret === undefined) {
       switch (ev.params[0]) {
-      case "enterStartTag":
-        const name: namePatterns.Name = new namePatterns.Name(
-          "", ev.params[1] as string, ev.params[2] as string);
-        ret = [new ElementNameError("tag not allowed here", name)];
+        case "enterStartTag":
+          const name = new namePatterns.Name("", ev.params[1] as string,
+                                             ev.params[2] as string);
+          ret = [new ElementNameError("tag not allowed here", name)];
 
-        // Try to infer what element is meant by this errant tag. If we can't
-        // find a candidate, then fall back to a dumb mode.
-        const candidates: ElementI[] | undefined =
-          this.el.elementDefinitions[name.toString()];
-        if (candidates !== undefined && candidates.length === 1) {
-          const newWalker: Walker<BasePattern> =
-            candidates[0].newWalker(this.nameResolver);
-          this._misplacedElements.unshift(newWalker);
-          if (newWalker.fireEvent(ev) !== false) {
-            throw new Error("internal error: the inferred element " +
-                            "does not accept its initial event");
+          // Try to infer what element is meant by this errant tag. If we can't
+          // find a candidate, then fall back to a dumb mode.
+          const candidates = this.el.elementDefinitions[name.toString()];
+          if (candidates !== undefined && candidates.length === 1) {
+            const newWalker = candidates[0].newWalker(this.nameResolver);
+            this._misplacedElements.unshift({ walker: newWalker, event: ev });
+            if (newWalker.fireEvent(ev) !== false) {
+              throw new Error("internal error: the inferred element " +
+                              "does not accept its initial event");
+            }
           }
-        }
-        else {
-          // Dumb mode...
-          this._misplacedElements.unshift([ev.params.slice(1)]);
-        }
-        break;
-      case "endTag":
-        ret = [new ElementNameError(
-          "unexpected end tag",
-          new namePatterns.Name("",
-                                ev.params[1] as string,
-                                ev.params[2] as string))];
-        break;
-      case "attributeName":
-        ret = [new AttributeNameError(
-          "attribute not allowed here",
-          new namePatterns.Name("",
-                                ev.params[1] as string,
-                                ev.params[2] as string))];
-        this._swallowAttributeValue = true;
-        break;
-      case "attributeValue":
-        ret = [new ValidationError(
-          "unexpected attributeValue event; it is likely " +
-            "that fireEvent is incorrectly called")];
-        break;
-      case "text":
-        ret = [new ValidationError("text not allowed here")];
-        break;
-      case "leaveStartTag":
-        // If the _misplacedElements stack did not exist then we would get here
-        // if a file being validated contains a tag which is not allowed. An
-        // ElementNameError will already have been issued. So rather than
-        // violate our contract (which says no undefined value may be returned)
-        // or require that callers do something special with 'undefined' as a
-        // return value, just treat this event as a non-error.
-        //
-        // But the stack exists, so we cannot get here. If we do end up here,
-        // then there is an internal error somewhere.
-        /* falls through */
-      default:
-        throw new Error(
-          `unexpected event type in GrammarWalker's fireEvent: \
+          else {
+            // Dumb mode...
+            this._misplacedElements.unshift({
+              walker: new MisplacedElementWalker(ev),
+              event: ev,
+            });
+          }
+          break;
+        case "endTag":
+          ret = [new ElementNameError(
+            "unexpected end tag",
+            new namePatterns.Name("", ev.params[1] as string,
+                                  ev.params[2] as string))];
+          break;
+        case "attributeName":
+          ret = [new AttributeNameError(
+            "attribute not allowed here",
+            new namePatterns.Name("", ev.params[1] as string,
+                                  ev.params[2] as string))];
+          this._swallowAttributeValue = true;
+          break;
+        case "attributeValue":
+          ret = [new ValidationError("unexpected attributeValue event; it \
+is likely that fireEvent is incorrectly called")];
+          break;
+        case "text":
+          ret = [new ValidationError("text not allowed here")];
+          break;
+        case "leaveStartTag":
+          // If the _misplacedElements stack did not exist then we would get
+          // here if a file being validated contains a tag which is not
+          // allowed. An ElementNameError will already have been issued. So
+          // rather than violate our contract (which says no undefined value may
+          // be returned) or require that callers do something special with
+          // 'undefined' as a return value, just treat this event as a
+          // non-error.
+          //
+          // But the stack exists, so we cannot get here. If we do end up here,
+          // then there is an internal error somewhere.
+          /* falls through */
+        default:
+          throw new Error(`unexpected event type in GrammarWalker's fireEvent: \
 ${ev.params[0].toString()}`);
       }
     }
 
+    // The top may have changed.
+    topMisplacedElement = this._misplacedElements[0];
     // Check whether the context should end
-    if (this._misplacedElements.length > 0 &&
-        this._misplacedElements[0] instanceof Walker) {
-      walker = this._misplacedElements[0];
-      if (walker.canEnd()) {
-        this._misplacedElements.shift();
-        const endRet: EndResult = walker.end();
-        if (endRet) {
-          ret = ret ? ret.concat(endRet) : endRet;
-        }
+    if (topMisplacedElement !== undefined &&
+        topMisplacedElement.walker.canEnd()) {
+      const endRet = topMisplacedElement.walker.end();
+      if (endRet) {
+        ret = ret ? ret.concat(endRet) : endRet;
       }
+
+      // When we drop a context from this._misplacedElements, we have to issue
+      // an "endTag" event on the walker (if any!) that was in effect when the
+      // context was added to this._misplacedElements. The endTag event
+      // corresponds to the enterStartTag event that was issued for the
+      // misplaced element.
+      const startEvent = topMisplacedElement.event;
+      const endTagEvent = new Event("endTag",
+                                    startEvent.params[1],
+                                    startEvent.params[2]);
+      this._misplacedElements.shift();
+      topMisplacedElement = this._misplacedElements[0];
+      const previousWalker = (topMisplacedElement === undefined) ?
+        this.subwalker : topMisplacedElement.walker;
+
+      previousWalker.fireEvent(endTagEvent);
     }
 
     return combineWsErrWith(ret);
@@ -541,10 +585,10 @@ ${ev.params[0].toString()}`);
 
   possible(): EventSet {
     if (this._misplacedElements.length !== 0) {
-      const mpe: any = this._misplacedElements[0];
+      const mpe = this._misplacedElements[0];
 
       // Return an empty set if the tags are unknown to us.
-      return mpe instanceof Walker ? mpe.possible() : new EventSet();
+      return mpe.walker.possible();
     }
 
     // There's no point in calling this._possible.

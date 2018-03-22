@@ -6,13 +6,16 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-export const version: string = "5.0.1";
+export const version: string = "6.0.0";
 
 export { eventsToTreeString, Event, EventSet, Grammar, GrammarWalker,
-         BasePattern, RefError, Walker, __test, FireEventResult,
+         BasePattern, RefError, Walker, FireEventResult,
          EndResult } from "./patterns";
 
-export { constructTree } from "./formats";
+export { ConversionResult, convertRNGToPattern } from "./conversion";
+
+export { writeTreeToJSON, renameRefsDefines } from "./json-format/write";
+export { constructTree, readTreeFromJSON } from "./json-format/read";
 
 export { EName }  from "./ename";
 
@@ -21,7 +24,7 @@ export { AttributeNameError, AttributeValueError, ChoiceError,
 
 export { NameResolver } from "./name_resolver";
 
-export { Base as BaseName, Name, NameChoice, NsName,
+export { Base as BaseName, ConcreteName, Name, NameChoice, NsName,
          AnyName } from "./name_patterns";
 
 /**

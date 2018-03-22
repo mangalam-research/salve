@@ -6,7 +6,7 @@
  */
 import { AttributeNameError, AttributeValueError } from "../errors";
 import { HashMap } from "../hashstructs";
-import * as namePatterns from "../name_patterns";
+import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { TrivialMap } from "../types";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
@@ -26,7 +26,7 @@ export class Attribute extends OneSubpattern {
    * @param pat The pattern contained by this one.
    */
 
-  constructor(xmlPath: string, readonly name: namePatterns.Name,
+  constructor(xmlPath: string, readonly name: ConcreteName,
               pat: Pattern) {
     super(xmlPath, pat);
   }

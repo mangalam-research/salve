@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
+<xsl:stylesheet version="1.1" xmlns="http://relaxng.org/ns/structure/1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
 
 <xsl:output method="xml"/>
 
@@ -26,7 +26,7 @@ The group and interleave patterns and the choice pattern and name class are recu
 	<xsl:copy>
 		<xsl:apply-templates select="@*"/>
 		<xsl:call-template name="reduce7.13">
-			<xsl:with-param name="node-name" select="'rng:group'"/>
+			<xsl:with-param name="node-name" select="'group'"/>
 		</xsl:call-template>
 	</xsl:copy>
 </xsl:template>
@@ -35,7 +35,7 @@ The group and interleave patterns and the choice pattern and name class are recu
 	<xsl:copy>
 		<xsl:apply-templates select="@*"/>
 		<xsl:call-template name="reduce7.13">
-			<xsl:with-param name="node-name" select="'rng:choice'"/>
+			<xsl:with-param name="node-name" select="'choice'"/>
 		</xsl:call-template>
 	</xsl:copy>
 </xsl:template>
@@ -44,7 +44,7 @@ The group and interleave patterns and the choice pattern and name class are recu
 	<xsl:copy>
 		<xsl:apply-templates select="@*"/>
 		<xsl:apply-templates select="*"/>
-		<rng:text/>
+		<text/>
 	</xsl:copy>
 </xsl:template>
 
@@ -54,12 +54,12 @@ The group and interleave patterns and the choice pattern and name class are recu
 		<xsl:apply-templates select="*[1]"/>
 		<xsl:call-template name="reduce7.13">
 			<xsl:with-param name="left" select="*[4]"/>
-			<xsl:with-param name="node-name" select="'rng:group'"/>
+			<xsl:with-param name="node-name" select="'group'"/>
 			<xsl:with-param name="out">
-				<rng:group>
+				<group>
 					<xsl:apply-templates select="*[2]"/>
 					<xsl:apply-templates select="*[3]"/>
-				</rng:group>
+				</group>
 			</xsl:with-param>
 		</xsl:call-template>
 	</xsl:copy>

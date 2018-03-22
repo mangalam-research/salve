@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
+<xsl:stylesheet version="1.1" xmlns="http://relaxng.org/ns/structure/1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
 
 <xsl:output method="xml"/>
 
@@ -15,10 +15,10 @@ mixed patterns are transformed into interleave patterns between their unique chi
 </xsl:template>
 
 <xsl:template match="rng:mixed">
-	<rng:interleave>
+	<interleave>
 		<xsl:apply-templates/>
-		<rng:text/>
-	</rng:interleave>
+		<text/>
+	</interleave>
 </xsl:template>
 
 </xsl:stylesheet>

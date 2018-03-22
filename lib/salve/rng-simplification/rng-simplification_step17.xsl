@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" xmlns:exsl="http://exslt.org/common" extension-element-prefixes="exsl" exclude-result-prefixes="exsl rng">
+<xsl:stylesheet version="1.1" xmlns="http://relaxng.org/ns/structure/1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" xmlns:exsl="http://exslt.org/common" extension-element-prefixes="exsl" exclude-result-prefixes="exsl rng">
+
+<!-- Without this, we may end up with extra spaces after the transformation. -->
+<xsl:strip-space elements="*"/>
+<xsl:preserve-space elements="rng:value rng:param"/>
 
 <xsl:output method="xml"/>
 
@@ -45,7 +49,7 @@ Recursively escalate notAllowed patterns, when they are located where their effe
 </xsl:template>
 
 <xsl:template match="rng:attribute[rng:notAllowed]|rng:list[rng:notAllowed]|rng:group[rng:notAllowed]|rng:interleave[rng:notAllowed]|rng:oneOrMore[rng:notAllowed]|rng:choice[count(rng:notAllowed) = 2]">
-	<rng:notAllowed updated="1"/>
+	<notAllowed updated="1"/>
 </xsl:template>
 
 <xsl:template match="rng:except[rng:notAllowed]">

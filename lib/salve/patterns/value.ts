@@ -58,7 +58,8 @@ export class Value extends Pattern {
       nr.definePrefix("", this.ns);
       context = { resolver: nr };
     }
-    ret = this._value = this.datatype.parseValue(this.rawValue, context);
+    ret = this._value = this.datatype.parseValue(this.xmlPath,
+                                                 this.rawValue, context);
 
     return ret;
   }

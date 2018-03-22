@@ -7,99 +7,9 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import * as patterns from "./patterns";
-import { fixPrototype } from "./tools";
-
-const { Empty, Data, List, Param, Value, NotAllowed, Text, Ref, OneOrMore,
-        Choice, Group, Attribute, Element, Define, Grammar, EName, Interleave,
-        Name, NameChoice, NsName, AnyName } = patterns.__protected;
-
-export type PatternCtor = { new (...args: any[]): patterns.BasePattern };
-
-//
-// MODIFICATIONS TO THIS TABLE MUST BE REFLECTED IN nameToConstructor
-//
-const codeToConstructor: (PatternCtor | typeof Array)[] = [
-  Array,
-  Empty,
-  Data,
-  List,
-  Param,
-  Value,
-  NotAllowed,
-  Text,
-  Ref,
-  OneOrMore,
-  Choice,
-  Group,
-  Attribute,
-  Element,
-  Define,
-  Grammar,
-  EName,
-  Interleave,
-  Name,
-  NameChoice,
-  NsName,
-  AnyName,
-];
-
-//
-// MODIFICATIONS TO THIS TABLE MUST BE REFLECTED IN codeToConstructor
-//
-const nameToConstructor: Record<string, PatternCtor | typeof Array> = {
-  // Array = 0 is hard-coded elsewhere in the conversion code so don't change
-  // it.
-  0: Array,
-  Empty,
-  1: Empty,
-  Data,
-  2: Data,
-  List,
-  3: List,
-  Param,
-  4: Param,
-  Value,
-  5: Value,
-  NotAllowed,
-  6: NotAllowed,
-  Text,
-  7: Text,
-  Ref,
-  8: Ref,
-  OneOrMore,
-  9: OneOrMore,
-  Choice,
-  10: Choice,
-  Group,
-  11: Group,
-  Attribute,
-  12: Attribute,
-  Element,
-  13: Element,
-  Define,
-  14: Define,
-  Grammar,
-  15: Grammar,
-  EName,
-  16: EName,
-  Interleave,
-  17: Interleave,
-  Name,
-  18: Name,
-  NameChoice,
-  19: NameChoice,
-  NsName,
-  20: NsName,
-  AnyName,
-  21: AnyName,
-};
-
-// This is a bit field
-export const OPTION_NO_PATHS = 1;
-// var OPTION_WHATEVER = 2;
-// var OPTION_WHATEVER_PLUS_1 = 4;
-// etc...
+import { EName, Grammar } from "../patterns";
+import { fixPrototype } from "../tools";
+import { codeToConstructor, OPTION_NO_PATHS, PatternCtor } from "./common";
 
 class OldFormatError extends Error {
   constructor() {
@@ -112,7 +22,7 @@ class OldFormatError extends Error {
 /**
  * A class for walking the JSON object representing a schema.
  */
-export class V2JSONWalker {
+class V2JSONWalker {
   private readonly addPath: boolean;
   /**
    *
@@ -298,15 +208,15 @@ class V2Constructor extends V2JSONWalker {
  * @param code The JSON representation (a string) or the deserialized JSON. **If
  * you pass an object, it will be mutated while producing the result.** So you
  * cannot pass the same object twice to this function. Note that if you are
- * calling ``constructTree`` on the same input repeatedly, you are probably
- * "doing it wrong". You should be caching the results rather than building
- * multiple identical trees.
+ * calling this function on the same input repeatedly, you are probably "doing
+ * it wrong". You should be caching the results rather than building multiple
+ * identical trees.
  *
  * @throws {Error} When the version of the data is not supported.
  *
  * @returns The tree.
  */
-export function constructTree(code: string | {}): patterns.Grammar {
+export function readTreeFromJSON(code: string | {}): Grammar {
   const parsed = (typeof code === "string" ? JSON.parse(code) : code);
   if (typeof parsed === "object" && parsed.v === undefined) {
     throw new OldFormatError(); // version 0
@@ -320,18 +230,7 @@ export function constructTree(code: string | {}): patterns.Grammar {
   throw new Error(`unknown version: ${version}`);
 }
 
-//
-// Exports which are meant for other modules internal to salve.
-//
-// DO NOT USE THIS OUTSIDE SALVE! THIS EXPORT MAY CHANGE AT ANY TIME!
-// YOU'VE BEEN WARNED!
-//
-// tslint:disable-next-line:variable-name
-export const __protected: any = {
-  V2JSONWalker,
-  nameToConstructor,
-  OPTION_NO_PATHS,
-};
+export const constructTree = readTreeFromJSON;
 
 //  LocalWords:  deserialized PatternTwoPatterns PatternOnePattern OneOrMore js
 //  LocalWords:  codeToConstructor nameToConstructor RNG subpattern JSON xsl

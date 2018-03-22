@@ -9,7 +9,7 @@
 "use strict";
 
 const { assert } = require("chai");
-const { EName, NameResolver } = require("../salve");
+const { EName, NameResolver } = require("../build/dist/");
 
 const mapping = {
   btw: "http://lddubeau.com/ns/btw-storage",

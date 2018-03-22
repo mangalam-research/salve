@@ -2,6 +2,87 @@ Only major changes are reported here. Releases that only bump the patch part of
 the version number (i.e. the number after the 2nd dot) are generally not listed
 here unless they include a fix to a specific issue reported on github.
 
+* 6.0.0:
+
+  - New feature: salve now has its own native logic for validating and
+    simplifying the schemas passed to it. Previous versions of ``salve``
+    required using the command line tool ``salve-convert``, which relied on
+    external processing for validation and simplification of the schema, which
+    had two consequences. First, the validation and simplification of the schema
+    was slower that it should be, due to the cost of launching external
+    processes. Second, although salve was able since day one to validate XML in
+    the browser, the schemas it used had to be pre-converted to a JSON
+    representation first, and this conversion could not be done *in the
+    browser*. Now it can.
+
+  - New feature: associated with the change above, salve now provides a function
+    (``convertRNGToPattern``) that takes a schema and converts it to a pattern
+    object suitable for validation. This function performs the schema
+    simplification and validation using the native functionality described
+    above. Using this functionality for the test suite has reduced the suite
+    running time from about 10 minutes to 1 minute! (Yes, the old XSLT-based
+    conversion was slow as sin to start with, and using it in the suite also
+    required unnecessary repeated disk accesses, which added to the
+    slowness. The 786 tests that check salve against the Relax NG specification
+    were especially hit hard by this.)
+
+  - Fixed a bug in validation logic. There was a bug which caused salve to
+    erroneously miss some validation errors. Fortunately, the bug was not often
+    triggered as it required the use of <interleave> with a rather specific
+    pattern inside. (Salve has been in production for *many* years without ever
+    triggering this bug.)
+
+  - Fix a couple of bugs in ``bin/parse.js``. That example code is not used
+    much. Some issues went unnoticed.
+
+  - Bug fix: the XML parser that reads the Relax NG schema for conversion to
+    salve's internal representation would omit text nodes consisting entirely of
+    white space because they are *usually* insignificant. Omitting such nodes
+    is helpful for simplifying the conversion code. However, the parser also
+    erroneously omitted significant nodes. Text nodes that are entirely white
+    space are potentially significant in ``value`` and ``param``. This version
+    fixes the problem and preserves the potentially significant text nodes. (I
+    write "potentially" because Relax NG cannot know a priori whether the spaces
+    are significant: it depends on the type library in use.)
+
+    Schemas that were converted in earlier versions of salve *and* that use
+    ``value`` or ``param`` with text entirely consisting of white space should be
+    reprocessed with this version.
+
+    The likelihood of running into this problem in practice is remote. Among the
+    type parameters (``param``) supported by salve, the only one that can make
+    meaningful usage of a value consisting of white spaces is
+    ``pattern``. However, specifying through ``pattern`` that an attribute or
+    element content can contain **only** *a specific number of white spaces* is
+    definitely bizarre. The usefulness of ``value`` consisting entirely of
+    white space is similarly unlikely. (Not *impossible*, but *rare*.)
+
+  - The main entry point of the package (``main`` field in ``package.json``)
+    used to be the bundle created with Webpack. It is no longer the case. For
+    most usages, this change should be transparent.
+
+  - Deprecation notice: ``salve-convert`` and the validation/simplification
+    methods that depend on external processes are deprecated. They will be
+    absent (or relegated to the status of debugging tools, not for general use)
+    in the next major release of salve. In the short term this means that:
+
+    + Code that depends on ``salve-convert`` should instead be redesigned to
+      depend on ``convertRNGToPattern``.
+
+    + Issues in the facilities hereby being deprecated won't be fixed quickly,
+      if at all.
+
+  - ``constructTree`` has been renamed ``readTreeFromJSON``. The old name is
+    deprecated and will be removed in the next major version.
+
+  - There is a function named ``writeTreeToJSON`` which does the reverse of
+    ``readTreeFromJSON``. When you move away from ``salve-convert``, you should
+    be using the ``writeTreeToJSON`` and ``readTreeFromJSON`` to serialize and
+    deserialize a converted schema. Schema conversion is much faster now than it
+    was but it is still a costly process. When at all possible, it is
+    recommended to cache the results of the conversion instead of converting
+    over and over.
+
 * 5.0.0:
 
   - Salve no longer officially supports Node 4.x. This is enough by itself to
@@ -330,5 +411,5 @@ here unless they include a fix to a specific issue reported on github.
   would have to test the return value for identity with the value
   ``true``, which is more verbose.)
 
-..  LocalWords:  rng js xsl README xsltproc JSON API fireEvent
+..  LocalWords:  rng js xsl README xsltproc JSON API fireEvent param NG
 ..  LocalWords:  boolean

@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0" xmlns:prefA="uriA" xmlns:prefB="uriB"><start><element><nsName ns="foo"/><element><name>x</name><group><choice><interleave><element><name>xx</name><empty/></element></interleave></choice></group></element><element><name>y</name><empty/></element><element><name>z</name><empty/></element></element></start></grammar>

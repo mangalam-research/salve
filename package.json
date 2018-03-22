@@ -1,7 +1,7 @@
 {
   "name": "salve",
   "description": "Salve is a Javascript library which implements a validator able to validate an XML document on the basis of a subset of RelaxNG.",
-  "version": "5.0.1",
+  "version": "6.0.0",
   "versionedSources": "lib/salve/validate.ts",
   "keywords": [
     "RelaxNG",
@@ -16,7 +16,7 @@
     "Jesse Bethel <keisetsu@gmail.com>",
     "Bennett Buchanan <buchanan.3rd@gmail.com>"
   ],
-  "main": "salve.js",
+  "main": "lib/salve/validate.js",
   "types": "lib/salve/validate.d.ts",
   "repository": {
     "type": "git",
@@ -39,19 +39,26 @@
   },
   "dependencies": {
     "argparse": ">=1 <2",
+    "file-url": "^2.0.2",
+    "node-fetch": "^2.0.0",
     "sax": "~1.2.1",
     "temp": "~0.8.0",
+    "tslib": "^1.9.0",
     "xregexp": "^3.0.0"
   },
   "devDependencies": {
     "@types/argparse": "^1.0.30",
+    "@types/file-url": "^2.0.0",
+    "@types/node": "^8.9.1",
+    "@types/node-fetch": "^1.6.7",
     "@types/sax": "0.0.28",
     "@types/temp": "^0.8.29",
     "bluebird": ">=3.1.1 <4",
-    "chai": ">=3 <4",
+    "chai": "^3.5.0",
     "child-process-promise": "^2.2.1",
+    "core-js": "^2.5.3",
     "del": ">=2.0.2 <3",
-    "eslint": "^4.17.0",
+    "eslint": "^4.19.0",
     "eslint-config-lddubeau-base": "^2.0.0",
     "event-stream": ">=3.3.2 <4",
     "fancy-log": "^1.3.2",
@@ -61,15 +68,27 @@
     "gulp-newer": "^1.4.0",
     "gulp-rename": ">=1.2.2 < 2",
     "jison-gho": "^0.6.1-215",
+    "karma": "^2.0.0",
+    "karma-browserstack-launcher": "^1.3.0",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-firefox-launcher": "^1.1.0",
+    "karma-mocha": "^1.3.0",
+    "karma-mocha-reporter": "^2.2.5",
+    "karma-source-map-support": "^1.2.0",
     "merge-options": "^1.0.0",
-    "mocha": "^3.2.0",
+    "mocha": "^3.5.3",
+    "salve": "^5.0.1",
+    "source-map-support": "^0.5.3",
     "touch": ">=1.0.0 <2",
     "tslint": "^5.9.1",
-    "tslint-config-lddubeau": "^2.0.2",
-    "typedoc": "^0.11.0",
+    "tslint-config-lddubeau": "^2.0.3",
+    "typedoc": "^0.11.1",
     "typescript": "^2.7.2",
+    "url-polyfill": "^1.0.11",
     "versync": "^3.1.0",
-    "webpack": "^2.2.0"
+    "webpack": "^3.11.0",
+    "whatwg-fetch": "^2.0.3"
   },
   "bin": {
     "salve-convert": "./bin/salve-convert"

@@ -2,6 +2,12 @@
 
 "use strict";
 
+const { URL } = require("url");
+const fetch = require("node-fetch");
+
+global.URL = URL;
+global.fetch = fetch;
+
 const Mocha = require("mocha");
 
 const oldRun = Mocha.prototype.run;

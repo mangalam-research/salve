@@ -1,9 +1,7 @@
-<?xml version="1.0"?>
-<!-- RELAX NG for RELAX NG -->
-<!-- $Id: relaxng.rng,v 1.31 2002/05/30 06:07:43 jjc Exp $ -->
 <grammar datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
-         ns="http://relaxng.org/ns/structure/1.0"
-         xmlns="http://relaxng.org/ns/structure/1.0">
+  ns="http://relaxng.org/ns/structure/1.0"
+  xmlns="http://relaxng.org/ns/structure/1.0">
+
   <start>
     <ref name="pattern"/>
   </start>
@@ -23,9 +21,9 @@
       <element name="attribute">
         <ref name="common-atts"/>
         <choice>
-	  <attribute name="name">
-	    <data type="QName"/>
-	  </attribute>
+          <attribute name="name">
+            <data type="QName"/>
+          </attribute>
           <ref name="open-name-class"/>
         </choice>
         <interleave>
@@ -72,14 +70,12 @@
           <data type="NCName"/>
         </attribute>
         <ref name="common-atts"/>
-        <ref name="other"/>
       </element>
       <element name="parentRef">
         <attribute name="name">
           <data type="NCName"/>
         </attribute>
         <ref name="common-atts"/>
-        <ref name="other"/>
       </element>
       <element name="empty">
         <ref name="common-atts"/>
@@ -106,19 +102,18 @@
         <interleave>
           <ref name="other"/>
           <group>
-	    <zeroOrMore>
-	      <element name="param">
-		<attribute name="name">
-		  <data type="NCName"/>
-		</attribute>
-                <ref name="common-atts"/>
-		<text/>
-	      </element>
-	    </zeroOrMore>
+            <zeroOrMore>
+              <element name="param">
+                <attribute name="name">
+                  <data type="NCName"/>
+                </attribute>
+                <text/>
+              </element>
+            </zeroOrMore>
             <optional>
               <element name="except">
-		<ref name="common-atts"/>
-		<ref name="open-patterns"/>
+                <ref name="common-atts"/>
+                <ref name="open-patterns"/>
               </element>
             </optional>
           </group>
@@ -331,5 +326,4 @@
       </zeroOrMore>
     </element>
   </define>
-
 </grammar>

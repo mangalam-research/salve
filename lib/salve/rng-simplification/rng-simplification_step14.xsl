@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xsl:stylesheet version="1.1" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
+<xsl:stylesheet version="1.1" xmlns="http://relaxng.org/ns/structure/1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rng="http://relaxng.org/ns/structure/1.0" exclude-result-prefixes="rng">
 
 <xsl:output method="xml"/>
 
@@ -26,7 +26,7 @@ In each grammar, multiple start elements and multiple define elements with the s
 
 <xsl:template name="start7.18">
 	<xsl:param name="left" select="following-sibling::rng:start[2]"/>
-	<xsl:param name="node-name" select="concat('rng:',parent::*/rng:start/@combine)"/>
+	<xsl:param name="node-name" select="parent::*/rng:start/@combine"/>
 	<xsl:param name="out">
 		<xsl:element name="{$node-name}">
 			<xsl:apply-templates select="*"/>
@@ -62,7 +62,7 @@ In each grammar, multiple start elements and multiple define elements with the s
 
 <xsl:template name="define7.18">
 	<xsl:param name="left" select="following-sibling::rng:define[@name=current()/@name][2]"/>
-	<xsl:param name="node-name" select="concat('rng:',parent::*/rng:define[@name=current()/@name]/@combine)"/>
+	<xsl:param name="node-name" select="parent::*/rng:define[@name=current()/@name]/@combine"/>
 	<xsl:param name="out">
 		<xsl:element name="{$node-name}">
 			<xsl:apply-templates select="*"/>

@@ -5,8 +5,12 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 "use strict";
+// tslint:disable-next-line:no-require-imports import-name
+import fileURL = require("file-url");
 import * as sax from "sax";
-import * as salve from "./validate";
+
+import { convertRNGToPattern, Event, Grammar,
+         readTreeFromJSON } from "./validate";
 
 // tslint:disable no-console
 
@@ -16,7 +20,7 @@ declare module "sax" {
   }
 }
 
-const parser: sax.SAXParser = sax.parser(true, { xmlns: true });
+const parser = sax.parser(true, { xmlns: true });
 
 type TagInfo = {
   uri: string;
@@ -24,33 +28,74 @@ type TagInfo = {
   hasContext: boolean;
 };
 
+async function grammarFromSource(rngSource: string | Grammar):
+Promise<Grammar> {
+  if (rngSource instanceof Grammar) {
+    return rngSource;
+  }
+
+  // We try loading the tree as a JSON file. It may not work if the file is not
+  // actually JSON.
+  let obj: {} | undefined;
+  try {
+    obj = JSON.parse(rngSource);
+  }
+  // tslint:disable-next-line:no-empty
+  catch {}
+
+  if (obj !== undefined) {
+    return readTreeFromJSON(obj);
+  }
+
+  // Treat it as a Relax NG schema.
+  return (await convertRNGToPattern(new URL(fileURL(rngSource)))).pattern;
+}
+
+/**
+ * Parse an XML file and validate it against a schema. This function is meant
+ * for **illustration purposes** and is used in testing. It does cut
+ * corners. You should not use this for production code.
+ *
+ * @param rngSource It may be a [[Grammar]] object pre-built from the Relax NG
+ * schema you want to use. Or it can be a JSON string, which is the contents of
+ * a file created with ``salve-convert``. Or it can be a path to a local file.
+ *
+ * @param xmlSource The XML contents to parse and validate.
+ *
+ * @param mute If true, don't report errors verbosely.
+ *
+ * @returns A promise resolving ``true`` if there were errors, ``false``
+ * otherwise.
+ */
 // tslint:disable-next-line: max-func-body-length
-function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
+export async function parse(rngSource: string | Grammar,
+                            xmlSource: string,
+                            mute: boolean): Promise<boolean> {
   // tslint:disable-next-line:no-parameter-reassignment
   mute = !!mute;
 
-  const tree: salve.Grammar = salve.constructTree(rngSource);
+  const tree = await grammarFromSource(rngSource);
 
-  const walker: salve.Walker<salve.BasePattern> = tree.newWalker();
+  const walker = tree.newWalker();
 
-  let error: boolean = false;
+  let error = false;
 
   function fireEvent(...args: any[]): void {
-    const ev: salve.Event = new salve.Event(args);
-    const ret: salve.FireEventResult = walker.fireEvent(ev);
+    const ev = new Event(args);
+    const ret = walker.fireEvent(ev);
     if (ret instanceof Array) {
       error = true;
       if (!mute) {
-        ret.forEach((x: salve.ValidationError) => {
+        for (const err of ret) {
           console.log(`on event ${ev}`);
-          console.log(x.toString());
-        });
+          console.log(err.toString());
+        }
       }
     }
   }
 
   const tagStack: TagInfo[] = [];
-  let textBuf: string = "";
+  let textBuf = "";
 
   function flushTextBuf(): void {
     fireEvent("text", textBuf);
@@ -59,35 +104,33 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
 
   parser.onopentag = (node: sax.QualifiedTag) => {
     flushTextBuf();
-    const names: string[] = Object.keys(node.attributes);
-    const nsDefinitions: string[][] = [];
+    const names = Object.keys(node.attributes);
+    const nsDefinitions = [];
+    const attributeEvents = [];
     names.sort();
-    names.forEach((name: string) => {
-      const attr: sax.QualifiedAttribute = node.attributes[name];
+    for (const name of names) {
+      const attr = node.attributes[name];
       if (attr.local === "" && name === "xmlns") { // xmlns="..."
         nsDefinitions.push(["", attr.value]);
       }
       else if (attr.prefix === "xmlns") { // xmlns:...=...
         nsDefinitions.push([attr.local, attr.value]);
       }
-    });
+      else {
+        attributeEvents.push(["attributeName", attr.uri, attr.local],
+                             ["attributeValue", attr.value]);
+      }
+    }
     if (nsDefinitions.length !== 0) {
       fireEvent("enterContext");
-      nsDefinitions.forEach((x: string[]) => {
-        fireEvent("definePrefix", x[0], x[1]);
-      });
+      for (const definition of nsDefinitions) {
+        fireEvent("definePrefix", ...definition);
+      }
     }
     fireEvent("enterStartTag", node.uri, node.local);
-    names.forEach((name: string) => {
-      const attr: sax.QualifiedAttribute = node.attributes[name];
-      // The parser handles all namespace issues
-      if ((attr.local === "" && name === "xmlns") || // xmlns="..."
-          (attr.prefix === "xmlns")) { // xmlns:...=...
-        return;
-      }
-      fireEvent("attributeName", attr.uri, attr.local);
-      fireEvent("attributeValue", attr.value);
-    });
+    for (const event of attributeEvents) {
+      fireEvent(...event);
+    }
     fireEvent("leaveStartTag");
     tagStack.unshift({
       uri: node.uri,
@@ -102,7 +145,7 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
 
   parser.onclosetag = () => {
     flushTextBuf();
-    const tagInfo: TagInfo | undefined = tagStack.shift();
+    const tagInfo = tagStack.shift();
     if (tagInfo === undefined) {
       throw new Error("stack underflow");
     }
@@ -112,7 +155,7 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
     }
   };
 
-  const entityRe: RegExp = /^<!ENTITY\s+([^\s]+)\s+(['"])(.*?)\2\s*>\s*/;
+  const entityRe = /^<!ENTITY\s+([^\s]+)\s+(['"])(.*?)\2\s*>\s*/;
 
   parser.ondoctype = (doctype: string) => {
     // This is an extremely primitive way to handle ENTITY declarations in a
@@ -127,10 +170,10 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
       .trim();
 
     while (cleaned.length !== 0) {
-      const match: RegExpMatchArray | null = entityRe.exec(cleaned);
+      const match = entityRe.exec(cleaned);
       if (match !== null) {
-        const name: string = match[1];
-        const value: string = match[3];
+        const name = match[1];
+        const value = match[3];
         cleaned = cleaned.slice(match[0].length);
         if (parser.ENTITIES[name] !== undefined) {
           throw new Error(`redefining entity: ${name}`);
@@ -149,8 +192,6 @@ function parse(rngSource: string, xmlSource: string, mute: boolean): boolean {
 
   return error;
 }
-
-module.exports = parse;
 
 //  LocalWords:  doctype DOCTYPE leaveContext definePrefix enterContext ev MPL
 //  LocalWords:  enterStartTag leaveStartTag endTag attributeValue xmlns

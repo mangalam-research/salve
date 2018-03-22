@@ -1,1 +1,1 @@
-salve-convert: error in schema; run with --verbose to see what the problem was
+salve-convert: /grammar/define[@name='__foo-elt-1']/element[@name='foo']/value: unknown datatype blah in default library

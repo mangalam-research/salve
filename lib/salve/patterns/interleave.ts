@@ -21,6 +21,8 @@ export class Interleave extends TwoSubpatterns {}
 class InterleaveWalker extends Walker<Interleave> {
   private inA: boolean;
   private inB: boolean;
+  private tagStateA: number;
+  private tagStateB: number;
   private walkerA: Walker<BasePattern> | undefined;
   private walkerB: Walker<BasePattern> | undefined;
   private readonly nameResolver: NameResolver;
@@ -43,6 +45,8 @@ class InterleaveWalker extends Walker<Interleave> {
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.inA = walker.inA;
       this.inB = walker.inB;
+      this.tagStateA = walker.tagStateA;
+      this.tagStateB = walker.tagStateB;
       this.walkerA = walker.walkerA !== undefined ?
         walker.walkerA._clone(memo) : undefined;
       this.walkerB = walker.walkerB !== undefined ?
@@ -55,6 +59,8 @@ class InterleaveWalker extends Walker<Interleave> {
       this.nameResolver = nameResolver;
       this.inA = false;
       this.inB = false;
+      this.tagStateA = 0;
+      this.tagStateB = 0;
     }
   }
 
@@ -93,15 +99,46 @@ class InterleaveWalker extends Walker<Interleave> {
     return this.possibleCached;
   }
 
+  //
+  // Interleave is very unusual among the patterns due to the fact that it
+  // ignores subpattern order. For instance
+  //
+  // <interleave>A<interleave>B C</interleave></interleave>
+  //
+  // can match any permutation of the patterns A B and C. In particular, the
+  // sequence B A C needs to be handled by the inner interleave, then by the
+  // pattern for A and then by the inner interleave again.
+  //
+  // Moreover, while validating, it may match subpatterns only partially.
+  // For instance:
+  //
+  // <interleave><group>A B</group>C</interleave>
+  //
+  // will match all permutations of A B C where A appears before B (so A B C, A
+  // C B and C A B). The sequence A C B is particularly problematic as it means
+  // matching the inner group, then matching C, then going back to the inner
+  // group!
+  //
+  // When an interleave subpattern starts to match, we may not switch to
+  // another subpattern until that subpattern is done. However, "done" here is
+  // not synonymous with ``canEnd() === true``. Looking again at the B A C
+  // scenario above, we can switch to A when B is done but the inner level
+  // interleave is itself not "done" because C has not matched yet.
+  //
+  // We work around the issue by counting the number of start tags and end tags
+  // seen by a pattern. When they are equal we can switch away from from the
+  // pattern to another one.
+  //
   fireEvent(ev: Event): FireEventResult {
     this._instantiateWalkers();
 
     this.possibleCached = undefined;
 
     if (this.inA && this.inB) {
-      // It due to the restrictions imposed by Relax NG, it should not be
-      // possible to be both inA and inB.
-      throw new Error("impossible state");
+      // It due to the restrictions imposed by Relax NG, it is not possible to
+      // be both inA and inB. If we get here, then we are dealing with an
+      // internal error.
+      throw new Error("prohibited state");
     }
 
     // Both walkers are necessarily defined because of the call to
@@ -115,18 +152,18 @@ class InterleaveWalker extends Walker<Interleave> {
     let retA: FireEventResult;
     let retB: FireEventResult;
     if (!this.inA && !this.inB) {
-      retA = walkerA.fireEvent(ev);
+      retA = this.fireEventOnSubWalker(walkerA, ev);
       if (retA === false) {
         this.inA = true;
 
+        // The constraints on interleave do not allow for two child patterns of
+        // interleave to match. So if the first walker matched, the second
+        // cannot. So we don't have to fireEvent on the second walker if the
+        // first matched.
         return false;
       }
 
-      // The constraints on interleave do not allow for two child patterns of
-      // interleave to match. So if the first walker matched, the second
-      // cannot. So we don't have to fireEvent on the second walker if the first
-      // matched.
-      retB = walkerB.fireEvent(ev);
+      retB = this.fireEventOnSubWalker(walkerB, ev);
       if (retB === false) {
         this.inB = true;
 
@@ -144,39 +181,80 @@ class InterleaveWalker extends Walker<Interleave> {
       return retA.concat(retB);
     }
     else if (this.inA) {
-      retA = walkerA.fireEvent(ev);
-      if (retA instanceof Array || retA === false) {
+      retA = this.fireEventOnSubWalker(walkerA, ev);
+      if (retA !== undefined) {
         return retA;
       }
 
-      // If we got here, retA === undefined
-      retB = walkerB.fireEvent(ev);
+      if (this.canSwitchFrom(walkerA)) {
+        retB = this.fireEventOnSubWalker(walkerB, ev);
 
-      if (retB === false) {
-        this.inA = false;
-        this.inB = true;
+        if (retB === false) {
+          this.inA = false;
+          this.inB = true;
+        }
 
-        return false;
+        return retB;
       }
     }
     else { // inB
-      retB = walkerB.fireEvent(ev);
-      if (retB instanceof Array || retB === false) {
+      retB = this.fireEventOnSubWalker(walkerB, ev);
+      if (retB !== undefined) {
         return retB;
       }
 
-      // If we got here, retB === undefined
-      retA = walkerA.fireEvent(ev);
+      if (this.canSwitchFrom(walkerB)) {
+        retA = this.fireEventOnSubWalker(walkerA, ev);
 
-      if (retA === false) {
-        this.inA = true;
-        this.inB = false;
+        if (retA === false) {
+          this.inA = true;
+          this.inB = false;
+        }
 
-        return false;
+        return retA;
       }
     }
 
     return undefined;
+  }
+
+  canSwitchFrom(walker: Walker<BasePattern>): boolean {
+    const num = walker === this.walkerA ? this.tagStateA : this.tagStateB;
+
+    return num === undefined || num === 0;
+  }
+
+  fireEventOnSubWalker(walker: Walker<BasePattern>,
+                       ev: Event): FireEventResult {
+    const ret = walker.fireEvent(ev);
+
+    if (ret !== false) {
+      return ret;
+    }
+
+    switch (ev.params[0]) {
+      case "enterStartTag": {
+        if (walker === this.walkerA) {
+          this.tagStateA++;
+        }
+        else {
+          this.tagStateB++;
+        }
+        break;
+      }
+      case "endTag": {
+        if (walker === this.walkerA) {
+          this.tagStateA--;
+        }
+        else {
+          this.tagStateB--;
+        }
+        break;
+      }
+      default:
+    }
+
+    return ret;
   }
 
   _suppressAttributes(): void {

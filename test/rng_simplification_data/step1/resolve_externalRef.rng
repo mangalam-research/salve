@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<group xmlns="http://relaxng.org/ns/structure/1.0" xmlns:q="uriQ" xml:base="er_sub1/">
+  <group>
+    <group xml:base="sub2">
+      <group>
+        <group xml:base="sub3/y">
+          <externalRef href="x"/>
+        </group>
+      </group>
+    </group>
+  </group>
+</group>

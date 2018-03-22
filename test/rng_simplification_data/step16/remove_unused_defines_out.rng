@@ -1,0 +1,2 @@
+<?xml version="1.0"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"><start><ref name="__foo-elt-1"/></start><define name="a"><element><name>q</name><empty/></element></define><define name="e"><element><name>e</name><empty/></element></define><define name="__foo-elt-1"><element><name>foo</name><ref name="a"/><ref name="e"/></element></define></grammar>
