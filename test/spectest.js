@@ -35,14 +35,18 @@ for (const x of ["180", "181", "182", "183", "184", "185"]) {
   };
 }
 
+function getTestsFrom(dirPath) {
+  return fs.readdirSync(dirPath)
+    .map(x => path.join(dirPath, x))
+    .filter(x => fs.statSync(x).isDirectory());
+}
 
-const spectestDir = path.join(__dirname, "spectest");
+const testDirs = getTestsFrom(path.join(__dirname, "spectest"))
+      .concat(getTestsFrom(path.join(__dirname, "additionalSpectest")));
 
-const testDirs = fs.readdirSync(spectestDir);
-
-function Test(test) {
-  this.test = test;
-  const p = this.path = path.join(spectestDir, test);
+function Test(testPath) {
+  this.test = path.basename(testPath);
+  const p = this.path = testPath;
   const incorrect = this.incorrect = [];
   const correct = this.correct = [];
   const valid = this.valid = [];
@@ -80,9 +84,7 @@ function Test(test) {
   [this.incorrect] = incorrect;
 }
 
-const tests = testDirs.filter(
-  x => fs.statSync(path.join(spectestDir, x)).isDirectory())
-      .map(x => new Test(x));
+const tests = testDirs.map(x => new Test(x));
 
 function makeValidityTest(data, vfile, passes) {
   it(vfile, () =>

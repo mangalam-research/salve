@@ -181,8 +181,7 @@ interface State {
   inOneOrMoreInterleave: boolean;
   inInterlave: boolean;
   inGroup: boolean;
-  attributes: Map<Element, ConcreteName>;
-  textInInterleaveCount: number;
+  attrNameCache: Map<Element, ConcreteName>;
 }
 
 // Sets for these did not appear to provide performance benefits.
@@ -221,11 +220,22 @@ function generalCheck(el: Element): Record<string, Element[]> {
     inOneOrMoreInterleave: false,
     inInterlave: false,
     inGroup: false,
-    attributes: new Map(),
-    textInInterleaveCount: 0,
+    attrNameCache: new Map(),
   });
 
   return ret;
+}
+
+function getAttrName(attr: Element,
+                     attrToName: Map<Element, ConcreteName>): ConcreteName {
+  let pattern = attrToName.get(attr);
+  if (pattern === undefined) {
+    const namePattern = attr.children[0] as Element;
+    pattern = makeNamePattern(namePattern);
+    attrToName.set(attr, pattern);
+  }
+
+  return pattern;
 }
 
 // tslint:disable-next-line:max-func-body-length
@@ -266,21 +276,10 @@ function _generalCheck(el: Element,
       }
 
       const nameClass = findMultiNames(el, ["anyName", "nsName"]);
-      if (state.inGroup || state.inInterlave) {
-        const namePattern = makeNamePattern(el.children[0] as Element);
-        state.attributes.set(el, namePattern);
-      }
-
       if (nameClass.anyName.length + nameClass.nsName.length !== 0  &&
          !state.inOneOrMore) {
         throw new SchemaValidationError("an attribute with an infinite name \
 class must be a descendant of oneOrMore (section 7.3)");
-      }
-      break;
-    case "text":
-      // Text in an attribute does not count.
-      if (!state.inAttribute) {
-        state.textInInterleaveCount++;
       }
       break;
     default:
@@ -350,64 +349,44 @@ on string values (section 7.2)`);
     }
 
     if (name === "group" || name === "interleave") {
-      if (newState.attributes.size > 1) {
-        const names = Array.from(newState.attributes.values());
-        for (let nameIx1 = 0; nameIx1 < names.length - 1; ++nameIx1) {
-          const name1 = names[nameIx1];
-          for (let nameIx2 = nameIx1 + 1; nameIx2 < names.length; ++nameIx2) {
-            const name2 = names[nameIx2];
-            if (name1.intersects(name2)) {
-              throw new SchemaValidationError(
-                `the name classes of two attributes in the same group or
+      const attrs1 = findOccurring(el.children[0] as Element,
+                                   ["attribute"]).attribute;
+      if (attrs1.length !== 0) {
+        const attrs2 = findOccurring(el.children[1] as Element,
+                                     ["attribute"]).attribute;
+        if (attrs2.length !== 0) {
+          for (const attr1 of attrs1) {
+            for (const attr2 of attrs2) {
+              const name1 = getAttrName(attr1, state.attrNameCache);
+              const name2 = getAttrName(attr2, state.attrNameCache);
+              if (name1.intersects(name2)) {
+                throw new SchemaValidationError(
+                  `the name classes of two attributes in the same group or
 interleave intersect (section 7.3): ${name1} and ${name2}`);
+              }
             }
           }
         }
       }
-
-      if (name === "interleave" && newState.textInInterleaveCount > 1) {
-        throw new SchemaValidationError(
-          "text present in both patterns of an interleave (section 7.4)");
-      }
-    }
-
-    if (state.inGroup || state.inInterlave) {
-      if (state.attributes.size === 0) {
-        state.attributes = newState.attributes;
-      }
-      else {
-        for (const [attr, names] of newState.attributes) {
-          state.attributes.set(attr, names);
-        }
-      }
-
-      if (state.inInterlave) {
-        state.textInInterleaveCount += newState.textInInterleaveCount;
-      }
-    }
-    else {
-      state.attributes.clear();
-    }
-
-    if (!state.inInterlave) {
-      state.textInInterleaveCount = 0;
     }
   }
 }
 
-function findOccurring(el: Element, names: string[]):
-Record<string, Element[]> {
+const occuringSet = new Set(["group", "interleave", "choice", "oneOrMore"]);
+
+function findOccurring(el: Element,
+                       names: string[]): Record<string, Element[]> {
   const ret: Record<string, Element[]> = Object.create(null);
   for (const name of names) {
     ret[name] = (el.local === name) ? [el] : [];
   }
 
-  _findOccuring(el, names, ret);
+  if (occuringSet.has(el.local)) {
+    _findOccuring(el, names, ret);
+  }
 
   return ret;
 }
-
-const occuringSet = new Set(["group", "interleave", "choice", "oneOrMore"]);
 
 function _findOccuring(el: Element, names: string[],
                        ret: Record<string, Element[]>): void {
@@ -450,15 +429,20 @@ function checkInterleaveRestriction(cached: Record<string, Element[]>,
   for (const interleave of interleaves) {
     const p1 = interleave.children[0] as Element;
     const p2 = interleave.children[1] as Element;
-    const { ref: refs1 } = findOccurring(p1, ["ref"]);
+    const { ref: refs1, text: texts1 } = findOccurring(p1, ["ref", "text"]);
 
-    if (refs1.length === 0) {
+    if (refs1.length === 0 && texts1.length === 0) {
       continue;
     }
 
-    const { ref: refs2 } = findOccurring(p2, ["ref"]);
-    if (refs2.length === 0) {
+    const { ref: refs2, text: texts2 } = findOccurring(p2, ["ref", "text"]);
+    if (refs2.length === 0 && texts2.length === 0) {
       continue;
+    }
+
+    if (texts1.length !== 0 && texts2.length !== 0) {
+      throw new SchemaValidationError(
+        "text present in both patterns of an interleave (section 7.4)");
     }
 
     const names1 = refs1

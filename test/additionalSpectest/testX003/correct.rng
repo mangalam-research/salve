@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<element xmlns="http://relaxng.org/ns/structure/1.0" name="foo">
+  <interleave>
+    <element name="a"><empty/></element>
+    <choice>
+      <group>
+        <element name="b"><empty/></element>
+        <element name="c"><empty/></element>
+      </group>
+      <group>
+        <element name="b"><empty/></element>
+        <text/>
+      </group>
+    </choice>
+  </interleave>
+</element>
