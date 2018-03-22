@@ -7,6 +7,8 @@
 "use strict";
 // tslint:disable-next-line:no-require-imports import-name
 import fileURL = require("file-url");
+import * as fs from "fs";
+import * as path from "path";
 import * as sax from "sax";
 
 import { convertRNGToPattern, Event, Grammar,
@@ -34,11 +36,13 @@ Promise<Grammar> {
     return rngSource;
   }
 
+  const rngSourceContent = fs.readFileSync(path.resolve(rngSource),
+                                           "utf8").toString();
   // We try loading the tree as a JSON file. It may not work if the file is not
   // actually JSON.
   let obj: {} | undefined;
   try {
-    obj = JSON.parse(rngSource);
+    obj = JSON.parse(rngSourceContent);
   }
   // tslint:disable-next-line:no-empty
   catch {}

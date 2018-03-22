@@ -7,6 +7,9 @@ here unless they include a fix to a specific issue reported on github.
   - Fix: the internal simplifier applied the constraints from section 7.3 and
     7.4 were too strictly.
 
+  - Fix: ``bin/parse.js`` you can actually pass a RNG file to it, as suggested
+    by the documentation.
+
 * 6.0.0:
 
   - New feature: salve now has its own native logic for validating and
