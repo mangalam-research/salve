@@ -114,6 +114,9 @@ describe("rng simplification", () => {
   function parseJS(inpath) {
     const parser = new conversion.BasicParser(
       sax.parser(true, { xmlns: true }));
+    if (inpath instanceof URL) {
+      inpath = inpath.toString().replace(/^file:\/\//, "");
+    }
     const source = fs.readFileSync(inpath).toString();
     parser.saxParser.write(source).close();
     return parser.root;
