@@ -74,9 +74,9 @@ export class Grammar extends BasePattern {
               definitions?: Define[]) {
     super(xmlPath);
     if (definitions !== undefined) {
-      definitions.forEach((x) => {
-        this.add(x);
-      });
+      for (const def of definitions) {
+        this.add(def);
+      }
     }
     const missing = this._resolve(this.definitions);
 
