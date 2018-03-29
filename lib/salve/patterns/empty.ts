@@ -29,7 +29,6 @@ export class EmptyWalker extends Walker<Empty> {
     }
     else {
       super(elOrWalker);
-      this.possibleCached = new EventSet();
     }
   }
 
@@ -40,10 +39,11 @@ export class EmptyWalker extends Walker<Empty> {
   }
 
   _possible(): EventSet {
-    // possibleCached is necessarily defined because of the constructor's
-    // logic.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.possibleCached!;
+    if (this.possibleCached === undefined) {
+      this.possibleCached = new EventSet();
+    }
+
+    return this.possibleCached;
   }
 
   fireEvent(ev: Event): false | undefined {

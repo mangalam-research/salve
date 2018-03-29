@@ -186,7 +186,8 @@ class InterleaveWalker extends Walker<Interleave> {
         return retA;
       }
 
-      if (this.canSwitchFrom(walkerA)) {
+      if (this.tagStateA === 0) {
+        // We can move to walkerB.
         retB = this.fireEventOnSubWalker(walkerB, ev);
 
         if (retB === false) {
@@ -203,7 +204,8 @@ class InterleaveWalker extends Walker<Interleave> {
         return retB;
       }
 
-      if (this.canSwitchFrom(walkerB)) {
+      if (this.tagStateB === 0) {
+        // We can move to walkerA.
         retA = this.fireEventOnSubWalker(walkerA, ev);
 
         if (retA === false) {
@@ -216,12 +218,6 @@ class InterleaveWalker extends Walker<Interleave> {
     }
 
     return undefined;
-  }
-
-  canSwitchFrom(walker: Walker<BasePattern>): boolean {
-    const num = walker === this.walkerA ? this.tagStateA : this.tagStateB;
-
-    return num === undefined || num === 0;
   }
 
   fireEventOnSubWalker(walker: Walker<BasePattern>,
@@ -294,19 +290,11 @@ class InterleaveWalker extends Walker<Interleave> {
     const retB: EndResult = this.walkerB!.end(attribute);
     // tslint:enable:no-non-null-assertion
 
-    if (retA && !retB) {
-      return retA;
+    if (!retA) {
+      return !retB ? false : retB;
     }
 
-    if (retB && !retA) {
-      return retB;
-    }
-
-    if (retA && retB) {
-      return retA.concat(retB);
-    }
-
-    return false;
+    return !retB ? retA : retA.concat(retB);
   }
 
   /**

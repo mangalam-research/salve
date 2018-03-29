@@ -6,7 +6,6 @@
  */
 import { HashMap } from "../hashstructs";
 import { addWalker, Event, EventSet, isHashMap, Pattern, Walker } from "./base";
-import { NotAllowedWalker } from "./not_allowed";
 
 /**
  * Pattern for ``<text/>``.
@@ -24,23 +23,23 @@ class TextWalker extends Walker<Text> {
   /**
    * @param el The pattern for which this walker was constructed.
    */
-  protected constructor(walker: NotAllowedWalker, memo: HashMap);
+  protected constructor(walker: TextWalker, memo: HashMap);
   protected constructor(el: Text);
-  protected constructor(elOrWalker: NotAllowedWalker | Text, memo?: HashMap) {
-    if (elOrWalker instanceof NotAllowedWalker) {
+  protected constructor(elOrWalker: TextWalker | Text, memo?: HashMap) {
+    if (elOrWalker instanceof TextWalker) {
       super(elOrWalker, isHashMap(memo));
     }
     else {
       super(elOrWalker);
-      this.possibleCached = new EventSet(TextWalker._textEvent);
     }
   }
 
   _possible(): EventSet {
-    // possibleCached is necessarily defined because of the constructor's
-    // logic.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.possibleCached!;
+    if (this.possibleCached === undefined) {
+      this.possibleCached = new EventSet(TextWalker._textEvent);
+    }
+
+    return this.possibleCached;
   }
 
   fireEvent(ev: Event): false | undefined {

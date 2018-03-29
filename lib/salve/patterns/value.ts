@@ -92,7 +92,6 @@ class ValueWalker extends Walker<Value> {
                                                         "as 2nd argument");
       super(el);
       this.nameResolver = nameResolver;
-      this.possibleCached = new EventSet(new Event("text", el.rawValue));
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
       this.matched = false;
@@ -100,28 +99,23 @@ class ValueWalker extends Walker<Value> {
   }
 
   _possible(): EventSet {
-    // possibleCached is necessarily defined because of the constructor's
-    // logic.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.possibleCached!;
+    if (this.possibleCached === undefined) {
+      this.possibleCached = this.matched ? new EventSet() :
+        new EventSet(new Event("text", this.el.rawValue));
+    }
+
+    return this.possibleCached;
   }
 
   fireEvent(ev: Event): false | undefined {
-    if (this.matched) {
-      return undefined;
-    }
-
-    if (ev.params[0] !== "text") {
-      return undefined;
-    }
-
-    if (!this.el.datatype.equal(ev.params[1] as string, this.el.value,
-                                this.context)) {
+    if (this.matched || ev.params[0] !== "text" ||
+       !this.el.datatype.equal(ev.params[1] as string, this.el.value,
+                               this.context)) {
       return undefined;
     }
 
     this.matched = true;
-    this.possibleCached = new EventSet();
+    this.possibleCached = undefined;
 
     return false;
   }
@@ -131,11 +125,8 @@ class ValueWalker extends Walker<Value> {
   }
 
   end(attribute: boolean = false): EndResult {
-    if (this.canEnd(attribute)) {
-      return false;
-    }
-
-    return [new ValidationError(`value required: ${this.el.rawValue}`)];
+    return this.canEnd(attribute) ? false :
+      [new ValidationError(`value required: ${this.el.rawValue}`)];
   }
 
   _suppressAttributes(): void {

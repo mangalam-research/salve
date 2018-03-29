@@ -9,7 +9,7 @@ import * as sax from "sax";
 
 import { ValidationError } from "../errors";
 import { XML1_NAMESPACE, XMLNS_NAMESPACE } from "../name_resolver";
-import { Event, FireEventResult, Grammar, Walker } from "../patterns";
+import { Event, Grammar, Walker } from "../patterns";
 import { fixPrototype } from "../tools";
 
 /**
@@ -428,7 +428,13 @@ interface TagInfo {
   hasContext: boolean;
 }
 
-export class Validator {
+export interface ValidatorI {
+  onopentag(node: sax.QualifiedTag): void;
+  onclosetag(node: sax.QualifiedTag): void;
+  ontext(text: string): void;
+}
+
+export class Validator implements ValidatorI {
   /** Whether we ran into an error. */
   readonly errors: ValidationError[] = [];
 
@@ -446,13 +452,17 @@ export class Validator {
   }
 
   protected flushTextBuf(): void {
+    if (this.textBuf === "") {
+      return;
+    }
+
     this.fireEvent("text", this.textBuf);
     this.textBuf = "";
   }
 
   protected fireEvent(...args: any[]): void {
-    const ev: Event = new Event(args);
-    const ret: FireEventResult = this.walker.fireEvent(ev);
+    const ev = new Event(args);
+    const ret = this.walker.fireEvent(ev);
     if (ret instanceof Array) {
       this.errors.push(...ret);
     }
@@ -460,40 +470,37 @@ export class Validator {
 
   onopentag(node: sax.QualifiedTag): void {
     this.flushTextBuf();
-    const nsDefinitions: [string, string][] = [];
-    const attributeEvents: string[][] = [];
+    let hasContext = false;
+    const attributeEvents: string[] = [];
     for (const name of Object.keys(node.attributes)) {
-      const attr: sax.QualifiedAttribute = node.attributes[name];
-      if (attr.local === "" && name === "xmlns") { // xmlns="..."
-        nsDefinitions.push(["", attr.value]);
-      }
-      else if (attr.prefix === "xmlns") { // xmlns:...=...
-        nsDefinitions.push([attr.local, attr.value]);
+      const { uri, prefix, local, value } = node.attributes[name];
+      if ((local === "" && name === "xmlns") ||
+          prefix === "xmlns") { // xmlns="..." or xmlns:q="..."
+        if (!hasContext) {
+          this.fireEvent("enterContext");
+          hasContext = true;
+        }
+        this.fireEvent("definePrefix", local, value);
       }
       else {
-        attributeEvents.push(["attributeName", attr.uri, attr.local],
-                             ["attributeValue", attr.value]);
+        attributeEvents.push(uri, local, value);
       }
     }
-    if (nsDefinitions.length !== 0) {
-      this.fireEvent("enterContext");
-      nsDefinitions.forEach((x: string[]) => {
-        this.fireEvent("definePrefix", ...x);
-      });
-    }
     this.fireEvent("enterStartTag", node.uri, node.local);
-    for (const event of attributeEvents) {
-      this.fireEvent(...event);
+    for (let ix = 0; ix < attributeEvents.length; ix += 3) {
+      this.fireEvent("attributeName", attributeEvents[ix],
+                     attributeEvents[ix + 1]);
+      this.fireEvent("attributeValue", attributeEvents[ix + 2]);
     }
     this.fireEvent("leaveStartTag");
     this.tagStack.unshift({
       uri: node.uri,
       local: node.local,
-      hasContext: nsDefinitions.length !== 0,
+      hasContext,
     });
   }
 
-  onclosetag(name: sax.QualifiedTag): void {
+  onclosetag(node: sax.QualifiedTag): void {
     this.flushTextBuf();
     const tagInfo: TagInfo | undefined = this.tagStack.shift();
     if (tagInfo === undefined) {
@@ -509,6 +516,18 @@ export class Validator {
   ontext(text: string): void {
     this.textBuf += text;
   }
+}
+
+// A validator that does not validate.
+class NullValidator implements ValidatorI {
+  // tslint:disable-next-line:no-empty
+  onopentag(): void {}
+
+  // tslint:disable-next-line:no-empty
+  onclosetag(): void {}
+
+  // tslint:disable-next-line:no-empty
+  ontext(): void {}
 }
 
 /**
@@ -532,7 +551,7 @@ export class BasicParser extends Parser {
   protected _recordedRoot: Element | undefined;
 
   constructor(saxParser: sax.SAXParser,
-              protected readonly validator?: Validator) {
+              protected readonly validator: ValidatorI = new NullValidator()) {
     super(saxParser);
   }
 
@@ -560,17 +579,13 @@ export class BasicParser extends Parser {
 
     this.stack.unshift(me);
 
-    if (this.validator !== undefined) {
-      this.validator.onopentag(node);
-    }
+    this.validator.onopentag(node);
   }
 
-  onclosetag(name: sax.QualifiedTag): void {
+  onclosetag(node: sax.QualifiedTag): void {
     this.stack.shift();
 
-    if (this.validator !== undefined) {
-      this.validator.onclosetag(name);
-    }
+    this.validator.onclosetag(node);
   }
 
   ontext(text: string): void {
@@ -581,9 +596,7 @@ export class BasicParser extends Parser {
 
     top.append(new Text(text));
 
-    if (this.validator !== undefined) {
-      this.validator.ontext(text);
-    }
+    this.validator.ontext(text);
   }
 }
 

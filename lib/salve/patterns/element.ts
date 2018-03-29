@@ -211,37 +211,26 @@ class ElementWalker extends Walker<Element> {
       // tslint:disable-next-line:no-non-null-assertion
       const walker = this.walker!;
 
-      let ret: FireEventResult = walker.fireEvent(ev);
+      const ret = walker.fireEvent(ev);
       if (ret === undefined) {
         // Our subwalker did not handle the event, so we must do it here.
-        if (ev.params[0] === "endTag") {
-          // boundName is necessarily defined by the time we get here.
-          // tslint:disable-next-line:no-non-null-assertion
-          if (this.boundName!.match(ev.params[1] as string,
-                                    ev.params[2] as string)) {
-            this.closed = true;
+        switch (ev.params[0]) {
+          case "endTag": {
+            // boundName is necessarily defined by the time we get here.
+            // tslint:disable-next-line:no-non-null-assertion
+            if (this.boundName!.match(ev.params[1] as string,
+                                      ev.params[2] as string)) {
+              this.closed = true;
 
-            const errs: EndResult = walker.end();
-            ret = [];
-
-            // Strip out the attributes errors as we've already reported
-            // them.
-            if (errs) {
-              for (const err of errs) {
-                if (!(err instanceof AttributeValueError ||
-                      err instanceof AttributeNameError)) {
-                  ret.push(err);
-                }
-              }
+              return walker.end();
             }
-
-            return ret.length !== 0 ? ret : false;
+            break;
           }
-        }
-        else if (ev.params[0] === "leaveStartTag") {
-          return [new ValidationError(
-            "unexpected leaveStartTag event; it is likely that " +
-              "fireEvent is incorrectly called")];
+          case "leaveStartTag":
+            return [new ValidationError(
+              "unexpected leaveStartTag event; it is likely that " +
+                "fireEvent is incorrectly called")];
+          default:
         }
       }
 
@@ -257,11 +246,7 @@ class ElementWalker extends Walker<Element> {
   }
 
   canEnd(attribute: boolean = false): boolean {
-    if (attribute) {
-      return true;
-    }
-
-    return this.closed;
+    return attribute ? true : this.closed;
   }
 
   end(attribute: boolean = false): EndResult {
@@ -269,23 +254,24 @@ class ElementWalker extends Walker<Element> {
       return false;
     }
 
-    let ret: ValidationError[] = [];
     if (!this.seenName) {
-      ret.push(new ElementNameError("tag required", this.el.name));
+      return [new ElementNameError("tag required", this.el.name)];
     }
-    else if (!this.endedStartTag || !this.closed) {
+
+    if (!this.endedStartTag || !this.closed) {
+      let ret: ValidationError[];
       if (this.walker !== undefined) {
-        const errs: EndResult = this.walker.end();
-        if (errs) {
-          ret = errs;
-        }
+        const errs = this.walker.end();
+        ret = errs ? errs : [];
       }
+      else {
+        ret = [];
+      }
+
       ret.push(this.endedStartTag ?
                new ElementNameError("tag not closed", this.el.name) :
                new ElementNameError("start tag not terminated", this.el.name));
-    }
 
-    if (ret.length > 0) {
       return ret;
     }
 

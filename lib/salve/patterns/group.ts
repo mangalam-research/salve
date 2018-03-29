@@ -183,23 +183,14 @@ class GroupWalker extends Walker<Group> {
     const walkerB = this.walkerB!;
     // tslint:enable:no-non-null-assertion
 
-    if (attribute) {
-      const aHas: boolean = this.el.patA._hasAttrs();
-      const bHas: boolean = this.el.patB._hasAttrs();
-      if (aHas && bHas) {
-        return walkerA.canEnd(true) && walkerB.canEnd(true);
-      }
-      else if (aHas) {
-        return walkerA.canEnd(true);
-      }
-      else if (bHas) {
-        return walkerB.canEnd(true);
-      }
-
-      return true;
+    if (!attribute) {
+      return walkerA.canEnd(false) && walkerB.canEnd(false);
     }
 
-    return walkerA.canEnd(false) && walkerB.canEnd(false);
+    const { patA, patB } = this.el;
+
+    return (patA._hasAttrs() ? walkerA.canEnd(true) : true) &&
+      (patB._hasAttrs() ? walkerB.canEnd(true) : true);
   }
 
   end(attribute: boolean = false): EndResult {

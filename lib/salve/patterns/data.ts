@@ -8,8 +8,8 @@ import { Datatype, RawParameter, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, BasePattern, EndResult, Event, EventSet, FireEventResult,
-         isHashMap, isNameResolver, Pattern, Walker } from "./base";
+import { addWalker, EndResult, Event, EventSet, isHashMap, isNameResolver,
+         Pattern, Walker } from "./base";
 /**
  * Data pattern.
  */
@@ -75,8 +75,8 @@ class DataWalker extends Walker<Data> {
   protected constructor(elOrWalker: DataWalker | Data,
                         nameResolverOrMemo: NameResolver | HashMap) {
     if (elOrWalker instanceof DataWalker) {
-      const walker: DataWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo);
+      const walker = elOrWalker;
+      const memo = isHashMap(nameResolverOrMemo);
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.context = walker.context !== undefined ?
@@ -84,16 +84,12 @@ class DataWalker extends Walker<Data> {
       this.matched = walker.matched;
     }
     else {
-      const el: Data = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo,
-                                                        "as 2nd argument");
+      const el = elOrWalker;
+      const nameResolver = isNameResolver(nameResolverOrMemo,
+                                          "as 2nd argument");
       super(el);
 
       this.nameResolver = nameResolver;
-      // We completely ignore the possible exception when producing the
-      // possibilities. There is no clean way to specify such an exception.
-      this.possibleCached = new EventSet(new Event("text",
-                                                   this.el.datatype.regexp));
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
       this.matched = false;
@@ -101,30 +97,26 @@ class DataWalker extends Walker<Data> {
   }
 
   _possible(): EventSet {
-    // possibleCached is necessarily defined because of the constructor's
-    // logic.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.possibleCached!;
+    if (this.possibleCached === undefined) {
+      // We completely ignore the possible exception when producing the
+      // possibilities. There is no clean way to specify such an exception.
+      this.possibleCached = this.matched ? new EventSet() :
+        new EventSet(new Event("text", this.el.datatype.regexp));
+    }
+
+    return this.possibleCached;
   }
 
   fireEvent(ev: Event): false | undefined {
-    if (this.matched) {
-      return undefined;
-    }
-
-    if (ev.params[0] !== "text") {
-      return undefined;
-    }
-
-    if (this.el.datatype.disallows(ev.params[1] as string, this.el.params,
+    if (this.matched || ev.params[0] !== "text" ||
+        this.el.datatype.disallows(ev.params[1] as string, this.el.params,
                                    this.context)) {
       return undefined;
     }
 
     if (this.el.except !== undefined) {
-      const walker: Walker<BasePattern> =
-        this.el.except.newWalker(this.nameResolver);
-      const exceptRet: FireEventResult = walker.fireEvent(ev);
+      const walker = this.el.except.newWalker(this.nameResolver);
+      const exceptRet = walker.fireEvent(ev);
 
       // False, so the except does match the text, and so this pattern does
       // not match it.
@@ -139,7 +131,7 @@ class DataWalker extends Walker<Data> {
     }
 
     this.matched = true;
-    this.possibleCached = new EventSet();
+    this.possibleCached = undefined;
 
     return false;
   }
@@ -157,8 +149,7 @@ class DataWalker extends Walker<Data> {
     // We have not matched anything. Therefore we have to check whether we
     // allow the empty string.
     if (this.el.except !== undefined) {
-      const walker: Walker<BasePattern> =
-        this.el.except.newWalker(this.nameResolver);
+      const walker = this.el.except.newWalker(this.nameResolver);
       if (walker.canEnd()) { // Matches the empty string
         return false;
       }
@@ -168,11 +159,8 @@ class DataWalker extends Walker<Data> {
   }
 
   end(attribute: boolean = false): EndResult {
-    if (this.canEnd(attribute)) {
-      return false;
-    }
-
-    return [new ValidationError("value required")];
+    return this.canEnd(attribute) ? false :
+      [new ValidationError("value required")];
   }
 
   _suppressAttributes(): void {

@@ -382,12 +382,13 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
         return false;
       case "text":
         // Process whitespace nodes
-        if ((ev.params[1] as string).trim() === "") {
+        const text = ev.params[1] as string;
+        if (text.trim() === "") {
           if (this.suspendedWs !== undefined) {
-            this.suspendedWs += ev.params[1];
+            this.suspendedWs += text;
           }
           else {
-            this.suspendedWs = ev.params[1] as string;
+            this.suspendedWs = text;
           }
 
           return false;
