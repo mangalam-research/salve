@@ -374,57 +374,34 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
   // tslint:disable-next-line: max-func-body-length
   fireEvent(ev: Event): FireEventResult {
     let wsErr: FireEventResult = false;
-    function combineWsErrWith(x: FireEventResult): FireEventResult {
-      if (wsErr === undefined) {
-        wsErr = [new ValidationError("text not allowed here")];
-      }
+    const evName = ev.params[0];
+    switch (evName) {
+      case "enterContext":
+        this.nameResolver.enterContext();
 
-      if (wsErr === false) {
-        return x;
-      }
+        return false;
+      case "leaveContext":
+        this.nameResolver.leaveContext();
 
-      if (x === false) {
-        return wsErr;
-      }
+        return false;
+      case "definePrefix":
+        this.nameResolver.definePrefix(ev.params[1] as string,
+                                       ev.params[2] as string);
 
-      if (x === undefined) {
-        throw new Error("undefined x");
-      }
+        return false;
+      case "text":
+        // Process whitespace nodes
+        if ((ev.params[1] as string).trim() === "") {
+          if (this.suspendedWs !== undefined) {
+            this.suspendedWs += ev.params[1];
+          }
+          else {
+            this.suspendedWs = ev.params[1] as string;
+          }
 
-      return wsErr.concat(x);
-    }
-
-    if (ev.params[0] === "enterContext" ||
-        ev.params[0] === "leaveContext" ||
-        ev.params[0] === "definePrefix") {
-      switch (ev.params[0]) {
-        case "enterContext":
-          this.nameResolver.enterContext();
-          break;
-        case "leaveContext":
-          this.nameResolver.leaveContext();
-          break;
-        case "definePrefix":
-          this.nameResolver.definePrefix(ev.params[1] as string,
-                                         ev.params[2] as string);
-          break;
-        default:
-          throw new Error(`unexpected event: ${ev.params[0]}`);
-      }
-
-      return false;
-    }
-
-    // Process whitespace nodes
-    if (ev.params[0] === "text" && (ev.params[1] as string).trim() === "") {
-      if (this.suspendedWs !== undefined) {
-        this.suspendedWs += ev.params[1];
-      }
-      else {
-        this.suspendedWs = ev.params[1] as string;
-      }
-
-      return false;
+          return false;
+        }
+      default:
     }
 
     let topMisplacedElement = this._misplacedElements[0];
@@ -434,7 +411,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
 
     const ignoreNextWsNow = this.ignoreNextWs;
     this.ignoreNextWs = false;
-    switch (ev.params[0]) {
+    switch (evName) {
       case "enterStartTag":
         // Absorb the whitespace: poof, gone!
         this.suspendedWs = undefined;
@@ -472,7 +449,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
 
     // We can update it here because we're done examining the value that was
     // set from the previous call to fireEvent.
-    this._prevEvWasText = (ev.params[0] === "text");
+    this._prevEvWasText = (evName === "text");
 
     // This would happen if the user puts an attribute on a tag that does not
     // allow one. Instead of generating errors for both the attribute name
@@ -480,7 +457,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
     if (this._swallowAttributeValue) {
       // Swallow only one event.
       this._swallowAttributeValue = false;
-      if (ev.params[0] === "attributeValue") {
+      if (evName === "attributeValue") {
         return false;
       }
 
@@ -490,7 +467,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
     let ret = walker.fireEvent(ev);
 
     if (ret === undefined) {
-      switch (ev.params[0]) {
+      switch (evName) {
         case "enterStartTag":
           const name = new namePatterns.Name("", ev.params[1] as string,
                                              ev.params[2] as string);
@@ -549,7 +526,7 @@ is likely that fireEvent is incorrectly called")];
           /* falls through */
         default:
           throw new Error(`unexpected event type in GrammarWalker's fireEvent: \
-${ev.params[0].toString()}`);
+${evName.toString()}`);
       }
     }
 
@@ -569,18 +546,24 @@ ${ev.params[0].toString()}`);
       // corresponds to the enterStartTag event that was issued for the
       // misplaced element.
       const startEvent = topMisplacedElement.event;
-      const endTagEvent = new Event("endTag",
-                                    startEvent.params[1],
-                                    startEvent.params[2]);
       this._misplacedElements.shift();
       topMisplacedElement = this._misplacedElements[0];
       const previousWalker = (topMisplacedElement === undefined) ?
         this.subwalker : topMisplacedElement.walker;
 
-      previousWalker.fireEvent(endTagEvent);
+      previousWalker.fireEvent(new Event("endTag",
+                                    startEvent.params[1],
+                                    startEvent.params[2]));
     }
 
-    return combineWsErrWith(ret);
+    if (wsErr === undefined) {
+      wsErr = [new ValidationError("text not allowed here")];
+    }
+    else if (wsErr === false) {
+      return ret;
+    }
+
+    return ret === false ? wsErr : wsErr.concat(ret);
   }
 
   possible(): EventSet {

@@ -109,10 +109,8 @@ class GroupWalker extends Walker<Group> {
     // Both walkers are necessarily defined because of the call to
     // _instantiateWalkers.
     //
-    // tslint:disable:no-non-null-assertion
+    // tslint:disable-next-line:no-non-null-assertion
     const walkerA = this.walkerA!;
-    const walkerB = this.walkerB!;
-    // tslint:enable:no-non-null-assertion
 
     this.possibleCached = undefined;
     if (!this.endedA) {
@@ -130,7 +128,9 @@ class GroupWalker extends Walker<Group> {
       }
     }
 
-    let retB: FireEventResult = walkerB.fireEvent(ev);
+    // tslint:disable-next-line:no-non-null-assertion
+    const walkerB = this.walkerB!;
+    const retB: FireEventResult = walkerB.fireEvent(ev);
     if (retB !== undefined) {
       this.hitB = true;
     }
@@ -145,10 +145,11 @@ class GroupWalker extends Walker<Group> {
       if (!retB) {
         // retB must be false, because retB === undefined has been
         // eliminated above; toss it.
-        retB = endRet;
+        return endRet;
       }
-      else if (endRet) {
-        retB = retB.concat(endRet);
+
+      if (endRet) {
+        return retB.concat(endRet);
       }
     }
 
@@ -186,7 +187,7 @@ class GroupWalker extends Walker<Group> {
       const aHas: boolean = this.el.patA._hasAttrs();
       const bHas: boolean = this.el.patB._hasAttrs();
       if (aHas && bHas) {
-        return walkerA.canEnd(attribute) && walkerB.canEnd(attribute);
+        return walkerA.canEnd(true) && walkerB.canEnd(true);
       }
       else if (aHas) {
         return walkerA.canEnd(true);
@@ -198,7 +199,7 @@ class GroupWalker extends Walker<Group> {
       return true;
     }
 
-    return walkerA.canEnd(attribute) && walkerB.canEnd(attribute);
+    return walkerA.canEnd(false) && walkerB.canEnd(false);
   }
 
   end(attribute: boolean = false): EndResult {
@@ -269,9 +270,8 @@ class GroupWalker extends Walker<Group> {
       if (!retA) {
         return retB;
       }
-      else {
-        return retA.concat(retB);
-      }
+
+      return retA.concat(retB);
     }
 
     return retA;

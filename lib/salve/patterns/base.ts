@@ -311,10 +311,9 @@ export class BasePattern {
    * ``_prepare`` recursively calls children but does not traverse ref-define
    * boundaries to avoid infinite regress...
    *
-   * This function now performs two tasks: a) it prepares the attributes
-   * (Definition and Element objects maintain a pattern which contains only
-   * attribute patterns, and nothing else), b) it gathers all the namespaces
-   * seen in the schema.
+   * This function now performs two tasks: a) it precomputes the values returned
+   * by ``hasAttr`` (it can be computed once and for all), b) it gathers all the
+   * namespaces seen in the schema.
    *
    * @param namespaces An object whose keys are the namespaces seen in
    * the schema. This method populates the object.
@@ -383,6 +382,8 @@ export abstract class Pattern extends BasePattern {
  * Pattern objects of this class have exactly one child pattern.
  */
 export abstract class OneSubpattern extends Pattern {
+  protected _cachedHasAttr?: boolean;
+
   constructor(xmlPath: string, readonly pat: Pattern) {
     super(xmlPath);
   }
@@ -393,10 +394,12 @@ export abstract class OneSubpattern extends Pattern {
 
   _prepare(namespaces: TrivialMap<number>): void {
     this.pat._prepare(namespaces);
+    this._cachedHasAttr =  this.pat._hasAttrs();
   }
 
   _hasAttrs(): boolean {
-    return this.pat._hasAttrs();
+    // tslint:disable-next-line:no-non-null-assertion
+    return this._cachedHasAttr!;
   }
 
   _gatherElementDefinitions(memo: TrivialMap<ElementI[]>): void {
@@ -409,6 +412,8 @@ export abstract class OneSubpattern extends Pattern {
  *
  */
 export class TwoSubpatterns extends Pattern {
+  protected _cachedHasAttr?: boolean;
+
   constructor(xmlPath: string, readonly patA: Pattern, readonly patB: Pattern) {
     super(xmlPath);
   }
@@ -430,10 +435,12 @@ export class TwoSubpatterns extends Pattern {
   _prepare(namespaces: TrivialMap<number>): void {
     this.patA._prepare(namespaces);
     this.patB._prepare(namespaces);
+    this._cachedHasAttr = this.patA._hasAttrs() || this.patB._hasAttrs();
   }
 
   _hasAttrs(): boolean {
-    return this.patA._hasAttrs() || this.patB._hasAttrs();
+    // tslint:disable-next-line:no-non-null-assertion
+    return this._cachedHasAttr!;
   }
 
   _gatherElementDefinitions(memo: TrivialMap<ElementI[]>): void {
