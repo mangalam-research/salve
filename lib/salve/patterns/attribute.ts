@@ -136,13 +136,6 @@ class AttributeWalker extends Walker<Attribute> {
       return undefined;
     }
 
-    if ((ev.params[0] === "neutralizeAttribute") &&
-        this.el.name.toString() === ev.params[1].toString()) {
-      this.neutralized = true;
-
-      return false;
-    }
-
     if (this.seenName) {
       if (!this.seenValue && ev.params[0] === "attributeValue") {
         this.seenValue = true;
@@ -193,6 +186,21 @@ class AttributeWalker extends Walker<Attribute> {
     }
 
     if (!this.seenName) {
+      //
+      // We self-neutralize. This prevents producing errors about the same
+      // attribute multiple times, because end is called by element walkers when
+      // leaveStartTag is encountered, and again when the element closes.
+      //
+      // This flag has to be maintained separately from suppressedAttributes
+      // because it controls how errors are reported, whereas
+      // suppressedAttributes is broader in scope. (Or to put it differently, it
+      // it may be impossible to know whether an attribute is missing until the
+      // element is closed: by that time suppressedAttributes will be true, but
+      // we still want to report the error. So we have to inhibit error
+      // reporting on the basis of a state different from suppressedAttributes.)
+      //
+      this.neutralized = true;
+
       return [new AttributeNameError("attribute missing", this.el.name)];
     }
     else if (!this.seenValue) {
