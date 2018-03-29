@@ -337,20 +337,6 @@ export class BasePattern {
   }
 
   /**
-   * Populates a memo with a mapping of (element name, [list of patterns]).  In
-   * a Relax NG schema, the same element name may appear in multiple contexts,
-   * with multiple contents. For instance an element named "name" could require
-   * the sequence of elements "firstName", "lastName" in a certain context and
-   * text in a different context. This method allows determining whether this
-   * happens or not within a pattern.
-   *
-   * @param memo The memo in which to store the information.
-   */
-  _gatherElementDefinitions(memo: TrivialMap<ElementI[]>): void {
-    // By default we have no children.
-  }
-
-  /**
    * Gets a new Pattern id.
    *
    * @returns The new id.
@@ -401,10 +387,6 @@ export abstract class OneSubpattern extends Pattern {
     // tslint:disable-next-line:no-non-null-assertion
     return this._cachedHasAttr!;
   }
-
-  _gatherElementDefinitions(memo: TrivialMap<ElementI[]>): void {
-    this.pat._gatherElementDefinitions(memo);
-  }
 }
 
 /**
@@ -441,11 +423,6 @@ export class TwoSubpatterns extends Pattern {
   _hasAttrs(): boolean {
     // tslint:disable-next-line:no-non-null-assertion
     return this._cachedHasAttr!;
-  }
-
-  _gatherElementDefinitions(memo: TrivialMap<ElementI[]>): void {
-    this.patA._gatherElementDefinitions(memo);
-    this.patB._gatherElementDefinitions(memo);
   }
 }
 

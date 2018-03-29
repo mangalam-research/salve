@@ -50,16 +50,6 @@ export class Element extends OneSubpattern implements ElementI {
   _hasAttrs(): boolean {
     return false;
   }
-
-  _gatherElementDefinitions(memo: TrivialMap<ElementI[]>): void {
-    const key: string = this.name.toString();
-    if (memo[key] === undefined) {
-      memo[key] = [this];
-    }
-    else {
-      memo[key].push(this);
-    }
-  }
 }
 
 /**

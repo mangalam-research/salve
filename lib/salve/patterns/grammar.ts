@@ -15,6 +15,7 @@ import { TrivialMap } from "../types";
 import { BasePattern, Define, ElementI, EndResult, Event, EventSet,
          FireEventResult, isHashMap, Pattern, Ref,
          SingleSubwalker } from "./base";
+import { Element } from "./element";
 
 /**
  * This is an exception raised to indicate references to undefined entities in a
@@ -98,23 +99,6 @@ export class Grammar extends BasePattern {
     }
   }
 
-  /**
-   * Populates a memo with a mapping of (element name, [list of patterns]).  In
-   * a Relax NG schema, the same element name may appear in multiple contexts,
-   * with multiple contents. For instance an element named ``name`` could
-   * require the sequence of elements ``firstName, lastName`` in a certain
-   * context and text in a different context. This method allows determining
-   * whether this happens or not within a pattern.
-   *
-   * @param memo The memo in which to store the information.
-   */
-  _gatherElementDefinitions(memo: TrivialMap<ElementI[]>): void {
-    // tslint:disable-next-line:forin
-    for (const d in this.definitions) {
-      this.definitions[d]._gatherElementDefinitions(memo);
-    }
-  }
-
   get elementDefinitions(): TrivialMap<ElementI[]> {
     const ret = this._elementDefinitions;
     if (ret !== undefined) {
@@ -123,7 +107,17 @@ export class Grammar extends BasePattern {
 
     const newDef: TrivialMap<ElementI[]> =
       this._elementDefinitions = Object.create(null);
-    this._gatherElementDefinitions(newDef);
+
+    for (const name of Object.keys(this.definitions)) {
+      const el = this.definitions[name].pat as Element;
+      const key = el.name.toString();
+      if (newDef[key] === undefined) {
+        newDef[key] = [el];
+      }
+      else {
+        newDef[key].push(el);
+      }
+    }
 
     return newDef;
   }
