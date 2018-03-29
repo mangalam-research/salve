@@ -94,9 +94,6 @@ export class Grammar extends BasePattern {
    */
   add(d: Define): void {
     this.definitions[d.name] = d;
-    if (d.name === "start") {
-      this.start = d;
-    }
   }
 
   get elementDefinitions(): TrivialMap<ElementI[]> {
