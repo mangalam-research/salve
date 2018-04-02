@@ -58,7 +58,6 @@ export class Element extends OneSubpattern implements ElementI {
 class ElementWalker extends Walker<Element> {
   private static _leaveStartTagEvent: Event = new Event("leaveStartTag");
 
-  private seenName: boolean;
   private endedStartTag: boolean;
   private closed: boolean;
   private walker: Walker<BasePattern> | undefined;
@@ -83,7 +82,6 @@ class ElementWalker extends Walker<Element> {
       const memo: HashMap = isHashMap(nameResolverOrMemo);
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.seenName = walker.seenName;
       this.endedStartTag = walker.endedStartTag;
       this.closed = walker.closed;
       this.walker = walker.walker !== undefined ? walker.walker._clone(memo) :
@@ -99,7 +97,6 @@ class ElementWalker extends Walker<Element> {
       const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo);
       super(el);
       this.nameResolver = nameResolver;
-      this.seenName = false;
       this.endedStartTag = false;
       this.closed = false;
       this.startTagEvent = new Event("enterStartTag", el.name);
@@ -111,7 +108,7 @@ class ElementWalker extends Walker<Element> {
   }
 
   _possible(): EventSet {
-    if (!this.seenName) {
+    if (this.boundName === undefined) {
       return new EventSet(this.startTagEvent);
     }
     else if (!this.endedStartTag) {
@@ -175,12 +172,11 @@ class ElementWalker extends Walker<Element> {
     const eventName = params[0];
     if (!this.endedStartTag) {
       let leaveNow = false;
-      if (!this.seenName) {
+      if (this.boundName === undefined) {
         if ((eventName === "enterStartTag" ||
              eventName === "startTagAndAttributes") &&
             this.el.name.match(params[1] as string, params[2] as string)) {
           walker = this.walker = this.el.pat.newWalker(this.nameResolver);
-          this.seenName = true;
           this.boundName = new Name("", params[1] as string,
                                     params[2] as string);
           this.endTagEvent = new Event("endTag", this.boundName);
@@ -257,7 +253,7 @@ class ElementWalker extends Walker<Element> {
       return false;
     }
 
-    if (!this.seenName) {
+    if (this.boundName === undefined) {
       return [new ElementNameError("tag required", this.el.name)];
     }
 

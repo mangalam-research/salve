@@ -143,8 +143,8 @@ class ChoiceWalker extends Walker<Choice> {
 
     return attribute ? (!this.el.patA._hasAttrs() ||
                         !this.el.patB._hasAttrs()) :
-      ((this.walkerA !== undefined && this.walkerA.canEnd(attribute)) ||
-       (this.walkerB !== undefined && this.walkerB.canEnd(attribute)));
+      ((this.walkerA !== undefined && this.walkerA.canEnd(false)) ||
+       (this.walkerB !== undefined && this.walkerB.canEnd(false)));
   }
 
   end(attribute: boolean = false): EndResult {

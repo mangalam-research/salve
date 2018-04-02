@@ -270,8 +270,18 @@ class InterleaveWalker extends Walker<Interleave> {
       this.walkerB = this.el.patB.newWalker(this.nameResolver);
     }
 
+    const walkerA = this.walkerA;
     // tslint:disable-next-line:no-non-null-assertion
-    return this.walkerA.canEnd(attribute) && this.walkerB!.canEnd(attribute);
+    const walkerB = this.walkerB!;
+
+    if (!attribute) {
+      return walkerA.canEnd(false) && walkerB.canEnd(false);
+    }
+
+    const { patA, patB } = this.el;
+
+    return (patA._hasAttrs() ? walkerA.canEnd(true) : true) &&
+      (patB._hasAttrs() ? walkerB.canEnd(true) : true);
   }
 
   end(attribute: boolean = false): EndResult {
