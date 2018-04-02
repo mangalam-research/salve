@@ -380,7 +380,7 @@ export abstract class OneSubpattern extends Pattern {
 
   _prepare(namespaces: TrivialMap<number>): void {
     this.pat._prepare(namespaces);
-    this._cachedHasAttr =  this.pat._hasAttrs();
+    this._cachedHasAttr = this.pat._hasAttrs();
   }
 
   _hasAttrs(): boolean {

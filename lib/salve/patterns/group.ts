@@ -20,6 +20,7 @@ export class Group extends TwoSubpatterns {}
  * Walker for [[Group]].
  */
 class GroupWalker extends Walker<Group> {
+  private ended: boolean;
   private hitA: boolean;
   private endedA: boolean;
   private hitB: boolean;
@@ -49,6 +50,7 @@ class GroupWalker extends Walker<Group> {
         walker.walkerA._clone(memo) : undefined;
       this.walkerB = walker.walkerB !== undefined ?
         walker.walkerB._clone(memo) : undefined;
+      this.ended = walker.ended;
     }
     else {
       const el: Group = elOrWalker;
@@ -58,11 +60,18 @@ class GroupWalker extends Walker<Group> {
       this.hitA = false;
       this.endedA = false;
       this.hitB = false;
+      this.ended = false;
     }
   }
 
   _possible(): EventSet {
     if (this.possibleCached !== undefined) {
+      return this.possibleCached;
+    }
+
+    if (this.ended) {
+      this.possibleCached = new EventSet();
+
       return this.possibleCached;
     }
 
@@ -104,16 +113,24 @@ class GroupWalker extends Walker<Group> {
   }
 
   fireEvent(ev: Event): FireEventResult {
+    this.possibleCached = undefined;
+
+    // This is useful because it is possible for fireEvent to be called
+    // after end() has been called.
+    if (this.ended) {
+      return undefined;
+    }
+
+    const isAttributeEvent = ev.isAttributeEvent();
+
     if (this.walkerA === undefined) {
       this.walkerA = this.el.patA.newWalker(this.nameResolver);
       this.walkerB = this.el.patB.newWalker(this.nameResolver);
     }
 
     const walkerA = this.walkerA;
-
-    this.possibleCached = undefined;
     if (!this.endedA) {
-      const retA: FireEventResult = walkerA.fireEvent(ev);
+      const retA = walkerA.fireEvent(ev);
       if (retA !== undefined) {
         this.hitA = true;
 
@@ -122,7 +139,7 @@ class GroupWalker extends Walker<Group> {
 
       // We must return right away if walkerA cannot yet end. Only attribute
       // events are allowed to move forward.
-      if (!ev.isAttributeEvent() && !walkerA.canEnd()) {
+      if (!isAttributeEvent && !walkerA.canEnd()) {
         return undefined;
       }
     }
@@ -136,7 +153,7 @@ class GroupWalker extends Walker<Group> {
 
     // Non-attribute event: if walker b matched the event then we must end
     // walkerA, if we've not already done so.
-    if (!ev.isAttributeEvent() && retB !== undefined && !this.endedA) {
+    if (!isAttributeEvent && retB !== undefined && !this.endedA) {
       const endRet: EndResult = walkerA.end();
       this.endedA = true;
 
@@ -172,6 +189,11 @@ class GroupWalker extends Walker<Group> {
   }
 
   canEnd(attribute: boolean = false): boolean {
+    // We can end any number of times.
+    if (this.ended) {
+      return true;
+    }
+
     if (this.walkerA === undefined) {
       this.walkerA = this.el.patA.newWalker(this.nameResolver);
       this.walkerB = this.el.patB.newWalker(this.nameResolver);
@@ -192,7 +214,12 @@ class GroupWalker extends Walker<Group> {
   }
 
   end(attribute: boolean = false): EndResult {
-    if (this.canEnd(attribute)) {
+    if (this.ended || this.canEnd(attribute)) {
+      // We're done once and for all only if called with attribute === false.
+      if (!attribute) {
+        this.ended = true;
+      }
+
       return false;
     }
 

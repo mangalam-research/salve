@@ -19,6 +19,7 @@ export class Interleave extends TwoSubpatterns {}
  * Walker for [[Interleave]].
  */
 class InterleaveWalker extends Walker<Interleave> {
+  private ended: boolean;
   private inA: boolean;
   private inB: boolean;
   private tagStateA: number;
@@ -39,10 +40,11 @@ class InterleaveWalker extends Walker<Interleave> {
   protected constructor(elOrWalker: InterleaveWalker | Interleave,
                         nameResolverOrMemo: NameResolver | HashMap) {
     if (elOrWalker instanceof InterleaveWalker) {
-      const walker: InterleaveWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo);
+      const walker = elOrWalker;
+      const memo = isHashMap(nameResolverOrMemo);
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.ended = walker.ended;
       this.inA = walker.inA;
       this.inB = walker.inB;
       this.tagStateA = walker.tagStateA;
@@ -53,10 +55,11 @@ class InterleaveWalker extends Walker<Interleave> {
         walker.walkerB._clone(memo) : undefined;
     }
     else {
-      const el: Interleave = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo);
+      const el = elOrWalker;
+      const nameResolver = isNameResolver(nameResolverOrMemo);
       super(el);
       this.nameResolver = nameResolver;
+      this.ended = false;
       this.inA = false;
       this.inB = false;
       this.tagStateA = 0;
@@ -66,6 +69,12 @@ class InterleaveWalker extends Walker<Interleave> {
 
   _possible(): EventSet {
     if (this.possibleCached !== undefined) {
+      return this.possibleCached;
+    }
+
+    if (this.ended) {
+      this.possibleCached = new EventSet();
+
       return this.possibleCached;
     }
 
@@ -130,12 +139,18 @@ class InterleaveWalker extends Walker<Interleave> {
   // pattern to another one.
   //
   fireEvent(ev: Event): FireEventResult {
+    this.possibleCached = undefined;
+
+    // This is useful because it is possible for fireEvent to be called
+    // after end() has been called.
+    if (this.ended) {
+      return undefined;
+    }
+
     if (this.walkerA === undefined) {
       this.walkerA = this.el.patA.newWalker(this.nameResolver);
       this.walkerB = this.el.patB.newWalker(this.nameResolver);
     }
-
-    this.possibleCached = undefined;
 
     if (this.inA && this.inB) {
       // It due to the restrictions imposed by Relax NG, it is not possible to
@@ -265,6 +280,11 @@ class InterleaveWalker extends Walker<Interleave> {
   }
 
   canEnd(attribute: boolean = false): boolean {
+    // We can end any number of times.
+    if (this.ended) {
+      return true;
+    }
+
     if (this.walkerA === undefined) {
       this.walkerA = this.el.patA.newWalker(this.nameResolver);
       this.walkerB = this.el.patB.newWalker(this.nameResolver);
@@ -285,6 +305,15 @@ class InterleaveWalker extends Walker<Interleave> {
   }
 
   end(attribute: boolean = false): EndResult {
+    if (this.ended || this.canEnd(attribute)) {
+      // We're done once and for all only if called with attribute === false.
+      if (!attribute) {
+        this.ended = true;
+      }
+
+      return false;
+    }
+
     if (this.walkerA === undefined) {
       this.walkerA = this.el.patA.newWalker(this.nameResolver);
       this.walkerB = this.el.patB.newWalker(this.nameResolver);
