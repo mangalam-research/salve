@@ -2,7 +2,11 @@ Only major changes are reported here. Releases that only bump the patch part of
 the version number (i.e. the number after the 2nd dot) are generally not listed
 here unless they include a fix to a specific issue reported on github.
 
-* 6.0.1:
+* 6.1.0:
+
+  - New feature: introduce a pair of "compact" events named
+    ``attributeNameAndValue`` and ``startTagAndAttributes`` which allow passing
+    a smaller number of events to salve.
 
   - Fix: the internal simplifier applied the constraints from section 7.3 and
     7.4 were too strictly.

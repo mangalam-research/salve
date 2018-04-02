@@ -226,6 +226,7 @@ class InterleaveWalker extends Walker<Interleave> {
 
     switch (ev.params[0]) {
       case "enterStartTag":
+      case "startTagAndAttributes":
         if (walker === this.walkerA) {
           this.tagStateA++;
         }

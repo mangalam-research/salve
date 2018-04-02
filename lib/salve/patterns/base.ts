@@ -511,7 +511,8 @@ export class Event {
    */
   isAttributeEvent(): boolean {
     return (this.params[0] === "attributeName" ||
-            this.params[0] === "attributeValue");
+            this.params[0] === "attributeValue" ||
+            this.params[0] === "attributeNameAndValue");
   }
 
   /**

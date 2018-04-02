@@ -135,40 +135,48 @@ class AttributeWalker extends Walker<Attribute> {
       return undefined;
     }
 
+    let ret: FireEventResult;
+    let value: string | undefined;
+    const eventName = ev.params[0];
     if (this.seenName) {
-      if (!this.seenValue && ev.params[0] === "attributeValue") {
-        this.seenValue = true;
-
-        if (this.subwalker === undefined) {
-          this.subwalker = this.el.pat.newWalker(this.nameResolver);
-        }
-
+      if (!this.seenValue && eventName === "attributeValue") {
         // Convert the attributeValue event to a text event.
-        const textEv: Event = new Event("text", ev.params[1]);
-        let ret: FireEventResult = this.subwalker.fireEvent(textEv);
-
-        if (ret === undefined) {
-          return [new AttributeValueError("invalid attribute value",
-                                          this.el.name)];
-        }
-
-        // Attributes end immediately.
-        if (ret === false) {
-          ret = this.subwalker.end();
-        }
-
-        return ret;
+        value = ev.params[1] as string;
       }
     }
-    else if (ev.params[0] === "attributeName" &&
+    else if ((eventName === "attributeName" ||
+              eventName === "attributeNameAndValue") &&
              this.el.name.match(ev.params[1] as string,
                                 ev.params[2] as string)) {
       this.seenName = true;
+      ret = false;
 
-      return false;
+      if (eventName === "attributeNameAndValue") {
+        value = ev.params[3] as string;
+      }
     }
 
-    return undefined;
+    if (value !== undefined) {
+      this.seenValue = true;
+
+      if (this.subwalker === undefined) {
+        this.subwalker = this.el.pat.newWalker(this.nameResolver);
+      }
+
+      ret = this.subwalker.fireEvent(new Event("text", value));
+
+      if (ret === undefined) {
+        ret = [new AttributeValueError("invalid attribute value",
+                                       this.el.name)];
+      }
+
+      // Attributes end immediately.
+      if (ret === false) {
+        ret = this.subwalker.end();
+      }
+    }
+
+    return ret;
   }
 
   _suppressAttributes(): void {

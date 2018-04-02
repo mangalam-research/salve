@@ -4,8 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { AttributeNameError, AttributeValueError, ElementNameError,
-         ValidationError } from "../errors";
+import { ElementNameError, ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
@@ -166,78 +165,82 @@ class ElementWalker extends Walker<Element> {
   }
 
   fireEvent(ev: Event): FireEventResult {
+    if (this.closed) {
+      return undefined;
+    }
+
+    // tslint:disable-next-line:no-non-null-assertion
+    let walker = this.walker!;
+    const params = ev.params;
+    const eventName = params[0];
     if (!this.endedStartTag) {
+      let leaveNow = false;
       if (!this.seenName) {
-        if (ev.params[0] === "enterStartTag" &&
-            this.el.name.match(ev.params[1] as string,
-                               ev.params[2] as string)) {
-          this.walker = this.el.pat.newWalker(this.nameResolver);
+        if ((eventName === "enterStartTag" ||
+             eventName === "startTagAndAttributes") &&
+            this.el.name.match(params[1] as string, params[2] as string)) {
+          walker = this.walker = this.el.pat.newWalker(this.nameResolver);
           this.seenName = true;
-          this.boundName = new Name("", ev.params[1] as string,
-                                    ev.params[2] as string);
+          this.boundName = new Name("", params[1] as string,
+                                    params[2] as string);
           this.endTagEvent = new Event("endTag", this.boundName);
 
-          return false;
+          if (eventName === "enterStartTag") {
+            return false;
+          }
+
+          // We need to handle all attributes and leave the start tag.
+          for (let ix = 3; ix < params.length; ix += 3) {
+            const attrRet = walker.fireEvent(new Event(
+              "attributeNameAndValue", params[ix], params[ix + 1],
+              params[ix + 2]));
+            if (attrRet !== false) {
+              return attrRet;
+            }
+          }
+
+          leaveNow = true;
         }
       }
-      else if (ev.params[0] === "leaveStartTag") {
+      else if (eventName === "leaveStartTag") {
+        leaveNow = true;
+      }
+
+      if (leaveNow) {
         this.endedStartTag = true;
 
-        // If we have seen the name, then there is necessarily a walker.
-        // tslint:disable-next-line:no-non-null-assertion
-        const walker = this.walker!;
-
-        const errs: EndResult = walker.end(true);
-        const ret: ValidationError[] = [];
-        if (errs) {
-          for (const err of errs) {
-            if (err instanceof AttributeValueError ||
-                err instanceof AttributeNameError) {
-              ret.push(err);
-            }
-          }
-        }
-
-        // And suppress the attributes.
+        const errs = this.el.pat._hasAttrs() ? walker.end(true) : false;
         walker._suppressAttributes();
 
-        return ret.length !== 0 ? ret : false;
+        return errs;
       }
 
-      return this.walker !== undefined ? this.walker.fireEvent(ev) : undefined;
+      return walker !== undefined ? walker.fireEvent(ev) : undefined;
     }
-    else if (!this.closed) {
-      // If we have ended the start tag, then there is necessarily a walker.
-      // tslint:disable-next-line:no-non-null-assertion
-      const walker = this.walker!;
 
-      const ret = walker.fireEvent(ev);
-      if (ret === undefined) {
-        // Our subwalker did not handle the event, so we must do it here.
-        switch (ev.params[0]) {
-          case "endTag": {
-            // boundName is necessarily defined by the time we get here.
-            // tslint:disable-next-line:no-non-null-assertion
-            if (this.boundName!.match(ev.params[1] as string,
-                                      ev.params[2] as string)) {
-              this.closed = true;
+    const ret = walker.fireEvent(ev);
+    if (ret === undefined) {
+      // Our subwalker did not handle the event, so we must do it here.
+      switch (eventName) {
+        case "endTag": {
+          // boundName is necessarily defined by the time we get here.
+          // tslint:disable-next-line:no-non-null-assertion
+          if (this.boundName!.match(params[1] as string, params[2] as string)) {
+            this.closed = true;
 
-              return walker.end();
-            }
-            break;
+            return walker.end();
           }
-          case "leaveStartTag":
-            return [new ValidationError(
-              "unexpected leaveStartTag event; it is likely that " +
-                "fireEvent is incorrectly called")];
-          default:
+          break;
         }
+        case "leaveStartTag":
+          return [new ValidationError(
+            "unexpected leaveStartTag event; it is likely that " +
+              "fireEvent is incorrectly called")];
+        default:
       }
-
-      return ret;
     }
 
-    return undefined;
+    return ret;
   }
 
   _suppressAttributes(): void {
@@ -246,11 +249,11 @@ class ElementWalker extends Walker<Element> {
   }
 
   canEnd(attribute: boolean = false): boolean {
-    return attribute ? true : this.closed;
+    return attribute || this.closed;
   }
 
   end(attribute: boolean = false): EndResult {
-    if (attribute) {
+    if (attribute || this.closed) {
       return false;
     }
 

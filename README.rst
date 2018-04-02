@@ -232,6 +232,29 @@ the tree created from the RNG. (See above.) The events currently supported by
 ``Event("definePrefix", prefix, uri)``
   Emitted when defining a namespace prefix.
 
+Salve support a couple of compact events that serve to pass as one event data
+that would normally be passed as multiple events:
+
+``Event("attributeNameAndValue", uri, local-name, value)``
+  Combines the ``attributeName`` and ``attributeValue`` events into one event.
+
+``Event("startTagAndAttributes", uri, local-name, [attribute-data...])``
+  Combines the ``enterStartTag``, ``attributeNameAndValue`` and
+  ``leaveStartTag`` events. The ``attribute-data`` part of the event must be a
+  sequence of ``uri, local-name, value`` as would be passed to with
+  ``attributeNameAndValue``.
+
+  For instance if an element named ``foo`` has the attribute ``a`` with the
+  value ``valA``, the event would be: ``Event("startTagAndAttributes", "", foo,
+  "", "a", "valA")``.
+
+.. note:: The compact events do not allow salve to be very precise with
+          reporting errors. It is recommended to use them only when optimizing
+          for speed, at the expense of precision.
+
+.. note:: When reporting possible events, salve *never* returns compact events
+          in the list.
+
 The reason for the set of events supported is that salve is designed to handle
 **not only** XML modeled as a DOM tree but also XML parsed as a text string
 being dynamically edited. The best and closest example of this would be what

@@ -219,6 +219,7 @@ class MisplacedElementWalker implements IWalker {
   fireEvent(ev: Event): FireEventResult {
     switch (ev.params[0] as string) {
       case "enterStartTag":
+      case "startTagAndAttributes":
         this.stack.unshift(ev);
         break;
       case "endTag":
@@ -405,6 +406,7 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
     this.ignoreNextWs = false;
     switch (evName) {
       case "enterStartTag":
+      case "startTagAndAttributes":
         // Absorb the whitespace: poof, gone!
         this.suspendedWs = undefined;
         break;
@@ -461,9 +463,13 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
     if (ret === undefined) {
       switch (evName) {
         case "enterStartTag":
+        case "startTagAndAttributes":
           const name = new namePatterns.Name("", ev.params[1] as string,
                                              ev.params[2] as string);
-          ret = [new ElementNameError("tag not allowed here", name)];
+          ret = [new ElementNameError(
+            evName === "enterStartTag" ?
+              "tag not allowed here" :
+              "tag not allowed here with these attributes", name)];
 
           // Try to infer what element is meant by this errant tag. If we can't
           // find a candidate, then fall back to a dumb mode.
@@ -496,6 +502,12 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
             new namePatterns.Name("", ev.params[1] as string,
                                   ev.params[2] as string))];
           this._swallowAttributeValue = true;
+          break;
+        case "attributeNameAndValue":
+          ret = [new AttributeNameError(
+            "attribute not allowed here",
+            new namePatterns.Name("", ev.params[1] as string,
+                                  ev.params[2] as string))];
           break;
         case "attributeValue":
           ret = [new ValidationError("unexpected attributeValue event; it \

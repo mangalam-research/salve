@@ -486,13 +486,8 @@ export class Validator implements ValidatorI {
         attributeEvents.push(uri, local, value);
       }
     }
-    this.fireEvent("enterStartTag", node.uri, node.local);
-    for (let ix = 0; ix < attributeEvents.length; ix += 3) {
-      this.fireEvent("attributeName", attributeEvents[ix],
-                     attributeEvents[ix + 1]);
-      this.fireEvent("attributeValue", attributeEvents[ix + 2]);
-    }
-    this.fireEvent("leaveStartTag");
+    this.fireEvent("startTagAndAttributes", node.uri, node.local,
+                   ...attributeEvents);
     this.tagStack.unshift({
       uri: node.uri,
       local: node.local,
