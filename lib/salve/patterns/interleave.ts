@@ -65,7 +65,6 @@ class InterleaveWalker extends Walker<Interleave> {
   }
 
   _possible(): EventSet {
-    this._instantiateWalkers();
     if (this.possibleCached !== undefined) {
       return this.possibleCached;
     }
@@ -76,13 +75,14 @@ class InterleaveWalker extends Walker<Interleave> {
       throw new Error("impossible state");
     }
 
-    // Both walkers are necessarily defined because of the call to
-    // _instantiateWalkers.
-    //
-    // tslint:disable:no-non-null-assertion
-    const walkerA = this.walkerA!;
+    if (this.walkerA === undefined) {
+      this.walkerA = this.el.patA.newWalker(this.nameResolver);
+      this.walkerB = this.el.patB.newWalker(this.nameResolver);
+    }
+
+    const walkerA = this.walkerA;
+    // tslint:disable-next-line:no-non-null-assertion
     const walkerB = this.walkerB!;
-    // tslint:enable:no-non-null-assertion
 
     if (this.inA && !walkerA.canEnd()) {
       this.possibleCached = walkerA._possible();
@@ -130,7 +130,10 @@ class InterleaveWalker extends Walker<Interleave> {
   // pattern to another one.
   //
   fireEvent(ev: Event): FireEventResult {
-    this._instantiateWalkers();
+    if (this.walkerA === undefined) {
+      this.walkerA = this.el.patA.newWalker(this.nameResolver);
+      this.walkerB = this.el.patB.newWalker(this.nameResolver);
+    }
 
     this.possibleCached = undefined;
 
@@ -141,18 +144,8 @@ class InterleaveWalker extends Walker<Interleave> {
       throw new Error("prohibited state");
     }
 
-    // Both walkers are necessarily defined because of the call to
-    // _instantiateWalkers.
-    //
-    // tslint:disable:no-non-null-assertion
-    const walkerA = this.walkerA!;
-    const walkerB = this.walkerB!;
-    // tslint:enable:no-non-null-assertion
-
-    let retA: FireEventResult;
-    let retB: FireEventResult;
     if (!this.inA && !this.inB) {
-      retA = this.fireEventOnSubWalker(walkerA, ev);
+      const retA = this.fireEventOnSubWalker(this.walkerA, ev);
       if (retA === false) {
         this.inA = true;
 
@@ -163,7 +156,8 @@ class InterleaveWalker extends Walker<Interleave> {
         return false;
       }
 
-      retB = this.fireEventOnSubWalker(walkerB, ev);
+      // tslint:disable-next-line:no-non-null-assertion
+      const retB = this.fireEventOnSubWalker(this.walkerB!, ev);
       if (retB === false) {
         this.inB = true;
 
@@ -181,14 +175,15 @@ class InterleaveWalker extends Walker<Interleave> {
       return retA.concat(retB);
     }
     else if (this.inA) {
-      retA = this.fireEventOnSubWalker(walkerA, ev);
+      const retA = this.fireEventOnSubWalker(this.walkerA, ev);
       if (retA !== undefined) {
         return retA;
       }
 
       if (this.tagStateA === 0) {
         // We can move to walkerB.
-        retB = this.fireEventOnSubWalker(walkerB, ev);
+        // tslint:disable-next-line:no-non-null-assertion
+        const retB = this.fireEventOnSubWalker(this.walkerB!, ev);
 
         if (retB === false) {
           this.inA = false;
@@ -199,14 +194,15 @@ class InterleaveWalker extends Walker<Interleave> {
       }
     }
     else { // inB
-      retB = this.fireEventOnSubWalker(walkerB, ev);
+      // tslint:disable-next-line:no-non-null-assertion
+      const retB = this.fireEventOnSubWalker(this.walkerB!, ev);
       if (retB !== undefined) {
         return retB;
       }
 
       if (this.tagStateB === 0) {
         // We can move to walkerA.
-        retA = this.fireEventOnSubWalker(walkerA, ev);
+        const retA = this.fireEventOnSubWalker(this.walkerA, ev);
 
         if (retA === false) {
           this.inA = true;
@@ -229,7 +225,7 @@ class InterleaveWalker extends Walker<Interleave> {
     }
 
     switch (ev.params[0]) {
-      case "enterStartTag": {
+      case "enterStartTag":
         if (walker === this.walkerA) {
           this.tagStateA++;
         }
@@ -237,8 +233,7 @@ class InterleaveWalker extends Walker<Interleave> {
           this.tagStateB++;
         }
         break;
-      }
-      case "endTag": {
+      case "endTag":
         if (walker === this.walkerA) {
           this.tagStateA--;
         }
@@ -246,7 +241,6 @@ class InterleaveWalker extends Walker<Interleave> {
           this.tagStateB--;
         }
         break;
-      }
       default:
     }
 
@@ -254,60 +248,46 @@ class InterleaveWalker extends Walker<Interleave> {
   }
 
   _suppressAttributes(): void {
-    this._instantiateWalkers();
     if (!this.suppressedAttributes) {
+      if (this.walkerA === undefined) {
+        this.walkerA = this.el.patA.newWalker(this.nameResolver);
+        this.walkerB = this.el.patB.newWalker(this.nameResolver);
+      }
+
       this.possibleCached = undefined; // no longer valid
       this.suppressedAttributes = true;
 
-      // Both walkers are necessarily defined because of the call to
-      // _instantiateWalkers.
-      //
-      // tslint:disable:no-non-null-assertion
-      this.walkerA!._suppressAttributes();
+      this.walkerA._suppressAttributes();
+      // tslint:disable-next-line:no-non-null-assertion
       this.walkerB!._suppressAttributes();
-      // tslint:enable:no-non-null-assertion
     }
   }
 
   canEnd(attribute: boolean = false): boolean {
-    this._instantiateWalkers();
+    if (this.walkerA === undefined) {
+      this.walkerA = this.el.patA.newWalker(this.nameResolver);
+      this.walkerB = this.el.patB.newWalker(this.nameResolver);
+    }
 
-    // Both walkers are necessarily defined because of the call to
-    // _instantiateWalkers.
-    //
     // tslint:disable-next-line:no-non-null-assertion
-    return this.walkerA!.canEnd(attribute) && this.walkerB!.canEnd(attribute);
+    return this.walkerA.canEnd(attribute) && this.walkerB!.canEnd(attribute);
   }
 
   end(attribute: boolean = false): EndResult {
-    this._instantiateWalkers();
+    if (this.walkerA === undefined) {
+      this.walkerA = this.el.patA.newWalker(this.nameResolver);
+      this.walkerB = this.el.patB.newWalker(this.nameResolver);
+    }
 
-    // Both walkers are necessarily defined because of the call to
-    // _instantiateWalkers.
-    //
-    // tslint:disable:no-non-null-assertion
-    const retA: EndResult = this.walkerA!.end(attribute);
+    const retA: EndResult = this.walkerA.end(attribute);
+    // tslint:disable-next-line:no-non-null-assertion
     const retB: EndResult = this.walkerB!.end(attribute);
-    // tslint:enable:no-non-null-assertion
 
     if (!retA) {
       return !retB ? false : retB;
     }
 
     return !retB ? retA : retA.concat(retB);
-  }
-
-  /**
-   * Creates walkers for the patterns contained by this one. Calling this method
-   * multiple times is safe as the walkers are created once and only once.
-   */
-  private _instantiateWalkers(): void {
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-    }
-    if (this.walkerB === undefined) {
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
   }
 }
 

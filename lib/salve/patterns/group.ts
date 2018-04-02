@@ -62,18 +62,18 @@ class GroupWalker extends Walker<Group> {
   }
 
   _possible(): EventSet {
-    this._instantiateWalkers();
     if (this.possibleCached !== undefined) {
       return this.possibleCached;
     }
 
-    // Both walkers are necessarily defined because of the call to
-    // _instantiateWalkers.
-    //
-    // tslint:disable:no-non-null-assertion
-    const walkerA = this.walkerA!;
+    if (this.walkerA === undefined) {
+      this.walkerA = this.el.patA.newWalker(this.nameResolver);
+      this.walkerB = this.el.patB.newWalker(this.nameResolver);
+    }
+
+    const walkerA = this.walkerA;
+    // tslint:disable-next-line:no-non-null-assertion
     const walkerB = this.walkerB!;
-    // tslint:enable:no-non-null-assertion
 
     this.possibleCached = (!this.endedA) ? walkerA._possible() : undefined;
 
@@ -104,13 +104,12 @@ class GroupWalker extends Walker<Group> {
   }
 
   fireEvent(ev: Event): FireEventResult {
-    this._instantiateWalkers();
+    if (this.walkerA === undefined) {
+      this.walkerA = this.el.patA.newWalker(this.nameResolver);
+      this.walkerB = this.el.patB.newWalker(this.nameResolver);
+    }
 
-    // Both walkers are necessarily defined because of the call to
-    // _instantiateWalkers.
-    //
-    // tslint:disable-next-line:no-non-null-assertion
-    const walkerA = this.walkerA!;
+    const walkerA = this.walkerA;
 
     this.possibleCached = undefined;
     if (!this.endedA) {
@@ -157,31 +156,30 @@ class GroupWalker extends Walker<Group> {
   }
 
   _suppressAttributes(): void {
-    this._instantiateWalkers();
     if (!this.suppressedAttributes) {
+      if (this.walkerA === undefined) {
+        this.walkerA = this.el.patA.newWalker(this.nameResolver);
+        this.walkerB = this.el.patB.newWalker(this.nameResolver);
+      }
+
       this.possibleCached = undefined; // no longer valid
       this.suppressedAttributes = true;
 
-      // Both walkers are necessarily defined because of the call to
-      // _instantiateWalkers.
-      //
-      // tslint:disable:no-non-null-assertion
-      this.walkerA!._suppressAttributes();
+      this.walkerA._suppressAttributes();
+      // tslint:disable-next-line:no-non-null-assertion
       this.walkerB!._suppressAttributes();
-      // tslint:enable:no-non-null-assertion
     }
   }
 
   canEnd(attribute: boolean = false): boolean {
-    this._instantiateWalkers();
+    if (this.walkerA === undefined) {
+      this.walkerA = this.el.patA.newWalker(this.nameResolver);
+      this.walkerB = this.el.patB.newWalker(this.nameResolver);
+    }
 
-    // Both walkers are necessarily defined because of the call to
-    // _instantiateWalkers.
-    //
-    // tslint:disable:no-non-null-assertion
-    const walkerA = this.walkerA!;
+    const walkerA = this.walkerA;
+    // tslint:disable-next-line:no-non-null-assertion
     const walkerB = this.walkerB!;
-    // tslint:enable:no-non-null-assertion
 
     if (!attribute) {
       return walkerA.canEnd(false) && walkerB.canEnd(false);
@@ -266,18 +264,6 @@ class GroupWalker extends Walker<Group> {
     }
 
     return retA;
-  }
-
-  /**
-   * Creates walkers for the patterns contained by this one. Calling this
-   * method multiple times is safe as the walkers are created once and only
-   * once.
-   */
-  private _instantiateWalkers(): void {
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
   }
 }
 

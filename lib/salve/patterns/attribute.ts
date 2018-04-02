@@ -26,8 +26,7 @@ export class Attribute extends OneSubpattern {
    * @param pat The pattern contained by this one.
    */
 
-  constructor(xmlPath: string, readonly name: ConcreteName,
-              pat: Pattern) {
+  constructor(xmlPath: string, readonly name: ConcreteName, pat: Pattern) {
     super(xmlPath, pat);
   }
 
@@ -72,8 +71,8 @@ class AttributeWalker extends Walker<Attribute> {
   protected constructor(elOrWalker: AttributeWalker | Attribute,
                         nameResolverOrMemo: HashMap | NameResolver) {
     if (elOrWalker instanceof AttributeWalker) {
-      const walker: AttributeWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo);
+      const walker = elOrWalker;
+      const memo = isHashMap(nameResolverOrMemo);
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.seenName = walker.seenName;
@@ -85,8 +84,8 @@ class AttributeWalker extends Walker<Attribute> {
       this.neutralized = walker.neutralized;
     }
     else {
-      const el: Attribute = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo);
+      const el = elOrWalker;
+      const nameResolver = isNameResolver(nameResolverOrMemo);
       super(el);
       this.nameResolver = nameResolver;
       this.attrNameEvent = new Event("attributeName", el.name);
@@ -110,8 +109,8 @@ class AttributeWalker extends Walker<Attribute> {
         this.subwalker = this.el.pat.newWalker(this.nameResolver);
       }
 
-      const sub: EventSet = this.subwalker._possible();
-      const ret: EventSet = new EventSet();
+      const sub = this.subwalker._possible();
+      const ret = new EventSet();
       // Convert text events to attributeValue events.
       sub.forEach((ev: Event) => {
         if (ev.params[0] !== "text") {
@@ -181,7 +180,7 @@ class AttributeWalker extends Walker<Attribute> {
   }
 
   end(attribute: boolean = false): EndResult {
-    if (this.neutralized) {
+    if (this.neutralized || (this.seenName && this.seenValue)) {
       return false;
     }
 
@@ -203,11 +202,9 @@ class AttributeWalker extends Walker<Attribute> {
 
       return [new AttributeNameError("attribute missing", this.el.name)];
     }
-    else if (!this.seenValue) {
-      return [new AttributeValueError("attribute value missing", this.el.name)];
-    }
 
-    return false;
+    // If we get here, necessarily seenValue is false.
+    return [new AttributeValueError("attribute value missing", this.el.name)];
   }
 }
 

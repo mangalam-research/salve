@@ -59,13 +59,13 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
       return this.possibleCached;
     }
 
-    this._instantiateCurrentIteration();
-    // currentIteration is necessarily defined here due to the previous call.
-    // tslint:disable-next-line:no-non-null-assertion
-    this.possibleCached = this.currentIteration!._possible();
+    if (this.currentIteration === undefined) {
+      this.currentIteration = this.el.pat.newWalker(this.nameResolver);
+    }
+    this.possibleCached = this.currentIteration._possible();
 
     // tslint:disable-next-line:no-non-null-assertion
-    if (this.currentIteration!.canEnd()) {
+    if (this.currentIteration.canEnd()) {
       this.possibleCached = new EventSet(this.possibleCached);
 
       this._instantiateNextIteration();
@@ -82,11 +82,11 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
   fireEvent(ev: Event): FireEventResult {
     this.possibleCached = undefined;
 
-    this._instantiateCurrentIteration();
+    if (this.currentIteration === undefined) {
+      this.currentIteration = this.el.pat.newWalker(this.nameResolver);
+    }
 
-    // currentIteration is necessarily defined here due to the previous call.
-    // tslint:disable-next-line:no-non-null-assertion
-    const currentIteration = this.currentIteration!;
+    const currentIteration = this.currentIteration;
 
     let ret: FireEventResult = currentIteration.fireEvent(ev);
     if (ret === false) {
@@ -129,13 +129,14 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
     // An attribute in ``oneOrMore`` cannot happen when ``anyName`` is not used
     // because an attribute of any given name cannot be repeated.
     //
-    this._instantiateCurrentIteration();
     if (!this.suppressedAttributes) {
       this.suppressedAttributes = true;
       this.possibleCached = undefined; // No longer valid.
-      // currentIteration is necessarily defined here...
-      // tslint:disable-next-line:no-non-null-assertion
-      this.currentIteration!._suppressAttributes();
+
+      if (this.currentIteration === undefined) {
+        this.currentIteration = this.el.pat.newWalker(this.nameResolver);
+      }
+      this.currentIteration._suppressAttributes();
 
       if (this.nextIteration !== undefined) {
         this.nextIteration._suppressAttributes();
@@ -149,35 +150,25 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
         return true;
       }
 
-      this._instantiateCurrentIteration();
+      if (this.currentIteration === undefined) {
+        this.currentIteration = this.el.pat.newWalker(this.nameResolver);
+      }
 
-      // currentIteration is necessarily defined here due to the previous call.
-      // tslint:disable-next-line:no-non-null-assertion
-      return this.currentIteration!.canEnd(true);
+      return this.currentIteration.canEnd(true);
     }
 
-    // currentIteration is necessarily defined here.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.seenOnce && this.currentIteration!.canEnd();
-  }
-
-  end(attribute: boolean = false): EndResult {
-    if (this.canEnd(attribute)) {
-      return false;
-    }
-
-    // Undefined currentIteration can happen in rare cases.
-    this._instantiateCurrentIteration();
-
-    // currentIteration is necessarily defined here due to the previous call.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.currentIteration!.end(attribute);
-  }
-
-  private _instantiateCurrentIteration(): void {
     if (this.currentIteration === undefined) {
       this.currentIteration = this.el.pat.newWalker(this.nameResolver);
     }
+
+    return this.seenOnce && this.currentIteration.canEnd();
+  }
+
+  end(attribute: boolean = false): EndResult {
+    return this.canEnd(attribute) ? false :
+      // currentIteration is necessarily defined here due to the previous call.
+      // tslint:disable-next-line:no-non-null-assertion
+      this.currentIteration!.end(attribute);
   }
 
   private _instantiateNextIteration(): void {

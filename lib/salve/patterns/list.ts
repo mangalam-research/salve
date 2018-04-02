@@ -21,7 +21,6 @@ export class List extends OneSubpattern {}
  */
 class ListWalker extends SingleSubwalker<List> {
   private seenTokens: boolean;
-  private matched: boolean;
   private readonly nameResolver: NameResolver;
 
   protected constructor(other: ListWalker, memo: HashMap);
@@ -29,23 +28,21 @@ class ListWalker extends SingleSubwalker<List> {
   protected constructor(elOrWalker: List | ListWalker,
                         nameResolverOrMemo: NameResolver | HashMap) {
     if (elOrWalker instanceof ListWalker) {
-      const walker: ListWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo, "as 2nd argument");
+      const walker = elOrWalker;
+      const memo = isHashMap(nameResolverOrMemo, "as 2nd argument");
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.subwalker = walker.subwalker._clone(memo);
       this.seenTokens = walker.seenTokens;
-      this.matched = walker.matched;
     }
     else {
-      const el: List = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo,
-                                                        "as 2nd argument");
+      const el = elOrWalker;
+      const nameResolver = isNameResolver(nameResolverOrMemo,
+                                          "as 2nd argument");
       super(el);
       this.nameResolver = nameResolver;
       this.subwalker = el.pat.newWalker(this.nameResolver);
       this.seenTokens = false;
-      this.matched = false;
     }
   }
 
@@ -55,7 +52,7 @@ class ListWalker extends SingleSubwalker<List> {
       return undefined;
     }
 
-    const trimmed: string = (ev.params[1] as string).trim();
+    const trimmed = (ev.params[1] as string).trim();
 
     // The list walker cannot send empty strings to its children because it
     // validates a list of **tokens**.
@@ -65,17 +62,14 @@ class ListWalker extends SingleSubwalker<List> {
 
     this.seenTokens = true;
 
-    const tokens: string[] = trimmed.split(/\s+/);
+    const tokens = trimmed.split(/\s+/);
 
     for (const token of tokens) {
-      const ret: FireEventResult =
-        this.subwalker.fireEvent(new Event(ev.params[0], token));
+      const ret = this.subwalker.fireEvent(new Event(ev.params[0], token));
       if (ret !== false) {
         return ret;
       }
     }
-
-    this.matched = true;
 
     return false;
   }
@@ -93,7 +87,7 @@ class ListWalker extends SingleSubwalker<List> {
   }
 
   end(attribute: boolean = false): EndResult {
-    const ret: EndResult = this.subwalker.end(attribute);
+    const ret = this.subwalker.end(attribute);
     if (ret !== false) {
       return ret;
     }
