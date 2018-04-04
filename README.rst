@@ -597,7 +597,7 @@ track of every single feature that old browsers like IE11 don't support.
 * Old ``Set`` and ``Map`` implementations like those in IE11 are either broken
   or incomplete.
 
-On old browsers, we recomment using ``core-js`` to take care of many of these in
+On old browsers, we recommend using ``core-js`` to take care of many of these in
 one fell swoop. You'll have to provide polyfills for ``fetch`` and ``URL`` from
 other sources.
 
