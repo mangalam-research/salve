@@ -952,41 +952,12 @@ export class Define extends OneSubpattern {
   constructor(xmlPath: string, readonly name: string, pat: Pattern) {
     super(xmlPath, pat);
   }
-}
 
-/**
- * Walker for [[Define]].
- */
-class DefineWalker extends SingleSubwalker<Define> {
-  private readonly nameResolver: NameResolver;
-  /**
-   * @param el The pattern for which this walker was created.
-   *
-   * @param nameResolver The name resolver that can be used to convert namespace
-   * prefixes to namespaces.
-   */
-  protected constructor(walker: DefineWalker, memo: HashMap);
-  protected constructor(el: Define, nameResolver: NameResolver);
-  protected constructor(elOrWalker: DefineWalker | Define,
-                        nameResolverOrMemo: NameResolver | HashMap) {
-    if (elOrWalker instanceof DefineWalker) {
-      const walker: DefineWalker = elOrWalker;
-      const memo: HashMap =  isHashMap(nameResolverOrMemo);
-      super(walker, memo);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.subwalker = walker.subwalker._clone(memo);
-    }
-    else {
-      const el: Define = elOrWalker;
-      const nameResolver: NameResolver =  isNameResolver(nameResolverOrMemo);
-      super(el);
-      this.nameResolver = nameResolver;
-      this.subwalker = el.pat.newWalker(this.nameResolver);
-    }
+  newWalker(resolver: NameResolver): Walker<BasePattern> {
+    // There is no define walker.
+    return this.pat.newWalker(resolver);
   }
 }
-
-addWalker(Define, DefineWalker);
 
 //  LocalWords:  RNG MPL lookahead xmlns uri CodeMirror tokenizer enterStartTag
 //  LocalWords:  EOF attributeName el xmlPath buf nameOrPath util ret EventSet
