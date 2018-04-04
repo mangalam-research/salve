@@ -1,0 +1,3 @@
+This tests the case where two choices start with the same pattern. Here both
+branch of the choice allow element "a". It is not until the contents of "a" is
+analyzed that we know which choice was taken.
