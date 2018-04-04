@@ -7,13 +7,24 @@
 import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
+import { TrivialMap } from "../types";
 import { addWalker, emptyEvent, EndResult, Event, FireEventResult, isHashMap,
          isNameResolver, OneSubpattern, SingleSubwalker } from "./base";
 
 /**
  * List pattern.
  */
-export class List extends OneSubpattern {}
+export class List extends OneSubpattern {
+  // We override these because lists cannot contain attributes so there's
+  // no point in caching _hasAttrs's result.
+  _prepare(namespaces: TrivialMap<number>): void {
+    this.pat._prepare(namespaces);
+  }
+
+  _hasAttrs(): boolean {
+    return false;
+  }
+}
 
 /**
  * Walker for [[List]].
