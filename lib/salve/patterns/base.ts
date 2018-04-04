@@ -9,6 +9,7 @@ import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
+import { NaiveSet } from "../set";
 import { TrivialMap } from "../types";
 import * as util from "../util";
 
@@ -211,18 +212,7 @@ export function addWalker<T>(elCls: any, walkerCls: any): void {
 }
 /* tslint:enable */
 
-// function EventSet() {
-//     var args = Array.prototype.slice.call(arguments);
-//     args.unshift(function (x) { return x.hash() });
-//     HashSet.apply(this, args);
-// }
-// inherit(EventSet, HashSet);
-
-// The naive Set implementation turns out to be faster than the HashSet
-// implementation for how we are using it.
-
-import { NaiveSet as EventSet } from "../set";
-export { NaiveSet as EventSet } from "../set";
+export class EventSet extends NaiveSet<Event>{}
 
 interface Hashable {
   hash(): any;
@@ -445,14 +435,6 @@ export class Event {
   // tslint:disable-next-line:variable-name
   private static __cache: {[key: string]: Event} = Object.create(null);
 
-  /**
-   * The next id to associate to the next Event object to be created. This is
-   * used so that [[Event.hash]] can return unique values.
-   */
-  // tslint:disable-next-line:variable-name
-  private static __id: number = 0;
-
-  readonly id: string;
   readonly params: (string|ConcreteName)[];
   // This field is never read but we still want it present on the object so that
   // we can use it for diagnosis.
@@ -477,30 +459,12 @@ export class Event {
       return cached;
     }
 
-    this.id = `E${this.__newID()}`;
     this.params = params;
     this.key = key;
 
     Event.__cache[key] = this;
 
     return this;
-  }
-
-  /**
-   * This method is mainly used to be able to use these objects in a
-   * [["hashstructs".HashSet]] or a [["hashstructs".HashMap]].
-   *
-   * Returns a hash guaranteed to be unique to this object. There are some
-   * limitations. First, if this module is instantiated twice, the objects
-   * created by the two instances cannot mix without violating the uniqueness
-   * guarantee. Second, the hash is a monotonically increasing counter, so when
-   * it reaches beyond the maximum integer that the JavaScript vm can handle,
-   * things go kaboom. Third, this hash is meant to work within salve only.
-   *
-   * @returns A hash unique to this object.
-   */
-  hash(): string {
-    return this.id;
   }
 
   /**
@@ -521,16 +485,6 @@ export class Event {
   toString(): string {
     return `Event: ${this.params.join(", ")}`;
   }
-
-  /**
-   * Gets a new Event id.
-   *
-   * @returns The new id.
-   */
-  private __newID(): number {
-    return Event.__id++;
-  }
-
 }
 
 /**

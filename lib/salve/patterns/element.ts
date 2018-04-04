@@ -147,7 +147,8 @@ class ElementWalker extends Walker<Element> {
 
       const posses: EventSet = new EventSet(walker._possible());
       if (walker.canEnd()) {
-        posses.add(this.endTagEvent);
+        // tslint:disable-next-line:no-non-null-assertion
+        posses.add(this.endTagEvent!);
       }
 
       return posses;

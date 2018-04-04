@@ -8,48 +8,37 @@
  */
 
 /**
- * This is a naive implementation of sets. It stores all elements in an
- * array. All array manipulations are done by searching through the array from
- * start to hit. So when adding a new element to the ``NaiveSet`` for instance,
- * the add method will scan the whole array, find the element is not there and
- * then add the element at the end of the array. As naive as this implementation
- * is, it has been shown to be faster than [["hashstructs".HashSet]] when used
- * in the context of this library.
- *
- * Note that ``NaiveSet`` cannot hold undefined values.
+ * Note that these sets cannot hold undefined values.
  */
 // tslint:disable: no-any no-reserved-keywords
-export class NaiveSet {
+export class NaiveSet<T> {
   /**
    * The backing store for the set.
    */
-  protected b: any[];
+  protected b: Set<T>;
 
   /**
    * @param initial The value to initialize the set with. If a [[NaiveSet]],
    * then the new ``NaiveSet`` will be a clone of the parameter. If an
    * ``Array``, then the new ``NaiveSet`` will be initialized with the
    * ``Array``. If something else, then the new ``NaiveSet`` will contain
-   * whatever value was passed.  The backing array that hold the values
-   * contained in the set.
+   * whatever value was passed.
    */
-  constructor(initial?: NaiveSet | any[] | any) {
+  constructor(initial?: NaiveSet<T> | T[] | T) {
     if (initial != null) {
       if (initial instanceof NaiveSet) {
-        this.b = initial.b.concat([]);
+        this.b = new Set(initial.b);
       }
       else if (initial instanceof Array) {
-        this.b = [];
-        for (const item of initial) {
-          this.add(item);
-        }
+        this.b = new Set(initial);
       }
       else {
-        this.b = [initial];
+        this.b = new Set();
+        this.b.add(initial);
       }
     }
     else {
-      this.b = [];
+      this.b = new Set();
     }
   }
 
@@ -58,29 +47,25 @@ export class NaiveSet {
    *
    * @param value The value to add.
    */
-  add(value: any): void {
-    const t: number = this.b.indexOf(value);
-    if (t < 0) {
-      this.b.push(value);
-    }
+  add(value: T): void {
+    this.b.add(value);
   }
 
   /**
-   * Destructively adds the elements of another set to this set.
+   * Add the elements of another set to this set. This mutates this set.
    *
    * @param s The set to add.
    * @throws {Error} If ``s`` is not a ``NaiveSet`` object
    */
-  union(s?: NaiveSet): void {
+  union(s?: NaiveSet<T>): void {
     if (s == null) {
       return;
     }
     if (!(s instanceof NaiveSet)) {
       throw new Error("union with non-NaiveSet");
     }
-    const len: number = s.b.length;
-    for (let i: number = 0; i < len; ++i) {
-      this.add(s.b[i]);
+    for (const x of s.b) {
+      this.add(x);
     }
   }
 
@@ -92,11 +77,16 @@ export class NaiveSet {
    * @returns An object of the same class as the object on which the method is
    * called. This object contains only the value selected by the function.
    */
-  filter(f: (value: any, index: number, set: NaiveSet) => any): NaiveSet {
-    const ret: NaiveSet = new (this.constructor as typeof NaiveSet)();
+  filter(f: (value: T, index: number, set: NaiveSet<T>) => any): NaiveSet<T> {
+    const ret: NaiveSet<T> = new (this.constructor as typeof NaiveSet)();
     // The fat arrow is used to prevent a caller from accessing ``this.b``
     // through the 3rd parameter that would be passed to ``f``.
-    ret.b = this.b.filter((value: any, index: number) => f(value, index, this));
+    let index = 0;
+    for (const x of this.b) {
+      if (f(x, index++, this)) {
+        ret.add(x);
+      }
+    }
 
     return ret;
   }
@@ -111,13 +101,11 @@ export class NaiveSet {
    *
    * @returns The new set. This set is of the same class as the original set.
    */
-  map(f: (value: any, index: number, set: NaiveSet) => any): NaiveSet {
-    const ret: NaiveSet = new (this.constructor as typeof NaiveSet)();
-    for (let i: number = 0; i < this.b.length; ++i) {
-      const value: any = this.b[i];
-      const result: any = f(value, i, this);
-
-      // Undefined is not added.
+  map(f: (value: T, index: number, set: NaiveSet<T>) => any): NaiveSet<T> {
+    const ret: NaiveSet<T> = new (this.constructor as typeof NaiveSet)();
+    let index = 0;
+    for (const x of this.b) {
+      const result: any = f(x, index++, this);
       if (result !== undefined) {
         ret.add(result);
       }
@@ -129,12 +117,12 @@ export class NaiveSet {
   /**
    * Applies a function on each value stored in the set.
    *
-   * @param f A function which accepts one parameter. The function will be
-   * called on each value.
+   * @param f A function to call on each value.
    */
-  forEach(f: (value: any, index: number, set: NaiveSet) => void): void {
-    this.b.forEach((value: any, index: number) => {
-      f(value, index, this);
+  forEach(f: (value: T, index: number, set: NaiveSet<T>) => void): void {
+    let index = 0;
+    this.b.forEach((value: T) => {
+      f(value, index++, this);
     });
   }
 
@@ -144,14 +132,14 @@ export class NaiveSet {
    * @returns All the values, joined with ", ".
    */
   toString(): string {
-    return this.b.join(", ");
+    return Array.from(this.b).join(", ");
   }
 
   /**
    * @returns The number of values stored.
    */
   size(): number {
-    return this.b.length;
+    return this.b.size;
   }
 
   /**
@@ -161,8 +149,8 @@ export class NaiveSet {
    *
    * @returns True if the object is present, false if not.
    */
-  has(obj: any): boolean {
-    return this.b.indexOf(obj) >= 0;
+  has(obj: T): boolean {
+    return this.b.has(obj);
   }
 
   /**
@@ -170,8 +158,8 @@ export class NaiveSet {
    *
    * @returns An array that corresponds to the object.
    */
-  toArray(): any[] {
-    return this.b.slice();
+  toArray(): T[] {
+    return Array.from(this.b);
   }
 }
 
