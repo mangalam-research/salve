@@ -220,8 +220,13 @@ the tree created from the RNG. (See above.) The events currently supported by
   Emitted when encountering an attribute value
 
 ``Event("text", value)``
-  Emitted when encountering text. This event must be fired for
-  all instances of text, **including white space.**
+  Emitted when encountering text. This event must be fired for all instances
+  of text, **including white space.** Moreover, salve requires that you fire
+  one ``text`` event per consecutive sequence of text. For instance, if you
+  have the text ``foo bar`` you may not fire one event for ``foo `` and
+  another for ``bar``. Or if you have a sequence of lines, you may not fire one
+  event per line. You have to concatenate the lines and fire a single ``text``
+  event.
 
 ``Event("enterContext")``
   Emitted when entering a new namespace context.

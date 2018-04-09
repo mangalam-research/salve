@@ -172,7 +172,8 @@ enterStartTag:
 text:
     /^.*$/
 
-invoking fireEvent with Event: text, abc
+invoking fireEvent with Event: text,
+abc
 fireEvent returned false
 possible events
 endTag:

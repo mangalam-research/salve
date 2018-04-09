@@ -72,7 +72,7 @@ function makeParser(er, walker) {
   };
 
   parser.ontext = function ontext(text) {
-    er.recordEvent(walker, "text", text.trim());
+    er.recordEvent(walker, "text", text);
   };
 
   parser.onclosetag = function onclosetag(_node) {
@@ -126,7 +126,8 @@ class EventRecorder {
     const nev = new salve.Event(evParams);
     if (this.check_fireEvent_invocation) {
       this.ce.compare(
-        `\ninvoking fireEvent with ${nev.toString().trim()}`, nev);
+        `\ninvoking fireEvent with ${nev.toString().trim()
+.replace(/\s+\n/g, "\n")}`, nev);
     }
     const ret = walker.fireEvent(nev);
     this.ce.compare(`fireEvent returned ${errorsToString(ret)}`, nev);

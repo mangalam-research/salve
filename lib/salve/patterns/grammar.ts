@@ -278,8 +278,6 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
 
   private ignoreNextWs: boolean;
 
-  private _prevEvWasText: boolean;
-
   /**
    * @param el The grammar for which this walker was
    * created.
@@ -306,7 +304,6 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       this._swallowAttributeValue = walker._swallowAttributeValue;
       this.suspendedWs = walker.suspendedWs;
       this.ignoreNextWs = walker.ignoreNextWs;
-      this._prevEvWasText = walker._prevEvWasText;
     }
     else {
       super(elOrWalker);
@@ -314,7 +311,6 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       this._misplacedElements = [];
       this._swallowAttributeValue = false;
       this.ignoreNextWs = false;
-      this._prevEvWasText = false;
       this.subwalker = elOrWalker.start.newWalker(this.nameResolver);
     }
   }
@@ -384,13 +380,15 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
       case "text":
         // Process whitespace nodes
         const text = ev.params[1] as string;
+        if (text === "") {
+          throw new Error("firing empty text events makes no sense");
+        }
+
         if (text.trim() === "") {
-          if (this.suspendedWs !== undefined) {
-            this.suspendedWs += text;
-          }
-          else {
-            this.suspendedWs = text;
-          }
+          // We don't check the old value of suspendedWs because salve does not
+          // allow two text events in a row. So we should never have to
+          // concatenate values.
+          this.suspendedWs = text;
 
           return false;
         }
@@ -402,48 +400,36 @@ export class GrammarWalker extends SingleSubwalker<Grammar> {
     const walker = topMisplacedElement === undefined ? this.subwalker :
       topMisplacedElement.walker;
 
+    // Whitespaces are problematic from a validation perspective. On the one
+    // hand, if an element may contain only other elements and no text, then XML
+    // allows putting whitespace between the elements. That whitespace must not
+    // cause a validation error. When mixed content is possible, everywhere
+    // where text is allowed, a text of length 0 is possible. (``<text/>`` does
+    // not allow specifying a pattern or minimum length. And Relax NG
+    // constraints do not allow having an element whose content is a mixture of
+    // ``element`` and ``data`` and ``value`` that would constrain specific text
+    // patterns between the elements.) We can satisfy all situations by dropping
+    // text events that contain only whitespace.
+    //
+    // The only case where we'd want to pass a node consisting entirely of
+    // whitespace is to satisfy a data or value pattern because they can require
+    // a sequence of whitespaces.
     const ignoreNextWsNow = this.ignoreNextWs;
     this.ignoreNextWs = false;
     switch (evName) {
       case "enterStartTag":
       case "startTagAndAttributes":
-        // Absorb the whitespace: poof, gone!
-        this.suspendedWs = undefined;
-        break;
-      case "text":
-        if (this._prevEvWasText) {
-          throw new Error("fired two text events in a row: this is " +
-                          "disallowed by salve");
-        }
-
-        if (ignoreNextWsNow) {
-          this.suspendedWs = undefined;
-          const trimmed = (ev.params[1] as string).replace(/^\s+/, "");
-          if (trimmed.length !== (ev.params[1] as string).length) {
-            // tslint:disable-next-line:no-parameter-reassignment
-            ev = new Event("text", trimmed);
-          }
-        }
-        else if (this.suspendedWs !== undefined && this.suspendedWs !== "") {
-          wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
-          this.suspendedWs = undefined;
-        }
         break;
       case "endTag":
         this.ignoreNextWs = true;
         /* falls through */
       default:
-        // Process the whitespace that was suspended.
-        if (this.suspendedWs !== undefined && this.suspendedWs !== "" &&
-            !ignoreNextWsNow) {
+        if (!ignoreNextWsNow && this.suspendedWs !== undefined) {
           wsErr = walker.fireEvent(new Event("text", this.suspendedWs));
         }
-        this.suspendedWs = undefined;
     }
-
-    // We can update it here because we're done examining the value that was
-    // set from the previous call to fireEvent.
-    this._prevEvWasText = (evName === "text");
+    // Absorb the whitespace: poof, gone!
+    this.suspendedWs = undefined;
 
     // This would happen if the user puts an attribute on a tag that does not
     // allow one. Instead of generating errors for both the attribute name
@@ -561,7 +547,10 @@ ${evName.toString()}`);
     }
 
     if (wsErr === undefined) {
-      wsErr = [new ValidationError("text not allowed here")];
+      // If we have another error, we don't want to make an issue that text
+      // was not matched. Otherwise, we want to alert the user.
+      wsErr = ret === false ?
+        [new ValidationError("text not allowed here")] : [];
     }
     else if (wsErr === false) {
       return ret;

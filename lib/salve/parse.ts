@@ -102,8 +102,10 @@ export async function parse(rngSource: string | Grammar,
   let textBuf = "";
 
   function flushTextBuf(): void {
-    fireEvent("text", textBuf);
-    textBuf = "";
+    if (textBuf !== "") {
+      fireEvent("text", textBuf);
+      textBuf = "";
+    }
   }
 
   parser.onopentag = (node: sax.QualifiedTag) => {

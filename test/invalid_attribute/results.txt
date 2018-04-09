@@ -64,7 +64,8 @@ fireEvent returned false
 invoking fireEvent with Event: leaveStartTag
 fireEvent returned false
 
-invoking fireEvent with Event: text, abc
+invoking fireEvent with Event: text,
+abc
 fireEvent returned false
 
 invoking fireEvent with Event: endTag, , body
