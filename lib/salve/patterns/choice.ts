@@ -21,8 +21,8 @@ export class Choice extends TwoSubpatterns {}
  * Walker for [[Choice]].
  */
 class ChoiceWalker extends Walker<Choice> {
-  private walkerA: Walker<BasePattern> | undefined;
-  private walkerB: Walker<BasePattern> | undefined;
+  private walkerA: Walker<BasePattern>;
+  private walkerB: Walker<BasePattern>;
   private deactivateA: boolean;
   private deactivateB: boolean;
   private readonly nameResolver: NameResolver;
@@ -37,10 +37,8 @@ class ChoiceWalker extends Walker<Choice> {
       const memo = isHashMap(nameResolverOrMemo);
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.walkerA = walker.walkerA !== undefined ?
-        walker.walkerA._clone(memo) : undefined;
-      this.walkerB = walker.walkerB !== undefined ?
-        walker.walkerB._clone(memo) : undefined;
+      this.walkerA = walker.walkerA._clone(memo);
+      this.walkerB = walker.walkerB._clone(memo);
       this.deactivateA = walker.deactivateA;
       this.deactivateB = walker.deactivateB;
     }
@@ -51,6 +49,8 @@ class ChoiceWalker extends Walker<Choice> {
       this.nameResolver = nameResolver;
       this.deactivateA = false;
       this.deactivateB = false;
+      this.walkerA = this.el.patA.newWalker(this.nameResolver);
+      this.walkerB = this.el.patB.newWalker(this.nameResolver);
     }
   }
 
@@ -59,16 +59,10 @@ class ChoiceWalker extends Walker<Choice> {
       return this.possibleCached;
     }
 
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
-
     const walkerA = this.walkerA;
     this.possibleCached = this.deactivateA ? undefined : walkerA._possible();
 
-    // tslint:disable-next-line:no-non-null-assertion
-    const walkerB = this.walkerB!;
+    const walkerB = this.walkerB;
     if (!this.deactivateB) {
       this.possibleCached = new EventSet(this.possibleCached);
       const possibleB = walkerB._possible();
@@ -82,14 +76,8 @@ class ChoiceWalker extends Walker<Choice> {
   }
 
   fireEvent(ev: Event): FireEventResult {
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
-
     const walkerA = this.walkerA;
-    // tslint:disable-next-line:no-non-null-assertion
-    const walkerB = this.walkerB!;
+    const walkerB = this.walkerB;
 
     if (this.deactivateA && this.deactivateB) {
       return undefined;
@@ -125,29 +113,17 @@ class ChoiceWalker extends Walker<Choice> {
 
   _suppressAttributes(): void {
     if (!this.suppressedAttributes) {
-      if (this.walkerA === undefined) {
-        this.walkerA = this.el.patA.newWalker(this.nameResolver);
-        this.walkerB = this.el.patB.newWalker(this.nameResolver);
-      }
-
       this.possibleCached = undefined; // no longer valid
       this.suppressedAttributes = true;
 
       this.walkerA._suppressAttributes();
-      // tslint:disable-next-line:no-non-null-assertion
-      this.walkerB!._suppressAttributes();
+      this.walkerB._suppressAttributes();
     }
   }
 
   canEnd(attribute: boolean = false): boolean {
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
-
     const walkerA = this.walkerA;
-    // tslint:disable-next-line:no-non-null-assertion
-    const walkerB = this.walkerB!;
+    const walkerB = this.walkerB;
 
     if (this.deactivateA && this.deactivateB) {
       return true;
@@ -171,10 +147,8 @@ class ChoiceWalker extends Walker<Choice> {
       return false;
     }
 
-    // tslint:disable-next-line:no-non-null-assertion
-    const retA = this.walkerA!.end(attribute);
-    // tslint:disable-next-line:no-non-null-assertion
-    const retB = this.walkerB!.end(attribute);
+    const retA = this.walkerA.end(attribute);
+    const retB = this.walkerB.end(attribute);
 
     if (!retA && !retB) {
       return false;
@@ -198,8 +172,7 @@ class ChoiceWalker extends Walker<Choice> {
     // errors no matter which walker may have been deactivated.
     const namesA: namePatterns.Base[] = [];
     let notAChoiceError = false;
-    // tslint:disable-next-line:no-non-null-assertion
-    this.walkerA!.possible().forEach((ev: Event) => {
+    this.walkerA.possible().forEach((ev: Event) => {
       if (ev.params[0] === "enterStartTag") {
         namesA.push(ev.params[1] as namePatterns.Base);
       }
@@ -213,8 +186,7 @@ class ChoiceWalker extends Walker<Choice> {
     // false here and tslint issues a warning.
     if (!(notAChoiceError as boolean)) {
       const namesB: namePatterns.Base[] = [];
-      // tslint:disable-next-line:no-non-null-assertion
-      this.walkerB!.possible().forEach((ev: Event) => {
+      this.walkerB.possible().forEach((ev: Event) => {
         if (ev.params[0] === "enterStartTag") {
           namesB.push(ev.params[1] as namePatterns.Base);
         }

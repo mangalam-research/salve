@@ -24,8 +24,8 @@ class InterleaveWalker extends Walker<Interleave> {
   private inB: boolean;
   private tagStateA: number;
   private tagStateB: number;
-  private walkerA: Walker<BasePattern> | undefined;
-  private walkerB: Walker<BasePattern> | undefined;
+  private walkerA: Walker<BasePattern>;
+  private walkerB: Walker<BasePattern>;
   private readonly nameResolver: NameResolver;
 
   /**
@@ -49,10 +49,8 @@ class InterleaveWalker extends Walker<Interleave> {
       this.inB = walker.inB;
       this.tagStateA = walker.tagStateA;
       this.tagStateB = walker.tagStateB;
-      this.walkerA = walker.walkerA !== undefined ?
-        walker.walkerA._clone(memo) : undefined;
-      this.walkerB = walker.walkerB !== undefined ?
-        walker.walkerB._clone(memo) : undefined;
+      this.walkerA = walker.walkerA._clone(memo);
+      this.walkerB = walker.walkerB._clone(memo);
     }
     else {
       const el = elOrWalker;
@@ -64,6 +62,8 @@ class InterleaveWalker extends Walker<Interleave> {
       this.inB = false;
       this.tagStateA = 0;
       this.tagStateB = 0;
+      this.walkerA = this.el.patA.newWalker(this.nameResolver);
+      this.walkerB = this.el.patB.newWalker(this.nameResolver);
     }
   }
 
@@ -84,14 +84,8 @@ class InterleaveWalker extends Walker<Interleave> {
       throw new Error("impossible state");
     }
 
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
-
     const walkerA = this.walkerA;
-    // tslint:disable-next-line:no-non-null-assertion
-    const walkerB = this.walkerB!;
+    const walkerB = this.walkerB;
 
     if (this.inA && !walkerA.canEnd()) {
       this.possibleCached = walkerA._possible();
@@ -147,11 +141,6 @@ class InterleaveWalker extends Walker<Interleave> {
       return undefined;
     }
 
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
-
     if (this.inA && this.inB) {
       // It due to the restrictions imposed by Relax NG, it is not possible to
       // be both inA and inB. If we get here, then we are dealing with an
@@ -171,8 +160,7 @@ class InterleaveWalker extends Walker<Interleave> {
         return false;
       }
 
-      // tslint:disable-next-line:no-non-null-assertion
-      const retB = this.fireEventOnSubWalker(this.walkerB!, ev);
+      const retB = this.fireEventOnSubWalker(this.walkerB, ev);
       if (retB === false) {
         this.inB = true;
 
@@ -197,8 +185,7 @@ class InterleaveWalker extends Walker<Interleave> {
 
       if (this.tagStateA === 0) {
         // We can move to walkerB.
-        // tslint:disable-next-line:no-non-null-assertion
-        const retB = this.fireEventOnSubWalker(this.walkerB!, ev);
+        const retB = this.fireEventOnSubWalker(this.walkerB, ev);
 
         if (retB === false) {
           this.inA = false;
@@ -209,8 +196,7 @@ class InterleaveWalker extends Walker<Interleave> {
       }
     }
     else { // inB
-      // tslint:disable-next-line:no-non-null-assertion
-      const retB = this.fireEventOnSubWalker(this.walkerB!, ev);
+      const retB = this.fireEventOnSubWalker(this.walkerB, ev);
       if (retB !== undefined) {
         return retB;
       }
@@ -265,17 +251,11 @@ class InterleaveWalker extends Walker<Interleave> {
 
   _suppressAttributes(): void {
     if (!this.suppressedAttributes) {
-      if (this.walkerA === undefined) {
-        this.walkerA = this.el.patA.newWalker(this.nameResolver);
-        this.walkerB = this.el.patB.newWalker(this.nameResolver);
-      }
-
       this.possibleCached = undefined; // no longer valid
       this.suppressedAttributes = true;
 
       this.walkerA._suppressAttributes();
-      // tslint:disable-next-line:no-non-null-assertion
-      this.walkerB!._suppressAttributes();
+      this.walkerB._suppressAttributes();
     }
   }
 
@@ -285,14 +265,8 @@ class InterleaveWalker extends Walker<Interleave> {
       return true;
     }
 
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
-
     const walkerA = this.walkerA;
-    // tslint:disable-next-line:no-non-null-assertion
-    const walkerB = this.walkerB!;
+    const walkerB = this.walkerB;
 
     if (!attribute) {
       return walkerA.canEnd(false) && walkerB.canEnd(false);
@@ -314,14 +288,8 @@ class InterleaveWalker extends Walker<Interleave> {
       return false;
     }
 
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
-
     const retA: EndResult = this.walkerA.end(attribute);
-    // tslint:disable-next-line:no-non-null-assertion
-    const retB: EndResult = this.walkerB!.end(attribute);
+    const retB: EndResult = this.walkerB.end(attribute);
 
     if (!retA) {
       return !retB ? false : retB;

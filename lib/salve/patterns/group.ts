@@ -24,8 +24,8 @@ class GroupWalker extends Walker<Group> {
   private hitA: boolean;
   private endedA: boolean;
   private hitB: boolean;
-  private walkerA: Walker<BasePattern> | undefined;
-  private walkerB: Walker<BasePattern> | undefined;
+  private walkerA: Walker<BasePattern>;
+  private walkerB: Walker<BasePattern>;
   private readonly nameResolver: NameResolver;
 
   /**
@@ -46,10 +46,8 @@ class GroupWalker extends Walker<Group> {
       this.hitA = walker.hitA;
       this.endedA = walker.endedA;
       this.hitB = walker.hitB;
-      this.walkerA = walker.walkerA !== undefined ?
-        walker.walkerA._clone(memo) : undefined;
-      this.walkerB = walker.walkerB !== undefined ?
-        walker.walkerB._clone(memo) : undefined;
+      this.walkerA = walker.walkerA._clone(memo);
+      this.walkerB = walker.walkerB._clone(memo);
       this.ended = walker.ended;
     }
     else {
@@ -61,6 +59,8 @@ class GroupWalker extends Walker<Group> {
       this.endedA = false;
       this.hitB = false;
       this.ended = false;
+      this.walkerA = this.el.patA.newWalker(this.nameResolver);
+      this.walkerB = this.el.patB.newWalker(this.nameResolver);
     }
   }
 
@@ -75,14 +75,8 @@ class GroupWalker extends Walker<Group> {
       return this.possibleCached;
     }
 
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
-
     const walkerA = this.walkerA;
-    // tslint:disable-next-line:no-non-null-assertion
-    const walkerB = this.walkerB!;
+    const walkerB = this.walkerB;
 
     this.possibleCached = (!this.endedA) ? walkerA._possible() : undefined;
 
@@ -123,11 +117,6 @@ class GroupWalker extends Walker<Group> {
 
     const isAttributeEvent = ev.isAttributeEvent();
 
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
-
     const walkerA = this.walkerA;
     if (!this.endedA) {
       const retA = walkerA.fireEvent(ev);
@@ -144,8 +133,7 @@ class GroupWalker extends Walker<Group> {
       }
     }
 
-    // tslint:disable-next-line:no-non-null-assertion
-    const walkerB = this.walkerB!;
+    const walkerB = this.walkerB;
     const retB: FireEventResult = walkerB.fireEvent(ev);
     if (retB !== undefined) {
       this.hitB = true;
@@ -174,17 +162,11 @@ class GroupWalker extends Walker<Group> {
 
   _suppressAttributes(): void {
     if (!this.suppressedAttributes) {
-      if (this.walkerA === undefined) {
-        this.walkerA = this.el.patA.newWalker(this.nameResolver);
-        this.walkerB = this.el.patB.newWalker(this.nameResolver);
-      }
-
       this.possibleCached = undefined; // no longer valid
       this.suppressedAttributes = true;
 
       this.walkerA._suppressAttributes();
-      // tslint:disable-next-line:no-non-null-assertion
-      this.walkerB!._suppressAttributes();
+      this.walkerB._suppressAttributes();
     }
   }
 
@@ -194,14 +176,8 @@ class GroupWalker extends Walker<Group> {
       return true;
     }
 
-    if (this.walkerA === undefined) {
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
-    }
-
     const walkerA = this.walkerA;
-    // tslint:disable-next-line:no-non-null-assertion
-    const walkerB = this.walkerB!;
+    const walkerB = this.walkerB;
 
     if (!attribute) {
       return walkerA.canEnd(false) && walkerB.canEnd(false);
@@ -225,12 +201,8 @@ class GroupWalker extends Walker<Group> {
 
     let ret: EndResult;
 
-    // Both walkers are necessarily defined because of the call to canEnd.
-    //
-    // tslint:disable:no-non-null-assertion
-    const walkerA = this.walkerA!;
-    const walkerB = this.walkerB!;
-    // tslint:enable:no-non-null-assertion
+    const walkerA = this.walkerA;
+    const walkerB = this.walkerB;
 
     if (attribute) {
       const aHas: boolean = this.el.patA._hasAttrs();

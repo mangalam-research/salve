@@ -20,7 +20,7 @@ export class  OneOrMore extends OneSubpattern {}
  */
 class OneOrMoreWalker extends Walker<OneOrMore> {
   private seenOnce: boolean;
-  private currentIteration: Walker<BasePattern> | undefined;
+  private currentIteration: Walker<BasePattern>;
   private nextIteration: Walker<BasePattern> | undefined;
   private readonly nameResolver: NameResolver;
 
@@ -40,8 +40,7 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
       super(walker, memo);
       this.seenOnce = walker.seenOnce;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.currentIteration = walker.currentIteration !== undefined ?
-        walker.currentIteration._clone(memo) : undefined;
+      this.currentIteration = walker.currentIteration._clone(memo);
       this.nextIteration = walker.nextIteration !== undefined ?
         walker.nextIteration._clone(memo) : undefined;
     }
@@ -51,6 +50,7 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
       super(el);
       this.nameResolver = nameResolver;
       this.seenOnce = false;
+      this.currentIteration = this.el.pat.newWalker(this.nameResolver);
     }
   }
 
@@ -59,12 +59,8 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
       return this.possibleCached;
     }
 
-    if (this.currentIteration === undefined) {
-      this.currentIteration = this.el.pat.newWalker(this.nameResolver);
-    }
     this.possibleCached = this.currentIteration._possible();
 
-    // tslint:disable-next-line:no-non-null-assertion
     if (this.currentIteration.canEnd()) {
       this.possibleCached = new EventSet(this.possibleCached);
 
@@ -81,10 +77,6 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
 
   fireEvent(ev: Event): FireEventResult {
     this.possibleCached = undefined;
-
-    if (this.currentIteration === undefined) {
-      this.currentIteration = this.el.pat.newWalker(this.nameResolver);
-    }
 
     const currentIteration = this.currentIteration;
 
@@ -109,7 +101,8 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
       // tslint:disable-next-line:no-non-null-assertion
       const nextRet: FireEventResult = this.nextIteration!.fireEvent(ev);
       if (nextRet === false) {
-        this.currentIteration = this.nextIteration;
+        // tslint:disable-next-line:no-non-null-assertion
+        this.currentIteration = this.nextIteration!;
         this.nextIteration = undefined;
       }
 
@@ -133,9 +126,6 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
       this.suppressedAttributes = true;
       this.possibleCached = undefined; // No longer valid.
 
-      if (this.currentIteration === undefined) {
-        this.currentIteration = this.el.pat.newWalker(this.nameResolver);
-      }
       this.currentIteration._suppressAttributes();
 
       if (this.nextIteration !== undefined) {
@@ -150,15 +140,7 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
         return true;
       }
 
-      if (this.currentIteration === undefined) {
-        this.currentIteration = this.el.pat.newWalker(this.nameResolver);
-      }
-
       return this.currentIteration.canEnd(true);
-    }
-
-    if (this.currentIteration === undefined) {
-      this.currentIteration = this.el.pat.newWalker(this.nameResolver);
     }
 
     return this.seenOnce && this.currentIteration.canEnd();
@@ -166,9 +148,7 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
 
   end(attribute: boolean = false): EndResult {
     return this.canEnd(attribute) ? false :
-      // currentIteration is necessarily defined here due to the previous call.
-      // tslint:disable-next-line:no-non-null-assertion
-      this.currentIteration!.end(attribute);
+      this.currentIteration.end(attribute);
   }
 
   private _instantiateNextIteration(): void {
