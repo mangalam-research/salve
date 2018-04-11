@@ -538,10 +538,11 @@ export class InternalSimplifier extends BaseSimplifier {
     }
 
     let warnings: string[] = [];
-    let tree = await this.parse(schemaPath);
+    let tree!: Element;
 
     if (this.options.simplifyTo >= 1) {
       this.stepStart(1);
+      tree = await this.parse(schemaPath);
       tree = await simplifier.step1(schemaPath, tree, this.parse.bind(this));
     }
 
