@@ -301,7 +301,7 @@ async function start(): Promise<void> {
     timing: args.timing,
     resourceLoader,
     keepTemp: args.keep_temp,
-    simplifyTo: Infinity,
+    simplifyTo: args.simplify_to,
     ensureTempDir,
     validate: true,
   });
