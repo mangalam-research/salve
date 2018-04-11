@@ -10,8 +10,8 @@ import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { TrivialMap } from "../types";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         FireEventResult, isHashMap, isNameResolver, OneSubpattern, Pattern,
-         Walker } from "./base";
+         InternalFireEventResult, InternalWalker, isHashMap, isNameResolver,
+         OneSubpattern, Pattern } from "./base";
 
 /**
  * A pattern for attributes.
@@ -52,10 +52,11 @@ export class Attribute extends OneSubpattern {
 /**
  * Walker for [[Attribute]].
  */
-class AttributeWalker extends Walker<Attribute> {
+class AttributeWalker extends InternalWalker<Attribute> {
+  private suppressedAttributes: boolean;
   private seenName: boolean;
   private seenValue: boolean;
-  private subwalker: Walker<BasePattern> | undefined;
+  private subwalker: InternalWalker<BasePattern> | undefined;
   private readonly attrNameEvent: Event;
   private readonly nameResolver: NameResolver;
   private neutralized: boolean;
@@ -74,6 +75,7 @@ class AttributeWalker extends Walker<Attribute> {
       const walker = elOrWalker;
       const memo = isHashMap(nameResolverOrMemo);
       super(walker, memo);
+      this.suppressedAttributes = walker.suppressedAttributes;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.seenName = walker.seenName;
       this.seenValue = walker.seenValue;
@@ -87,6 +89,7 @@ class AttributeWalker extends Walker<Attribute> {
       const el = elOrWalker;
       const nameResolver = isNameResolver(nameResolverOrMemo);
       super(el);
+      this.suppressedAttributes = false;
       this.nameResolver = nameResolver;
       this.attrNameEvent = new Event("attributeName", el.name);
       this.seenName = false;
@@ -109,17 +112,14 @@ class AttributeWalker extends Walker<Attribute> {
         this.subwalker = this.el.pat.newWalker(this.nameResolver);
       }
 
-      const sub = this.subwalker._possible();
-      const ret = new EventSet();
       // Convert text events to attributeValue events.
-      sub.forEach((ev: Event) => {
+      return this.subwalker._possible().map((ev: Event) => {
         if (ev.params[0] !== "text") {
           throw new Error(`unexpected event type: ${ev.params[0]}`);
         }
-        ret.add(new Event("attributeValue", ev.params[1]));
-      });
 
-      return ret;
+        return new Event("attributeValue", ev.params[1]);
+      });
     }
 
     return new EventSet();
@@ -130,12 +130,12 @@ class AttributeWalker extends Walker<Attribute> {
     return this._possible();
   }
 
-  fireEvent(ev: Event): FireEventResult {
+  fireEvent(ev: Event): InternalFireEventResult {
     if (this.suppressedAttributes || this.neutralized) {
       return undefined;
     }
 
-    let ret: FireEventResult;
+    let ret: InternalFireEventResult;
     let value: string | undefined;
     const eventName = ev.params[0];
     if (this.seenName) {

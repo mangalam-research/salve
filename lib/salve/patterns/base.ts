@@ -12,6 +12,9 @@ import { NameResolver } from "../name_resolver";
 import { NaiveSet } from "../set";
 import { TrivialMap } from "../types";
 import * as util from "../util";
+import { Define } from "./define";
+import { Element } from "./element";
+import { Ref, RefWalker } from "./ref";
 
 // XML validation against a schema could work without any lookahead if it were
 // not for namespaces. However, namespace support means that the interpretation
@@ -234,11 +237,28 @@ function hashHelper(o: Hashable): any {
 }
 
 export type FireEventResult = false | undefined | ValidationError[];
+export type InternalFireEventResult = false | undefined |
+  (ValidationError | RefWalker)[];
 export type EndResult = false | ValidationError[];
 
-export interface ElementI {
-  readonly name: ConcreteName;
-  newWalker(resolver: NameResolver): Walker<BasePattern>;
+export function matched(result: InternalFireEventResult):
+result is (false |  (ValidationError | RefWalker)[]) {
+  if (result === undefined) {
+    return false;
+  }
+
+  if (result === false) {
+    return true;
+  }
+
+  for (const x of result) {
+    // Any ElementI present in the array means there was a match.
+    if (!(x instanceof ValidationError)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -349,7 +369,7 @@ export abstract class Pattern extends BasePattern {
    *
    * @returns A walker.
    */
-  newWalker(resolver: NameResolver): Walker<BasePattern> {
+  newWalker(resolver: NameResolver): InternalWalker<BasePattern> {
     throw new Error("derived classes must override this");
   }
 }
@@ -357,10 +377,11 @@ export abstract class Pattern extends BasePattern {
 /**
  * Pattern objects of this class have exactly one child pattern.
  */
-export abstract class OneSubpattern extends Pattern {
+export abstract class OneSubpattern<T extends (Pattern | Element) = Pattern>
+  extends Pattern {
   protected _cachedHasAttr?: boolean;
 
-  constructor(xmlPath: string, readonly pat: Pattern) {
+  constructor(xmlPath: string, readonly pat: T) {
     super(xmlPath);
   }
 
@@ -436,6 +457,11 @@ export class Event {
   private static __cache: {[key: string]: Event} = Object.create(null);
 
   readonly params: (string|ConcreteName)[];
+
+  /**
+   * Is this Event an attribute event?
+   */
+  readonly isAttributeEvent: boolean;
   // This field is never read but we still want it present on the object so that
   // we can use it for diagnosis.
   // @ts-ignore
@@ -461,22 +487,13 @@ export class Event {
 
     this.params = params;
     this.key = key;
+    this.isAttributeEvent = (this.params[0] === "attributeName" ||
+                             this.params[0] === "attributeValue" ||
+                             this.params[0] === "attributeNameAndValue");
 
     Event.__cache[key] = this;
 
     return this;
-  }
-
-  /**
-   * Is this Event an attribute event?
-   *
-   * @returns ``true`` if the event is an attribute event, ``false``
-   * otherwise.
-   */
-  isAttributeEvent(): boolean {
-    return (this.params[0] === "attributeName" ||
-            this.params[0] === "attributeValue" ||
-            this.params[0] === "attributeNameAndValue");
   }
 
   /**
@@ -597,7 +614,7 @@ export const emptyEvent: Event = new Event("<empty>");
  *
  * Note that users of this API do not instantiate Walker objects themselves.
  */
-export abstract class Walker<T extends BasePattern> {
+export abstract class BaseWalker<T extends BasePattern> {
 
   /**
    * The next id to associate to the next Walker object to be created. This is
@@ -611,18 +628,15 @@ export abstract class Walker<T extends BasePattern> {
 
   protected possibleCached: EventSet | undefined;
 
-  protected suppressedAttributes: boolean = false;
-
   /**
    * @param el The element to which this walker belongs.
    */
-  protected constructor(other: Walker<T>, memo: HashMap);
+  protected constructor(other: BaseWalker<T>, memo: HashMap);
   protected constructor(el: T);
-  protected constructor(elOrWalker: T | Walker<T>) {
-    if (elOrWalker instanceof Walker) {
+  protected constructor(elOrWalker: T | BaseWalker<T>) {
+    if (elOrWalker instanceof BaseWalker) {
       this.el = elOrWalker.el;
       this.possibleCached = elOrWalker.possibleCached;
-      this.suppressedAttributes = elOrWalker.suppressedAttributes;
     }
     else {
       this.el = elOrWalker;
@@ -675,18 +689,6 @@ export abstract class Walker<T extends BasePattern> {
 
   // These functions return true if there is no problem, or a list of
   // ValidationError objects otherwise.
-
-  /**
-   * Passes an event to the walker for handling. The Walker will determine
-   * whether it or one of its children can handle the event.
-   *
-   * @param ev The event to handle.
-   *
-   * @returns The value ``false`` if there was no error. The value ``undefined``
-   * if no walker matches the pattern. Otherwise, an array of
-   * [[ValidationError]] objects.
-   */
-  abstract fireEvent(ev: Event): FireEventResult;
 
   /**
    * Can this Walker validly end after the previous event fired?
@@ -759,9 +761,7 @@ export abstract class Walker<T extends BasePattern> {
    * of this fact.
    *
    */
-  _suppressAttributes(): void {
-    this.suppressedAttributes = true;
-  }
+  abstract _suppressAttributes(): void;
 
   /**
    * Helper method for cloning. This method should be called to clone objects
@@ -799,7 +799,7 @@ export abstract class Walker<T extends BasePattern> {
    * @returns The new id.
    */
   private __newID(): number {
-    return Walker.__id++;
+    return BaseWalker.__id++;
   }
 }
 
@@ -820,97 +820,41 @@ export function isNameResolver(value: any, msg: string = ""): NameResolver {
 }
 
 /**
- * Walkers that have only one subwalker.
+ * This is the class of all walkers that are used internally to Salve.
  */
-export abstract class SingleSubwalker<T extends Pattern> extends Walker<T> {
-  protected subwalker: Walker<BasePattern>;
-
-  _possible(): EventSet {
-    return this.subwalker.possible();
-  }
-
-  fireEvent(ev: Event): FireEventResult {
-    return this.subwalker.fireEvent(ev);
-  }
-
-  _suppressAttributes(): void {
-    if (!this.suppressedAttributes) {
-      this.suppressedAttributes = true;
-      this.subwalker._suppressAttributes();
-    }
-  }
-
-  canEnd(attribute: boolean = false): boolean {
-    return this.subwalker.canEnd(attribute);
-  }
-
-  end(attribute: boolean = false): EndResult {
-    return this.subwalker.end(attribute);
-  }
+export abstract class InternalWalker<T extends BasePattern>
+  extends BaseWalker<T> {
+  /**
+   * Passes an event to the walker for handling. The Walker will determine
+   * whether it or one of its children can handle the event.
+   *
+   * @param ev The event to handle.
+   *
+   * @returns The value ``false`` if there was no error. The value ``undefined``
+   * if no walker matches the pattern. Otherwise, an array of
+   * [[ValidationError]] objects.
+   */
+  abstract fireEvent(ev: Event): InternalFireEventResult;
 }
 
 /**
- * A pattern for RNG references.
+ * This is the class of all walkers that may be seen by code that uses
+ * salve. For historical reasons, it is just called ``Walker`` and not
+ * ``ExternalWalker``.
  */
-export class Ref extends Pattern {
-  private resolvesTo?: Define;
+export abstract class Walker<T extends BasePattern>
+  extends BaseWalker<T> {
   /**
+   * Passes an event to the walker for handling. The Walker will determine
+   * whether it or one of its children can handle the event.
    *
-   * @param xmlPath This is a string which uniquely identifies the
-   * element from the simplified RNG tree. Used in debugging.
+   * @param ev The event to handle.
    *
-   * @param name The reference name.
+   * @returns The value ``false`` if there was no error. The value ``undefined``
+   * if no walker matches the pattern. Otherwise, an array of
+   * [[ValidationError]] objects.
    */
-  constructor(xmlPath: string, readonly name: string) {
-    super(xmlPath);
-  }
-
-  _prepare(): void {
-    // We do not cross ref/define boundaries to avoid infinite loops.
-    return;
-  }
-
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    this.resolvesTo = definitions[this.name];
-    if (this.resolvesTo === undefined) {
-      return [this];
-    }
-
-    return undefined;
-  }
-
-  // addWalker(Ref, RefWalker); No, see below
-  // This completely skips the creation of RefWalker and DefineWalker. This
-  // returns the walker for whatever it is that the Define element this
-  // refers to ultimately contains.
-  newWalker(resolver: NameResolver): Walker<BasePattern> {
-    // _resolve must have been called before any walker can be created.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.resolvesTo!.pat.newWalker(resolver);
-  }
-}
-
-/**
- * A pattern for ``<define>``.
- */
-export class Define extends OneSubpattern {
-  /**
-   * @param xmlPath This is a string which uniquely identifies the
-   * element from the simplified RNG tree. Used in debugging.
-   *
-   * @param name The name of the definition.
-   *
-   * @param pat The pattern contained by this one.
-   */
-
-  constructor(xmlPath: string, readonly name: string, pat: Pattern) {
-    super(xmlPath, pat);
-  }
-
-  newWalker(resolver: NameResolver): Walker<BasePattern> {
-    // There is no define walker.
-    return this.pat.newWalker(resolver);
-  }
+  abstract fireEvent(ev: Event): FireEventResult;
 }
 
 //  LocalWords:  RNG MPL lookahead xmlns uri CodeMirror tokenizer enterStartTag

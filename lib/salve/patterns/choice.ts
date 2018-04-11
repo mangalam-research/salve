@@ -9,8 +9,8 @@ import { HashMap } from "../hashstructs";
 import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         FireEventResult, isHashMap, isNameResolver, TwoSubpatterns,
-         Walker } from "./base";
+         InternalFireEventResult, InternalWalker, isHashMap, isNameResolver,
+         TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<choice>``.
@@ -20,9 +20,10 @@ export class Choice extends TwoSubpatterns {}
 /**
  * Walker for [[Choice]].
  */
-class ChoiceWalker extends Walker<Choice> {
-  private walkerA: Walker<BasePattern>;
-  private walkerB: Walker<BasePattern>;
+class ChoiceWalker extends InternalWalker<Choice> {
+  private readonly hasAttrs: boolean;
+  private walkerA: InternalWalker<BasePattern>;
+  private walkerB: InternalWalker<BasePattern>;
   private deactivateA: boolean;
   private deactivateB: boolean;
   private readonly nameResolver: NameResolver;
@@ -36,6 +37,7 @@ class ChoiceWalker extends Walker<Choice> {
       const walker = elOrWalker;
       const memo = isHashMap(nameResolverOrMemo);
       super(walker, memo);
+      this.hasAttrs = walker.hasAttrs;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.walkerA = walker.walkerA._clone(memo);
       this.walkerB = walker.walkerB._clone(memo);
@@ -46,6 +48,7 @@ class ChoiceWalker extends Walker<Choice> {
       const el = elOrWalker;
       const nameResolver = isNameResolver(nameResolverOrMemo);
       super(el);
+      this.hasAttrs = el._hasAttrs();
       this.nameResolver = nameResolver;
       this.deactivateA = false;
       this.deactivateB = false;
@@ -75,7 +78,11 @@ class ChoiceWalker extends Walker<Choice> {
     return this.possibleCached;
   }
 
-  fireEvent(ev: Event): FireEventResult {
+  fireEvent(ev: Event): InternalFireEventResult {
+    if (ev.isAttributeEvent && !this.hasAttrs) {
+      return undefined;
+    }
+
     const walkerA = this.walkerA;
     const walkerB = this.walkerB;
 
@@ -84,9 +91,6 @@ class ChoiceWalker extends Walker<Choice> {
     }
 
     this.possibleCached = undefined;
-    // We purposely do not normalize this.walker_{a,b} to a boolean value
-    // because we do want `undefined` to be the result if the walkers are
-    // undefined.
     const retA = this.deactivateA ? undefined : walkerA.fireEvent(ev);
     const retB = this.deactivateB ? undefined : walkerB.fireEvent(ev);
 
@@ -101,7 +105,15 @@ class ChoiceWalker extends Walker<Choice> {
         return retA;
       }
 
-      return retA;
+      if (retB === false) {
+        return retA;
+      }
+
+      if (retA === false) {
+        return retB;
+      }
+
+      return retA.concat(retB);
     }
 
     // We do not need to test if retA is undefined because we would not get
@@ -112,13 +124,12 @@ class ChoiceWalker extends Walker<Choice> {
   }
 
   _suppressAttributes(): void {
-    if (!this.suppressedAttributes) {
-      this.possibleCached = undefined; // no longer valid
-      this.suppressedAttributes = true;
-
-      this.walkerA._suppressAttributes();
-      this.walkerB._suppressAttributes();
-    }
+    // We don't protect against multiple calls to _suppressAttributes.
+    // ElementWalker is the only walker that initiates _suppressAttributes
+    // and it calls it only once per walker.
+    this.possibleCached = undefined; // no longer valid
+    this.walkerA._suppressAttributes();
+    this.walkerB._suppressAttributes();
   }
 
   canEnd(attribute: boolean = false): boolean {
@@ -137,8 +148,7 @@ class ChoiceWalker extends Walker<Choice> {
 
   end(attribute: boolean = false): EndResult {
     if (this.canEnd(attribute)) {
-      // Instead of an ended flag, we undefine both walkers to mark this walker
-      // as "ended".
+      // Instead of an ended flag, we set both flags.
       if (!attribute) {
         this.deactivateA = true;
         this.deactivateB = true;

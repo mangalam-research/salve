@@ -8,8 +8,8 @@ import { Datatype, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, EndResult, Event, EventSet, isHashMap, isNameResolver,
-         Pattern, Walker } from "./base";
+import { addWalker, EndResult, Event, EventSet, InternalWalker, isHashMap,
+         isNameResolver, Pattern } from "./base";
 
 /**
  * Value pattern.
@@ -68,7 +68,7 @@ export class Value extends Pattern {
 /**
  * Walker for [[Value]].
  */
-class ValueWalker extends Walker<Value> {
+class ValueWalker extends InternalWalker<Value> {
   private matched: boolean;
   private readonly context: { resolver: NameResolver } | undefined;
   private readonly nameResolver: NameResolver;

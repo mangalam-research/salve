@@ -7,8 +7,8 @@
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         FireEventResult, isHashMap, isNameResolver, OneSubpattern,
-         Walker } from "./base";
+         InternalFireEventResult, InternalWalker, isHashMap, isNameResolver,
+         matched, OneSubpattern } from "./base";
 
 /**
  * A pattern for ``<oneOrMore>``.
@@ -18,10 +18,11 @@ export class  OneOrMore extends OneSubpattern {}
 /**
  * Walker for [[OneOrMore]]
  */
-class OneOrMoreWalker extends Walker<OneOrMore> {
-  private seenOnce: boolean;
-  private currentIteration: Walker<BasePattern>;
-  private nextIteration: Walker<BasePattern> | undefined;
+class OneOrMoreWalker extends InternalWalker<OneOrMore> {
+  private suppressedAttributes: boolean;
+  private readonly hasAttrs: boolean;
+  private currentIteration: InternalWalker<BasePattern>;
+  private nextIteration: InternalWalker<BasePattern> | undefined;
   private readonly nameResolver: NameResolver;
 
   /**
@@ -38,7 +39,8 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
       const walker: OneOrMoreWalker = elOrWalker;
       const memo: HashMap = isHashMap(nameResolverOrMemo);
       super(walker, memo);
-      this.seenOnce = walker.seenOnce;
+      this.suppressedAttributes = walker.suppressedAttributes;
+      this.hasAttrs = walker.hasAttrs;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.currentIteration = walker.currentIteration._clone(memo);
       this.nextIteration = walker.nextIteration !== undefined ?
@@ -48,8 +50,9 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
       const el: OneOrMore = elOrWalker;
       const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo);
       super(el);
+      this.hasAttrs = el._hasAttrs();
+      this.suppressedAttributes = false;
       this.nameResolver = nameResolver;
-      this.seenOnce = false;
       this.currentIteration = this.el.pat.newWalker(this.nameResolver);
     }
   }
@@ -75,32 +78,31 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
     return this.possibleCached;
   }
 
-  fireEvent(ev: Event): FireEventResult {
+  fireEvent(ev: Event): InternalFireEventResult {
+    if (ev.isAttributeEvent && !this.hasAttrs) {
+      return undefined;
+    }
+
     this.possibleCached = undefined;
 
     const currentIteration = this.currentIteration;
 
-    let ret: FireEventResult = currentIteration.fireEvent(ev);
-    if (ret === false) {
-      this.seenOnce = true;
-    }
-
+    const ret = currentIteration.fireEvent(ev);
     if (ret !== undefined) {
       return ret;
     }
 
-    if (this.seenOnce && currentIteration.canEnd()) {
-      ret = currentIteration.end();
-      if (ret) {
-        throw new Error(
-          "internal error; canEnd() returns true but end() fails");
-      }
-
+    if (currentIteration.canEnd()) {
       this._instantiateNextIteration();
       // nextIteration is necessarily defined here due to the previous call.
       // tslint:disable-next-line:no-non-null-assertion
-      const nextRet: FireEventResult = this.nextIteration!.fireEvent(ev);
-      if (nextRet === false) {
+      const nextRet = this.nextIteration!.fireEvent(ev);
+      if (matched(nextRet)) {
+        if (currentIteration.end()) {
+          throw new Error(
+            "internal error; canEnd() returns true but end() fails");
+        }
+
         // tslint:disable-next-line:no-non-null-assertion
         this.currentIteration = this.nextIteration!;
         this.nextIteration = undefined;
@@ -122,28 +124,26 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
     // An attribute in ``oneOrMore`` cannot happen when ``anyName`` is not used
     // because an attribute of any given name cannot be repeated.
     //
-    if (!this.suppressedAttributes) {
-      this.suppressedAttributes = true;
-      this.possibleCached = undefined; // No longer valid.
 
-      this.currentIteration._suppressAttributes();
+    // We don't protect against multiple calls to _suppressAttributes.
+    // ElementWalker is the only walker that initiates _suppressAttributes
+    // and it calls it only once per walker.
+    this.suppressedAttributes = true;
+    this.possibleCached = undefined; // No longer valid.
 
-      if (this.nextIteration !== undefined) {
-        this.nextIteration._suppressAttributes();
-      }
+    this.currentIteration._suppressAttributes();
+
+    if (this.nextIteration !== undefined) {
+      this.nextIteration._suppressAttributes();
     }
   }
 
   canEnd(attribute: boolean = false): boolean {
     if (attribute) {
-      if (!this.el.pat._hasAttrs()) {
-        return true;
-      }
-
-      return this.currentIteration.canEnd(true);
+      return !this.hasAttrs || this.currentIteration.canEnd(true);
     }
 
-    return this.seenOnce && this.currentIteration.canEnd();
+    return this.currentIteration.canEnd();
   }
 
   end(attribute: boolean = false): EndResult {

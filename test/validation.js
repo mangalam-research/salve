@@ -626,12 +626,10 @@ describe("GrammarWalker.fireEvent", () => {
       assert.isFalse(ret);
       ret = walker.fireEvent(new salve.Event("leaveStartTag"));
       assert.isFalse(ret);
-      ret = walker.fireEvent(new salve.Event("leaveStartTag"));
-      assert.equal(ret.length, 1);
-      assert.equal(ret[0].toString(),
-                   "unexpected leaveStartTag event; " +
-                   "it is likely that " +
-                   "fireEvent is incorrectly called");
+      assert.throws(() => walker.fireEvent(new salve.Event("leaveStartTag")),
+                    Error,
+                    "unexpected leaveStartTag event; it is likely that \
+fireEvent is incorrectly called");
     });
 
     it("duplicate attributeValue", () => {

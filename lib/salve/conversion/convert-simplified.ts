@@ -14,13 +14,13 @@ import { Attribute, Choice, Data, Define, Element as ElementPattern, Empty,
          Text as TextPattern, Value } from "../patterns";
 import { Element } from "./parser";
 
-function walk(el: Element): Pattern {
+function walk(el: Element): (Pattern | ElementPattern) {
   switch (el.local) {
       //  "param" is not needed as a separate case, because it is handled in
       //  "data"
       //
     case "grammar":
-      return new Grammar(el.path, walk(el.children[0] as Element),
+      return new Grammar(el.path, walk(el.children[0] as Element) as Pattern,
                          el.children.slice(1)
                          .map((x) => walk(x as Element)) as Define[]);
     case "except":
@@ -28,7 +28,7 @@ function walk(el: Element): Pattern {
       return walk(el.children[0] as Element);
     case "define":
       return new Define(el.path, el.mustGetAttribute("name"),
-                        walk(el.children[0] as Element));
+                        walk(el.children[0] as Element) as ElementPattern);
     case "ref":
       return new Ref(el.path, el.mustGetAttribute("name"));
     case "value":
@@ -48,33 +48,38 @@ function walk(el: Element): Pattern {
 
       return new Data(el.path, el.mustGetAttribute("type"),
                       el.mustGetAttribute("datatypeLibrary"),
-                      params, except !== undefined ? walk(except) : undefined);
+                      params, except !== undefined ?
+                      walk(except) as Pattern :
+                      undefined);
     case "group":
-      return new Group(el.path, walk(el.children[0] as Element),
-                       walk(el.children[1] as Element));
+      return new Group(el.path,
+                       walk(el.children[0] as Element) as Pattern,
+                       walk(el.children[1] as Element) as Pattern);
     case "interleave":
-      return new Interleave(el.path, walk(el.children[0] as Element),
-                            walk(el.children[1] as Element));
+      return new Interleave(el.path,
+                            walk(el.children[0] as Element) as Pattern,
+                            walk(el.children[1] as Element) as Pattern);
     case "choice":
-      return new Choice(el.path, walk(el.children[0] as Element),
-                        walk(el.children[1] as Element));
+      return new Choice(el.path,
+                        walk(el.children[0] as Element) as Pattern,
+                        walk(el.children[1] as Element) as Pattern);
     case "oneOrMore":
-      return new OneOrMore(el.path, walk(el.children[0] as Element));
+      return new OneOrMore(el.path,
+                           walk(el.children[0] as Element) as Pattern);
     case "element":
       return new ElementPattern(el.path,
                                 walkNameClass(el.children[0] as Element),
-                                walk(el.children[1] as Element));
+                                walk(el.children[1] as Element) as Pattern);
     case "attribute":
       return new Attribute(el.path,
                            walkNameClass(el.children[0] as Element),
-                           walk(el.children[1] as Element));
+                           walk(el.children[1] as Element) as Pattern);
     case "empty":
       return new Empty(el.path);
     case "text":
       return new TextPattern(el.path);
     case "list":
-      return new List(el.path,
-                      walk(el.children[0] as Element));
+      return new List(el.path, walk(el.children[0] as Element) as Pattern);
     case "notAllowed":
       return new NotAllowed(el.path);
     default:

@@ -8,8 +8,8 @@ import { AttributeNameError, AttributeValueError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         FireEventResult, isHashMap, isNameResolver, TwoSubpatterns,
-         Walker } from "./base";
+         InternalFireEventResult, InternalWalker, isHashMap, isNameResolver,
+         TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<group>``.
@@ -19,13 +19,12 @@ export class Group extends TwoSubpatterns {}
 /**
  * Walker for [[Group]].
  */
-class GroupWalker extends Walker<Group> {
+class GroupWalker extends InternalWalker<Group> {
+  private suppressedAttributes: boolean;
+  private readonly hasAttrs: boolean;
   private ended: boolean;
-  private hitA: boolean;
-  private endedA: boolean;
-  private hitB: boolean;
-  private walkerA: Walker<BasePattern>;
-  private walkerB: Walker<BasePattern>;
+  private walkerA: InternalWalker<BasePattern>;
+  private walkerB: InternalWalker<BasePattern>;
   private readonly nameResolver: NameResolver;
 
   /**
@@ -42,10 +41,9 @@ class GroupWalker extends Walker<Group> {
       const walker: GroupWalker = elOrWalker;
       const memo: HashMap = isHashMap(nameResolverOrMemo);
       super(walker, memo);
+      this.suppressedAttributes = walker.suppressedAttributes;
+      this.hasAttrs = walker.hasAttrs;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.hitA = walker.hitA;
-      this.endedA = walker.endedA;
-      this.hitB = walker.hitB;
       this.walkerA = walker.walkerA._clone(memo);
       this.walkerB = walker.walkerB._clone(memo);
       this.ended = walker.ended;
@@ -54,10 +52,9 @@ class GroupWalker extends Walker<Group> {
       const el: Group = elOrWalker;
       const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo);
       super(el);
+      this.suppressedAttributes = false;
+      this.hasAttrs = el._hasAttrs();
       this.nameResolver = nameResolver;
-      this.hitA = false;
-      this.endedA = false;
-      this.hitB = false;
       this.ended = false;
       this.walkerA = this.el.patA.newWalker(this.nameResolver);
       this.walkerB = this.el.patB.newWalker(this.nameResolver);
@@ -75,38 +72,30 @@ class GroupWalker extends Walker<Group> {
       return this.possibleCached;
     }
 
-    const walkerA = this.walkerA;
-    const walkerB = this.walkerB;
+    const cached = this.possibleCached = this.walkerA.possible();
 
-    this.possibleCached = (!this.endedA) ? walkerA._possible() : undefined;
-
-    if (this.suppressedAttributes) {
-      // If we are in the midst of processing walker a and it cannot end yet,
-      // then we do not want to see anything from b.
-      if (this.endedA || walkerA.canEnd()) {
-        this.possibleCached = new EventSet(this.possibleCached);
-        this.possibleCached.union(walkerB._possible());
-      }
-    }
-    else {
-      let possibleB: EventSet = walkerB._possible();
-
-      // Attribute events are still possible event if the first walker is not
-      // done with.
-      if ((!this.endedA || this.hitB) && !walkerA.canEnd()) {
-        // Narrow it down to attribute events...
-        possibleB = possibleB.filter((x: Event) => x.isAttributeEvent());
-      }
-      this.possibleCached = new EventSet(this.possibleCached);
-      this.possibleCached.union(possibleB);
+    // When suppressedAttributes is true, if we are in the midst of processing
+    // walker a and it cannot end yet, then we do not want to see anything from
+    // b yet.
+    if (!this.suppressedAttributes || this.walkerA.canEnd()) {
+      // We used to filter the possibilities to only attribute events when
+      // this.suppressedAttributes was false, but that's a costly operation. It
+      // is the responsibility of ElementWalker to ensure that when the start
+      // tag is not closed it is events that pertain to anything else than
+      // attributes or ending the start tag are not passed up to the user.
+      cached.union(this.walkerB._possible());
     }
 
-    // Necessarily defined once we get here.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.possibleCached!;
+    return cached;
   }
 
-  fireEvent(ev: Event): FireEventResult {
+  fireEvent(ev: Event): InternalFireEventResult {
+    const isAttributeEvent = ev.isAttributeEvent;
+
+    if (isAttributeEvent && !this.hasAttrs) {
+      return undefined;
+    }
+
     this.possibleCached = undefined;
 
     // This is useful because it is possible for fireEvent to be called
@@ -115,35 +104,24 @@ class GroupWalker extends Walker<Group> {
       return undefined;
     }
 
-    const isAttributeEvent = ev.isAttributeEvent();
-
     const walkerA = this.walkerA;
-    if (!this.endedA) {
-      const retA = walkerA.fireEvent(ev);
-      if (retA !== undefined) {
-        this.hitA = true;
+    const retA = walkerA.fireEvent(ev);
+    if (retA !== undefined) {
+      return retA;
+    }
 
-        return retA;
-      }
-
-      // We must return right away if walkerA cannot yet end. Only attribute
-      // events are allowed to move forward.
-      if (!isAttributeEvent && !walkerA.canEnd()) {
-        return undefined;
-      }
+    // We must return right away if walkerA cannot yet end. Only attribute
+    // events are allowed to move forward.
+    if (!isAttributeEvent && !walkerA.canEnd()) {
+      return undefined;
     }
 
     const walkerB = this.walkerB;
-    const retB: FireEventResult = walkerB.fireEvent(ev);
-    if (retB !== undefined) {
-      this.hitB = true;
-    }
-
+    const retB = walkerB.fireEvent(ev);
     // Non-attribute event: if walker b matched the event then we must end
     // walkerA, if we've not already done so.
-    if (!isAttributeEvent && retB !== undefined && !this.endedA) {
-      const endRet: EndResult = walkerA.end();
-      this.endedA = true;
+    if (!isAttributeEvent && retB !== undefined) {
+      const endRet = walkerA.end();
 
       // Combine the possible errors.
       if (!retB) {
@@ -161,13 +139,13 @@ class GroupWalker extends Walker<Group> {
   }
 
   _suppressAttributes(): void {
-    if (!this.suppressedAttributes) {
-      this.possibleCached = undefined; // no longer valid
-      this.suppressedAttributes = true;
-
-      this.walkerA._suppressAttributes();
-      this.walkerB._suppressAttributes();
-    }
+    // We don't protect against multiple calls to _suppressAttributes.
+    // ElementWalker is the only walker that initiates _suppressAttributes
+    // and it calls it only once per walker.
+    this.possibleCached = undefined; // no longer valid
+    this.suppressedAttributes = true;
+    this.walkerA._suppressAttributes();
+    this.walkerB._suppressAttributes();
   }
 
   canEnd(attribute: boolean = false): boolean {
@@ -176,23 +154,23 @@ class GroupWalker extends Walker<Group> {
       return true;
     }
 
-    const walkerA = this.walkerA;
-    const walkerB = this.walkerB;
-
     if (!attribute) {
-      return walkerA.canEnd(false) && walkerB.canEnd(false);
+      return this.walkerA.canEnd(false) && this.walkerB.canEnd(false);
     }
 
-    const { patA, patB } = this.el;
-
-    return (patA._hasAttrs() ? walkerA.canEnd(true) : true) &&
-      (patB._hasAttrs() ? walkerB.canEnd(true) : true);
+    return !this.hasAttrs ||
+      (this.walkerA.canEnd(true) && this.walkerB.canEnd(true));
   }
 
   end(attribute: boolean = false): EndResult {
-    if (this.ended || this.canEnd(attribute)) {
-      // We're done once and for all only if called with attribute === false.
-      if (!attribute) {
+    if (this.ended) {
+      return false;
+    }
+
+    if (this.canEnd(attribute)) {
+      // We're done once and for all only if called with attribute === false
+      // or if we don't have any attributes.
+      if (!this.hasAttrs || !attribute) {
         this.ended = true;
       }
 
@@ -205,17 +183,9 @@ class GroupWalker extends Walker<Group> {
     const walkerB = this.walkerB;
 
     if (attribute) {
-      const aHas: boolean = this.el.patA._hasAttrs();
-      const bHas: boolean = this.el.patB._hasAttrs();
+      const aHas = this.el.patA._hasAttrs();
+      const bHas = this.el.patB._hasAttrs();
       if (aHas) {
-        // This should not happen. this.endedA is to become true when we run
-        // into a non-attribute event that matches. This can happen only once we
-        // have deal with all attributes.
-        if (this.endedA) {
-          throw new Error(
-            "invalid state: endedA is true but we are processing attributes");
-        }
-
         ret = walkerA.end(true);
 
         if (bHas) {
@@ -235,20 +205,16 @@ class GroupWalker extends Walker<Group> {
       return false;
     }
 
-    let retA: EndResult = false;
-    // Don't end it more than once.
-    if (!this.endedA) {
-      retA = walkerA.end(false);
+    const retA = walkerA.end(false);
 
-      // If we get here and the only errors we get are attribute errors,
-      // we must move on to check the second walker too.
-      if (retA) {
-        for (const err of retA) {
-          if (!(err instanceof AttributeValueError ||
-                err instanceof AttributeNameError)) {
-            // We ran into a non-attribute error. We can stop here.
-            return retA;
-          }
+    // If we get here and the only errors we get are attribute errors,
+    // we must move on to check the second walker too.
+    if (retA) {
+      for (const err of retA) {
+        if (!(err instanceof AttributeValueError ||
+              err instanceof AttributeNameError)) {
+          // We ran into a non-attribute error. We can stop here.
+          return retA;
         }
       }
     }

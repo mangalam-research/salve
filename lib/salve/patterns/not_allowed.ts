@@ -5,7 +5,8 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { HashMap } from "../hashstructs";
-import { addWalker, Event, EventSet, isHashMap, Pattern, Walker } from "./base";
+import { addWalker, Event, EventSet, InternalWalker, isHashMap,
+         Pattern } from "./base";
 
 /**
  * Pattern for ``<notAllowed/>``.
@@ -15,7 +16,7 @@ export class NotAllowed extends Pattern {}
 /**
  * Walker for [[NotAllowed]];
  */
-export class NotAllowedWalker extends Walker<NotAllowed> {
+export class NotAllowedWalker extends InternalWalker<NotAllowed> {
   /**
    * @param el The pattern for which this walker was created.
    */
@@ -46,6 +47,10 @@ export class NotAllowedWalker extends Walker<NotAllowed> {
 
   fireEvent(ev: Event): undefined {
     return undefined; // we never match!
+  }
+
+  _suppressAttributes(): void {
+    // We don't contain attributes...
   }
 }
 

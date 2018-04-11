@@ -8,8 +8,9 @@ import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { TrivialMap } from "../types";
-import { addWalker, emptyEvent, EndResult, Event, FireEventResult, isHashMap,
-         isNameResolver, OneSubpattern, SingleSubwalker } from "./base";
+import { addWalker, BasePattern, emptyEvent, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, isHashMap, isNameResolver,
+         OneSubpattern } from "./base";
 
 /**
  * List pattern.
@@ -30,7 +31,8 @@ export class List extends OneSubpattern {
  * Walker for [[List]].
  *
  */
-class ListWalker extends SingleSubwalker<List> {
+class ListWalker extends InternalWalker<List> {
+  private subwalker: InternalWalker<BasePattern>;
   private seenTokens: boolean;
   private readonly nameResolver: NameResolver;
 
@@ -57,8 +59,12 @@ class ListWalker extends SingleSubwalker<List> {
     }
   }
 
-  fireEvent(ev: Event): FireEventResult {
-    // Only these two types can match.
+  _possible(): EventSet {
+    return this.subwalker.possible();
+  }
+
+  fireEvent(ev: Event): InternalFireEventResult {
+    // Only this can match.
     if (ev.params[0] !== "text") {
       return undefined;
     }

@@ -5,8 +5,8 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { HashMap } from "../hashstructs";
-import { addWalker, emptyEvent, Event, EventSet, isHashMap, Pattern,
-         Walker } from "./base";
+import { addWalker, emptyEvent, Event, EventSet, InternalWalker, isHashMap,
+         Pattern } from "./base";
 
 /**
  * Pattern for ``<empty/>``.
@@ -20,7 +20,7 @@ export class Empty extends Pattern {}
  *
  * @param resolver Ignored by this walker.
  */
-export class EmptyWalker extends Walker<Empty> {
+export class EmptyWalker extends InternalWalker<Empty> {
   protected constructor(other: EmptyWalker, memo: HashMap);
   protected constructor(el: Empty);
   protected constructor(elOrWalker: Empty | EmptyWalker, memo?: HashMap) {
@@ -54,6 +54,10 @@ export class EmptyWalker extends Walker<Empty> {
     }
 
     return undefined;
+  }
+
+  _suppressAttributes(): void {
+    // We don't contain attributes...
   }
 }
 
