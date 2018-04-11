@@ -10,7 +10,7 @@ import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { TrivialMap } from "../types";
 import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, isHashMap, isNameResolver, Pattern } from "./base";
+         InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { NotAllowed } from "./not_allowed";
 import { Ref } from "./ref";
@@ -84,9 +84,21 @@ class ElementWalker extends InternalWalker<Element> {
   protected constructor(elOrWalker: ElementWalker | Element,
                         nameResolverOrMemo: NameResolver | HashMap,
                         boundName?: Name) {
-    if (elOrWalker instanceof ElementWalker) {
-      const walker: ElementWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo);
+    if ((elOrWalker as Element).newWalker !== undefined) {
+      const el = elOrWalker as Element;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      super(el);
+      this.nameResolver = nameResolver;
+      this.walker = this.el.pat.newWalker(nameResolver);
+      this.endedStartTag = false;
+      this.closed = false;
+      // tslint:disable-next-line:no-non-null-assertion
+      this.boundName = boundName!;
+      this.endTagEvent = new Event("endTag", this.boundName);
+    }
+    else {
+      const walker = elOrWalker as ElementWalker;
+      const memo = nameResolverOrMemo as HashMap;
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.endedStartTag = walker.endedStartTag;
@@ -96,18 +108,6 @@ class ElementWalker extends InternalWalker<Element> {
       // No cloning needed since these are immutable.
       this.endTagEvent = walker.endTagEvent;
       this.boundName = walker.boundName;
-    }
-    else {
-      const el: Element = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo);
-      super(el);
-      this.nameResolver = nameResolver;
-      this.walker = this.el.pat.newWalker(nameResolver);
-      this.endedStartTag = false;
-      this.closed = false;
-      // tslint:disable-next-line:no-non-null-assertion
-      this.boundName = boundName!;
-      this.endTagEvent = new Event("endTag", this.boundName);
     }
   }
 

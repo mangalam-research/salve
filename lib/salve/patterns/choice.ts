@@ -9,7 +9,7 @@ import { HashMap } from "../hashstructs";
 import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isHashMap, isNameResolver,
+         InternalFireEventResult, InternalWalker,
          TwoSubpatterns } from "./base";
 
 /**
@@ -33,9 +33,20 @@ class ChoiceWalker extends InternalWalker<Choice> {
   protected constructor(elOrWalker: ChoiceWalker | Choice,
                         nameResolverOrMemo: NameResolver | HashMap)
   {
-    if (elOrWalker instanceof ChoiceWalker) {
-      const walker = elOrWalker;
-      const memo = isHashMap(nameResolverOrMemo);
+    if ((elOrWalker as Choice).newWalker !== undefined) {
+      const el = elOrWalker as Choice;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      super(el);
+      this.hasAttrs = el._hasAttrs();
+      this.nameResolver = nameResolver;
+      this.deactivateA = false;
+      this.deactivateB = false;
+      this.walkerA = this.el.patA.newWalker(nameResolver);
+      this.walkerB = this.el.patB.newWalker(nameResolver);
+    }
+    else {
+      const walker = elOrWalker as ChoiceWalker;
+      const memo = nameResolverOrMemo as HashMap;
       super(walker, memo);
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
@@ -43,17 +54,6 @@ class ChoiceWalker extends InternalWalker<Choice> {
       this.walkerB = walker.walkerB._clone(memo);
       this.deactivateA = walker.deactivateA;
       this.deactivateB = walker.deactivateB;
-    }
-    else {
-      const el = elOrWalker;
-      const nameResolver = isNameResolver(nameResolverOrMemo);
-      super(el);
-      this.hasAttrs = el._hasAttrs();
-      this.nameResolver = nameResolver;
-      this.deactivateA = false;
-      this.deactivateB = false;
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
     }
   }
 

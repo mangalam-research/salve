@@ -5,8 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { HashMap } from "../hashstructs";
-import { addWalker, Event, EventSet, InternalWalker, isHashMap,
-         Pattern } from "./base";
+import { addWalker, Event, EventSet, InternalWalker, Pattern } from "./base";
 
 /**
  * Pattern for ``<notAllowed/>``.
@@ -24,11 +23,11 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
   protected constructor(el: NotAllowed);
   protected constructor(elOrWalker: NotAllowedWalker | NotAllowed,
                         memo?: HashMap) {
-    if (elOrWalker instanceof NotAllowedWalker) {
-      super(elOrWalker, isHashMap(memo));
+    if ((elOrWalker as NotAllowed).newWalker !== undefined) {
+      super(elOrWalker as NotAllowed);
     }
     else {
-      super(elOrWalker);
+      super(elOrWalker as NotAllowedWalker, memo as HashMap);
     }
   }
 

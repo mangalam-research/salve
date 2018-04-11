@@ -5,7 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { HashMap } from "../hashstructs";
-import { addWalker, emptyEvent, Event, EventSet, InternalWalker, isHashMap,
+import { addWalker, emptyEvent, Event, EventSet, InternalWalker,
          Pattern } from "./base";
 
 /**
@@ -24,11 +24,11 @@ export class EmptyWalker extends InternalWalker<Empty> {
   protected constructor(other: EmptyWalker, memo: HashMap);
   protected constructor(el: Empty);
   protected constructor(elOrWalker: Empty | EmptyWalker, memo?: HashMap) {
-    if (elOrWalker instanceof EmptyWalker) {
-      super(elOrWalker, isHashMap(memo));
+    if ((elOrWalker as Empty).newWalker !== undefined) {
+      super(elOrWalker as Empty);
     }
     else {
-      super(elOrWalker);
+      super(elOrWalker as EmptyWalker, memo as HashMap);
     }
   }
 

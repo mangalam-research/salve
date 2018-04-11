@@ -7,8 +7,8 @@
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isHashMap, isNameResolver,
-         matched, OneSubpattern } from "./base";
+         InternalFireEventResult, InternalWalker, matched,
+         OneSubpattern } from "./base";
 
 /**
  * A pattern for ``<oneOrMore>``.
@@ -35,9 +35,18 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
   protected constructor(el: OneOrMore, nameResolver: NameResolver);
   protected constructor(elOrWalker: OneOrMoreWalker | OneOrMore,
                         nameResolverOrMemo: NameResolver | HashMap) {
-    if (elOrWalker instanceof OneOrMoreWalker) {
-      const walker: OneOrMoreWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo);
+    if ((elOrWalker as OneOrMore).newWalker !== undefined) {
+      const el = elOrWalker as OneOrMore;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      super(el);
+      this.hasAttrs = el._hasAttrs();
+      this.suppressedAttributes = false;
+      this.nameResolver = nameResolver;
+      this.currentIteration = this.el.pat.newWalker(nameResolver);
+    }
+    else {
+      const walker = elOrWalker as OneOrMoreWalker;
+      const memo = nameResolverOrMemo as HashMap;
       super(walker, memo);
       this.suppressedAttributes = walker.suppressedAttributes;
       this.hasAttrs = walker.hasAttrs;
@@ -45,15 +54,6 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
       this.currentIteration = walker.currentIteration._clone(memo);
       this.nextIteration = walker.nextIteration !== undefined ?
         walker.nextIteration._clone(memo) : undefined;
-    }
-    else {
-      const el: OneOrMore = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo);
-      super(el);
-      this.hasAttrs = el._hasAttrs();
-      this.suppressedAttributes = false;
-      this.nameResolver = nameResolver;
-      this.currentIteration = this.el.pat.newWalker(this.nameResolver);
     }
   }
 

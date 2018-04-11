@@ -8,7 +8,7 @@ import { AttributeNameError, AttributeValueError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isHashMap, isNameResolver,
+         InternalFireEventResult, InternalWalker,
          TwoSubpatterns } from "./base";
 
 /**
@@ -37,9 +37,20 @@ class GroupWalker extends InternalWalker<Group> {
   protected constructor(el: Group, nameResolver: NameResolver);
   protected constructor(elOrWalker: GroupWalker | Group,
                         nameResolverOrMemo: HashMap | NameResolver) {
-    if (elOrWalker instanceof GroupWalker) {
-      const walker: GroupWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo);
+    if ((elOrWalker as Group).newWalker !== undefined) {
+      const el = elOrWalker as Group;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      super(el);
+      this.suppressedAttributes = false;
+      this.hasAttrs = el._hasAttrs();
+      this.nameResolver = nameResolver;
+      this.ended = false;
+      this.walkerA = this.el.patA.newWalker(nameResolver);
+      this.walkerB = this.el.patB.newWalker(nameResolver);
+    }
+    else {
+      const walker = elOrWalker as GroupWalker;
+      const memo = nameResolverOrMemo as HashMap;
       super(walker, memo);
       this.suppressedAttributes = walker.suppressedAttributes;
       this.hasAttrs = walker.hasAttrs;
@@ -47,17 +58,6 @@ class GroupWalker extends InternalWalker<Group> {
       this.walkerA = walker.walkerA._clone(memo);
       this.walkerB = walker.walkerB._clone(memo);
       this.ended = walker.ended;
-    }
-    else {
-      const el: Group = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo);
-      super(el);
-      this.suppressedAttributes = false;
-      this.hasAttrs = el._hasAttrs();
-      this.nameResolver = nameResolver;
-      this.ended = false;
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
     }
   }
 

@@ -634,12 +634,12 @@ export abstract class BaseWalker<T extends BasePattern> {
   protected constructor(other: BaseWalker<T>, memo: HashMap);
   protected constructor(el: T);
   protected constructor(elOrWalker: T | BaseWalker<T>) {
-    if (elOrWalker instanceof BaseWalker) {
-      this.el = elOrWalker.el;
-      this.possibleCached = elOrWalker.possibleCached;
+    if (elOrWalker instanceof BasePattern) {
+      this.el = elOrWalker;
     }
     else {
-      this.el = elOrWalker;
+      this.el = elOrWalker.el;
+      this.possibleCached = elOrWalker.possibleCached;
     }
     if (DEBUG) {
         wrap(this, "_possible", possibleTracer);
@@ -801,22 +801,6 @@ export abstract class BaseWalker<T extends BasePattern> {
   private __newID(): number {
     return BaseWalker.__id++;
   }
-}
-
-export function isHashMap(value: any, msg: string = ""): HashMap {
-  if (value instanceof HashMap) {
-    return value;
-  }
-
-  throw new Error(`did not get a HashMap ${msg}`);
-}
-
-export function isNameResolver(value: any, msg: string = ""): NameResolver {
-  if (value instanceof NameResolver) {
-    return value;
-  }
-
-  throw new Error(`did not get a HashMap ${msg}`);
 }
 
 /**

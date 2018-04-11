@@ -9,8 +9,7 @@ import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { TrivialMap } from "../types";
 import { addWalker, BasePattern, emptyEvent, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isHashMap, isNameResolver,
-         OneSubpattern } from "./base";
+         InternalFireEventResult, InternalWalker, OneSubpattern } from "./base";
 
 /**
  * List pattern.
@@ -40,22 +39,21 @@ class ListWalker extends InternalWalker<List> {
   protected constructor(el: List, nameResolver: NameResolver);
   protected constructor(elOrWalker: List | ListWalker,
                         nameResolverOrMemo: NameResolver | HashMap) {
-    if (elOrWalker instanceof ListWalker) {
-      const walker = elOrWalker;
-      const memo = isHashMap(nameResolverOrMemo, "as 2nd argument");
+    if ((elOrWalker as List).newWalker !== undefined) {
+      const el = elOrWalker as List;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      super(el);
+      this.nameResolver = nameResolver;
+      this.subwalker = el.pat.newWalker(nameResolver);
+      this.seenTokens = false;
+    }
+    else {
+      const walker = elOrWalker as ListWalker;
+      const memo = nameResolverOrMemo as HashMap;
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.subwalker = walker.subwalker._clone(memo);
       this.seenTokens = walker.seenTokens;
-    }
-    else {
-      const el = elOrWalker;
-      const nameResolver = isNameResolver(nameResolverOrMemo,
-                                          "as 2nd argument");
-      super(el);
-      this.nameResolver = nameResolver;
-      this.subwalker = el.pat.newWalker(this.nameResolver);
-      this.seenTokens = false;
     }
   }
 

@@ -10,8 +10,8 @@ import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { TrivialMap } from "../types";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isHashMap, isNameResolver,
-         OneSubpattern, Pattern } from "./base";
+         InternalFireEventResult, InternalWalker, OneSubpattern,
+         Pattern } from "./base";
 
 /**
  * A pattern for attributes.
@@ -71,9 +71,19 @@ class AttributeWalker extends InternalWalker<Attribute> {
   protected constructor(el: Attribute, nameResolver: NameResolver);
   protected constructor(elOrWalker: AttributeWalker | Attribute,
                         nameResolverOrMemo: HashMap | NameResolver) {
-    if (elOrWalker instanceof AttributeWalker) {
-      const walker = elOrWalker;
-      const memo = isHashMap(nameResolverOrMemo);
+    if ((elOrWalker as Attribute).newWalker !== undefined) {
+      const el = elOrWalker as Attribute;
+      super(el);
+      this.suppressedAttributes = false;
+      this.nameResolver = nameResolverOrMemo as NameResolver;
+      this.attrNameEvent = new Event("attributeName", el.name);
+      this.seenName = false;
+      this.seenValue = false;
+      this.neutralized = false;
+    }
+    else {
+      const walker = elOrWalker as AttributeWalker;
+      const memo = nameResolverOrMemo as HashMap;
       super(walker, memo);
       this.suppressedAttributes = walker.suppressedAttributes;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
@@ -84,17 +94,6 @@ class AttributeWalker extends InternalWalker<Attribute> {
       // No need to clone; values are immutable.
       this.attrNameEvent = walker.attrNameEvent;
       this.neutralized = walker.neutralized;
-    }
-    else {
-      const el = elOrWalker;
-      const nameResolver = isNameResolver(nameResolverOrMemo);
-      super(el);
-      this.suppressedAttributes = false;
-      this.nameResolver = nameResolver;
-      this.attrNameEvent = new Event("attributeName", el.name);
-      this.seenName = false;
-      this.seenValue = false;
-      this.neutralized = false;
     }
   }
 

@@ -8,8 +8,8 @@ import { Datatype, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, EndResult, Event, EventSet, InternalWalker, isHashMap,
-         isNameResolver, Pattern } from "./base";
+import { addWalker, EndResult, Event, EventSet, InternalWalker,
+         Pattern } from "./base";
 
 /**
  * Value pattern.
@@ -77,24 +77,23 @@ class ValueWalker extends InternalWalker<Value> {
   protected constructor(el: Value, nameResolver: NameResolver);
   protected constructor(elOrWalker: Value |  ValueWalker,
                         nameResolverOrMemo: HashMap | NameResolver) {
-    if (elOrWalker instanceof ValueWalker) {
-      const walker: ValueWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo, "as 2nd argument");
-      super(walker, memo);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.context = walker.context !== undefined ?
-        { resolver: this.nameResolver } : undefined;
-      this.matched = walker.matched;
-    }
-    else {
-      const el: Value = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo,
-                                                        "as 2nd argument");
+    if ((elOrWalker as Value).newWalker !== undefined) {
+      const el = elOrWalker as Value;
+      const nameResolver = nameResolverOrMemo as NameResolver;
       super(el);
       this.nameResolver = nameResolver;
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
       this.matched = false;
+    }
+    else {
+      const walker = elOrWalker as ValueWalker;
+      const memo = nameResolverOrMemo as HashMap;
+      super(walker, memo);
+      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.context = walker.context !== undefined ?
+        { resolver: this.nameResolver } : undefined;
+      this.matched = walker.matched;
     }
   }
 

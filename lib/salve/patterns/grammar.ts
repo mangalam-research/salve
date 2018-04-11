@@ -13,7 +13,7 @@ import { NameResolver } from "../name_resolver";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
 import { BasePattern, EndResult, Event, EventSet, FireEventResult,
-         InternalFireEventResult, InternalWalker, isHashMap, Pattern,
+         InternalFireEventResult, InternalWalker, Pattern,
          Walker } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
@@ -290,12 +290,21 @@ export class GrammarWalker extends Walker<Grammar> {
   protected constructor(el: Grammar);
   protected constructor(elOrWalker: GrammarWalker | Grammar,
                         memo?: HashMap) {
-    if (elOrWalker instanceof GrammarWalker) {
-      const walker = elOrWalker;
-      // tslint:disable-next-line:no-parameter-reassignment
-      memo = isHashMap(memo); // Checks for undefined.
-      super(walker, memo);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+    if ((elOrWalker as Grammar).newWalker !== undefined) {
+      const grammar = elOrWalker as Grammar;
+      super(grammar);
+      this.nameResolver = new NameResolver();
+      this._misplacedElements = [];
+      this._swallowAttributeValue = false;
+      this.ignoreNextWs = false;
+      this.elementWalkerStack = [[grammar.start.newWalker(this.nameResolver)]];
+    }
+    else {
+      const walker = elOrWalker as GrammarWalker;
+      // tslint:disable-next-line:no-non-null-assertion
+      super(walker, memo!);
+      // tslint:disable-next-line:no-non-null-assertion
+      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo!);
       this.elementWalkerStack = walker.elementWalkerStack
       // tslint:disable-next-line:no-non-null-assertion
         .map((walkers) => walkers.map((x) => x._clone(memo!)));
@@ -303,22 +312,14 @@ export class GrammarWalker extends Walker<Grammar> {
       const misplacedElements = this._misplacedElements;
       for (const mpe of walker._misplacedElements) {
         misplacedElements.push({
-          walker: mpe.walker._clone(memo),
+          // tslint:disable-next-line:no-non-null-assertion
+          walker: mpe.walker._clone(memo!),
           event: mpe.event,
         });
       }
       this._swallowAttributeValue = walker._swallowAttributeValue;
       this.suspendedWs = walker.suspendedWs;
       this.ignoreNextWs = walker.ignoreNextWs;
-    }
-    else {
-      super(elOrWalker);
-      this.nameResolver = new NameResolver();
-      this._misplacedElements = [];
-      this._swallowAttributeValue = false;
-      this.ignoreNextWs = false;
-      this.elementWalkerStack =
-        [[elOrWalker.start.newWalker(this.nameResolver)]];
     }
   }
 

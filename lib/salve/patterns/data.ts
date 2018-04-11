@@ -8,8 +8,8 @@ import { Datatype, RawParameter, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, EndResult, Event, EventSet, InternalWalker, isHashMap,
-         isNameResolver, Pattern } from "./base";
+import { addWalker, EndResult, Event, EventSet, InternalWalker,
+         Pattern } from "./base";
 /**
  * Data pattern.
  */
@@ -74,25 +74,24 @@ class DataWalker extends InternalWalker<Data> {
   protected constructor(el: Data, nameResolver: NameResolver);
   protected constructor(elOrWalker: DataWalker | Data,
                         nameResolverOrMemo: NameResolver | HashMap) {
-    if (elOrWalker instanceof DataWalker) {
-      const walker = elOrWalker;
-      const memo = isHashMap(nameResolverOrMemo);
-      super(walker, memo);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.context = walker.context !== undefined ?
-        { resolver: this.nameResolver } : undefined;
-      this.matched = walker.matched;
-    }
-    else {
-      const el = elOrWalker;
-      const nameResolver = isNameResolver(nameResolverOrMemo,
-                                          "as 2nd argument");
+    if ((elOrWalker as Data).newWalker !== undefined) {
+      const el = elOrWalker as Data;
+      const nameResolver = nameResolverOrMemo as NameResolver;
       super(el);
 
       this.nameResolver = nameResolver;
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
       this.matched = false;
+    }
+    else {
+      const walker = elOrWalker as DataWalker;
+      const memo = nameResolverOrMemo as HashMap;
+      super(walker, memo);
+      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.context = walker.context !== undefined ?
+        { resolver: this.nameResolver } : undefined;
+      this.matched = walker.matched;
     }
   }
 

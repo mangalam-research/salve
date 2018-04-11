@@ -3,7 +3,7 @@ import { HashMap } from "../hashstructs";
 import { ConcreteName, Name } from "../name_patterns";
 import { TrivialMap } from "../types";
 import { addWalker, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, isHashMap, Pattern } from "./base";
+         InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
 
@@ -60,19 +60,19 @@ export class RefWalker extends InternalWalker<Ref> {
   protected constructor(walker: RefWalker, memo: HashMap);
   protected constructor(el: Ref);
   protected constructor(elOrWalker: RefWalker | Ref, memo?: HashMap) {
-    if (elOrWalker instanceof RefWalker) {
-      const walker = elOrWalker;
-      super(walker, isHashMap(memo));
+    if ((elOrWalker as Ref).newWalker !== undefined) {
+      super(elOrWalker as Ref);
+      this.element = elOrWalker.element;
+      this.startName = elOrWalker.element.name;
+      this.startTagEvent = new Event("enterStartTag", this.startName);
+    }
+    else {
+      const walker = elOrWalker as RefWalker;
+      super(walker, memo as HashMap);
       this.startName = walker.startName;
       this.startTagEvent = walker.startTagEvent;
       this._boundName = walker._boundName;
       this.element = walker.element;
-    }
-    else {
-      super(elOrWalker);
-      this.element = elOrWalker.element;
-      this.startName = elOrWalker.element.name;
-      this.startTagEvent = new Event("enterStartTag", this.startName);
     }
   }
 

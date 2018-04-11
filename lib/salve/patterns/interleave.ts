@@ -7,8 +7,8 @@
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isHashMap, isNameResolver,
-         matched, TwoSubpatterns } from "./base";
+         InternalFireEventResult, InternalWalker, matched,
+         TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<interleave>``.
@@ -36,25 +36,25 @@ class InterleaveWalker extends InternalWalker<Interleave> {
   protected constructor(el: Interleave, nameResolver: NameResolver);
   protected constructor(elOrWalker: InterleaveWalker | Interleave,
                         nameResolverOrMemo: NameResolver | HashMap) {
-    if (elOrWalker instanceof InterleaveWalker) {
-      const walker = elOrWalker;
-      const memo = isHashMap(nameResolverOrMemo);
+    if ((elOrWalker as Interleave).newWalker !== undefined) {
+      const el = elOrWalker as Interleave;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      super(el);
+      this.nameResolver = nameResolver;
+      this.ended = false;
+      this.hasAttrs = el._hasAttrs();
+      this.walkerA = this.el.patA.newWalker(nameResolver);
+      this.walkerB = this.el.patB.newWalker(nameResolver);
+    }
+    else {
+      const walker = elOrWalker as InterleaveWalker;
+      const memo = nameResolverOrMemo as HashMap;
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.ended = walker.ended;
       this.hasAttrs = walker.hasAttrs;
       this.walkerA = walker.walkerA._clone(memo);
       this.walkerB = walker.walkerB._clone(memo);
-    }
-    else {
-      const el = elOrWalker;
-      const nameResolver = isNameResolver(nameResolverOrMemo);
-      super(el);
-      this.nameResolver = nameResolver;
-      this.ended = false;
-      this.hasAttrs = el._hasAttrs();
-      this.walkerA = this.el.patA.newWalker(this.nameResolver);
-      this.walkerB = this.el.patB.newWalker(this.nameResolver);
     }
   }
 

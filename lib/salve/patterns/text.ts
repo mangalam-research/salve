@@ -5,8 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { HashMap } from "../hashstructs";
-import { addWalker, Event, EventSet, InternalWalker, isHashMap,
-         Pattern } from "./base";
+import { addWalker, Event, EventSet, InternalWalker, Pattern } from "./base";
 
 /**
  * Pattern for ``<text/>``.
@@ -29,13 +28,14 @@ class TextWalker extends InternalWalker<Text> {
   protected constructor(walker: TextWalker, memo: HashMap);
   protected constructor(el: Text);
   protected constructor(elOrWalker: TextWalker | Text, memo?: HashMap) {
-    if (elOrWalker instanceof TextWalker) {
-      super(elOrWalker, isHashMap(memo));
-      this.ended = elOrWalker.ended;
+    if ((elOrWalker as Text).newWalker !== undefined) {
+      super(elOrWalker as Text);
+      this.ended = false;
     }
     else {
-      super(elOrWalker);
-      this.ended = false;
+      const walker = elOrWalker as TextWalker;
+      super(walker, memo as HashMap);
+      this.ended = walker.ended;
     }
   }
 
