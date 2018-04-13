@@ -109,12 +109,12 @@ class ChoiceWalker extends InternalWalker<Choice> {
   }
 
   fireEvent(ev: Event): InternalFireEventResult {
-    const isAttributeEvent = ev.isAttributeEvent;
-    if (isAttributeEvent && !this.hasAttrs) {
+    if (this.deactivateA && this.deactivateB) {
       return undefined;
     }
 
-    if (this.deactivateA && this.deactivateB) {
+    const isAttributeEvent = ev.isAttributeEvent;
+    if (isAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
 
@@ -122,50 +122,50 @@ class ChoiceWalker extends InternalWalker<Choice> {
     const retA = this.deactivateA ? undefined : this.walkerA.fireEvent(ev);
     const retB = this.deactivateB ? undefined : this.walkerB.fireEvent(ev);
 
-    if (retA === undefined && retB === undefined) {
-      return undefined;
-    }
-
     if (retA !== undefined) {
       if (retB === undefined) {
         this.deactivateB = true;
+        // If we get here, retA is not undefined therefore, this.deactivateA
+        // cannot be true.
         if (isAttributeEvent) {
-          this.canEndAttribute = this.deactivateA ||
-            this.walkerA.canEndAttribute;
+          this.canEndAttribute = this.walkerA.canEndAttribute;
         }
 
-        this.canEnd = this.deactivateA || this.walkerA.canEnd;
+        this.canEnd = this.walkerA.canEnd;
 
         return retA;
       }
 
+      // If we get here retB is not undefined, therefore this.deactivateB cannot
+      // be true.
       if (isAttributeEvent) {
         this.canEndAttribute = this.walkerA.canEndAttribute ||
-          (!this.deactivateB && this.walkerB.canEndAttribute);
+          this.walkerB.canEndAttribute;
       }
 
-      this.canEnd = this.walkerA.canEnd ||
-        (!this.deactivateB && this.walkerB.canEnd);
+      this.canEnd = this.walkerA.canEnd || this.walkerB.canEnd;
 
-      if (retB === false) {
+      if (!retB) {
         return retA;
       }
 
-      if (retA === false) {
-        return retB;
-      }
-
-      return retA.concat(retB);
+      return !retA ? retB : retA.concat(retB);
     }
 
     // We do not need to test if retA is undefined because we would not get
     // here if it were not.
-    this.deactivateA = true;
-    if (isAttributeEvent) {
-      this.canEndAttribute = this.deactivateB || this.walkerB.canEndAttribute;
+    if (retB === undefined) {
+      return undefined;
     }
 
-    this.canEnd = this.deactivateB || this.walkerB.canEnd;
+    // If we get here retB is not undefined, therefore this.deactivateB cannot
+    // be true.
+    this.deactivateA = true;
+    if (isAttributeEvent) {
+      this.canEndAttribute = this.walkerB.canEndAttribute;
+    }
+
+    this.canEnd = this.walkerB.canEnd;
 
     return retB;
   }
@@ -190,25 +190,15 @@ class ChoiceWalker extends InternalWalker<Choice> {
       return false;
     }
 
-    const retA = this.walkerA.end(attribute);
-    const retB = this.walkerB.end(attribute);
+    const retA = this.deactivateA ? false : this.walkerA.end(attribute);
+    const retB = this.deactivateB ? false : this.walkerB.end(attribute);
 
-    if (!retA && !retB) {
-      return false;
+    if (!retA) {
+      return retB;
     }
 
-    if (retA && !retB) {
-      // walkerB did not error, but walkerA did. If we had deactivated it, then
-      // we ignore the error. Everything is fine because only one walker needs
-      // to complete without error.
-      return (this.deactivateA) ? false : retA;
-    }
-
-    if (!retA && retB) {
-      // walkerA did not error, but walkerB did. If we had deactivated it, then
-      // we ignore the error. Everything is fine because only one walker needs
-      // to complete without error.
-      return (this.deactivateB) ? false : retB;
+    if (!retB) {
+      return retA;
     }
 
     // If we are here both walkers exist and returned an error. We combine the
@@ -246,7 +236,7 @@ class ChoiceWalker extends InternalWalker<Choice> {
     // If we get here, we were not able to raise a ChoiceError, possibly
     // because there was not enough information to decide among the two
     // walkers. Return whatever error comes first.
-    return retA || retB;
+    return retA;
   }
 }
 
