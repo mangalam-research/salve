@@ -19,6 +19,7 @@ import { Ref } from "./ref";
  * A pattern for elements.
  */
 export class Element extends BasePattern {
+  private readonly notAllowed: boolean;
   /**
    * @param xmlPath This is a string which uniquely identifies the
    * element from the simplified RNG tree. Used in debugging.
@@ -30,17 +31,16 @@ export class Element extends BasePattern {
   constructor(xmlPath: string, readonly name: ConcreteName,
               readonly pat: Pattern) {
     super(xmlPath);
+    this.notAllowed = this.pat instanceof NotAllowed;
   }
 
   // addWalker(Element, ElementWalker); Nope... see below..
   newWalker(resolver: NameResolver,
             boundName: Name): InternalWalker<BasePattern> {
-    if (this.pat instanceof NotAllowed) {
-      return this.pat.newWalker(resolver);
-    }
-
-    // tslint:disable-next-line:no-use-before-declare
-    return ElementWalker.makeWalker(this, resolver, boundName);
+    return this.notAllowed ?
+      this.pat.newWalker(resolver) :
+      // tslint:disable-next-line:no-use-before-declare
+      ElementWalker.makeWalker(this, resolver, boundName);
   }
 
   hasAttrs(): boolean {
