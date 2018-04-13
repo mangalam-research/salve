@@ -8,16 +8,31 @@ import { ChoiceError } from "../errors";
 import { HashMap } from "../hashstructs";
 import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
-import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker,
-         TwoSubpatterns } from "./base";
+import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
+         InternalWalker, Pattern, TwoSubpatterns } from "./base";
+import { Empty } from "./empty";
 
 /**
  * A pattern for ``<choice>``.
  */
 export class Choice extends TwoSubpatterns {
+  optional: boolean;
+
+  constructor(xmlPath: string, patA: Pattern, patB: Pattern) {
+    super(xmlPath, patA, patB);
+    this.optional = patA instanceof Empty;
+  }
+
   protected _computeHasEmptyPattern(): boolean {
     return this.patA.hasEmptyPattern() || this.patB.hasEmptyPattern();
+  }
+
+  newWalker(resolver: NameResolver): InternalWalker<BasePattern> {
+    return this.optional ?
+      // tslint:disable-next-line:no-use-before-declare
+      OptionalChoiceWalker.makeWalker(this, resolver) :
+      // tslint:disable-next-line:no-use-before-declare
+      ChoiceWalker.makeWalker(this, resolver);
   }
 }
 
@@ -66,6 +81,10 @@ class ChoiceWalker extends InternalWalker<Choice> {
       this.canEndAttribute = walker.canEndAttribute;
       this.canEnd = walker.canEnd;
     }
+  }
+
+  static makeWalker(el: Choice, nameResolver: NameResolver): ChoiceWalker {
+    return new ChoiceWalker(el, nameResolver);
   }
 
   _possible(): EventSet {
@@ -231,7 +250,115 @@ class ChoiceWalker extends InternalWalker<Choice> {
   }
 }
 
-addWalker(Choice, ChoiceWalker);
+/**
+ * Walker for [[Choice]].
+ */
+class OptionalChoiceWalker extends InternalWalker<Choice> {
+  private readonly hasAttrs: boolean;
+  private readonly walkerB: InternalWalker<BasePattern>;
+  private ended: boolean;
+  private readonly nameResolver: NameResolver;
+  canEndAttribute: boolean;
+  canEnd: boolean;
+
+  protected constructor(walker: OptionalChoiceWalker, memo: HashMap);
+  protected constructor(el: Choice, nameResolver: NameResolver);
+  protected constructor(elOrWalker: OptionalChoiceWalker | Choice,
+                        nameResolverOrMemo: NameResolver | HashMap)
+  {
+    if ((elOrWalker as Choice).newWalker !== undefined) {
+      const el = elOrWalker as Choice;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      super(el);
+      this.hasAttrs = el.hasAttrs();
+      this.nameResolver = nameResolver;
+      this.ended = false;
+      this.walkerB = this.el.patB.newWalker(nameResolver);
+      this.canEndAttribute = true;
+      this.canEnd = true;
+    }
+    else {
+      const walker = elOrWalker as OptionalChoiceWalker;
+      const memo = nameResolverOrMemo as HashMap;
+      super(walker, memo);
+      this.hasAttrs = walker.hasAttrs;
+      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.walkerB = walker.walkerB._clone(memo);
+      this.ended = walker.ended;
+      this.canEndAttribute = walker.canEndAttribute;
+      this.canEnd = walker.canEnd;
+    }
+  }
+
+  static makeWalker(el: Choice,
+                    nameResolver: NameResolver): OptionalChoiceWalker {
+    return new OptionalChoiceWalker(el, nameResolver);
+  }
+
+  _possible(): EventSet {
+    if (this.possibleCached !== undefined) {
+      return this.possibleCached;
+    }
+
+    this.possibleCached = this.ended ? new EventSet() :
+      this.walkerB._possible();
+
+    return this.possibleCached;
+  }
+
+  fireEvent(ev: Event): InternalFireEventResult {
+    if (this.ended) {
+      return undefined;
+    }
+
+    const isAttributeEvent = ev.isAttributeEvent;
+    if (isAttributeEvent && !this.hasAttrs) {
+      return undefined;
+    }
+
+    this.possibleCached = undefined;
+    const retA = (ev.params[0] === "text" &&
+                  (ev.params[1] as string).trim() === "") ? false : undefined;
+    const retB = this.walkerB.fireEvent(ev);
+
+    if (retA !== undefined) {
+      return (retB === undefined || retB === false) ? retA : retB;
+    }
+
+    if (retB === undefined) {
+      return undefined;
+    }
+
+    if (isAttributeEvent) {
+      this.canEndAttribute = this.walkerB.canEndAttribute;
+    }
+
+    this.canEnd = this.walkerB.canEnd;
+
+    return retB;
+  }
+
+  _suppressAttributes(): void {
+    // We don't protect against multiple calls to _suppressAttributes.
+    // ElementWalker is the only walker that initiates _suppressAttributes
+    // and it calls it only once per walker.
+    this.possibleCached = undefined; // no longer valid
+    this.walkerB._suppressAttributes();
+  }
+
+  end(attribute: boolean = false): EndResult {
+    if ((attribute && this.canEndAttribute) || (!attribute && this.canEnd)) {
+      // Instead of an ended flag, we set both flags.
+      if (!attribute) {
+        this.ended = true;
+      }
+
+      return false;
+    }
+
+    return this.walkerB.end(attribute);
+  }
+}
 
 //  LocalWords:  RNG's MPL retA ChoiceWalker enterStartTag notAChoiceError
 //  LocalWords:  tslint ChoiceError
