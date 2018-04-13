@@ -133,17 +133,10 @@ class ChoiceWalker extends InternalWalker<Choice> {
   }
 
   canEnd(attribute: boolean = false): boolean {
-    const walkerA = this.walkerA;
-    const walkerB = this.walkerB;
-
-    if (this.deactivateA && this.deactivateB) {
-      return true;
-    }
-
-    return attribute ? (!this.el.patA._hasAttrs() ||
-                        !this.el.patB._hasAttrs()) :
-      ((!this.deactivateA && walkerA.canEnd(false)) ||
-       (!this.deactivateB && walkerB.canEnd(false)));
+    return (this.deactivateA && this.deactivateB) ||
+      (attribute  && !this.hasAttrs) ||
+      ((!this.deactivateA && this.walkerA.canEnd(attribute)) ||
+       (!this.deactivateB && this.walkerB.canEnd(attribute)));
   }
 
   end(attribute: boolean = false): EndResult {
