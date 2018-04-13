@@ -13,7 +13,11 @@ import { addWalker, BasePattern, EndResult, Event, EventSet,
 /**
  * A pattern for ``<interleave>``.
  */
-export class Interleave extends TwoSubpatterns {}
+export class Interleave extends TwoSubpatterns {
+  protected _computeHasEmptyPattern(): boolean {
+    return this.patA.hasEmptyPattern() && this.patB.hasEmptyPattern();
+  }
+}
 
 /**
  * Walker for [[Interleave]].
@@ -24,6 +28,8 @@ class InterleaveWalker extends InternalWalker<Interleave> {
   private readonly walkerA: InternalWalker<BasePattern>;
   private readonly walkerB: InternalWalker<BasePattern>;
   private readonly nameResolver: NameResolver;
+  canEndAttribute: boolean;
+  canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was
@@ -42,9 +48,12 @@ class InterleaveWalker extends InternalWalker<Interleave> {
       super(el);
       this.nameResolver = nameResolver;
       this.ended = false;
-      this.hasAttrs = el._hasAttrs();
+      this.hasAttrs = el.hasAttrs();
       this.walkerA = this.el.patA.newWalker(nameResolver);
       this.walkerB = this.el.patB.newWalker(nameResolver);
+      this.canEndAttribute = !this.hasAttrs ||
+        (this.walkerA.canEndAttribute && this.walkerB.canEndAttribute);
+      this.canEnd = this.walkerA.canEnd && this.walkerB.canEnd;
     }
     else {
       const walker = elOrWalker as InterleaveWalker;
@@ -55,6 +64,8 @@ class InterleaveWalker extends InternalWalker<Interleave> {
       this.hasAttrs = walker.hasAttrs;
       this.walkerA = walker.walkerA._clone(memo);
       this.walkerB = walker.walkerB._clone(memo);
+      this.canEndAttribute = walker.canEndAttribute;
+      this.canEnd = walker.canEnd;
     }
   }
 
@@ -97,7 +108,7 @@ class InterleaveWalker extends InternalWalker<Interleave> {
   //
   // When an interleave subpattern starts to match, we may not switch to
   // another subpattern until that subpattern is done. However, "done" here is
-  // not synonymous with ``canEnd() === true``. Looking again at the B A C
+  // not synonymous with ``canEnd === true``. Looking again at the B A C
   // scenario above, we can switch to A when B is done but the inner level
   // interleave is itself not "done" because C has not matched yet.
   //
@@ -106,7 +117,8 @@ class InterleaveWalker extends InternalWalker<Interleave> {
   // pattern to another one.
   //
   fireEvent(ev: Event): InternalFireEventResult {
-    if (ev.isAttributeEvent && !this.hasAttrs) {
+    const isAttributeEvent = ev.isAttributeEvent;
+    if (isAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
 
@@ -118,8 +130,18 @@ class InterleaveWalker extends InternalWalker<Interleave> {
       return undefined;
     }
 
-    const retA = this.walkerA.fireEvent(ev);
+    const walkerA = this.walkerA;
+    const walkerB = this.walkerB;
+
+    const retA = walkerA.fireEvent(ev);
     if (matched(retA)) {
+      if (isAttributeEvent) {
+        this.canEndAttribute =
+          walkerA.canEndAttribute && walkerB.canEndAttribute;
+      }
+
+      this.canEnd = walkerA.canEnd && walkerB.canEnd;
+
       // The constraints on interleave do not allow for two child patterns of
       // interleave to match. So if the first walker matched, the second
       // cannot. So we don't have to fireEvent on the second walker if the
@@ -127,8 +149,15 @@ class InterleaveWalker extends InternalWalker<Interleave> {
       return retA;
     }
 
-    const retB = this.walkerB.fireEvent(ev);
+    const retB = walkerB.fireEvent(ev);
     if (matched(retB)) {
+      if (isAttributeEvent) {
+        this.canEndAttribute =
+          walkerA.canEndAttribute && walkerB.canEndAttribute;
+      }
+
+      this.canEnd = walkerA.canEnd && walkerB.canEnd;
+
       return retB;
     }
 
@@ -144,26 +173,12 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     this.walkerB._suppressAttributes();
   }
 
-  canEnd(attribute: boolean = false): boolean {
-    // We can end any number of times.
-    if (this.ended) {
-      return true;
-    }
-
-    if (!attribute) {
-      return this.walkerA.canEnd(false) && this.walkerB.canEnd(false);
-    }
-
-    return !this.hasAttrs ||
-      (this.walkerA.canEnd(true) && this.walkerB.canEnd(true));
-  }
-
   end(attribute: boolean = false): EndResult {
     if (this.ended) {
       return false;
     }
 
-    if (this.canEnd(attribute)) {
+    if ((attribute && this.canEndAttribute) || (!attribute && this.canEnd)) {
       // We're done once and for all only if called with attribute === false
       // or if we don't have any attributes.
       if (!this.hasAttrs || !attribute) {

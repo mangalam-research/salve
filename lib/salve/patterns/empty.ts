@@ -5,13 +5,16 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { HashMap } from "../hashstructs";
-import { addWalker, emptyEvent, Event, EventSet, InternalWalker,
-         Pattern } from "./base";
+import { addWalker, Event, EventSet, InternalWalker, Pattern } from "./base";
 
 /**
  * Pattern for ``<empty/>``.
  */
-export class Empty extends Pattern {}
+export class Empty extends Pattern {
+  hasEmptyPattern(): boolean {
+    return true;
+  }
+}
 
 /**
  * Walker for [[Empty]].
@@ -21,6 +24,9 @@ export class Empty extends Pattern {}
  * @param resolver Ignored by this walker.
  */
 export class EmptyWalker extends InternalWalker<Empty> {
+  canEnd: boolean;
+  canEndAttribute: boolean;
+
   protected constructor(other: EmptyWalker, memo: HashMap);
   protected constructor(el: Empty);
   protected constructor(elOrWalker: Empty | EmptyWalker, memo?: HashMap) {
@@ -30,6 +36,8 @@ export class EmptyWalker extends InternalWalker<Empty> {
     else {
       super(elOrWalker as EmptyWalker, memo as HashMap);
     }
+    this.canEnd = true;
+    this.canEndAttribute = true;
   }
 
   possible(): EventSet {
@@ -47,8 +55,7 @@ export class EmptyWalker extends InternalWalker<Empty> {
   }
 
   fireEvent(ev: Event): false | undefined {
-    if ((ev === emptyEvent) ||
-        ((ev.params[0] === "text") &&
+    if (((ev.params[0] === "text") &&
          ((ev.params[1] as string).trim() === ""))) {
       return false;
     }

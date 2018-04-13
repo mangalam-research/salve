@@ -113,7 +113,11 @@ export interface Datatype {
    *
    * @param params The type parameters. These must be **parsed** already.
    *
-   * @param context The context in the document, if needed.
+   * @param context The context in the document, if needed. **Note**: this
+   * method must accept being called without a context *even if it normally
+   * requires a context* when the a ``value`` is set to the empty string. This
+   * allows determining ahead of XML validation whether an empty string is
+   * allowed.
    *
    * @returns ``false`` if not disallowed. Otherwise, the errors caused by the
    * value.

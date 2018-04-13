@@ -321,9 +321,13 @@ export class BasePattern {
    * ``_prepare`` recursively calls children but does not traverse ref-define
    * boundaries to avoid infinite regress...
    *
-   * This function now performs two tasks: a) it precomputes the values returned
-   * by ``hasAttr`` (it can be computed once and for all), b) it gathers all the
-   * namespaces seen in the schema.
+   * This function now performs these tasks:
+   *
+   * - it precomputes the values returned by ``hasAttr``,
+   *
+   * - it precomputes the values returned by ``hasEmptyPattern``,
+   *
+   * - it gathers all the namespaces seen in the schema.
    *
    * @param namespaces An object whose keys are the namespaces seen in
    * the schema. This method populates the object.
@@ -342,7 +346,16 @@ export class BasePattern {
    *
    * @returns True if the pattern is or has attributes. False if not.
    */
-  _hasAttrs(): boolean {
+  hasAttrs(): boolean {
+    return false;
+  }
+
+  /**
+   * This method determines whether a pattern has the ``empty``
+   * pattern. Generally, this means that either this pattern is the ``empty``
+   * pattern or has ``empty`` as a child.
+   */
+  hasEmptyPattern(): boolean {
     return false;
   }
 
@@ -379,7 +392,8 @@ export abstract class Pattern extends BasePattern {
  */
 export abstract class OneSubpattern<T extends (Pattern | Element) = Pattern>
   extends Pattern {
-  protected _cachedHasAttr?: boolean;
+  protected _cachedHasAttrs?: boolean;
+  protected _cachedHasEmptyPattern?: boolean;
 
   constructor(xmlPath: string, readonly pat: T) {
     super(xmlPath);
@@ -389,14 +403,22 @@ export abstract class OneSubpattern<T extends (Pattern | Element) = Pattern>
     return this.pat._resolve(definitions);
   }
 
+  protected abstract _computeHasEmptyPattern(): boolean;
+
   _prepare(namespaces: TrivialMap<number>): void {
     this.pat._prepare(namespaces);
-    this._cachedHasAttr = this.pat._hasAttrs();
+    this._cachedHasAttrs = this.pat.hasAttrs();
+    this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
   }
 
-  _hasAttrs(): boolean {
+  hasAttrs(): boolean {
     // tslint:disable-next-line:no-non-null-assertion
-    return this._cachedHasAttr!;
+    return this._cachedHasAttrs!;
+  }
+
+  hasEmptyPattern(): boolean {
+    // tslint:disable-next-line:no-non-null-assertion
+    return this._cachedHasEmptyPattern!;
   }
 }
 
@@ -404,8 +426,9 @@ export abstract class OneSubpattern<T extends (Pattern | Element) = Pattern>
  * Pattern objects of this class have exactly two child patterns.
  *
  */
-export class TwoSubpatterns extends Pattern {
-  protected _cachedHasAttr?: boolean;
+export abstract class TwoSubpatterns extends Pattern {
+  protected _cachedHasAttrs?: boolean;
+  protected _cachedHasEmptyPattern?: boolean;
 
   constructor(xmlPath: string, readonly patA: Pattern, readonly patB: Pattern) {
     super(xmlPath);
@@ -425,15 +448,23 @@ export class TwoSubpatterns extends Pattern {
     return b;
   }
 
+  protected abstract _computeHasEmptyPattern(): boolean;
+
   _prepare(namespaces: TrivialMap<number>): void {
     this.patA._prepare(namespaces);
     this.patB._prepare(namespaces);
-    this._cachedHasAttr = this.patA._hasAttrs() || this.patB._hasAttrs();
+    this._cachedHasAttrs = this.patA.hasAttrs() || this.patB.hasAttrs();
+    this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
   }
 
-  _hasAttrs(): boolean {
+  hasAttrs(): boolean {
     // tslint:disable-next-line:no-non-null-assertion
-    return this._cachedHasAttr!;
+    return this._cachedHasAttrs!;
+  }
+
+  hasEmptyPattern(): boolean {
+    // tslint:disable-next-line:no-non-null-assertion
+    return this._cachedHasEmptyPattern!;
   }
 }
 
@@ -595,12 +626,6 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
 }
 
 /**
- * Special event to which only the [["patterns/empty".EmptyWalker]] responds
- * positively. This object is meant to be used internally by salve.
- */
-export const emptyEvent: Event = new Event("<empty>");
-
-/**
  * Roughly speaking each [[Pattern]] object has a corresponding ``Walker`` class
  * that models an object which is able to walk the pattern to which it
  * belongs. So an ``Element`` has an ``ElementWalker`` and an ``Attribute`` has
@@ -689,18 +714,6 @@ export abstract class BaseWalker<T extends BasePattern> {
 
   // These functions return true if there is no problem, or a list of
   // ValidationError objects otherwise.
-
-  /**
-   * Can this Walker validly end after the previous event fired?
-   *
-   * @param attribute ``true`` if calling this method while processing
-   * attributes, ``false`` otherwise.
-   *
-   * @return ``true`` if the walker can validly end here.  ``false`` otherwise.
-   */
-  canEnd(attribute: boolean = false): boolean {
-    return true;
-  }
 
   /**
    * Obtain the errors that would occur if the walker were to end here. Note the
@@ -801,6 +814,10 @@ export abstract class BaseWalker<T extends BasePattern> {
   private __newID(): number {
     return BaseWalker.__id++;
   }
+
+  hasEmptyPattern(): boolean {
+    return this.el.hasEmptyPattern();
+  }
 }
 
 /**
@@ -819,6 +836,17 @@ export abstract class InternalWalker<T extends BasePattern>
    * [[ValidationError]] objects.
    */
   abstract fireEvent(ev: Event): InternalFireEventResult;
+
+  /**
+   * Flag indicating whether the walker can end.
+   */
+  abstract canEnd: boolean;
+
+  /**
+   * Flag indicating whether the walker can end, in a context where
+   * we are processing attributes.
+   */
+  abstract canEndAttribute: boolean;
 }
 
 /**

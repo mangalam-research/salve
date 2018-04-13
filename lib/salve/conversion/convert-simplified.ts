@@ -14,7 +14,7 @@ import { Attribute, Choice, Data, Define, Element as ElementPattern, Empty,
          Text as TextPattern, Value } from "../patterns";
 import { Element } from "./parser";
 
-function walk(el: Element): (Pattern | ElementPattern) {
+function walk(el: Element): (Pattern | ElementPattern | Grammar) {
   switch (el.local) {
       //  "param" is not needed as a separate case, because it is handled in
       //  "data"

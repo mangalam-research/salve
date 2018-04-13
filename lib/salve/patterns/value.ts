@@ -63,6 +63,10 @@ export class Value extends Pattern {
 
     return ret;
   }
+
+  hasEmptyPattern(): boolean {
+    return this.rawValue === "";
+  }
 }
 
 /**
@@ -72,6 +76,8 @@ class ValueWalker extends InternalWalker<Value> {
   private matched: boolean;
   private readonly context: { resolver: NameResolver } | undefined;
   private readonly nameResolver: NameResolver;
+  canEnd: boolean;
+  canEndAttribute: boolean;
 
   protected constructor(other: ValueWalker, memo: HashMap);
   protected constructor(el: Value, nameResolver: NameResolver);
@@ -85,6 +91,7 @@ class ValueWalker extends InternalWalker<Value> {
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
       this.matched = false;
+      this.canEndAttribute = this.canEnd = this.el.hasEmptyPattern();
     }
     else {
       const walker = elOrWalker as ValueWalker;
@@ -94,6 +101,8 @@ class ValueWalker extends InternalWalker<Value> {
       this.context = walker.context !== undefined ?
         { resolver: this.nameResolver } : undefined;
       this.matched = walker.matched;
+      this.canEnd = walker.canEnd;
+      this.canEndAttribute = walker.canEndAttribute;
     }
   }
 
@@ -114,17 +123,14 @@ class ValueWalker extends InternalWalker<Value> {
     }
 
     this.matched = true;
+    this.canEndAttribute = this.canEnd = true;
     this.possibleCached = undefined;
 
     return false;
   }
 
-  canEnd(attribute: boolean = false): boolean {
-    return this.matched || this.el.rawValue === "";
-  }
-
   end(attribute: boolean = false): EndResult {
-    return this.canEnd(attribute) ? false :
+    return this.canEnd ? false :
       [new ValidationError(`value required: ${this.el.rawValue}`)];
   }
 

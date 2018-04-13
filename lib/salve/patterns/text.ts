@@ -10,7 +10,13 @@ import { addWalker, Event, EventSet, InternalWalker, Pattern } from "./base";
 /**
  * Pattern for ``<text/>``.
  */
-export class Text extends Pattern {}
+export class Text extends Pattern {
+  hasEmptyPattern(): boolean {
+    // A text node may always be a zero-length node, which mean that we
+    // effectively allow the container to be empty.
+    return true;
+  }
+}
 
 /**
  *
@@ -21,6 +27,9 @@ class TextWalker extends InternalWalker<Text> {
   private static readonly _textEvent: Event = new Event("text", /^.*$/);
 
   private ended: boolean;
+
+  canEnd: boolean;
+  canEndAttribute: boolean;
 
   /**
    * @param el The pattern for which this walker was constructed.
@@ -37,6 +46,9 @@ class TextWalker extends InternalWalker<Text> {
       super(walker, memo as HashMap);
       this.ended = walker.ended;
     }
+
+    this.canEnd = true;
+    this.canEndAttribute = true;
   }
 
   _possible(): EventSet {

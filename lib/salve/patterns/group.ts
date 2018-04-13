@@ -14,7 +14,11 @@ import { addWalker, BasePattern, EndResult, Event, EventSet,
 /**
  * A pattern for ``<group>``.
  */
-export class Group extends TwoSubpatterns {}
+export class Group extends TwoSubpatterns {
+  protected _computeHasEmptyPattern(): boolean {
+    return this.patA.hasEmptyPattern() && this.patB.hasEmptyPattern();
+  }
+}
 
 /**
  * Walker for [[Group]].
@@ -26,6 +30,8 @@ class GroupWalker extends InternalWalker<Group> {
   private walkerA: InternalWalker<BasePattern>;
   private walkerB: InternalWalker<BasePattern>;
   private readonly nameResolver: NameResolver;
+  canEndAttribute: boolean;
+  canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was created.
@@ -42,11 +48,14 @@ class GroupWalker extends InternalWalker<Group> {
       const nameResolver = nameResolverOrMemo as NameResolver;
       super(el);
       this.suppressedAttributes = false;
-      this.hasAttrs = el._hasAttrs();
+      this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
       this.ended = false;
       this.walkerA = this.el.patA.newWalker(nameResolver);
       this.walkerB = this.el.patB.newWalker(nameResolver);
+      this.canEndAttribute = !this.hasAttrs ||
+        (this.walkerA.canEndAttribute && this.walkerB.canEndAttribute);
+      this.canEnd = this.walkerA.canEnd && this.walkerB.canEnd;
     }
     else {
       const walker = elOrWalker as GroupWalker;
@@ -58,6 +67,8 @@ class GroupWalker extends InternalWalker<Group> {
       this.walkerA = walker.walkerA._clone(memo);
       this.walkerB = walker.walkerB._clone(memo);
       this.ended = walker.ended;
+      this.canEndAttribute = walker.canEndAttribute;
+      this.canEnd = walker.canEnd;
     }
   }
 
@@ -77,7 +88,7 @@ class GroupWalker extends InternalWalker<Group> {
     // When suppressedAttributes is true, if we are in the midst of processing
     // walker a and it cannot end yet, then we do not want to see anything from
     // b yet.
-    if (!this.suppressedAttributes || this.walkerA.canEnd()) {
+    if (!this.suppressedAttributes || this.walkerA.canEnd) {
       // We used to filter the possibilities to only attribute events when
       // this.suppressedAttributes was false, but that's a costly operation. It
       // is the responsibility of ElementWalker to ensure that when the start
@@ -105,19 +116,32 @@ class GroupWalker extends InternalWalker<Group> {
     }
 
     const walkerA = this.walkerA;
+    const walkerB = this.walkerB;
     const retA = walkerA.fireEvent(ev);
     if (retA !== undefined) {
+      if (isAttributeEvent) {
+        this.canEndAttribute = walkerA.canEndAttribute &&
+          walkerB.canEndAttribute;
+      }
+
+      this.canEnd = walkerA.canEnd && walkerB.canEnd;
+
       return retA;
     }
 
     // We must return right away if walkerA cannot yet end. Only attribute
     // events are allowed to move forward.
-    if (!isAttributeEvent && !walkerA.canEnd()) {
+    if (!isAttributeEvent && !walkerA.canEnd) {
       return undefined;
     }
 
-    const walkerB = this.walkerB;
     const retB = walkerB.fireEvent(ev);
+    if (isAttributeEvent) {
+      this.canEndAttribute = walkerA.canEndAttribute && walkerB.canEndAttribute;
+    }
+
+    this.canEnd = walkerA.canEnd && walkerB.canEnd;
+
     // Non-attribute event: if walker b matched the event then we must end
     // walkerA, if we've not already done so.
     if (!isAttributeEvent && retB !== undefined) {
@@ -148,26 +172,12 @@ class GroupWalker extends InternalWalker<Group> {
     this.walkerB._suppressAttributes();
   }
 
-  canEnd(attribute: boolean = false): boolean {
-    // We can end any number of times.
-    if (this.ended) {
-      return true;
-    }
-
-    if (!attribute) {
-      return this.walkerA.canEnd(false) && this.walkerB.canEnd(false);
-    }
-
-    return !this.hasAttrs ||
-      (this.walkerA.canEnd(true) && this.walkerB.canEnd(true));
-  }
-
   end(attribute: boolean = false): EndResult {
     if (this.ended) {
       return false;
     }
 
-    if (this.canEnd(attribute)) {
+    if ((attribute && this.canEndAttribute) || (!attribute && this.canEnd)) {
       // We're done once and for all only if called with attribute === false
       // or if we don't have any attributes.
       if (!this.hasAttrs || !attribute) {
@@ -183,8 +193,8 @@ class GroupWalker extends InternalWalker<Group> {
     const walkerB = this.walkerB;
 
     if (attribute) {
-      const aHas = this.el.patA._hasAttrs();
-      const bHas = this.el.patB._hasAttrs();
+      const aHas = this.el.patA.hasAttrs();
+      const bHas = this.el.patB.hasAttrs();
       if (aHas) {
         ret = walkerA.end(true);
 

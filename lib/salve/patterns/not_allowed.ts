@@ -16,6 +16,9 @@ export class NotAllowed extends Pattern {}
  * Walker for [[NotAllowed]];
  */
 export class NotAllowedWalker extends InternalWalker<NotAllowed> {
+  canEnd: boolean;
+  canEndAttribute: boolean;
+
   /**
    * @param el The pattern for which this walker was created.
    */
@@ -29,6 +32,9 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
     else {
       super(elOrWalker as NotAllowedWalker, memo as HashMap);
     }
+
+    this.canEnd = true;
+    this.canEndAttribute = true;
   }
 
   possible(): EventSet {

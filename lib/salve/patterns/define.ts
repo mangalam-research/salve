@@ -17,4 +17,8 @@ export class Define extends OneSubpattern<Element> {
   constructor(xmlPath: string, readonly name: string, pat: Element) {
     super(xmlPath, pat);
   }
+
+  protected _computeHasEmptyPattern(): boolean {
+    return this.pat.hasEmptyPattern();
+  }
 }

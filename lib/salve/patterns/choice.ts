@@ -15,18 +15,24 @@ import { addWalker, BasePattern, EndResult, Event, EventSet,
 /**
  * A pattern for ``<choice>``.
  */
-export class Choice extends TwoSubpatterns {}
+export class Choice extends TwoSubpatterns {
+  protected _computeHasEmptyPattern(): boolean {
+    return this.patA.hasEmptyPattern() || this.patB.hasEmptyPattern();
+  }
+}
 
 /**
  * Walker for [[Choice]].
  */
 class ChoiceWalker extends InternalWalker<Choice> {
   private readonly hasAttrs: boolean;
-  private walkerA: InternalWalker<BasePattern>;
-  private walkerB: InternalWalker<BasePattern>;
+  private readonly walkerA: InternalWalker<BasePattern>;
+  private readonly walkerB: InternalWalker<BasePattern>;
   private deactivateA: boolean;
   private deactivateB: boolean;
   private readonly nameResolver: NameResolver;
+  canEndAttribute: boolean;
+  canEnd: boolean;
 
   protected constructor(walker: ChoiceWalker, memo: HashMap);
   protected constructor(el: Choice, nameResolver: NameResolver);
@@ -37,12 +43,15 @@ class ChoiceWalker extends InternalWalker<Choice> {
       const el = elOrWalker as Choice;
       const nameResolver = nameResolverOrMemo as NameResolver;
       super(el);
-      this.hasAttrs = el._hasAttrs();
+      this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
       this.deactivateA = false;
       this.deactivateB = false;
       this.walkerA = this.el.patA.newWalker(nameResolver);
       this.walkerB = this.el.patB.newWalker(nameResolver);
+      this.canEndAttribute = !this.hasAttrs ||
+        this.walkerA.canEndAttribute || this.walkerB.canEndAttribute;
+      this.canEnd = this.walkerA.canEnd || this.walkerB.canEnd;
     }
     else {
       const walker = elOrWalker as ChoiceWalker;
@@ -54,6 +63,8 @@ class ChoiceWalker extends InternalWalker<Choice> {
       this.walkerB = walker.walkerB._clone(memo);
       this.deactivateA = walker.deactivateA;
       this.deactivateB = walker.deactivateB;
+      this.canEndAttribute = walker.canEndAttribute;
+      this.canEnd = walker.canEnd;
     }
   }
 
@@ -79,20 +90,18 @@ class ChoiceWalker extends InternalWalker<Choice> {
   }
 
   fireEvent(ev: Event): InternalFireEventResult {
-    if (ev.isAttributeEvent && !this.hasAttrs) {
+    const isAttributeEvent = ev.isAttributeEvent;
+    if (isAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
-
-    const walkerA = this.walkerA;
-    const walkerB = this.walkerB;
 
     if (this.deactivateA && this.deactivateB) {
       return undefined;
     }
 
     this.possibleCached = undefined;
-    const retA = this.deactivateA ? undefined : walkerA.fireEvent(ev);
-    const retB = this.deactivateB ? undefined : walkerB.fireEvent(ev);
+    const retA = this.deactivateA ? undefined : this.walkerA.fireEvent(ev);
+    const retB = this.deactivateB ? undefined : this.walkerB.fireEvent(ev);
 
     if (retA === undefined && retB === undefined) {
       return undefined;
@@ -101,9 +110,23 @@ class ChoiceWalker extends InternalWalker<Choice> {
     if (retA !== undefined) {
       if (retB === undefined) {
         this.deactivateB = true;
+        if (isAttributeEvent) {
+          this.canEndAttribute = this.deactivateA ||
+            this.walkerA.canEndAttribute;
+        }
+
+        this.canEnd = this.deactivateA || this.walkerA.canEnd;
 
         return retA;
       }
+
+      if (isAttributeEvent) {
+        this.canEndAttribute = this.walkerA.canEndAttribute ||
+          (!this.deactivateB && this.walkerB.canEndAttribute);
+      }
+
+      this.canEnd = this.walkerA.canEnd ||
+        (!this.deactivateB && this.walkerB.canEnd);
 
       if (retB === false) {
         return retA;
@@ -119,6 +142,11 @@ class ChoiceWalker extends InternalWalker<Choice> {
     // We do not need to test if retA is undefined because we would not get
     // here if it were not.
     this.deactivateA = true;
+    if (isAttributeEvent) {
+      this.canEndAttribute = this.deactivateB || this.walkerB.canEndAttribute;
+    }
+
+    this.canEnd = this.deactivateB || this.walkerB.canEnd;
 
     return retB;
   }
@@ -132,15 +160,8 @@ class ChoiceWalker extends InternalWalker<Choice> {
     this.walkerB._suppressAttributes();
   }
 
-  canEnd(attribute: boolean = false): boolean {
-    return (this.deactivateA && this.deactivateB) ||
-      (attribute  && !this.hasAttrs) ||
-      ((!this.deactivateA && this.walkerA.canEnd(attribute)) ||
-       (!this.deactivateB && this.walkerB.canEnd(attribute)));
-  }
-
   end(attribute: boolean = false): EndResult {
-    if (this.canEnd(attribute)) {
+    if ((attribute && this.canEndAttribute) || (!attribute && this.canEnd)) {
       // Instead of an ended flag, we set both flags.
       if (!attribute) {
         this.deactivateA = true;

@@ -13,7 +13,11 @@ import { addWalker, BasePattern, EndResult, Event, EventSet,
 /**
  * A pattern for ``<oneOrMore>``.
  */
-export class  OneOrMore extends OneSubpattern {}
+export class  OneOrMore extends OneSubpattern {
+  _computeHasEmptyPattern(): boolean {
+    return this.pat.hasEmptyPattern();
+  }
+}
 
 /**
  * Walker for [[OneOrMore]]
@@ -24,6 +28,8 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
   private currentIteration: InternalWalker<BasePattern>;
   private nextIteration: InternalWalker<BasePattern> | undefined;
   private readonly nameResolver: NameResolver;
+  canEndAttribute: boolean;
+  canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was created.
@@ -39,10 +45,13 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
       const el = elOrWalker as OneOrMore;
       const nameResolver = nameResolverOrMemo as NameResolver;
       super(el);
-      this.hasAttrs = el._hasAttrs();
+      this.hasAttrs = el.hasAttrs();
       this.suppressedAttributes = false;
       this.nameResolver = nameResolver;
       this.currentIteration = this.el.pat.newWalker(nameResolver);
+      this.canEndAttribute = !this.hasAttrs ||
+        this.currentIteration.canEndAttribute;
+      this.canEnd = this.currentIteration.canEnd;
     }
     else {
       const walker = elOrWalker as OneOrMoreWalker;
@@ -54,6 +63,8 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
       this.currentIteration = walker.currentIteration._clone(memo);
       this.nextIteration = walker.nextIteration !== undefined ?
         walker.nextIteration._clone(memo) : undefined;
+      this.canEndAttribute = walker.canEndAttribute;
+      this.canEnd = walker.canEnd;
     }
   }
 
@@ -64,7 +75,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
 
     this.possibleCached = this.currentIteration._possible();
 
-    if (this.currentIteration.canEnd()) {
+    if (this.currentIteration.canEnd) {
       this.possibleCached = new EventSet(this.possibleCached);
 
       this._instantiateNextIteration();
@@ -79,7 +90,8 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
   }
 
   fireEvent(ev: Event): InternalFireEventResult {
-    if (ev.isAttributeEvent && !this.hasAttrs) {
+    const isAttributeEvent = ev.isAttributeEvent;
+    if (isAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
 
@@ -89,10 +101,15 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
 
     const ret = currentIteration.fireEvent(ev);
     if (ret !== undefined) {
+      if (isAttributeEvent) {
+        this.canEndAttribute = currentIteration.canEndAttribute;
+      }
+      this.canEnd = currentIteration.canEnd;
+
       return ret;
     }
 
-    if (currentIteration.canEnd()) {
+    if (currentIteration.canEnd) {
       this._instantiateNextIteration();
       // nextIteration is necessarily defined here due to the previous call.
       // tslint:disable-next-line:no-non-null-assertion
@@ -100,12 +117,17 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
       if (matched(nextRet)) {
         if (currentIteration.end()) {
           throw new Error(
-            "internal error; canEnd() returns true but end() fails");
+            "internal error; canEnd returns true but end() fails");
         }
 
         // tslint:disable-next-line:no-non-null-assertion
         this.currentIteration = this.nextIteration!;
         this.nextIteration = undefined;
+        if (isAttributeEvent) {
+          this.canEndAttribute = this.currentIteration.canEndAttribute;
+        }
+
+        this.canEnd = this.currentIteration.canEnd;
       }
 
       return nextRet;
@@ -138,16 +160,9 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     }
   }
 
-  canEnd(attribute: boolean = false): boolean {
-    if (attribute) {
-      return !this.hasAttrs || this.currentIteration.canEnd(true);
-    }
-
-    return this.currentIteration.canEnd();
-  }
-
   end(attribute: boolean = false): EndResult {
-    return this.canEnd(attribute) ? false :
+    return (attribute && this.canEndAttribute) || (!attribute && this.canEnd) ?
+      false :
       this.currentIteration.end(attribute);
   }
 

@@ -37,6 +37,11 @@ export class Ref extends Pattern {
     return undefined;
   }
 
+  hasEmptyPattern(): boolean {
+    // Refs always contain an element at the top level.
+    return false;
+  }
+
   get element(): Element {
     const resolvesTo = this.resolvesTo;
     if (resolvesTo === undefined) {
@@ -52,6 +57,8 @@ export class RefWalker extends InternalWalker<Ref> {
   private startName: ConcreteName;
   private startTagEvent: Event;
   private _boundName: Name | undefined;
+  canEndAttribute: boolean;
+  canEnd: boolean;
   readonly element: Element;
 
   /**
@@ -65,6 +72,8 @@ export class RefWalker extends InternalWalker<Ref> {
       this.element = elOrWalker.element;
       this.startName = elOrWalker.element.name;
       this.startTagEvent = new Event("enterStartTag", this.startName);
+      this.canEndAttribute = true;
+      this.canEnd = false;
     }
     else {
       const walker = elOrWalker as RefWalker;
@@ -73,6 +82,8 @@ export class RefWalker extends InternalWalker<Ref> {
       this.startTagEvent = walker.startTagEvent;
       this._boundName = walker._boundName;
       this.element = walker.element;
+      this.canEndAttribute = walker.canEndAttribute;
+      this.canEnd = walker.canEnd;
     }
   }
 
@@ -101,6 +112,7 @@ export class RefWalker extends InternalWalker<Ref> {
           this.startName.match(params[1] as string, params[2] as string)) {
         this._boundName = new Name("", params[1] as string,
                                    params[2] as string);
+        this.canEnd = true;
 
         return [this];
       }
@@ -109,12 +121,8 @@ export class RefWalker extends InternalWalker<Ref> {
     return undefined;
   }
 
-  canEnd(attribute: boolean = false): boolean {
-    return attribute || this._boundName !== undefined;
-  }
-
   end(attribute: boolean = false): EndResult {
-    return !attribute && this._boundName === undefined ?
+    return !attribute && !this.canEnd ?
       [new ElementNameError("tag required", this.startName)] : false;
   }
 

@@ -8,20 +8,25 @@ import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { TrivialMap } from "../types";
-import { addWalker, BasePattern, emptyEvent, EndResult, Event, EventSet,
+import { addWalker, BasePattern, EndResult, Event, EventSet,
          InternalFireEventResult, InternalWalker, OneSubpattern } from "./base";
 
 /**
  * List pattern.
  */
 export class List extends OneSubpattern {
+  _computeHasEmptyPattern(): boolean {
+    return this.pat.hasEmptyPattern();
+  }
+
   // We override these because lists cannot contain attributes so there's
   // no point in caching _hasAttrs's result.
   _prepare(namespaces: TrivialMap<number>): void {
     this.pat._prepare(namespaces);
+    this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
   }
 
-  _hasAttrs(): boolean {
+  hasAttrs(): boolean {
     return false;
   }
 }
@@ -32,8 +37,9 @@ export class List extends OneSubpattern {
  */
 class ListWalker extends InternalWalker<List> {
   private subwalker: InternalWalker<BasePattern>;
-  private seenTokens: boolean;
   private readonly nameResolver: NameResolver;
+  canEnd: boolean;
+  canEndAttribute: boolean;
 
   protected constructor(other: ListWalker, memo: HashMap);
   protected constructor(el: List, nameResolver: NameResolver);
@@ -45,7 +51,7 @@ class ListWalker extends InternalWalker<List> {
       super(el);
       this.nameResolver = nameResolver;
       this.subwalker = el.pat.newWalker(nameResolver);
-      this.seenTokens = false;
+      this.canEndAttribute = this.canEnd = this.hasEmptyPattern();
     }
     else {
       const walker = elOrWalker as ListWalker;
@@ -53,7 +59,8 @@ class ListWalker extends InternalWalker<List> {
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.subwalker = walker.subwalker._clone(memo);
-      this.seenTokens = walker.seenTokens;
+      this.canEnd = walker.canEnd;
+      this.canEndAttribute = walker.canEndAttribute;
     }
   }
 
@@ -75,16 +82,18 @@ class ListWalker extends InternalWalker<List> {
       return false;
     }
 
-    this.seenTokens = true;
-
     const tokens = trimmed.split(/\s+/);
 
     for (const token of tokens) {
-      const ret = this.subwalker.fireEvent(new Event(ev.params[0], token));
+      const ret = this.subwalker.fireEvent(new Event("text", token));
       if (ret !== false) {
+        this.canEndAttribute = this.canEnd = false;
+
         return ret;
       }
     }
+
+    this.canEndAttribute = this.canEnd = this.subwalker.canEnd;
 
     return false;
   }
@@ -93,25 +102,14 @@ class ListWalker extends InternalWalker<List> {
     // Lists cannot contain attributes.
   }
 
-  canEnd(attribute: boolean = false): boolean {
-    if (!this.seenTokens) {
-      return (this.subwalker.fireEvent(emptyEvent) === false);
-    }
-
-    return this.subwalker.canEnd(attribute);
-  }
-
   end(attribute: boolean = false): EndResult {
-    const ret = this.subwalker.end(attribute);
-    if (ret !== false) {
-      return ret;
-    }
-
-    if (this.canEnd(attribute)) {
+    if (this.canEnd) {
       return false;
     }
 
-    return [new ValidationError("unfulfilled list")];
+    const ret = this.subwalker.end(attribute);
+
+    return ret !== false ? ret : [new ValidationError("unfulfilled list")];
   }
 }
 

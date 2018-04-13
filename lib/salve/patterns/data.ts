@@ -54,6 +54,11 @@ export class Data extends Pattern {
 
     return ret;
   }
+
+  allowsEmptyContent(): boolean {
+    return !(this.except !== undefined && this.except.hasEmptyPattern()) &&
+      !this.datatype.disallows("", this.params);
+  }
 }
 
 /**
@@ -63,6 +68,8 @@ class DataWalker extends InternalWalker<Data> {
   private readonly context: { resolver: NameResolver } | undefined;
   private matched: boolean;
   private readonly nameResolver: NameResolver;
+  canEndAttribute: boolean;
+  canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was created.
@@ -83,6 +90,8 @@ class DataWalker extends InternalWalker<Data> {
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
       this.matched = false;
+      this.canEnd = this.el.allowsEmptyContent();
+      this.canEndAttribute = this.canEnd;
     }
     else {
       const walker = elOrWalker as DataWalker;
@@ -92,6 +101,8 @@ class DataWalker extends InternalWalker<Data> {
       this.context = walker.context !== undefined ?
         { resolver: this.nameResolver } : undefined;
       this.matched = walker.matched;
+      this.canEnd = walker.canEnd;
+      this.canEndAttribute = walker.canEndAttribute;
     }
   }
 
@@ -129,37 +140,21 @@ class DataWalker extends InternalWalker<Data> {
       // such errors here.
     }
 
-    this.matched = true;
-    this.possibleCached = undefined;
-
-    return false;
-  }
-
-  canEnd(attribute: boolean = false): boolean {
     // If we matched, we are done. salve does not allow text that appears in
     // an XML element to be passed as two "text" events. So there is nothing
     // to come that could falsify the match. (If a client *does* pass
     // multiple text events one after the other, it is using salve
     // incorrectly.)
-    if (this.matched) {
-      return true;
-    }
+    this.matched = true;
+    this.canEnd = true;
+    this.canEndAttribute = true;
+    this.possibleCached = undefined;
 
-    // We have not matched anything. Therefore we have to check whether we
-    // allow the empty string.
-    if (this.el.except !== undefined) {
-      const walker = this.el.except.newWalker(this.nameResolver);
-      if (walker.canEnd()) { // Matches the empty string
-        return false;
-      }
-    }
-
-    return !this.el.datatype.disallows("", this.el.params, this.context);
+    return false;
   }
 
   end(attribute: boolean = false): EndResult {
-    return this.canEnd(attribute) ? false :
-      [new ValidationError("value required")];
+    return this.canEnd ? false : [new ValidationError("value required")];
   }
 
   _suppressAttributes(): void {

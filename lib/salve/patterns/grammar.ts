@@ -205,7 +205,8 @@ export class Grammar extends BasePattern {
 
 interface IWalker {
   fireEvent(ev: Event): InternalFireEventResult;
-  canEnd(): boolean;
+  canEnd: boolean;
+  canEndAttribute: boolean;
   end(): EndResult;
   _clone(memo: HashMap): IWalker;
   possible(): EventSet;
@@ -213,6 +214,8 @@ interface IWalker {
 
 class MisplacedElementWalker implements IWalker {
   private readonly stack: Event[] = [];
+  canEnd: boolean = false;
+  canEndAttribute: boolean = false;
 
   constructor(ev: Event) {
     this.stack.push(ev);
@@ -226,15 +229,12 @@ class MisplacedElementWalker implements IWalker {
         break;
       case "endTag":
         this.stack.shift();
+        this.canEndAttribute = this.canEnd = this.stack.length === 0;
         break;
       default:
     }
 
     return false;
-  }
-
-  canEnd(): boolean {
-    return this.stack.length === 0;
   }
 
   end(): EndResult {
@@ -557,7 +557,7 @@ walker: the internal logic is incorrect");
       const topMisplacedElement = this._misplacedElements[0];
       // Check whether the context should end
       if (topMisplacedElement !== undefined) {
-        if (topMisplacedElement.walker.canEnd()) {
+        if (topMisplacedElement.walker.canEnd) {
           const endRet = topMisplacedElement.walker.end();
           if (endRet) {
             finalResult = finalResult ? finalResult.concat(endRet) : endRet;
@@ -651,9 +651,11 @@ walker: the internal logic is incorrect");
   }
 
   canEnd(attribute: boolean = false): boolean {
+    const top = this.elementWalkerStack[0];
+
     return this.elementWalkerStack.length === 1 &&
-      this.elementWalkerStack[0].length > 0 &&
-      this.elementWalkerStack[0][0].canEnd(attribute);
+      top.length > 0 && ((attribute && top[0].canEndAttribute) ||
+                         (!attribute && top[0].canEnd));
   }
 
   end(attribute: boolean = false): EndResult {

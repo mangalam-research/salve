@@ -43,7 +43,14 @@ export class Element extends BasePattern {
     return ElementWalker.makeWalker(this, resolver, boundName);
   }
 
-  _hasAttrs(): boolean {
+  hasAttrs(): boolean {
+    return false;
+  }
+
+  hasEmptyPattern(): boolean {
+    // The question is whether an element allows empty content **in the context
+    // in which it appears**, not empty content inside it. So the answer is
+    // always negative.
     return false;
   }
 
@@ -65,11 +72,12 @@ class ElementWalker extends InternalWalker<Element> {
   private static _leaveStartTagEvent: Event = new Event("leaveStartTag");
 
   private endedStartTag: boolean;
-  private closed: boolean;
   private walker: InternalWalker<BasePattern>;
   private endTagEvent: Event;
   private boundName: Name;
   private readonly nameResolver: NameResolver;
+  canEndAttribute: boolean;
+  canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was
@@ -91,10 +99,11 @@ class ElementWalker extends InternalWalker<Element> {
       this.nameResolver = nameResolver;
       this.walker = this.el.pat.newWalker(nameResolver);
       this.endedStartTag = false;
-      this.closed = false;
       // tslint:disable-next-line:no-non-null-assertion
       this.boundName = boundName!;
       this.endTagEvent = new Event("endTag", this.boundName);
+      this.canEndAttribute = true;
+      this.canEnd = false;
     }
     else {
       const walker = elOrWalker as ElementWalker;
@@ -102,12 +111,13 @@ class ElementWalker extends InternalWalker<Element> {
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.endedStartTag = walker.endedStartTag;
-      this.closed = walker.closed;
       this.walker = walker.walker._clone(memo);
 
       // No cloning needed since these are immutable.
       this.endTagEvent = walker.endTagEvent;
       this.boundName = walker.boundName;
+      this.canEndAttribute = walker.canEndAttribute;
+      this.canEnd = walker.canEnd;
     }
   }
 
@@ -123,16 +133,16 @@ class ElementWalker extends InternalWalker<Element> {
       const ret =
         walker._possible().filter((poss: Event) => poss.isAttributeEvent);
 
-      if (walker.canEnd(true)) {
+      if (walker.canEndAttribute) {
         ret.add(ElementWalker._leaveStartTagEvent);
       }
 
       return ret;
     }
-    else if (!this.closed) {
+    else if (!this.canEnd) {
       const walker = this.walker;
       const posses = new EventSet(walker._possible());
-      if (walker.canEnd()) {
+      if (walker.canEnd) {
         posses.add(this.endTagEvent);
       }
 
@@ -148,7 +158,7 @@ class ElementWalker extends InternalWalker<Element> {
   }
 
   fireEvent(ev: Event): InternalFireEventResult {
-    if (this.closed) {
+    if (this.canEnd) {
       return undefined;
     }
 
@@ -189,7 +199,7 @@ class ElementWalker extends InternalWalker<Element> {
       if (leaveNow) {
         this.endedStartTag = true;
 
-        const errs = this.el.pat._hasAttrs() ? walker.end(true) : false;
+        const errs = this.el.pat.hasAttrs() ? walker.end(true) : false;
         walker._suppressAttributes();
 
         return errs;
@@ -204,7 +214,7 @@ class ElementWalker extends InternalWalker<Element> {
     switch (eventName) {
       case "endTag": {
         if (this.boundName.match(params[1] as string, params[2] as string)) {
-          this.closed = true;
+          this.canEnd = true;
         }
 
         return walker.end();
@@ -223,12 +233,8 @@ class ElementWalker extends InternalWalker<Element> {
     return;
   }
 
-  canEnd(attribute: boolean = false): boolean {
-    return attribute || this.closed;
-  }
-
   end(attribute: boolean = false): EndResult {
-    if (attribute || this.closed) {
+    if (attribute || this.canEnd) {
       return false;
     }
 

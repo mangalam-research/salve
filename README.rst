@@ -228,6 +228,10 @@ the tree created from the RNG. (See above.) The events currently supported by
   event per line. You have to concatenate the lines and fire a single ``text``
   event.
 
+  Do note generate ``text`` events with an empty string as the
+  value. (Conversely, a valid document **must** have an ``attributeValue`` for
+  all attributes, even those that have empty text as a value.)
+
 ``Event("enterContext")``
   Emitted when entering a new namespace context.
 

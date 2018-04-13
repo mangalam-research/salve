@@ -10,13 +10,15 @@ import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { TrivialMap } from "../types";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, OneSubpattern,
+         InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
+import { Define } from "./define";
+import { Ref } from "./ref";
 
 /**
  * A pattern for attributes.
  */
-export class Attribute extends OneSubpattern {
+export class Attribute extends Pattern {
   /**
    * @param xmlPath This is a string which uniquely identifies the
    * element from the simplified RNG tree. Used in debugging.
@@ -26,11 +28,17 @@ export class Attribute extends OneSubpattern {
    * @param pat The pattern contained by this one.
    */
 
-  constructor(xmlPath: string, readonly name: ConcreteName, pat: Pattern) {
-    super(xmlPath, pat);
+  constructor(xmlPath: string, readonly name: ConcreteName,
+              readonly pat: Pattern) {
+    super(xmlPath);
+  }
+
+  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
+    return this.pat._resolve(definitions);
   }
 
   _prepare(namespaces: TrivialMap<number>): void {
+    this.pat._prepare(namespaces);
     const nss: TrivialMap<number> = Object.create(null);
     this.name._recordNamespaces(nss);
 
@@ -42,10 +50,15 @@ export class Attribute extends OneSubpattern {
     for (const key in nss) {
       namespaces[key] = 1;
     }
+
   }
 
-  _hasAttrs(): boolean {
+  hasAttrs(): boolean {
     return true;
+  }
+
+  hasEmptyPattern(): boolean {
+    return false;
   }
 }
 
@@ -55,11 +68,11 @@ export class Attribute extends OneSubpattern {
 class AttributeWalker extends InternalWalker<Attribute> {
   private suppressedAttributes: boolean;
   private seenName: boolean;
-  private seenValue: boolean;
-  private subwalker: InternalWalker<BasePattern> | undefined;
+  private readonly subwalker: InternalWalker<BasePattern>;
   private readonly attrNameEvent: Event;
   private readonly nameResolver: NameResolver;
-  private neutralized: boolean;
+  canEndAttribute: boolean;
+  canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was created.
@@ -76,10 +89,11 @@ class AttributeWalker extends InternalWalker<Attribute> {
       super(el);
       this.suppressedAttributes = false;
       this.nameResolver = nameResolverOrMemo as NameResolver;
+      this.subwalker = el.pat.newWalker(this.nameResolver);
       this.attrNameEvent = new Event("attributeName", el.name);
       this.seenName = false;
-      this.seenValue = false;
-      this.neutralized = false;
+      this.canEndAttribute = false;
+      this.canEnd = false;
     }
     else {
       const walker = elOrWalker as AttributeWalker;
@@ -88,40 +102,32 @@ class AttributeWalker extends InternalWalker<Attribute> {
       this.suppressedAttributes = walker.suppressedAttributes;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.seenName = walker.seenName;
-      this.seenValue = walker.seenValue;
-      this.subwalker = walker.subwalker !== undefined ?
-        walker.subwalker._clone(memo) : undefined;
+      this.subwalker = walker.subwalker._clone(memo);
       // No need to clone; values are immutable.
       this.attrNameEvent = walker.attrNameEvent;
-      this.neutralized = walker.neutralized;
+      this.canEndAttribute = walker.canEndAttribute;
+      this.canEnd = walker.canEnd;
     }
   }
 
   _possible(): EventSet {
     // We've been suppressed!
-    if (this.suppressedAttributes) {
+    if (this.suppressedAttributes || this.canEnd) {
       return new EventSet();
     }
 
     if (!this.seenName) {
       return new EventSet(this.attrNameEvent);
     }
-    else if (!this.seenValue) {
-      if (this.subwalker === undefined) {
-        this.subwalker = this.el.pat.newWalker(this.nameResolver);
+
+    // Convert text events to attributeValue events.
+    return this.subwalker._possible().map((ev: Event) => {
+      if (ev.params[0] !== "text") {
+        throw new Error(`unexpected event type: ${ev.params[0]}`);
       }
 
-      // Convert text events to attributeValue events.
-      return this.subwalker._possible().map((ev: Event) => {
-        if (ev.params[0] !== "text") {
-          throw new Error(`unexpected event type: ${ev.params[0]}`);
-        }
-
-        return new Event("attributeValue", ev.params[1]);
-      });
-    }
-
-    return new EventSet();
+      return new Event("attributeValue", ev.params[1]);
+    });
   }
 
   possible(): EventSet {
@@ -130,7 +136,9 @@ class AttributeWalker extends InternalWalker<Attribute> {
   }
 
   fireEvent(ev: Event): InternalFireEventResult {
-    if (this.suppressedAttributes || this.neutralized) {
+    // If canEnd is true, we've done everything we could. So we don't
+    // want to match again.
+    if (this.suppressedAttributes || this.canEnd) {
       return undefined;
     }
 
@@ -138,7 +146,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
     let value: string | undefined;
     const eventName = ev.params[0];
     if (this.seenName) {
-      if (!this.seenValue && eventName === "attributeValue") {
+      if (eventName === "attributeValue") {
         // Convert the attributeValue event to a text event.
         value = ev.params[1] as string;
       }
@@ -156,17 +164,19 @@ class AttributeWalker extends InternalWalker<Attribute> {
     }
 
     if (value !== undefined) {
-      this.seenValue = true;
+      this.canEnd = true;
+      this.canEndAttribute = true;
 
-      if (this.subwalker === undefined) {
-        this.subwalker = this.el.pat.newWalker(this.nameResolver);
+      if (value !== "") {
+        ret = this.subwalker.fireEvent(new Event("text", value));
+
+        if (ret === undefined) {
+          ret = [new AttributeValueError("invalid attribute value",
+                                         this.el.name)];
+        }
       }
-
-      ret = this.subwalker.fireEvent(new Event("text", value));
-
-      if (ret === undefined) {
-        ret = [new AttributeValueError("invalid attribute value",
-                                       this.el.name)];
+      else {
+        ret = false;
       }
 
       // Attributes end immediately.
@@ -182,22 +192,19 @@ class AttributeWalker extends InternalWalker<Attribute> {
     this.suppressedAttributes = true;
   }
 
-  canEnd(attribute: boolean = false): boolean {
-    return this.seenValue || this.neutralized;
-  }
-
   end(attribute: boolean = false): EndResult {
-    if (this.neutralized || (this.seenName && this.seenValue)) {
+    if (this.canEnd) {
       return false;
     }
 
     if (!this.seenName) {
       //
-      // We self-neutralize. This prevents producing errors about the same
-      // attribute multiple times, because end is called by element walkers when
-      // leaveStartTag is encountered, and again when the element closes.
+      // We set the _canEnd flags true even though we did not end properly. This
+      // prevents producing errors about the same attribute multiple times,
+      // because end is called by element walkers when leaveStartTag is
+      // encountered, and again when the element closes.
       //
-      // This flag has to be maintained separately from suppressedAttributes
+      // This status has to be maintained separately from suppressedAttributes
       // because it controls how errors are reported, whereas
       // suppressedAttributes is broader in scope. (Or to put it differently, it
       // it may be impossible to know whether an attribute is missing until the
@@ -205,12 +212,13 @@ class AttributeWalker extends InternalWalker<Attribute> {
       // we still want to report the error. So we have to inhibit error
       // reporting on the basis of a state different from suppressedAttributes.)
       //
-      this.neutralized = true;
+      this.canEnd = true;
+      this.canEndAttribute = true;
 
       return [new AttributeNameError("attribute missing", this.el.name)];
     }
 
-    // If we get here, necessarily seenValue is false.
+    // If we get here, necessarily we have not seen a value.
     return [new AttributeValueError("attribute value missing", this.el.name)];
   }
 }
