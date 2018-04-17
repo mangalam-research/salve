@@ -11,6 +11,7 @@ import { ValidationError } from "../errors";
 import { XML1_NAMESPACE, XMLNS_NAMESPACE } from "../name_resolver";
 import { Event, Grammar, Walker } from "../patterns";
 import { fixPrototype } from "../tools";
+import { RELAXNG_URI } from "./simplifier/util";
 
 /**
  * A base class for classes that perform parsing based on SAX parsers.
@@ -552,7 +553,9 @@ export class BasicParser extends Parser {
    * the XML file but a holder for the tree of elements. It has a single child
    * which is the root of the actual file parsed.
    */
-  readonly stack: { el: Element; children: ConcreteNode[] }[];
+  protected readonly stack: { el: Element; children: ConcreteNode[] }[];
+
+  protected drop: number = 0;
 
   constructor(saxParser: sax.SAXParser,
               protected readonly validator: ValidatorI = new NullValidator()) {
@@ -574,6 +577,18 @@ export class BasicParser extends Parser {
   }
 
   onopentag(node: sax.QualifiedTag): void {
+    // We have to validate the node even if we are not going to record it,
+    // because RelaxNG does not allow foreign nodes everywhere.
+    this.validator.onopentag(node);
+
+    // We can skip creating Element objects for foreign nodes and their
+    // children.
+    if (node.uri !== RELAXNG_URI || this.drop !== 0) {
+      this.drop++;
+
+      return;
+    }
+
     const me = new Element(node);
     const top = this.stack[0];
 
@@ -583,20 +598,31 @@ export class BasicParser extends Parser {
       el: me,
       children: [],
     });
-
-    this.validator.onopentag(node);
   }
 
   onclosetag(node: sax.QualifiedTag): void {
+    // We have to validate the node even if we are not going to record it,
+    // because RelaxNG does not allow foreign nodes everywhere.
+    this.validator.onclosetag(node);
+
+    if (this.drop !== 0) {
+      this.drop--;
+
+      return;
+    }
+
     // tslint:disable-next-line:no-non-null-assertion
     const top = this.stack.shift()!;
     top.el.append(top.children);
-    this.validator.onclosetag(node);
   }
 
   ontext(text: string): void {
-    this.stack[0].children.push(new Text(text));
     this.validator.ontext(text);
+    if (this.drop !== 0) {
+      return;
+    }
+
+    this.stack[0].children.push(new Text(text));
   }
 }
 
@@ -624,7 +650,7 @@ export class ConversionParser extends BasicParser {
 
   ontext(text: string): void {
     // We ignore text appearing before or after the top level element.
-    if (this.stack.length <= 1) {
+    if (this.stack.length <= 1 || this.drop !== 0) {
       return;
     }
 
