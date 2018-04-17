@@ -4,6 +4,10 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
+function escapeString(str: string): string {
+  return str.replace(/(["\\])/g, "\\$1");
+}
+
 /**
  * @private
  */
@@ -13,6 +17,8 @@ export type NamespaceMemo = {[key: string]: number};
  * Base class for all name patterns.
  */
 export abstract class Base {
+  private _asString?: string;
+
   /**
    * @param path The XML path of the element that corresponds to this
    * object in the Relax NG schema from which this object was constructed.
@@ -143,8 +149,16 @@ export abstract class Base {
    * @returns The stringified instance.
    */
   toString(): string {
-    return JSON.stringify(this);
+    // Profiling showed that caching the string representation helps
+    // performance.
+    if (this._asString === undefined) {
+      this._asString = this.asString();
+    }
+
+    return this._asString;
   }
+
+  protected abstract asString(): string;
 }
 
 export type ConcreteName = Name | NameChoice | NsName | AnyName;
@@ -193,6 +207,12 @@ export class Name extends Base {
       ns: this.ns,
       name: this.name,
     };
+  }
+
+  asString(): string {
+    // We don't need to escape this.name because names cannot contain
+    // things that need escaping.
+    return `{"ns":"${escapeString(this.ns)}","name":"${this.name}"}`;
   }
 
   simple(): boolean {
@@ -325,6 +345,10 @@ export class NameChoice extends Base {
       a: this.a.toObject(),
       b: this.b.toObject(),
     };
+  }
+
+  asString(): string {
+    return `{"a":${this.a.toString()},"b":${this.b.toString()}}`;
   }
 
   simple(): boolean {
@@ -516,6 +540,13 @@ export class NsName extends Base {
     return ret;
   }
 
+  asString(): string {
+    const except = this.except === undefined ? "" :
+      `,"except":${this.except.toString()}`;
+
+    return `{"ns":"${escapeString(this.ns)}"${except}}`;
+  }
+
   simple(): boolean {
     return false;
   }
@@ -608,6 +639,13 @@ export class AnyName extends Base {
     }
 
     return ret;
+  }
+
+  asString(): string {
+    const except = this.except === undefined ? "" :
+      `,"except":${this.except.toString()}`;
+
+    return `{"pattern":"AnyName"${except}}`;
   }
 
   simple(): boolean {

@@ -784,6 +784,14 @@ describe("Name pattern", () => {
       assert.deepEqual(np.toObject(), { ns: "a", name: "b" });
     });
 
+    it("converts to a string", () => {
+      // eslint-disable-next-line quotes
+      assert.equal(np.toString(), `{"ns":"a","name":"b"}`);
+      assert.equal(new salve.Name("", "1\"\\2", "q").toString(),
+                   // eslint-disable-next-line quotes
+                   `{"ns":"1\\"\\\\2","name":"q"}`);
+    });
+
     it("holds one namespace", () => {
       assert.sameMembers(np.getNamespaces(), ["a"]);
     });
@@ -864,6 +872,12 @@ describe("Name pattern", () => {
       });
     });
 
+    it("converts to a string", () => {
+      assert.equal(simple.toString(),
+                   // eslint-disable-next-line quotes
+                   `{"a":{"ns":"a","name":"b"},"b":{"ns":"c","name":"d"}}`);
+    });
+
     it("holds multiple namespaces", () => {
       assert.sameMembers(simple.getNamespaces(), ["a", "c"]);
       assert.sameMembers(complex.getNamespaces(), ["c", "*"]);
@@ -930,6 +944,19 @@ describe("Name pattern", () => {
                          ns: "a",
                          except: { ns: "a", name: "b" },
                        });
+    });
+
+    it("converts to a string", () => {
+      // eslint-disable-next-line quotes
+      assert.equal(np.toString(), `{"ns":"a"}`);
+      assert.equal(withExcept.toString(),
+                   // eslint-disable-next-line quotes
+                   `{"ns":"a","except":{"ns":"a","name":"b"}}`);
+      // eslint-disable-next-line quotes
+      assert.equal(np.toString(), `{"ns":"a"}`);
+      assert.equal(new salve.NsName("", "1\"\\2").toString(),
+                   // eslint-disable-next-line quotes
+                   `{"ns":"1\\"\\\\2"}`);
     });
 
     it("holds a single namespace", () => {
@@ -1028,6 +1055,14 @@ describe("Name pattern", () => {
                          pattern: "AnyName",
                          except: { ns: "a", name: "b" },
                        });
+    });
+
+    it("converts to a string", () => {
+      // eslint-disable-next-line quotes
+      assert.equal(np.toString(), `{"pattern":"AnyName"}`);
+      assert.equal(withExcept.toString(),
+                   // eslint-disable-next-line quotes
+                   `{"pattern":"AnyName","except":{"ns":"a","name":"b"}}`);
     });
 
     it("holds all namespaces", () => {
