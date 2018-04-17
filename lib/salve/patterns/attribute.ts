@@ -39,18 +39,7 @@ export class Attribute extends Pattern {
 
   _prepare(namespaces: TrivialMap<number>): void {
     this.pat._prepare(namespaces);
-    const nss: TrivialMap<number> = Object.create(null);
-    this.name._recordNamespaces(nss);
-
-    // A lack of namespace on an attribute should not be recorded.
-    delete nss[""];
-
-    // Copy the resulting namespaces.
-    // tslint:disable-next-line:forin
-    for (const key in nss) {
-      namespaces[key] = 1;
-    }
-
+    this.name._recordNamespaces(namespaces, false);
   }
 
   hasAttrs(): boolean {

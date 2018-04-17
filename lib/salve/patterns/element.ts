@@ -55,7 +55,7 @@ export class Element extends BasePattern {
   }
 
   _prepare(namespaces: TrivialMap<number>): void {
-    this.name._recordNamespaces(namespaces);
+    this.name._recordNamespaces(namespaces, true);
     this.pat._prepare(namespaces);
   }
 

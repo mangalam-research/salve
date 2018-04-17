@@ -92,18 +92,21 @@ export abstract class Base {
    */
   getNamespaces(): string[] {
     const namespaces: NamespaceMemo = Object.create(null);
-    this._recordNamespaces(namespaces);
+    this._recordNamespaces(namespaces, true);
 
     return Object.keys(namespaces);
   }
 
   /**
    * This is public due to limitations in how TypeScript works. You should never
-   * call this function.
+   * call this function directly.
    *
-   * @protected
+   * @param namespaces A map in which to record namespaces.
+   *
+   * @param recordEmpty Whether to record an empty namespace in the map.
    */
-  abstract _recordNamespaces(_namespaces: NamespaceMemo): void;
+  abstract _recordNamespaces(namespaces: NamespaceMemo,
+                             recordEmpty: boolean): void;
 
   /**
    * Represent the name pattern as a plain object. The object returned contains
@@ -200,7 +203,11 @@ export class Name extends Base {
     return [this];
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo): void {
+  _recordNamespaces(namespaces: NamespaceMemo, recordEmpty: boolean): void {
+    if (this.ns === "" && !recordEmpty) {
+      return;
+    }
+
     namespaces[this.ns] = 1;
   }
 }
@@ -339,9 +346,9 @@ export class NameChoice extends Base {
     return aArr.concat(bArr);
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo): void {
-    this.a._recordNamespaces(namespaces);
-    this.b._recordNamespaces(namespaces);
+  _recordNamespaces(namespaces: NamespaceMemo, recordEmpty: boolean): void {
+    this.a._recordNamespaces(namespaces, recordEmpty);
+    this.b._recordNamespaces(namespaces, recordEmpty);
   }
 }
 
@@ -517,8 +524,11 @@ export class NsName extends Base {
     return null;
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo): void {
-    namespaces[this.ns] = 1;
+  _recordNamespaces(namespaces: NamespaceMemo, recordEmpty: boolean): void {
+    if (this.ns !== "" || recordEmpty) {
+      namespaces[this.ns] = 1;
+    }
+
     if (this.except !== undefined) {
       namespaces["::except"] = 1;
     }
@@ -608,7 +618,7 @@ export class AnyName extends Base {
     return null;
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo): void {
+  _recordNamespaces(namespaces: NamespaceMemo, _recordEmpty: boolean): void {
     namespaces["*"] = 1;
     if (this.except !== undefined) {
       namespaces["::except"] = 1;
