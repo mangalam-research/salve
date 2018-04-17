@@ -45,7 +45,7 @@ function wrapElements(state: State, root: Element): void {
       // not harm the uniqueness of the name.
       const name = `__${elName}-elt-${elementCount}`;
 
-      const ref = Element.makeElement("ref", true);
+      const ref = Element.makeElement("ref");
       ref.setAttribute("name", name);
       el.replaceWith(ref);
       seenRefs.add(name);

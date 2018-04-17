@@ -15,13 +15,13 @@ const skip = new Set(["name", "anyName", "nsName", "param", "empty",
 function attributeHandler(el: Element): void {
   // An attribute (or list, group, interleave, oneOrMore) with at least one
   // notAllowed is replaced with notAllowed.
-  el.replaceWith(Element.makeElement("notAllowed", true));
+  el.replaceWith(Element.makeElement("notAllowed"));
 }
 const handlers = {
   choice(el: Element, firstNA: boolean, secondNA: boolean): void {
     if (firstNA && secondNA) {
       // A choice with two notAllowed is replaced with notAllowed.
-      el.replaceWith(Element.makeElement("notAllowed", true));
+      el.replaceWith(Element.makeElement("notAllowed"));
     }
     else {
       // A choice with exactly one notAllowed is replaced with the other child

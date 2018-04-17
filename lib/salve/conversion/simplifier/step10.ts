@@ -31,18 +31,18 @@ function walk(state: State, el: Element): Element | null {
       switch (local) {
         case "mixed":
           el.name = el.local = "interleave";
-          toAppend.push(Element.makeElement("text", true));
+          toAppend.push(Element.makeElement("text"));
           break;
         case "optional":
           el.name = el.local = "choice";
-          toAppend.push(Element.makeElement("empty", true));
+          toAppend.push(Element.makeElement("empty"));
           break;
         case "zeroOrMore":
           el.name = el.local = "choice";
           const oneOrMore = Element.makeElement("oneOrMore");
           oneOrMore.append(toAppend.length === 0 ? el.children.slice() :
                            toAppend);
-          toAppend = [oneOrMore, Element.makeElement("empty", true)];
+          toAppend = [oneOrMore, Element.makeElement("empty")];
           break;
         default:
       }
@@ -65,7 +65,7 @@ function walk(state: State, el: Element): Element | null {
       break;
     case "attribute":
       if (el.children.length === 1) {
-        el.append(Element.makeElement("text", true));
+        el.append(Element.makeElement("text"));
       }
       break;
     case "choice":
@@ -73,11 +73,11 @@ function walk(state: State, el: Element): Element | null {
     case "interleave":
       if (el.children.length === 1) {
         const replaceWith = el.children[0] as Element;
-        replaceWith.remove();
         if (el.parent !== undefined) {
           el.replaceWith(replaceWith);
         }
         else {
+          replaceWith.remove();
           // By this stage in the process, this is the only attribute that need
           // be carried over.
           const xmlns = el.getAttribute("xmlns");

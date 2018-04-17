@@ -63,8 +63,7 @@ function walk(el: Element, parentNs: string | null): void {
           }
           el.setAttribute("ns", ns);
           resolvedNs = true;
-          el.removeChildAt(0);
-          el.append(new Text(parts[1]));
+          el.replaceChildAt(0, new Text(parts[1]));
           break;
         }
         default:

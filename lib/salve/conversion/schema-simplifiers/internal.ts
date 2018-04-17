@@ -493,7 +493,9 @@ export class InternalSimplifier extends BaseSimplifier {
       validator = new Validator(getGrammar());
     }
 
-    const parser = new BasicParser(sax.parser(true, { xmlns: true }),
+    const parser = new BasicParser(sax.parser(true,
+                                              { xmlns: true,
+                                                strictEntities: true } as any),
                                    validator);
     parser.saxParser.write(schema);
 

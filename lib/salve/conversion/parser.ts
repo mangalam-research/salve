@@ -36,11 +36,6 @@ export class Parser {
   }
 }
 
-export interface MakeElementOptions {
-  name: string;
-  isSelfClosing?: boolean;
-}
-
 export type ConcreteNode = Element | Text;
 
 export abstract class Node {
@@ -124,20 +119,9 @@ export abstract class Node {
 
     return index;
   }
-
-  contains(other: Node): boolean {
-    let current: Node | undefined = other;
-    while (current !== undefined) {
-      if (current === this) {
-        return true;
-      }
-
-      current = current.parent;
-    }
-
-    return false;
-  }
 }
+
+const emptyNS = Object.create(null);
 
 /**
  * An Element produced by [[Parser]].
@@ -161,8 +145,6 @@ export class Element extends Node {
 
   ns: Record<string, string>;
 
-  isSelfClosing: boolean;
-
   attributes: Record<string, sax.QualifiedAttribute>;
 
   /**
@@ -174,7 +156,6 @@ export class Element extends Node {
     this.prefix = node.prefix;
     this.local = node.local;
     this.uri = node.uri;
-    this.isSelfClosing = node.isSelfClosing;
 
     // We create a new object even when using a sax node. Sax uses a prototype
     // trick to flatten the hierarchy of namespace declarations but that screws
@@ -184,10 +165,14 @@ export class Element extends Node {
     this.ns = Object.assign(Object.create(null), node.ns);
 
     if (node instanceof Element) {
-      const thisAttrs = this.attributes = Object.create(null);
-      const nodeAttrs = node.attributes;
-      for (const key of Object.keys(nodeAttrs)) {
-        thisAttrs[key] = Object.assign(Object.create(null), nodeAttrs[key]);
+      // The strategy of pre-filling the new object and then updating the keys
+      // appears to be faster than inserting new keys one by one.
+      const thisAttrs = this.attributes =
+        Object.assign(Object.create(null), node.attributes);
+      for (const key of Object.keys(thisAttrs)) {
+        // We do not use Object.create(null) here because there's no advantage
+        // to it.
+        thisAttrs[key] = {...thisAttrs[key]};
       }
     }
     else {
@@ -195,23 +180,20 @@ export class Element extends Node {
     }
   }
 
-  static makeElement(options: MakeElementOptions): Element;
-  static makeElement(name: string, isSelfClosing?: boolean): Element;
-  static makeElement(nameOrOptions: string | MakeElementOptions,
-                     isSelfClosing: boolean = false): Element {
-    const options = (typeof nameOrOptions === "string") ? {
-      name: nameOrOptions,
-      isSelfClosing: isSelfClosing,
-    } : nameOrOptions;
-
+  static makeElement(name: string): Element {
     return new Element({
-      local: options.name,
-      name: options.name,
+      local: name,
+      name: name,
       uri: "",
       prefix: "",
-      ns: Object.create(null),
+      // We always pass the same object as ns. The constructor will clone it
+      // anyway. So we save an unnecessary object creation.
+      ns: emptyNS,
       attributes: Object.create(null),
-      isSelfClosing: options.isSelfClosing === true,
+      // We do not care about this flag. Sax sets it when reading a file, but it
+      // is useless for us. Any element which has no children will be serialized
+      // as a self-closing element.
+      isSelfClosing: false,
     });
   }
 
@@ -221,14 +203,19 @@ export class Element extends Node {
       return;
     }
 
-    let scan = value;
-    while (scan !== undefined) {
-      if (scan === this) {
-        throw new Error("creating reference loop!");
-      }
+    //
+    // The cost of looking for cycles is noticeable. So we should use this
+    // only when debugging new code.
+    //
 
-      scan = scan.parent;
-    }
+    // let scan = value;
+    // while (scan !== undefined) {
+    //   if (scan === this) {
+    //     throw new Error("creating reference loop!");
+    //   }
+
+    //   scan = scan.parent;
+    // }
 
     this._path = undefined; // This becomes void.
     super.setParent(value);
@@ -295,8 +282,8 @@ export class Element extends Node {
 
   removeChildAt(i: number): void {
     const children = this.children.splice(i, 1);
-    for (const child of children) {
-      child.parent = undefined;
+    if (children[0] !== undefined) {
+      children[0].parent = undefined;
     }
   }
 
@@ -312,7 +299,7 @@ export class Element extends Node {
     }
 
     if (replacement.parent !== undefined) {
-      replacement.remove();
+      replacement.parent.removeChild(replacement);
     }
 
     this.children[i] = replacement;
@@ -322,26 +309,55 @@ export class Element extends Node {
   }
 
   append(child: ConcreteNode | ConcreteNode[]): void {
-    this.insertAt(this.children.length,
-                  child instanceof Array ? child : [child]);
-  }
-
-  prepend(child: ConcreteNode): void {
-    this.insertAt(0, [child]);
-  }
-
-  insertAt(index: number, toInsert: ConcreteNode[]): void {
-    this.children.splice(index, 0, ...toInsert);
-    for (const el of toInsert) {
-      if (el.parent !== undefined) {
-        el.remove();
+    // It is faster to use custom code than to rely on insertAt: splice
+    // operations are costly.
+    if (child instanceof Array) {
+      for (const el of child) {
+        if (el.parent !== undefined) {
+          el.parent.removeChild(el);
+        }
+        el.parent = this;
       }
-      el.parent = this;
+      this.children.push(...child);
+    }
+    else {
+      if (child.parent !== undefined) {
+        child.parent.removeChild(child);
+      }
+      child.parent = this;
+      this.children.push(child);
     }
   }
 
-  insertBefore(child: Element, toInsert: ConcreteNode[]): void {
-    this.insertAt(this.indexOfChild(child), toInsert);
+  prepend(child: ConcreteNode | ConcreteNode[]): void {
+    if (child instanceof Array) {
+      for (const el of child) {
+        if (el.parent !== undefined) {
+          el.parent.removeChild(el);
+        }
+        el.parent = this;
+      }
+      this.children.unshift(...child);
+    }
+    else {
+      // It is faster to do this than to rely on insertAt: splice operations
+      // are costly.
+      if (child.parent !== undefined) {
+        child.parent.removeChild(child);
+      }
+      child.parent = this;
+      this.children.unshift(child);
+    }
+  }
+
+  insertAt(index: number, toInsert: ConcreteNode[]): void {
+    for (const el of toInsert) {
+      if (el.parent !== undefined) {
+        el.parent.removeChild(el);
+      }
+      el.parent = this;
+    }
+    this.children.splice(index, 0, ...toInsert);
   }
 
   /**
@@ -536,61 +552,50 @@ export class BasicParser extends Parser {
    * the XML file but a holder for the tree of elements. It has a single child
    * which is the root of the actual file parsed.
    */
-  readonly stack: Element[] = [];
-
-  /**
-   * The root recorded during parsing. This is ``undefined`` before parsing. We
-   * don't allow direct access because getting the root is only meaningful after
-   * parsing.
-   */
-  protected _recordedRoot: Element | undefined;
+  readonly stack: { el: Element; children: ConcreteNode[] }[];
 
   constructor(saxParser: sax.SAXParser,
               protected readonly validator: ValidatorI = new NullValidator()) {
     super(saxParser);
+    this.stack = [{
+      // We cheat. The el field of the top level stack item won't ever be
+      // accessed.
+      el: undefined as any,
+      children: [],
+    }];
   }
 
   /**
    * The root of the parsed XML.
    */
   get root(): Element {
-    if (this._recordedRoot === undefined) {
-      throw new Error("cannot get root");
-    }
-
-    return this._recordedRoot;
+    return this.stack[0].children
+      .filter((x) => x instanceof Element)[0] as Element;
   }
 
   onopentag(node: sax.QualifiedTag): void {
-    const parent: Element | undefined = this.stack[0];
-
     const me = new Element(node);
-    if (parent !== undefined) {
-      parent.append(me);
-    }
-    else {
-      this._recordedRoot = me;
-    }
+    const top = this.stack[0];
 
-    this.stack.unshift(me);
+    top.children.push(me);
+
+    this.stack.unshift({
+      el: me,
+      children: [],
+    });
 
     this.validator.onopentag(node);
   }
 
   onclosetag(node: sax.QualifiedTag): void {
-    this.stack.shift();
-
+    // tslint:disable-next-line:no-non-null-assertion
+    const top = this.stack.shift()!;
+    top.el.append(top.children);
     this.validator.onclosetag(node);
   }
 
   ontext(text: string): void {
-    const top: Element | undefined = this.stack[0];
-    if (top === undefined) {
-      return;
-    }
-
-    top.append(new Text(text));
-
+    this.stack[0].children.push(new Text(text));
     this.validator.ontext(text);
   }
 }
@@ -618,12 +623,13 @@ export class ConversionParser extends BasicParser {
   }
 
   ontext(text: string): void {
-    const top: Element | undefined = this.stack[0];
-    if (top === undefined) {
+    // We ignore text appearing before or after the top level element.
+    if (this.stack.length <= 1) {
       return;
     }
 
-    const local = top.local;
+    const top = this.stack[0];
+    const local = top.el.local;
     // The parser does not allow non-RNG nodes, so we don't need to check the
     // namespace.
     const keepWhitespaceNodes = local === "param" || local === "value";
