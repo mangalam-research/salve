@@ -364,7 +364,7 @@ export class GrammarWalker extends Walker<Grammar> {
           throw new Error("firing empty text events makes no sense");
         }
 
-        if (text.trim() === "") {
+        if (!/\S/.test(text)) {
           // We don't check the old value of suspendedWs because salve does not
           // allow two text events in a row. So we should never have to
           // concatenate values.

@@ -308,7 +308,7 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
 
     this.possibleCached = undefined;
     const retA = (ev.params[0] === "text" &&
-                  (ev.params[1] as string).trim() === "") ? false : undefined;
+                  !/\S/.test(ev.params[1] as string)) ? false : undefined;
     const retB = this.walkerB.fireEvent(ev);
 
     if (retA !== undefined) {

@@ -65,8 +65,8 @@ export class EmptyWalker extends InternalWalker<Empty> {
   }
 
   fireEvent(ev: Event): false | undefined {
-    return (((ev.params[0] === "text") &&
-             ((ev.params[1] as string).trim() === ""))) ? false : undefined;
+    return ((ev.params[0] === "text") && !/\S/.test(ev.params[1] as string)) ?
+      false : undefined;
   }
 
   _suppressAttributes(): void {
