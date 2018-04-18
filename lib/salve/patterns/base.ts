@@ -464,31 +464,18 @@ export abstract class TwoSubpatterns extends Pattern {
  * This class models events occurring during parsing. Upon encountering the
  * start of a start tag, an "enterStartTag" event is generated, etc. Event
  * objects are held to be immutable. No precautions have been made to enforce
- * this. Users of these objects simply must not modify them. Moreover, there is
- * one and only one of each event created.
+ * this. Users of these objects simply must not modify them.
  *
  * An event is made of a list of event parameters, with the first one being the
  * type of the event and the rest of the list varying depending on this type.
- *
  */
 export class Event {
-  /**
-   * The cache of Event objects. So that we create one and only one Event object
-   * per run.
-   */
-  // tslint:disable-next-line:variable-name
-  private static __cache: {[key: string]: Event} = Object.create(null);
-
   readonly params: (string|ConcreteName)[];
 
   /**
    * Is this Event an attribute event?
    */
   readonly isAttributeEvent: boolean;
-  // This field is never read but we still want it present on the object so that
-  // we can use it for diagnosis.
-  // @ts-ignore
-  private readonly key: string;
 
   /**
    * @param args... The event parameters may be passed directly in the call
@@ -500,23 +487,10 @@ export class Event {
     const params: (string|ConcreteName)[] =
       (args.length === 1 && args[0] instanceof Array) ? args[0] : args;
 
-    const key: string = params.join();
-
-    // Ensure we have only one of each event created.
-    const cached: Event | undefined = Event.__cache[key];
-    if (cached !== undefined) {
-      return cached;
-    }
-
     this.params = params;
-    this.key = key;
     this.isAttributeEvent = (this.params[0] === "attributeName" ||
                              this.params[0] === "attributeValue" ||
                              this.params[0] === "attributeNameAndValue");
-
-    Event.__cache[key] = this;
-
-    return this;
   }
 
   /**

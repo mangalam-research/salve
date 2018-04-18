@@ -7,6 +7,13 @@ here unless they include a fix to a specific issue reported on github.
   - Breaking change: ``Event`` object no longer participate in the ad-hoc
     hashability protocol that this library uses.
 
+  - Breaking change: salve no longer guarantees the uniqueness of
+    events. Removing this feature made a significant difference in overall
+    performance. This entails that the methods that return sets of possible
+    events may return the "same" event more than once. For instance, if "text"
+    is allowed in multiple contexts, then the an event for "text" may show up
+    more than once in the set returned.
+
   - ``EventSet`` are now implemented using ``Set`` for backing store instead of
     an array.
 
