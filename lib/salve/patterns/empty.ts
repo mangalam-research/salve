@@ -14,6 +14,11 @@ export class Empty extends Pattern {
   hasEmptyPattern(): boolean {
     return true;
   }
+
+  newWalker(): EmptyWalker {
+    // tslint:disable-next-line:no-use-before-declare
+    return singleton;
+  }
 }
 
 /**
@@ -30,14 +35,19 @@ export class EmptyWalker extends InternalWalker<Empty> {
   protected constructor(other: EmptyWalker, memo: HashMap);
   protected constructor(el: Empty);
   protected constructor(elOrWalker: Empty | EmptyWalker, memo?: HashMap) {
-    if ((elOrWalker as Empty).newWalker !== undefined) {
-      super(elOrWalker as Empty);
-    }
-    else {
-      super(elOrWalker as EmptyWalker, memo as HashMap);
-    }
+    super(elOrWalker as EmptyWalker, memo as HashMap);
     this.canEnd = true;
     this.canEndAttribute = true;
+  }
+
+  static makeNew(el: Empty): EmptyWalker {
+    return new EmptyWalker(el);
+  }
+
+  // Since the Empty walker is a singleton, the cloning operation just
+  // returns the original walker.
+  clone(): this {
+    return this;
   }
 
   possible(): EventSet {
@@ -55,12 +65,8 @@ export class EmptyWalker extends InternalWalker<Empty> {
   }
 
   fireEvent(ev: Event): false | undefined {
-    if (((ev.params[0] === "text") &&
-         ((ev.params[1] as string).trim() === ""))) {
-      return false;
-    }
-
-    return undefined;
+    return (((ev.params[0] === "text") &&
+             ((ev.params[1] as string).trim() === ""))) ? false : undefined;
   }
 
   _suppressAttributes(): void {
@@ -69,5 +75,7 @@ export class EmptyWalker extends InternalWalker<Empty> {
 }
 
 addWalker(Empty, EmptyWalker);
+
+const singleton = EmptyWalker.makeNew(new Empty("FAKE ELEMENT"));
 
 //  LocalWords:  RNG's MPL possibleCached
