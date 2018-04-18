@@ -8,7 +8,7 @@ import { EName } from "../ename";
 import { AttributeNameError, ElementNameError,
          ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
-import * as namePatterns from "../name_patterns";
+import { Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
@@ -456,8 +456,8 @@ export class GrammarWalker extends Walker<Grammar> {
       switch (evName) {
         case "enterStartTag":
         case "startTagAndAttributes":
-          const name = new namePatterns.Name("", ev.params[1] as string,
-                                             ev.params[2] as string);
+          const name = new Name("", ev.params[1] as string,
+                                ev.params[2] as string);
           ret = [new ElementNameError(
             evName === "enterStartTag" ?
               "tag not allowed here" :
@@ -485,21 +485,18 @@ export class GrammarWalker extends Walker<Grammar> {
         case "endTag":
           ret = [new ElementNameError(
             "unexpected end tag",
-            new namePatterns.Name("", ev.params[1] as string,
-                                  ev.params[2] as string))];
+            new Name("", ev.params[1] as string, ev.params[2] as string))];
           break;
         case "attributeName":
           ret = [new AttributeNameError(
             "attribute not allowed here",
-            new namePatterns.Name("", ev.params[1] as string,
-                                  ev.params[2] as string))];
+            new Name("", ev.params[1] as string, ev.params[2] as string))];
           this._swallowAttributeValue = true;
           break;
         case "attributeNameAndValue":
           ret = [new AttributeNameError(
             "attribute not allowed here",
-            new namePatterns.Name("", ev.params[1] as string,
-                                  ev.params[2] as string))];
+            new Name("", ev.params[1] as string, ev.params[2] as string))];
           break;
         case "attributeValue":
           ret = [new ValidationError("unexpected attributeValue event; it \
@@ -529,13 +526,19 @@ ${evName.toString()}`);
     const errors: ValidationError[] = [];
     if (ret instanceof Array) {
       const newWalkers: InternalWalker<BasePattern>[] = [];
+      let boundName: Name | undefined;
       for (const item of ret) {
         if (item instanceof ValidationError) {
           errors.push(item);
         }
         else {
+          if (boundName === undefined) {
+            boundName = new Name("", ev.params[1] as string,
+                                 ev.params[2] as string);
+          }
+
           const walker = item.element.newWalker(this.nameResolver,
-                                                item.boundName);
+                                                boundName);
           // If we get anything else than false here, the internal logic is
           // wrong.
           if (walker.fireEvent(ev) !== false) {

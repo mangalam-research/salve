@@ -1,6 +1,6 @@
 import { ElementNameError } from "../errors";
 import { HashMap } from "../hashstructs";
-import { ConcreteName, Name } from "../name_patterns";
+import { ConcreteName } from "../name_patterns";
 import { TrivialMap } from "../types";
 import { addWalker, EndResult, Event, EventSet, InternalFireEventResult,
          InternalWalker, Pattern } from "./base";
@@ -56,7 +56,6 @@ resolved");
 export class RefWalker extends InternalWalker<Ref> {
   private startName: ConcreteName;
   private startTagEvent: Event;
-  private _boundName: Name | undefined;
   canEndAttribute: boolean;
   canEnd: boolean;
   readonly element: Element;
@@ -80,42 +79,26 @@ export class RefWalker extends InternalWalker<Ref> {
       super(walker, memo as HashMap);
       this.startName = walker.startName;
       this.startTagEvent = walker.startTagEvent;
-      this._boundName = walker._boundName;
       this.element = walker.element;
       this.canEndAttribute = walker.canEndAttribute;
       this.canEnd = walker.canEnd;
     }
   }
 
-  get boundName(): Name {
-    if (this._boundName === undefined) {
-      throw new Error("boundName is not defined yet");
-    }
-
-    return this._boundName;
-  }
-
   _possible(): EventSet {
-    if (this._boundName === undefined) {
-      return new EventSet(this.startTagEvent);
-    }
-
-    return new EventSet();
+    return new EventSet(this.canEnd ? undefined : this.startTagEvent);
   }
 
   fireEvent(ev: Event): InternalFireEventResult {
     const params = ev.params;
     const eventName = params[0];
-    if (this._boundName === undefined) {
-      if ((eventName === "enterStartTag" ||
-           eventName === "startTagAndAttributes") &&
-          this.startName.match(params[1] as string, params[2] as string)) {
-        this._boundName = new Name("", params[1] as string,
-                                   params[2] as string);
-        this.canEnd = true;
+    if (!this.canEnd &&
+        (eventName === "enterStartTag" ||
+         eventName === "startTagAndAttributes") &&
+        this.startName.match(params[1] as string, params[2] as string)) {
+      this.canEnd = true;
 
-        return [this];
-      }
+      return [this];
     }
 
     return undefined;
