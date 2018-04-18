@@ -620,9 +620,13 @@ abstract class Base implements Datatype {
   }
 
   // tslint:disable-next-line: max-func-body-length
-  parseParams(location: string, params: RawParameter[] = []): any {
+  parseParams(location: string, params?: RawParameter[]): any {
+    const names: TrivialMap<string[]> = Object.create(null);
+    if (params === undefined) {
+      return names;
+    }
+
     const errors: ParamError[] = [];
-    const names: TrivialMap<any[]> = Object.create(null);
     for (const x of params) {
       const {name, value}: { name: string; value: string } = x;
 
@@ -661,9 +665,9 @@ abstract class Base implements Datatype {
     }
 
     // We just modify the ``names`` object to produce a return value.
-    const ret: TrivialMap<any[]> = names;
+    const ret: TrivialMap<string[]> = names;
     for (const key in ret) { // tslint:disable-line:forin
-      const value: any[] = ret[key];
+      const value: string[] = ret[key];
       const prop: Parameter = this.paramNameToObj[key];
       if (value.length > 1) {
         ret[key] = prop.combine(value);

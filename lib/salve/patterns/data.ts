@@ -15,7 +15,7 @@ import { addWalker, EndResult, Event, EventSet, InternalWalker,
  */
 export class Data extends Pattern {
   readonly datatype: Datatype;
-  readonly rngParams: RawParameter[];
+  readonly rngParams?: RawParameter[];
   private _params: any;
 
   /**
@@ -40,7 +40,7 @@ export class Data extends Pattern {
     if (this.datatype === undefined) {
       throw new Error(`unknown type: ${type}`);
     }
-    this.rngParams = params !== undefined ? params : [];
+    this.rngParams = params;
   }
 
   get params(): any {
