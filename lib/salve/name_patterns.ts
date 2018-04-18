@@ -9,11 +9,6 @@ function escapeString(str: string): string {
 }
 
 /**
- * @private
- */
-export type NamespaceMemo = {[key: string]: number};
-
-/**
  * Base class for all name patterns.
  */
 export abstract class Base {
@@ -97,10 +92,10 @@ export abstract class Base {
    * @returns The list of namespaces.
    */
   getNamespaces(): string[] {
-    const namespaces: NamespaceMemo = Object.create(null);
+    const namespaces: Set<string> = new Set();
     this._recordNamespaces(namespaces, true);
 
-    return Object.keys(namespaces);
+    return Array.from(namespaces);
   }
 
   /**
@@ -111,7 +106,7 @@ export abstract class Base {
    *
    * @param recordEmpty Whether to record an empty namespace in the map.
    */
-  abstract _recordNamespaces(namespaces: NamespaceMemo,
+  abstract _recordNamespaces(namespaces: Set<string>,
                              recordEmpty: boolean): void;
 
   /**
@@ -223,12 +218,12 @@ export class Name extends Base {
     return [this];
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo, recordEmpty: boolean): void {
+  _recordNamespaces(namespaces: Set<string>, recordEmpty: boolean): void {
     if (this.ns === "" && !recordEmpty) {
       return;
     }
 
-    namespaces[this.ns] = 1;
+    namespaces.add(this.ns);
   }
 }
 
@@ -370,7 +365,7 @@ export class NameChoice extends Base {
     return aArr.concat(bArr);
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo, recordEmpty: boolean): void {
+  _recordNamespaces(namespaces: Set<string>, recordEmpty: boolean): void {
     this.a._recordNamespaces(namespaces, recordEmpty);
     this.b._recordNamespaces(namespaces, recordEmpty);
   }
@@ -555,13 +550,13 @@ export class NsName extends Base {
     return null;
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo, recordEmpty: boolean): void {
+  _recordNamespaces(namespaces: Set<string>, recordEmpty: boolean): void {
     if (this.ns !== "" || recordEmpty) {
-      namespaces[this.ns] = 1;
+      namespaces.add(this.ns);
     }
 
     if (this.except !== undefined) {
-      namespaces["::except"] = 1;
+      namespaces.add("::except");
     }
   }
 }
@@ -656,10 +651,10 @@ export class AnyName extends Base {
     return null;
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo, _recordEmpty: boolean): void {
-    namespaces["*"] = 1;
+  _recordNamespaces(namespaces: Set<string>, _recordEmpty: boolean): void {
+    namespaces.add("*");
     if (this.except !== undefined) {
-      namespaces["::except"] = 1;
+      namespaces.add("::except");
     }
   }
 }

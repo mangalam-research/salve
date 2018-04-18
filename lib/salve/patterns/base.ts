@@ -10,7 +10,6 @@ import { HashMap } from "../hashstructs";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { NaiveSet } from "../set";
-import { TrivialMap } from "../types";
 import * as util from "../util";
 import { Define } from "./define";
 import { Element } from "./element";
@@ -304,19 +303,6 @@ export class BasePattern {
   }
 
   /**
-   * Resolve references to definitions.
-   *
-   * @param definitions The definitions that exist in this grammar.
-   *
-   * @returns The references that cannot be resolved, or ``undefined`` if no
-   * references cannot be resolved. The caller is free to modify the value
-   * returned as needed.
-   */
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    return undefined;
-  }
-
-  /**
    * This method must be called after resolution has been performed.
    * ``_prepare`` recursively calls children but does not traverse ref-define
    * boundaries to avoid infinite regress...
@@ -329,12 +315,21 @@ export class BasePattern {
    *
    * - it gathers all the namespaces seen in the schema.
    *
+   * - it resolves the references.
+   *
+   * @param definitions The definitions present in the schema.
+   *
    * @param namespaces An object whose keys are the namespaces seen in
    * the schema. This method populates the object.
    *
+   * @returns The references that cannot be resolved, or ``undefined`` if no
+   * references cannot be resolved. The caller is free to modify the value
+   * returned as needed.
+   *
    */
-  _prepare(namespaces: TrivialMap<number>): void {
-    // nothing here
+  _prepare(definitions: Map<string, Define>,
+           namespaces: Set<string>): Ref[] | undefined {
+    return undefined;
   }
 
   /**
@@ -399,16 +394,15 @@ export abstract class OneSubpattern<T extends (Pattern | Element) = Pattern>
     super(xmlPath);
   }
 
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    return this.pat._resolve(definitions);
-  }
-
   protected abstract _computeHasEmptyPattern(): boolean;
 
-  _prepare(namespaces: TrivialMap<number>): void {
-    this.pat._prepare(namespaces);
+  _prepare(definitions: Map<string, Define>,
+           namespaces: Set<string>): Ref[] | undefined {
+    const ret = this.pat._prepare(definitions, namespaces);
     this._cachedHasAttrs = this.pat.hasAttrs();
     this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
+
+    return ret;
   }
 
   hasAttrs(): boolean {
@@ -434,27 +428,20 @@ export abstract class TwoSubpatterns extends Pattern {
     super(xmlPath);
   }
 
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    const a: Ref[] | undefined = this.patA._resolve(definitions);
-    const b: Ref[] | undefined = this.patB._resolve(definitions);
-    if (a !== undefined && b !== undefined) {
-      return a.concat(b);
-    }
-
-    if (a !== undefined) {
-      return a;
-    }
-
-    return b;
-  }
-
   protected abstract _computeHasEmptyPattern(): boolean;
 
-  _prepare(namespaces: TrivialMap<number>): void {
-    this.patA._prepare(namespaces);
-    this.patB._prepare(namespaces);
+  _prepare(definitions: Map<string, Define>,
+           namespaces: Set<string>): Ref[] | undefined {
+    const aRefs = this.patA._prepare(definitions, namespaces);
+    const bRefs = this.patB._prepare(definitions, namespaces);
     this._cachedHasAttrs = this.patA.hasAttrs() || this.patB.hasAttrs();
     this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
+
+    if (aRefs !== undefined) {
+      return bRefs === undefined ? aRefs : aRefs.concat(bRefs);
+    }
+
+    return bRefs;
   }
 
   hasAttrs(): boolean {

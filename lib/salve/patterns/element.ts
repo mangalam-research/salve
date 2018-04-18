@@ -8,7 +8,6 @@ import { ElementNameError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
-import { TrivialMap } from "../types";
 import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
          InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
@@ -54,13 +53,11 @@ export class Element extends BasePattern {
     return false;
   }
 
-  _prepare(namespaces: TrivialMap<number>): void {
+  _prepare(definitions: Map<string, Define>,
+           namespaces: Set<string>): Ref[] | undefined {
     this.name._recordNamespaces(namespaces, true);
-    this.pat._prepare(namespaces);
-  }
 
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    return this.pat._resolve(definitions);
+    return this.pat._prepare(definitions, namespaces);
   }
 }
 

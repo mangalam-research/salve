@@ -1,7 +1,6 @@
 import { ElementNameError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { ConcreteName } from "../name_patterns";
-import { TrivialMap } from "../types";
 import { addWalker, EndResult, Event, EventSet, InternalFireEventResult,
          InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
@@ -23,18 +22,10 @@ export class Ref extends Pattern {
     super(xmlPath);
   }
 
-  _prepare(): void {
-    // We do not cross ref/define boundaries to avoid infinite loops.
-    return;
-  }
+  _prepare(definitions: Map<string, Define>): Ref[] | undefined {
+    this.resolvesTo = definitions.get(this.name);
 
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    this.resolvesTo = definitions[this.name];
-    if (this.resolvesTo === undefined) {
-      return [this];
-    }
-
-    return undefined;
+    return (this.resolvesTo === undefined) ? [this] : undefined;
   }
 
   hasEmptyPattern(): boolean {

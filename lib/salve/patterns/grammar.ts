@@ -57,9 +57,9 @@ export class RefError extends Error {
  * these objects.
  */
 export class Grammar extends BasePattern {
-  private definitions: TrivialMap<Define> = Object.create(null);
+  private definitions: Map<string, Define> = new Map();
   private _elementDefinitions: TrivialMap<Element[]>;
-  private _namespaces: TrivialMap<number> = Object.create(null);
+  private _namespaces: Set<string> = new Set();
   /**
    * @param xmlPath This is a string which uniquely identifies the
    * element from the simplified RNG tree. Used in debugging.
@@ -80,13 +80,11 @@ export class Grammar extends BasePattern {
         this.add(def);
       }
     }
-    const missing = this._resolve(this.definitions);
 
+    const missing = this._prepare(this.definitions, this._namespaces);
     if (missing !== undefined) {
       throw new RefError(missing);
     }
-
-    this._prepare(this._namespaces);
   }
 
   /**
@@ -95,7 +93,7 @@ export class Grammar extends BasePattern {
    * @param d The definition to add.
    */
   add(d: Define): void {
-    this.definitions[d.name] = d;
+    this.definitions.set(d.name, d);
   }
 
   get elementDefinitions(): TrivialMap<Element[]> {
@@ -107,8 +105,8 @@ export class Grammar extends BasePattern {
     const newDef: TrivialMap<Element[]> =
       this._elementDefinitions = Object.create(null);
 
-    for (const name of Object.keys(this.definitions)) {
-      const el = this.definitions[name].pat;
+    for (const def of this.definitions.values()) {
+      const el = def.pat;
       const key = el.name.toString();
       if (newDef[key] === undefined) {
         newDef[key] = [el];
@@ -146,50 +144,25 @@ export class Grammar extends BasePattern {
    * schema.
    */
   getNamespaces(): string[] {
-    return Object.keys(this._namespaces);
+    return Array.from(this._namespaces);
   }
 
-  /**
-   * This method must be called after resolution has been performed.
-   *
-   * This function now performs two tasks: a) it prepares the attributes
-   * (Definition and Element objects maintain a pattern which contains only
-   * attribute patterns, and nothing else), b) it gathers all the namespaces
-   * seen in the schema.
-   *
-   * @param namespaces An object whose keys are the namespaces seen in the
-   * schema. This method populates the object.
-   */
-  _prepare(namespaces: TrivialMap<number>): void {
-    this.start._prepare(namespaces);
-    // tslint:disable-next-line:forin
-    for (const d in this.definitions) {
-      this.definitions[d]._prepare(namespaces);
+  _prepare(definitions: Map<string, Define>,
+           namespaces: Set<string>): Ref[] | undefined {
+    let allRefs: Ref[] = [];
+    const startRefs = this.start._prepare(definitions, namespaces);
+    if (startRefs !== undefined) {
+      allRefs = startRefs;
     }
-  }
 
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    let all: Ref[] = [];
-    let ret: Ref[] | undefined;
-
-    // tslint:disable-next-line forin
-    for (const d in definitions) {
-      ret = definitions[d]._resolve(definitions);
-      if (ret !== undefined) {
-        all = all.concat(ret);
+    for (const d of this.definitions.values()) {
+      const defRefs = d._prepare(definitions, namespaces);
+      if (defRefs !== undefined) {
+        allRefs = allRefs.concat(defRefs);
       }
     }
 
-    ret = this.start._resolve(definitions);
-    if (ret !== undefined) {
-      all = all.concat(ret);
-    }
-
-    if (all.length !== 0) {
-      return all;
-    }
-
-    return undefined;
+    return (allRefs.length !== 0) ? allRefs : undefined;
   }
 
   /**

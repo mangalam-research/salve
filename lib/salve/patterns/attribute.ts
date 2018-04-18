@@ -8,7 +8,6 @@ import { AttributeNameError, AttributeValueError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
-import { TrivialMap } from "../types";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
          InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
@@ -33,13 +32,12 @@ export class Attribute extends Pattern {
     super(xmlPath);
   }
 
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    return this.pat._resolve(definitions);
-  }
-
-  _prepare(namespaces: TrivialMap<number>): void {
-    this.pat._prepare(namespaces);
+  _prepare(definitions: Map<string, Define>,
+           namespaces: Set<string>): Ref[] | undefined {
+    const ret = this.pat._prepare(definitions, namespaces);
     this.name._recordNamespaces(namespaces, false);
+
+    return ret;
   }
 
   hasAttrs(): boolean {
