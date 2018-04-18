@@ -155,32 +155,29 @@ class ElementWalker extends InternalWalker<Element> {
     return this._possible();
   }
 
-  fireEvent(ev: Event): InternalFireEventResult {
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
     if (this.canEnd) {
       return undefined;
     }
 
     const walker = this.walker;
-    const params = ev.params;
-    const eventName = params[0];
     if (!this.endedStartTag) {
       let leaveNow = false;
-      switch (eventName) {
+      switch (name) {
         case "enterStartTag":
         case "startTagAndAttributes":
-          if (!this.boundName.match(params[1] as string, params[2] as string)) {
+          if (!this.boundName.match(params[0], params[1])) {
             throw new Error("event starting the element had an incorrect name");
           }
 
-          if (eventName === "enterStartTag") {
+          if (name === "enterStartTag") {
             return false;
           }
 
           // We need to handle all attributes and leave the start tag.
-          for (let ix = 3; ix < params.length; ix += 3) {
-            const attrRet = walker.fireEvent(new Event(
-              "attributeNameAndValue", params[ix], params[ix + 1],
-              params[ix + 2]));
+          for (let ix = 2; ix < params.length; ix += 3) {
+            const attrRet = walker.fireEvent("attributeNameAndValue",
+                                             params.slice(ix, ix + 3));
             if (attrRet !== false) {
               return attrRet;
             }
@@ -203,15 +200,15 @@ class ElementWalker extends InternalWalker<Element> {
         return errs;
       }
 
-      return walker.fireEvent(ev);
+      return walker.fireEvent(name, params);
     }
 
     // Since we segregate walkers through the GrammarWalker's
     // elementWalkerStack, the events endTag and leaveStartTag cannot possibly
     // be handled by subpatterns.
-    switch (eventName) {
+    switch (name) {
       case "endTag": {
-        if (this.boundName.match(params[1] as string, params[2] as string)) {
+        if (this.boundName.match(params[0], params[1])) {
           this.canEnd = true;
         }
 
@@ -223,7 +220,7 @@ class ElementWalker extends InternalWalker<Element> {
       default:
     }
 
-    return walker.fireEvent(ev);
+    return walker.fireEvent(name, params);
   }
 
   _suppressAttributes(): void {

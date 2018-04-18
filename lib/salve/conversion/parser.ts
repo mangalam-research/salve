@@ -9,7 +9,7 @@ import * as sax from "sax";
 
 import { ValidationError } from "../errors";
 import { XML1_NAMESPACE, XMLNS_NAMESPACE } from "../name_resolver";
-import { Event, Grammar, Walker } from "../patterns";
+import { Grammar, Walker } from "../patterns";
 import { fixPrototype } from "../tools";
 import { RELAXNG_URI } from "./simplifier/util";
 
@@ -473,13 +473,12 @@ export class Validator implements ValidatorI {
       return;
     }
 
-    this.fireEvent("text", this.textBuf);
+    this.fireEvent("text", [this.textBuf]);
     this.textBuf = "";
   }
 
-  protected fireEvent(...args: any[]): void {
-    const ev = new Event(args);
-    const ret = this.walker.fireEvent(ev);
+  protected fireEvent(name: string, args: string[]): void {
+    const ret = this.walker.fireEvent(name, args);
     if (ret instanceof Array) {
       this.errors.push(...ret);
     }
@@ -494,17 +493,17 @@ export class Validator implements ValidatorI {
       if ((local === "" && name === "xmlns") ||
           prefix === "xmlns") { // xmlns="..." or xmlns:q="..."
         if (!hasContext) {
-          this.fireEvent("enterContext");
+          this.fireEvent("enterContext", []);
           hasContext = true;
         }
-        this.fireEvent("definePrefix", local, value);
+        this.fireEvent("definePrefix", [local, value]);
       }
       else {
         attributeEvents.push(uri, local, value);
       }
     }
-    this.fireEvent("startTagAndAttributes", node.uri, node.local,
-                   ...attributeEvents);
+    this.fireEvent("startTagAndAttributes", [node.uri, node.local,
+                                             ...attributeEvents]);
     this.tagStack.unshift({
       uri: node.uri,
       local: node.local,
@@ -519,9 +518,9 @@ export class Validator implements ValidatorI {
       throw new Error("stack underflow");
     }
 
-    this.fireEvent("endTag", tagInfo.uri, tagInfo.local);
+    this.fireEvent("endTag", [tagInfo.uri, tagInfo.local]);
     if (tagInfo.hasContext) {
-      this.fireEvent("leaveContext");
+      this.fireEvent("leaveContext", []);
     }
   }
 

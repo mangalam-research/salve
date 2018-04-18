@@ -5,7 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { HashMap } from "../hashstructs";
-import { addWalker, Event, EventSet, InternalWalker, makeEventSet,
+import { addWalker, EventSet, InternalWalker, makeEventSet,
          Pattern } from "./base";
 
 /**
@@ -65,9 +65,8 @@ export class EmptyWalker extends InternalWalker<Empty> {
     return this.possibleCached;
   }
 
-  fireEvent(ev: Event): false | undefined {
-    return ((ev.params[0] === "text") && !/\S/.test(ev.params[1] as string)) ?
-      false : undefined;
+  fireEvent(name: string, params: string[]): false | undefined {
+    return ((name === "text") && !/\S/.test(params[0])) ? false : undefined;
   }
 
   _suppressAttributes(): void {

@@ -8,8 +8,8 @@ import { AttributeNameError, AttributeValueError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, makeEventSet,
+import { addWalker, BasePattern, EndResult, EventSet, InternalFireEventResult,
+         InternalWalker, isAttributeEvent, makeEventSet,
          TwoSubpatterns } from "./base";
 
 /**
@@ -101,10 +101,10 @@ class GroupWalker extends InternalWalker<Group> {
     return cached;
   }
 
-  fireEvent(ev: Event): InternalFireEventResult {
-    const isAttributeEvent = ev.isAttributeEvent;
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    const evIsAttributeEvent = isAttributeEvent(name);
 
-    if (isAttributeEvent && !this.hasAttrs) {
+    if (evIsAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
 
@@ -118,9 +118,9 @@ class GroupWalker extends InternalWalker<Group> {
 
     const walkerA = this.walkerA;
     const walkerB = this.walkerB;
-    const retA = walkerA.fireEvent(ev);
+    const retA = walkerA.fireEvent(name, params);
     if (retA !== undefined) {
-      if (isAttributeEvent) {
+      if (evIsAttributeEvent) {
         this.canEndAttribute = walkerA.canEndAttribute &&
           walkerB.canEndAttribute;
       }
@@ -132,12 +132,12 @@ class GroupWalker extends InternalWalker<Group> {
 
     // We must return right away if walkerA cannot yet end. Only attribute
     // events are allowed to move forward.
-    if (!isAttributeEvent && !walkerA.canEnd) {
+    if (!evIsAttributeEvent && !walkerA.canEnd) {
       return undefined;
     }
 
-    const retB = walkerB.fireEvent(ev);
-    if (isAttributeEvent) {
+    const retB = walkerB.fireEvent(name, params);
+    if (evIsAttributeEvent) {
       this.canEndAttribute = walkerA.canEndAttribute && walkerB.canEndAttribute;
     }
 
@@ -145,7 +145,7 @@ class GroupWalker extends InternalWalker<Group> {
 
     // Non-attribute event: if walker b matched the event then we must end
     // walkerA, if we've not already done so.
-    if (!isAttributeEvent && retB !== undefined) {
+    if (!evIsAttributeEvent && retB !== undefined) {
       const endRet = walkerA.end();
 
       // Combine the possible errors.

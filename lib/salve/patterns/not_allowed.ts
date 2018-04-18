@@ -5,7 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { HashMap } from "../hashstructs";
-import { addWalker, Event, EventSet, InternalWalker, makeEventSet,
+import { addWalker, EventSet, InternalWalker, makeEventSet,
          Pattern } from "./base";
 
 /**
@@ -51,7 +51,7 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
     return this.possibleCached;
   }
 
-  fireEvent(ev: Event): undefined {
+  fireEvent(): undefined {
     return undefined; // we never match!
   }
 

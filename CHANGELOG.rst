@@ -17,6 +17,8 @@ here unless they include a fix to a specific issue reported on github.
   - Breaking change: ``EventSet`` are now implemented using ``Set`` so they only
     have the methods defined by set.
 
+  - Breaking change: fireEvent no longer takes ``Event`` objects.
+
   - New feature: introduce a pair of "compact" events named
     ``attributeNameAndValue`` and ``startTagAndAttributes`` which allow passing
     a smaller number of events to salve.

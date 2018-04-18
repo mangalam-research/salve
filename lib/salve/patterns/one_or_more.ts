@@ -7,8 +7,8 @@
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, makeEventSet, matched,
+import { addWalker, BasePattern, EndResult, EventSet, InternalFireEventResult,
+         InternalWalker, isAttributeEvent, makeEventSet, matched,
          OneSubpattern } from "./base";
 
 /**
@@ -90,9 +90,9 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     return this.possibleCached;
   }
 
-  fireEvent(ev: Event): InternalFireEventResult {
-    const isAttributeEvent = ev.isAttributeEvent;
-    if (isAttributeEvent && !this.hasAttrs) {
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    const evIsAttributeEvent = isAttributeEvent(name);
+    if (evIsAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
 
@@ -100,9 +100,9 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
 
     const currentIteration = this.currentIteration;
 
-    const ret = currentIteration.fireEvent(ev);
+    const ret = currentIteration.fireEvent(name, params);
     if (ret !== undefined) {
-      if (isAttributeEvent) {
+      if (evIsAttributeEvent) {
         this.canEndAttribute = currentIteration.canEndAttribute;
       }
       this.canEnd = currentIteration.canEnd;
@@ -114,7 +114,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
       this._instantiateNextIteration();
       // nextIteration is necessarily defined here due to the previous call.
       // tslint:disable-next-line:no-non-null-assertion
-      const nextRet = this.nextIteration!.fireEvent(ev);
+      const nextRet = this.nextIteration!.fireEvent(name, params);
       if (matched(nextRet)) {
         if (currentIteration.end()) {
           throw new Error(
@@ -124,7 +124,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
         // tslint:disable-next-line:no-non-null-assertion
         this.currentIteration = this.nextIteration!;
         this.nextIteration = undefined;
-        if (isAttributeEvent) {
+        if (evIsAttributeEvent) {
           this.canEndAttribute = this.currentIteration.canEndAttribute;
         }
 

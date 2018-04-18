@@ -117,16 +117,15 @@ class DataWalker extends InternalWalker<Data> {
     return this.possibleCached;
   }
 
-  fireEvent(ev: Event): false | undefined {
-    if (this.matched || ev.params[0] !== "text" ||
-        this.el.datatype.disallows(ev.params[1] as string, this.el.params,
-                                   this.context)) {
+  fireEvent(name: string, params: string[]): false | undefined {
+    if (this.matched || name !== "text" ||
+        this.el.datatype.disallows(params[0], this.el.params, this.context)) {
       return undefined;
     }
 
     if (this.el.except !== undefined) {
       const walker = this.el.except.newWalker(this.nameResolver);
-      const exceptRet = walker.fireEvent(ev);
+      const exceptRet = walker.fireEvent(name, params);
 
       // False, so the except does match the text, and so this pattern does
       // not match it.

@@ -10,7 +10,8 @@ import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
 import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, makeEventSet, Pattern, TwoSubpatterns } from "./base";
+         InternalWalker, isAttributeEvent, makeEventSet, Pattern,
+         TwoSubpatterns } from "./base";
 import { Empty } from "./empty";
 
 /**
@@ -109,26 +110,28 @@ class ChoiceWalker extends InternalWalker<Choice> {
     return this.possibleCached;
   }
 
-  fireEvent(ev: Event): InternalFireEventResult {
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
     if (this.deactivateA && this.deactivateB) {
       return undefined;
     }
 
-    const isAttributeEvent = ev.isAttributeEvent;
-    if (isAttributeEvent && !this.hasAttrs) {
+    const evIsAttributeEvent = isAttributeEvent(name);
+    if (evIsAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
 
     this.possibleCached = undefined;
-    const retA = this.deactivateA ? undefined : this.walkerA.fireEvent(ev);
-    const retB = this.deactivateB ? undefined : this.walkerB.fireEvent(ev);
+    const retA = this.deactivateA ? undefined :
+      this.walkerA.fireEvent(name, params);
+    const retB = this.deactivateB ? undefined :
+      this.walkerB.fireEvent(name, params);
 
     if (retA !== undefined) {
       if (retB === undefined) {
         this.deactivateB = true;
         // If we get here, retA is not undefined therefore, this.deactivateA
         // cannot be true.
-        if (isAttributeEvent) {
+        if (evIsAttributeEvent) {
           this.canEndAttribute = this.walkerA.canEndAttribute;
         }
 
@@ -139,7 +142,7 @@ class ChoiceWalker extends InternalWalker<Choice> {
 
       // If we get here retB is not undefined, therefore this.deactivateB cannot
       // be true.
-      if (isAttributeEvent) {
+      if (evIsAttributeEvent) {
         this.canEndAttribute = this.walkerA.canEndAttribute ||
           this.walkerB.canEndAttribute;
       }
@@ -162,7 +165,7 @@ class ChoiceWalker extends InternalWalker<Choice> {
     // If we get here retB is not undefined, therefore this.deactivateB cannot
     // be true.
     this.deactivateA = true;
-    if (isAttributeEvent) {
+    if (evIsAttributeEvent) {
       this.canEndAttribute = this.walkerB.canEndAttribute;
     }
 
@@ -297,20 +300,19 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
     return this.possibleCached;
   }
 
-  fireEvent(ev: Event): InternalFireEventResult {
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
     if (this.ended) {
       return undefined;
     }
 
-    const isAttributeEvent = ev.isAttributeEvent;
-    if (isAttributeEvent && !this.hasAttrs) {
+    const evIsAttributeEvent = isAttributeEvent(name);
+    if (evIsAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
 
     this.possibleCached = undefined;
-    const retA = (ev.params[0] === "text" &&
-                  !/\S/.test(ev.params[1] as string)) ? false : undefined;
-    const retB = this.walkerB.fireEvent(ev);
+    const retA = (name === "text" && !/\S/.test(params[0])) ? false : undefined;
+    const retB = this.walkerB.fireEvent(name, params);
 
     if (retA !== undefined) {
       return (retB === undefined || retB === false) ? retA : retB;
@@ -320,7 +322,7 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
       return undefined;
     }
 
-    if (isAttributeEvent) {
+    if (evIsAttributeEvent) {
       this.canEndAttribute = this.walkerB.canEndAttribute;
     }
 

@@ -80,13 +80,10 @@ export class RefWalker extends InternalWalker<Ref> {
     return makeEventSet(this.canEnd ? undefined : this.startTagEvent);
   }
 
-  fireEvent(ev: Event): InternalFireEventResult {
-    const params = ev.params;
-    const eventName = params[0];
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
     if (!this.canEnd &&
-        (eventName === "enterStartTag" ||
-         eventName === "startTagAndAttributes") &&
-        this.startName.match(params[1] as string, params[2] as string)) {
+        (name === "enterStartTag" || name === "startTagAndAttributes") &&
+        this.startName.match(params[0], params[1])) {
       this.canEnd = true;
 
       return [this];

@@ -178,7 +178,7 @@ export class Grammar extends BasePattern {
 }
 
 interface IWalker {
-  fireEvent(ev: Event): InternalFireEventResult;
+  fireEvent(name: string, params: string[]): InternalFireEventResult;
   canEnd: boolean;
   canEndAttribute: boolean;
   end(): EndResult;
@@ -187,19 +187,19 @@ interface IWalker {
 }
 
 class MisplacedElementWalker implements IWalker {
-  private readonly stack: Event[] = [];
+  private readonly stack: string[] = [];
   canEnd: boolean = false;
   canEndAttribute: boolean = false;
 
-  constructor(ev: Event) {
-    this.stack.push(ev);
+  constructor(name: string) {
+    this.stack.push(name);
   }
 
-  fireEvent(ev: Event): InternalFireEventResult {
-    switch (ev.params[0] as string) {
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    switch (name) {
       case "enterStartTag":
       case "startTagAndAttributes":
-        this.stack.unshift(ev);
+        this.stack.unshift(name);
         break;
       case "endTag":
         this.stack.shift();
@@ -232,7 +232,7 @@ class MisplacedElementWalker implements IWalker {
 
 interface MisplacedElementStub {
   walker: IWalker;
-  event: Event;
+  event: string[];
 }
 
 /**
@@ -332,19 +332,17 @@ export class GrammarWalker extends Walker<Grammar> {
    * On a [[GrammarWalker]] this method cannot return ``undefined``. An
    * undefined value would mean nothing matched, which is a validation error.
    *
-   * @param ev The event to fire.
+   * @param name The event name.
+   *
+   * @param params The event parameters.
    *
    * @returns ``false`` if there is no error or an array errors.
    *
-   * @throws {Error} When name resolving events (``enterContext``,
-   * ``leaveContext``, or ``definePrefix``) are passed while this walker was not
-   * instructed to create its own name resolver or when trying to process an
-   * event type unknown to salve.
+   * @throws {Error} When trying to process an event type unknown to salve.
    */
   // tslint:disable-next-line: max-func-body-length
-  fireEvent(ev: Event): FireEventResult {
-    const evName = ev.params[0];
-    switch (evName) {
+  fireEvent(name: string, params: string[]): FireEventResult {
+    switch (name) {
       case "enterContext":
         this.nameResolver.enterContext();
 
@@ -354,13 +352,12 @@ export class GrammarWalker extends Walker<Grammar> {
 
         return false;
       case "definePrefix":
-        this.nameResolver.definePrefix(ev.params[1] as string,
-                                       ev.params[2] as string);
+        this.nameResolver.definePrefix(params[0], params[1]);
 
         return false;
       case "text":
         // Process whitespace nodes
-        const text = ev.params[1] as string;
+        const text = params[0];
         if (text === "") {
           throw new Error("firing empty text events makes no sense");
         }
@@ -393,7 +390,7 @@ export class GrammarWalker extends Walker<Grammar> {
     let wsErr: FireEventResult = false;
     const ignoreNextWsNow = this.ignoreNextWs;
     this.ignoreNextWs = false;
-    switch (evName) {
+    switch (name) {
       case "enterStartTag":
       case "startTagAndAttributes":
         break;
@@ -402,10 +399,10 @@ export class GrammarWalker extends Walker<Grammar> {
         /* falls through */
       default:
         if (!ignoreNextWsNow && this.suspendedWs !== undefined) {
-          const textEvent = new Event("text", this.suspendedWs);
           // Casting is safe here because text events cannot return
           // elements.
-          wsErr = this._fireOnCurrentWalkers(textEvent) as FireEventResult;
+          wsErr = this._fireOnCurrentWalkers(
+            "text", [this.suspendedWs]) as FireEventResult;
         }
     }
     // Absorb the whitespace: poof, gone!
@@ -417,33 +414,34 @@ export class GrammarWalker extends Walker<Grammar> {
     if (this._swallowAttributeValue) {
       // Swallow only one event.
       this._swallowAttributeValue = false;
-      if (evName === "attributeValue") {
+      if (name === "attributeValue") {
         return false;
       }
 
       return [new ValidationError("attribute value required")];
     }
 
-    let ret = this._fireOnCurrentWalkers(ev);
+    let ret = this._fireOnCurrentWalkers(name, params);
 
     if (ret === undefined) {
-      switch (evName) {
+      switch (name) {
         case "enterStartTag":
         case "startTagAndAttributes":
-          const name = new Name("", ev.params[1] as string,
-                                ev.params[2] as string);
+          const elName = new Name("", params[0], params[1]);
           ret = [new ElementNameError(
-            evName === "enterStartTag" ?
+            name === "enterStartTag" ?
               "tag not allowed here" :
-              "tag not allowed here with these attributes", name)];
+              "tag not allowed here with these attributes", elName)];
 
           // Try to infer what element is meant by this errant tag. If we can't
           // find a candidate, then fall back to a dumb mode.
-          const candidates = this.el.elementDefinitions[name.toString()];
+          const candidates = this.el.elementDefinitions[elName.toString()];
           if (candidates !== undefined && candidates.length === 1) {
-            const newWalker = candidates[0].newWalker(this.nameResolver, name);
-            this._misplacedElements.unshift({ walker: newWalker, event: ev });
-            if (newWalker.fireEvent(ev) !== false) {
+            const newWalker =
+              candidates[0].newWalker(this.nameResolver, elName);
+            this._misplacedElements.unshift({ walker: newWalker,
+                                              event: [name, ...params] });
+            if (newWalker.fireEvent(name, params) !== false) {
               throw new Error("internal error: the inferred element " +
                               "does not accept its initial event");
             }
@@ -451,26 +449,23 @@ export class GrammarWalker extends Walker<Grammar> {
           else {
             // Dumb mode...
             this._misplacedElements.unshift({
-              walker: new MisplacedElementWalker(ev),
-              event: ev,
+              walker: new MisplacedElementWalker(name),
+              event: [name, ...params],
             });
           }
           break;
         case "endTag":
-          ret = [new ElementNameError(
-            "unexpected end tag",
-            new Name("", ev.params[1] as string, ev.params[2] as string))];
+          ret = [new ElementNameError("unexpected end tag",
+                                      new Name("", params[0], params[1]))];
           break;
         case "attributeName":
-          ret = [new AttributeNameError(
-            "attribute not allowed here",
-            new Name("", ev.params[1] as string, ev.params[2] as string))];
+          ret = [new AttributeNameError("attribute not allowed here",
+                                        new Name("", params[0], params[1]))];
           this._swallowAttributeValue = true;
           break;
         case "attributeNameAndValue":
-          ret = [new AttributeNameError(
-            "attribute not allowed here",
-            new Name("", ev.params[1] as string, ev.params[2] as string))];
+          ret = [new AttributeNameError("attribute not allowed here",
+                                        new Name("", params[0], params[1]))];
           break;
         case "attributeValue":
           ret = [new ValidationError("unexpected attributeValue event; it \
@@ -493,7 +488,7 @@ is likely that fireEvent is incorrectly called")];
           /* falls through */
         default:
           throw new Error(`unexpected event type in GrammarWalker's fireEvent: \
-${evName.toString()}`);
+${name}`);
       }
     }
 
@@ -507,16 +502,15 @@ ${evName.toString()}`);
         }
         else {
           if (boundName === undefined) {
-            boundName = new Name("", ev.params[1] as string,
-                                 ev.params[2] as string);
+            boundName = new Name("", params[0], params[1]);
           }
 
           const walker = item.element.newWalker(this.nameResolver,
                                                 boundName);
           // If we get anything else than false here, the internal logic is
           // wrong.
-          if (walker.fireEvent(ev) !== false) {
-            throw new Error("got on error or failed to match on a new element \
+          if (walker.fireEvent(name, params) !== false) {
+            throw new Error("error or failed to match on a new element \
 walker: the internal logic is incorrect");
           }
           newWalkers.push(walker);
@@ -530,7 +524,7 @@ walker: the internal logic is incorrect");
 
     let finalResult = errors.length !== 0 ? errors : false;
 
-    if (evName === "endTag") {
+    if (name === "endTag") {
       const topMisplacedElement = this._misplacedElements[0];
       // Check whether the context should end
       if (topMisplacedElement !== undefined) {
@@ -547,9 +541,7 @@ walker: the internal logic is incorrect");
           // the misplaced element.
           const startEvent = topMisplacedElement.event;
           this._misplacedElements.shift();
-          this._fireOnCurrentWalkers(new Event("endTag",
-                                               startEvent.params[1],
-                                               startEvent.params[2]));
+          this._fireOnCurrentWalkers("endTag", [startEvent[1], startEvent[2]]);
         }
       }
       else {
@@ -575,7 +567,8 @@ walker: the internal logic is incorrect");
     return !finalResult ? wsErr : wsErr.concat(finalResult);
   }
 
-  private _fireOnCurrentWalkers(ev: Event): InternalFireEventResult {
+  private _fireOnCurrentWalkers(name: string,
+                                params: string[]): InternalFireEventResult {
     const topMisplacedElement = this._misplacedElements[0];
     // This is the walker we must fire all our events on.
     const walkers = topMisplacedElement === undefined ?
@@ -591,7 +584,7 @@ walker: the internal logic is incorrect");
     let arr: (ValidationError | RefWalker)[] = [];
     const remainingWalkers: IWalker[] = [];
     for (const walker of walkers) {
-      const result = walker.fireEvent(ev);
+      const result = walker.fireEvent(name, params);
       // We immediately filter out results that report a match (i.e. false).
       if (result !== undefined) {
         noMatch = false;

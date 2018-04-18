@@ -516,6 +516,11 @@ export class Event {
   }
 }
 
+export function isAttributeEvent(name: string): boolean {
+  return (name === "attributeName" || name === "attributeValue" ||
+          name === "attributeNameAndValue");
+}
+
 /**
  * Utility function used mainly in testing to transform a set of
  * events into a string containing a tree structure.  The principle is to
@@ -810,13 +815,15 @@ export abstract class InternalWalker<T extends BasePattern>
    * Passes an event to the walker for handling. The Walker will determine
    * whether it or one of its children can handle the event.
    *
-   * @param ev The event to handle.
+   * @param name The event name.
+   *
+   * @param params The event parameters.
    *
    * @returns The value ``false`` if there was no error. The value ``undefined``
    * if no walker matches the pattern. Otherwise, an array of
    * [[ValidationError]] objects.
    */
-  abstract fireEvent(ev: Event): InternalFireEventResult;
+  abstract fireEvent(name: string, params: string[]): InternalFireEventResult;
 
   /**
    * Flag indicating whether the walker can end.
@@ -841,13 +848,15 @@ export abstract class Walker<T extends BasePattern>
    * Passes an event to the walker for handling. The Walker will determine
    * whether it or one of its children can handle the event.
    *
-   * @param ev The event to handle.
+   * @param name The event name.
+   *
+   * @param params The event parameters.
    *
    * @returns The value ``false`` if there was no error. The value ``undefined``
    * if no walker matches the pattern. Otherwise, an array of
    * [[ValidationError]] objects.
    */
-  abstract fireEvent(ev: Event): FireEventResult;
+  abstract fireEvent(name: string, params: string[]): FireEventResult;
 }
 
 //  LocalWords:  RNG MPL lookahead xmlns uri CodeMirror tokenizer enterStartTag

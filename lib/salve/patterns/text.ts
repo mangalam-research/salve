@@ -60,8 +60,8 @@ class TextWalker extends InternalWalker<Text> {
     return this.possibleCached;
   }
 
-  fireEvent(ev: Event): false | undefined {
-    return !this.ended && (ev.params[0] === "text") ? false : undefined;
+  fireEvent(name: string): false | undefined {
+    return !this.ended && (name === "text") ? false : undefined;
   }
 
   _suppressAttributes(): void {

@@ -123,7 +123,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
     return this._possible();
   }
 
-  fireEvent(ev: Event): InternalFireEventResult {
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
     // If canEnd is true, we've done everything we could. So we don't
     // want to match again.
     if (this.suppressedAttributes || this.canEnd) {
@@ -132,22 +132,19 @@ class AttributeWalker extends InternalWalker<Attribute> {
 
     let ret: InternalFireEventResult;
     let value: string | undefined;
-    const eventName = ev.params[0];
     if (this.seenName) {
-      if (eventName === "attributeValue") {
+      if (name === "attributeValue") {
         // Convert the attributeValue event to a text event.
-        value = ev.params[1] as string;
+        value = params[0];
       }
     }
-    else if ((eventName === "attributeName" ||
-              eventName === "attributeNameAndValue") &&
-             this.el.name.match(ev.params[1] as string,
-                                ev.params[2] as string)) {
+    else if ((name === "attributeName" || name === "attributeNameAndValue") &&
+             this.el.name.match(params[0], params[1])) {
       this.seenName = true;
       ret = false;
 
-      if (eventName === "attributeNameAndValue") {
-        value = ev.params[3] as string;
+      if (name === "attributeNameAndValue") {
+        value = params[2];
       }
     }
 
@@ -156,7 +153,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
       this.canEndAttribute = true;
 
       if (value !== "") {
-        ret = this.subwalker.fireEvent(new Event("text", value));
+        ret = this.subwalker.fireEvent("text", [value]);
 
         if (ret === undefined) {
           ret = [new AttributeValueError("invalid attribute value",

@@ -7,8 +7,8 @@
 import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, OneSubpattern } from "./base";
+import { addWalker, BasePattern, EndResult, EventSet, InternalFireEventResult,
+         InternalWalker, OneSubpattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -72,13 +72,13 @@ class ListWalker extends InternalWalker<List> {
     return this.subwalker.possible();
   }
 
-  fireEvent(ev: Event): InternalFireEventResult {
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
     // Only this can match.
-    if (ev.params[0] !== "text") {
+    if (name !== "text") {
       return undefined;
     }
 
-    const trimmed = (ev.params[1] as string).trim();
+    const trimmed = params[0].trim();
 
     // The list walker cannot send empty strings to its children because it
     // validates a list of **tokens**.
@@ -89,7 +89,7 @@ class ListWalker extends InternalWalker<List> {
     const tokens = trimmed.split(/\s+/);
 
     for (const token of tokens) {
-      const ret = this.subwalker.fireEvent(new Event("text", token));
+      const ret = this.subwalker.fireEvent("text", [token]);
       if (ret !== false) {
         this.canEndAttribute = this.canEnd = false;
 

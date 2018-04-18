@@ -7,9 +7,9 @@
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, makeEventSet, matched,
-         TwoSubpatterns } from "./base";
+import { addWalker, BasePattern, EndResult, EventSet,
+         InternalFireEventResult, InternalWalker, isAttributeEvent,
+         makeEventSet, matched, TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<interleave>``.
@@ -117,9 +117,9 @@ class InterleaveWalker extends InternalWalker<Interleave> {
   // seen by a pattern. When they are equal we can switch away from from the
   // pattern to another one.
   //
-  fireEvent(ev: Event): InternalFireEventResult {
-    const isAttributeEvent = ev.isAttributeEvent;
-    if (isAttributeEvent && !this.hasAttrs) {
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    const evIsAttributeEvent = isAttributeEvent(name);
+    if (evIsAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
 
@@ -134,9 +134,9 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     const walkerA = this.walkerA;
     const walkerB = this.walkerB;
 
-    const retA = walkerA.fireEvent(ev);
+    const retA = walkerA.fireEvent(name, params);
     if (matched(retA)) {
-      if (isAttributeEvent) {
+      if (evIsAttributeEvent) {
         this.canEndAttribute =
           walkerA.canEndAttribute && walkerB.canEndAttribute;
       }
@@ -150,9 +150,9 @@ class InterleaveWalker extends InternalWalker<Interleave> {
       return retA;
     }
 
-    const retB = walkerB.fireEvent(ev);
+    const retB = walkerB.fireEvent(name, params);
     if (matched(retB)) {
-      if (isAttributeEvent) {
+      if (evIsAttributeEvent) {
         this.canEndAttribute =
           walkerA.canEndAttribute && walkerB.canEndAttribute;
       }

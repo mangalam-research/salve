@@ -115,10 +115,9 @@ class ValueWalker extends InternalWalker<Value> {
     return this.possibleCached;
   }
 
-  fireEvent(ev: Event): false | undefined {
-    if (this.matched || ev.params[0] !== "text" ||
-       !this.el.datatype.equal(ev.params[1] as string, this.el.value,
-                               this.context)) {
+  fireEvent(name: string, params: string[]): false | undefined {
+    if (this.matched || name !== "text" ||
+       !this.el.datatype.equal(params[0], this.el.value, this.context)) {
       return undefined;
     }
 
