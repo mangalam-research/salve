@@ -64,6 +64,11 @@ import { Ref, RefWalker } from "./ref";
 // parsing code must *restart* validation *from* the location of the original
 // enterStartTag event.
 
+// A note on performance and the presence of the debug code here. We did a
+// profiling test with the debug code entirely removed. It made no
+// difference. Though TypeScript does not eliminate the code when DEBUG is
+// false, its impact on real-world test runs is undetectable. (Note that
+// uglification strips it from the minified code.)
 const DEBUG: boolean = false;
 
 // This is here to shut the compiler up about unused variables.
