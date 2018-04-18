@@ -6,8 +6,9 @@
  */
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
+import { union } from "../set";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, matched,
+         InternalFireEventResult, InternalWalker, makeEventSet, matched,
          TwoSubpatterns } from "./base";
 
 /**
@@ -75,13 +76,13 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     }
 
     if (this.ended) {
-      this.possibleCached = new EventSet();
+      this.possibleCached = makeEventSet();
 
       return this.possibleCached;
     }
 
     const cached = this.possibleCached = this.walkerA.possible();
-    cached.union(this.walkerB._possible());
+    union(cached, this.walkerB._possible());
 
     return cached;
   }

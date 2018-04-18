@@ -8,7 +8,7 @@ import { Datatype, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, EndResult, Event, EventSet, InternalWalker,
+import { addWalker, EndResult, Event, EventSet, InternalWalker, makeEventSet,
          Pattern } from "./base";
 
 /**
@@ -108,8 +108,8 @@ class ValueWalker extends InternalWalker<Value> {
 
   _possible(): EventSet {
     if (this.possibleCached === undefined) {
-      this.possibleCached = this.matched ? new EventSet() :
-        new EventSet(new Event("text", this.el.rawValue));
+      this.possibleCached = this.matched ? makeEventSet() :
+        makeEventSet(new Event("text", this.el.rawValue));
     }
 
     return this.possibleCached;

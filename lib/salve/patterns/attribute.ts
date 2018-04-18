@@ -8,8 +8,9 @@ import { AttributeNameError, AttributeValueError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
+import { map } from "../set";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker,
+         InternalFireEventResult, InternalWalker, makeEventSet,
          Pattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
@@ -100,15 +101,15 @@ class AttributeWalker extends InternalWalker<Attribute> {
   _possible(): EventSet {
     // We've been suppressed!
     if (this.suppressedAttributes || this.canEnd) {
-      return new EventSet();
+      return makeEventSet();
     }
 
     if (!this.seenName) {
-      return new EventSet(this.attrNameEvent);
+      return makeEventSet(this.attrNameEvent);
     }
 
     // Convert text events to attributeValue events.
-    return this.subwalker._possible().map((ev: Event) => {
+    return map(this.subwalker._possible(), (ev: Event) => {
       if (ev.params[0] !== "text") {
         throw new Error(`unexpected event type: ${ev.params[0]}`);
       }

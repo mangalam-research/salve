@@ -10,10 +10,11 @@ import { AttributeNameError, ElementNameError,
 import { HashMap } from "../hashstructs";
 import { Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
+import { filter, union } from "../set";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
 import { BasePattern, EndResult, Event, EventSet, FireEventResult,
-         InternalFireEventResult, InternalWalker, Pattern,
+         InternalFireEventResult, InternalWalker, makeEventSet, Pattern,
          Walker } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
@@ -215,7 +216,7 @@ class MisplacedElementWalker implements IWalker {
   }
 
   possible(): EventSet {
-    return new EventSet();
+    return makeEventSet();
   }
 
   _clone<T extends this>(this: T, memo: HashMap): T {
@@ -660,18 +661,18 @@ walker: the internal logic is incorrect");
       return mpe.walker.possible();
     }
 
-    let possible = new EventSet();
+    let possible = makeEventSet();
     for (const walker of this.elementWalkerStack[0]) {
-      possible.union(walker._possible());
+      union(possible, walker._possible());
     }
 
     // If we have any attributeValue possible, then the only possible
     // events are attributeValue events.
-    if (possible.size() !== 0) {
-      const valueEvs = possible.
-        filter((poss: Event) => poss.params[0] === "attributeValue");
+    if (possible.size !== 0) {
+      const valueEvs =
+        filter(possible, (poss: Event) => poss.params[0] === "attributeValue");
 
-      if (valueEvs.size() !== 0) {
+      if (valueEvs.size !== 0) {
         possible = valueEvs;
       }
     }

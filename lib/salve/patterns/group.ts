@@ -7,8 +7,9 @@
 import { AttributeNameError, AttributeValueError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
+import { union } from "../set";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker,
+         InternalFireEventResult, InternalWalker, makeEventSet,
          TwoSubpatterns } from "./base";
 
 /**
@@ -78,7 +79,7 @@ class GroupWalker extends InternalWalker<Group> {
     }
 
     if (this.ended) {
-      this.possibleCached = new EventSet();
+      this.possibleCached = makeEventSet();
 
       return this.possibleCached;
     }
@@ -94,7 +95,7 @@ class GroupWalker extends InternalWalker<Group> {
       // is the responsibility of ElementWalker to ensure that when the start
       // tag is not closed it is events that pertain to anything else than
       // attributes or ending the start tag are not passed up to the user.
-      cached.union(this.walkerB._possible());
+      union(cached, this.walkerB._possible());
     }
 
     return cached;

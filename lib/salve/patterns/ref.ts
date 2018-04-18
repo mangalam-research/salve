@@ -2,7 +2,7 @@ import { ElementNameError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { ConcreteName } from "../name_patterns";
 import { addWalker, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, Pattern } from "./base";
+         InternalWalker, makeEventSet, Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
 
@@ -77,7 +77,7 @@ export class RefWalker extends InternalWalker<Ref> {
   }
 
   _possible(): EventSet {
-    return new EventSet(this.canEnd ? undefined : this.startTagEvent);
+    return makeEventSet(this.canEnd ? undefined : this.startTagEvent);
   }
 
   fireEvent(ev: Event): InternalFireEventResult {

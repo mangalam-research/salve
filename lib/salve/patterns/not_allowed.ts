@@ -5,7 +5,8 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { HashMap } from "../hashstructs";
-import { addWalker, Event, EventSet, InternalWalker, Pattern } from "./base";
+import { addWalker, Event, EventSet, InternalWalker, makeEventSet,
+         Pattern } from "./base";
 
 /**
  * Pattern for ``<notAllowed/>``.
@@ -39,12 +40,12 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
 
   possible(): EventSet {
     // Save some time by avoiding calling _possible
-    return new EventSet();
+    return makeEventSet();
   }
 
   _possible(): EventSet {
     if (this.possibleCached === undefined) {
-      this.possibleCached = new EventSet();
+      this.possibleCached = makeEventSet();
     }
 
     return this.possibleCached;

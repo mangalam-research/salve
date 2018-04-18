@@ -132,7 +132,7 @@ class EventRecorder {
     const ret = walker.fireEvent(nev);
     this.ce.compare(`fireEvent returned ${errorsToString(ret)}`, nev);
     if (this.check_possible) {
-      const possibleEvs = walker.possible().toArray();
+      const possibleEvs = Array.from(walker.possible());
       // We sort events alphabetically, because the
       // implementation does not guarantee any specific order.
       possibleEvs.sort();

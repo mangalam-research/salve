@@ -8,8 +8,9 @@ import { ElementNameError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
+import { filter } from "../set";
 import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, Pattern } from "./base";
+         InternalWalker, makeEventSet, Pattern } from "./base";
 import { Define } from "./define";
 import { NotAllowed } from "./not_allowed";
 import { Ref } from "./ref";
@@ -128,7 +129,7 @@ class ElementWalker extends InternalWalker<Element> {
       const walker = this.walker;
 
       const ret =
-        walker._possible().filter((poss: Event) => poss.isAttributeEvent);
+        filter(walker._possible(), (poss: Event) => poss.isAttributeEvent);
 
       if (walker.canEndAttribute) {
         ret.add(ElementWalker._leaveStartTagEvent);
@@ -138,7 +139,7 @@ class ElementWalker extends InternalWalker<Element> {
     }
     else if (!this.canEnd) {
       const walker = this.walker;
-      const posses = new EventSet(walker._possible());
+      const posses = makeEventSet(walker._possible());
       if (walker.canEnd) {
         posses.add(this.endTagEvent);
       }
@@ -146,7 +147,7 @@ class ElementWalker extends InternalWalker<Element> {
       return posses;
     }
 
-    return new EventSet();
+    return makeEventSet();
   }
 
   // _possible always returns new sets

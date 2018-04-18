@@ -8,8 +8,9 @@ import { ChoiceError } from "../errors";
 import { HashMap } from "../hashstructs";
 import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
+import { union } from "../set";
 import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, Pattern, TwoSubpatterns } from "./base";
+         InternalWalker, makeEventSet, Pattern, TwoSubpatterns } from "./base";
 import { Empty } from "./empty";
 
 /**
@@ -97,12 +98,12 @@ class ChoiceWalker extends InternalWalker<Choice> {
 
     const walkerB = this.walkerB;
     if (!this.deactivateB) {
-      this.possibleCached = new EventSet(this.possibleCached);
+      this.possibleCached = makeEventSet(this.possibleCached);
       const possibleB = walkerB._possible();
-      this.possibleCached.union(possibleB);
+      union(this.possibleCached, possibleB);
     }
     else if (this.possibleCached === undefined) {
-      this.possibleCached = new EventSet();
+      this.possibleCached = makeEventSet();
     }
 
     return this.possibleCached;
@@ -290,7 +291,7 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
       return this.possibleCached;
     }
 
-    this.possibleCached = this.ended ? new EventSet() :
+    this.possibleCached = this.ended ? makeEventSet() :
       this.walkerB._possible();
 
     return this.possibleCached;

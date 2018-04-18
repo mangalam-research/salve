@@ -9,7 +9,6 @@ import { ValidationError } from "../errors";
 import { HashMap } from "../hashstructs";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
-import { NaiveSet } from "../set";
 import * as util from "../util";
 import { Define } from "./define";
 import { Element } from "./element";
@@ -219,7 +218,23 @@ export function addWalker<T>(elCls: any, walkerCls: any): void {
 }
 /* tslint:enable */
 
-export class EventSet extends NaiveSet<Event>{}
+export type EventSet = Set<Event>;
+
+export function makeEventSet(init?: Event | Iterable<Event>): EventSet {
+  if (init === undefined) {
+    return new Set();
+  }
+
+  // tslint:disable-next-line:no-use-before-declare
+  if (init instanceof Event) {
+    const ret = new Set();
+    ret.add(init);
+
+    return ret;
+  }
+
+  return new Set(init);
+}
 
 interface Hashable {
   hash(): any;
@@ -502,7 +517,7 @@ export class Event {
 }
 
 /**
- * Utility function used mainly in testing to transform a [["set".NaiveSet]] of
+ * Utility function used mainly in testing to transform a set of
  * events into a string containing a tree structure.  The principle is to
  * combine events of a same type together and among events of a same type
  * combine those which are in the same namespace. So for instance if there is a
@@ -532,7 +547,7 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
     return x;
   }
 
-  const eventArray = (evs instanceof EventSet) ? evs.toArray() : evs;
+  const eventArray = (evs instanceof Set) ? Array.from(evs) : evs;
 
   const hash: HashMap = new HashMap(hashF);
   eventArray.forEach((ev: Event) => {
@@ -664,7 +679,7 @@ export abstract class BaseWalker<T extends BasePattern> {
    * @returns The set of events that can be fired without resulting in an error.
    */
   possible(): EventSet {
-    return new EventSet(this._possible());
+    return makeEventSet(this._possible());
   }
 
   /**

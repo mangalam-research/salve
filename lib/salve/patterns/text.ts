@@ -5,7 +5,8 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { HashMap } from "../hashstructs";
-import { addWalker, Event, EventSet, InternalWalker, Pattern } from "./base";
+import { addWalker, Event, EventSet, InternalWalker, makeEventSet,
+         Pattern } from "./base";
 
 /**
  * Pattern for ``<text/>``.
@@ -53,7 +54,7 @@ class TextWalker extends InternalWalker<Text> {
 
   _possible(): EventSet {
     if (this.possibleCached === undefined) {
-      this.possibleCached = new EventSet(TextWalker._textEvent);
+      this.possibleCached = makeEventSet(TextWalker._textEvent);
     }
 
     return this.possibleCached;

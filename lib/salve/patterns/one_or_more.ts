@@ -6,8 +6,9 @@
  */
 import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
+import { union } from "../set";
 import { addWalker, BasePattern, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, matched,
+         InternalFireEventResult, InternalWalker, makeEventSet, matched,
          OneSubpattern } from "./base";
 
 /**
@@ -76,14 +77,14 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     this.possibleCached = this.currentIteration._possible();
 
     if (this.currentIteration.canEnd) {
-      this.possibleCached = new EventSet(this.possibleCached);
+      this.possibleCached = makeEventSet(this.possibleCached);
 
       this._instantiateNextIteration();
       // nextIteration is necessarily defined here due to the previous call.
       // tslint:disable-next-line:no-non-null-assertion
       const nextPossible: EventSet = this.nextIteration!._possible();
 
-      this.possibleCached.union(nextPossible);
+      union(this.possibleCached, nextPossible);
     }
 
     return this.possibleCached;

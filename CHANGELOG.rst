@@ -14,8 +14,8 @@ here unless they include a fix to a specific issue reported on github.
     is allowed in multiple contexts, then the an event for "text" may show up
     more than once in the set returned.
 
-  - ``EventSet`` are now implemented using ``Set`` for backing store instead of
-    an array.
+  - Breaking change: ``EventSet`` are now implemented using ``Set`` so they only
+    have the methods defined by set.
 
   - New feature: introduce a pair of "compact" events named
     ``attributeNameAndValue`` and ``startTagAndAttributes`` which allow passing
