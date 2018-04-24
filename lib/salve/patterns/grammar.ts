@@ -181,34 +181,27 @@ interface IWalker {
   fireEvent(name: string, params: string[]): InternalFireEventResult;
   canEnd: boolean;
   canEndAttribute: boolean;
-  end(): EndResult;
+  end(attribute?: boolean): EndResult;
   _clone(memo: HashMap): IWalker;
   possible(): EventSet;
+  _possible(): EventSet;
 }
 
 class MisplacedElementWalker implements IWalker {
-  private readonly stack: string[] = [];
-  canEnd: boolean = false;
-  canEndAttribute: boolean = false;
-
-  constructor(name: string) {
-    this.stack.push(name);
-  }
+  canEnd: boolean = true;
+  canEndAttribute: boolean = true;
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
+    // The strategy here is to accept everything except for elements.  The lack
+    // of match that occurs on enterStartTag and startTagAndAttributes is
+    // handled elsewhere.
     switch (name) {
       case "enterStartTag":
       case "startTagAndAttributes":
-        this.stack.unshift(name);
-        break;
-      case "endTag":
-        this.stack.shift();
-        this.canEndAttribute = this.canEnd = this.stack.length === 0;
-        break;
+        return undefined;
       default:
+        return false;
     }
-
-    return false;
   }
 
   end(): EndResult {
@@ -219,20 +212,13 @@ class MisplacedElementWalker implements IWalker {
     return makeEventSet();
   }
 
-  _clone<T extends this>(this: T, memo: HashMap): T {
-    const clone =
-      new (this.constructor as { new (...args: any[]): T })(this.stack[0]);
-    // We don't need to do more than this. And we don't need to mess with the
-    // memo, as walkers don't engage in circular references.
-    (clone as any).stack = this.stack.concat([]);
-
-    return clone;
+  _possible(): EventSet {
+    return makeEventSet();
   }
-}
 
-interface MisplacedElementStub {
-  walker: IWalker;
-  event: string[];
+  _clone<T extends this>(this: T, memo: HashMap): T {
+    return new (this.constructor as { new (...args: any[]): T })();
+  }
 }
 
 /**
@@ -241,20 +227,15 @@ interface MisplacedElementStub {
 export class GrammarWalker extends Walker<Grammar> {
   private readonly nameResolver: NameResolver;
 
-  // A stack that keeps state for misplace elements. The elements of this
-  // stack are either Array or Walker objects. They are arrays when we are
-  // dealing with an element which is unknown to the schema (or which
-  // cannot be unambiguously determined. They are Walker objects when we
-  // can find a definition in the schema.
-  private readonly _misplacedElements: MisplacedElementStub[];
-
   private _swallowAttributeValue: boolean;
 
   private suspendedWs: string | undefined;
 
   private ignoreNextWs: boolean;
 
-  private elementWalkerStack: InternalWalker<BasePattern>[][];
+  private elementWalkerStack: IWalker[][];
+
+  private misplacedDepth: number;
 
   /**
    * @param el The grammar for which this walker was
@@ -268,10 +249,10 @@ export class GrammarWalker extends Walker<Grammar> {
       const grammar = elOrWalker as Grammar;
       super(grammar);
       this.nameResolver = new NameResolver();
-      this._misplacedElements = [];
       this._swallowAttributeValue = false;
       this.ignoreNextWs = false;
       this.elementWalkerStack = [[grammar.start.newWalker(this.nameResolver)]];
+      this.misplacedDepth = 0;
     }
     else {
       const walker = elOrWalker as GrammarWalker;
@@ -282,15 +263,7 @@ export class GrammarWalker extends Walker<Grammar> {
       this.elementWalkerStack = walker.elementWalkerStack
       // tslint:disable-next-line:no-non-null-assertion
         .map((walkers) => walkers.map((x) => x._clone(memo!)));
-      this._misplacedElements = [];
-      const misplacedElements = this._misplacedElements;
-      for (const mpe of walker._misplacedElements) {
-        misplacedElements.push({
-          // tslint:disable-next-line:no-non-null-assertion
-          walker: mpe.walker._clone(memo!),
-          event: mpe.event,
-        });
-      }
+      this.misplacedDepth = walker.misplacedDepth;
       this._swallowAttributeValue = walker._swallowAttributeValue;
       this.suspendedWs = walker.suspendedWs;
       this.ignoreNextWs = walker.ignoreNextWs;
@@ -427,31 +400,38 @@ export class GrammarWalker extends Walker<Grammar> {
       switch (name) {
         case "enterStartTag":
         case "startTagAndAttributes":
-          const elName = new Name("", params[0], params[1]);
-          ret = [new ElementNameError(
-            name === "enterStartTag" ?
-              "tag not allowed here" :
-              "tag not allowed here with these attributes", elName)];
+          // Once in dumb mode, we remain in dumb mode.
+          if (this.misplacedDepth > 0) {
+            this.misplacedDepth++;
+            this.elementWalkerStack.unshift([new MisplacedElementWalker()]);
 
-          // Try to infer what element is meant by this errant tag. If we can't
-          // find a candidate, then fall back to a dumb mode.
-          const candidates = this.el.elementDefinitions[elName.toString()];
-          if (candidates !== undefined && candidates.length === 1) {
-            const newWalker =
-              candidates[0].newWalker(this.nameResolver, elName);
-            this._misplacedElements.unshift({ walker: newWalker,
-                                              event: [name, ...params] });
-            if (newWalker.fireEvent(name, params) !== false) {
-              throw new Error("internal error: the inferred element " +
-                              "does not accept its initial event");
-            }
+            // We swallow the error.
+            ret = false;
           }
           else {
-            // Dumb mode...
-            this._misplacedElements.unshift({
-              walker: new MisplacedElementWalker(name),
-              event: [name, ...params],
-            });
+            const elName = new Name("", params[0], params[1]);
+            ret = [new ElementNameError(
+              name === "enterStartTag" ?
+                "tag not allowed here" :
+                "tag not allowed here with these attributes", elName)];
+
+            // Try to infer what element is meant by this errant tag. If we
+            // can't find a candidate, then fall back to a dumb mode.
+            const candidates = this.el.elementDefinitions[elName.toString()];
+            if (candidates !== undefined && candidates.length === 1) {
+              const newWalker =
+                candidates[0].newWalker(this.nameResolver, elName);
+              this.elementWalkerStack.unshift([newWalker]);
+              if (newWalker.fireEvent(name, params) !== false) {
+                throw new Error("internal error: the inferred element " +
+                                "does not accept its initial event");
+              }
+            }
+            else {
+              // Dumb mode...
+              this.misplacedDepth++;
+              this.elementWalkerStack.unshift([new MisplacedElementWalker()]);
+            }
           }
           break;
         case "endTag":
@@ -475,11 +455,11 @@ is likely that fireEvent is incorrectly called")];
           ret = [new ValidationError("text not allowed here")];
           break;
         case "leaveStartTag":
-          // If the _misplacedElements stack did not exist then we would get
-          // here if a file being validated contains a tag which is not
-          // allowed. An ElementNameError will already have been issued. So
-          // rather than violate our contract (which says no undefined value may
-          // be returned) or require that callers do something special with
+          // If MisplacedElementWalker did not exist then we would get here if a
+          // file being validated contains a tag which is not allowed. An
+          // ElementNameError will already have been issued. So rather than
+          // violate our contract (which says no undefined value may be
+          // returned) or require that callers do something special with
           // 'undefined' as a return value, just treat this event as a
           // non-error.
           //
@@ -522,33 +502,18 @@ walker: the internal logic is incorrect");
       }
     }
 
-    let finalResult = errors.length !== 0 ? errors : false;
+    const finalResult = errors.length !== 0 ? errors : false;
 
     if (name === "endTag") {
-      const topMisplacedElement = this._misplacedElements[0];
-      // Check whether the context should end
-      if (topMisplacedElement !== undefined) {
-        if (topMisplacedElement.walker.canEnd) {
-          const endRet = topMisplacedElement.walker.end();
-          if (endRet) {
-            finalResult = finalResult ? finalResult.concat(endRet) : endRet;
-          }
-
-          // When we drop a context from this._misplacedElements, we have to
-          // issue an "endTag" event on the walker (if any!) that was in effect
-          // when the context was added to this._misplacedElements. The endTag
-          // event corresponds to the enterStartTag event that was issued for
-          // the misplaced element.
-          this._misplacedElements.shift();
-        }
+      // We do not need to end the walkers because the fireEvent handler
+      // for elements calls end when it sees an "endTag" event.
+      // We do not reduce the stack to nothing.
+      if (this.elementWalkerStack.length > 1) {
+        this.elementWalkerStack.shift();
       }
-      else {
-        // We do not need to end the walkers because the fireEvent handler
-        // for elements calls end when it sees an "endTag" event.
-        // We do not reduce the stack to nothing.
-        if (this.elementWalkerStack.length > 1) {
-          this.elementWalkerStack.shift();
-        }
+
+      if (this.misplacedDepth > 0) {
+        this.misplacedDepth--;
       }
     }
 
@@ -567,11 +532,7 @@ walker: the internal logic is incorrect");
 
   private _fireOnCurrentWalkers(name: string,
                                 params: string[]): InternalFireEventResult {
-    const topMisplacedElement = this._misplacedElements[0];
-    // This is the walker we must fire all our events on.
-    const walkers = topMisplacedElement === undefined ?
-      this.elementWalkerStack[0] :
-      [topMisplacedElement.walker];
+    const walkers = this.elementWalkerStack[0];
 
     if (walkers.length === 0) {
       return undefined;
@@ -645,13 +606,6 @@ walker: the internal logic is incorrect");
   }
 
   _possible(): EventSet {
-    if (this._misplacedElements.length !== 0) {
-      const mpe = this._misplacedElements[0];
-
-      // Return an empty set if the tags are unknown to us.
-      return mpe.walker.possible();
-    }
-
     let possible = makeEventSet();
     for (const walker of this.elementWalkerStack[0]) {
       union(possible, walker._possible());
