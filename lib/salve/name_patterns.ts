@@ -36,9 +36,7 @@ export abstract class Base {
    *
    * @param other The other pattern to check.
    */
-  intersects(other: ConcreteName): boolean {
-    return this.intersection(other) !== 0;
-  }
+  abstract intersects(other: ConcreteName): boolean;
 
   /**
    * Computes the intersection of two patterns.
@@ -177,7 +175,14 @@ export class Name extends Base {
   }
 
   match(ns: string, name: string): boolean {
-    return this.ns === ns && this.name === name;
+    return this.name === name && this.ns === ns;
+  }
+
+  intersects(other: ConcreteName): boolean {
+    return other instanceof Name ?
+      this.match(other.ns, other.name) :
+      // Delegate to the other classes.
+      other.intersects(this);
   }
 
   intersection(other: ConcreteName | 0): ConcreteName | 0 {
@@ -280,6 +285,10 @@ export class NameChoice extends Base {
 
   match(ns: string, name: string): boolean {
     return this.a.match(ns, name) || this.b.match(ns, name);
+  }
+
+  intersects(other: ConcreteName): boolean {
+    return this.a.intersects(other) || this.b.intersects(other);
   }
 
   intersection(other: ConcreteName | 0): ConcreteName | 0 {
@@ -393,6 +402,17 @@ export class NsName extends Base {
   match(ns: string, name: string): boolean {
     return this.ns === ns && !(this.except !== undefined &&
                                this.except.match(ns, name));
+  }
+
+  intersects(other: ConcreteName): boolean {
+    if (other instanceof Name) {
+      return this.ns === other.ns &&
+        (this.except === undefined || !other.intersects(this.except));
+    }
+
+    return other instanceof NsName ? this.ns === other.ns :
+      // Delegate the logic to the other classes.
+      other.intersects(this);
   }
 
   intersection(other: ConcreteName | 0): ConcreteName | 0 {
@@ -577,6 +597,34 @@ export class AnyName extends Base {
 
   match(ns: string, name: string): boolean {
     return (this.except === undefined) || !this.except.match(ns, name);
+  }
+
+  intersects(other: ConcreteName): boolean {
+    if (this.except === undefined || other instanceof AnyName) {
+      return true;
+    }
+
+    if (other instanceof Name) {
+      return !this.except.intersects(other);
+    }
+
+    if (other instanceof NsName) {
+      // Reminder: the except can only be one of three things: Name, NsName or
+      // NameChoice so negation can only be 0, Name, NsName or NameChoice.
+      const negation = this.except.intersection(other);
+      if (negation === 0) {
+        return true;
+      }
+
+      if (negation instanceof Name || negation instanceof NsName ||
+          negation instanceof NameChoice) {
+        return other.subtract(negation) !== 0;
+      }
+
+      throw new Error("negation should be 0, Name, NsName or NameChoice");
+    }
+
+    throw new Error("cannot compute intersection!");
   }
 
   intersection(other: ConcreteName | 0): ConcreteName | 0 {
