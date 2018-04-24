@@ -4,6 +4,9 @@ here unless they include a fix to a specific issue reported on github.
 
 * 7.0.0:
 
+  - This version is a major reworking of the internals of salve with an aim
+    to optimize and simplify the code.
+
   - Breaking change: ``Event`` object no longer participate in the ad-hoc
     hashability protocol that this library uses.
 
@@ -21,6 +24,10 @@ here unless they include a fix to a specific issue reported on github.
 
   - Breaking change: enterContext/leaveContext/definePrefix are now methods
     rather than events.
+
+  - Breaking change: The ``Walker`` class is no longer exported. The only walker
+    ever visible to client code is ``GrammarWalker`` and this is the class that
+    should be used in variable declarations rather than ``Walker``.
 
   - New feature: introduce a pair of "compact" events named
     ``attributeNameAndValue`` and ``startTagAndAttributes`` which allow passing

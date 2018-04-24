@@ -24,7 +24,7 @@ export { Ref } from "./patterns/ref";
 export { ConcreteName, Name, NameChoice, NsName,
          AnyName } from "./name_patterns";
 
-export { eventsToTreeString, Event, EventSet, BasePattern, Pattern, Walker,
+export { eventsToTreeString, Event, EventSet, BasePattern, Pattern,
          FireEventResult, EndResult } from "./patterns/base";
 export { Grammar, GrammarWalker, RefError } from "./patterns/grammar";
 

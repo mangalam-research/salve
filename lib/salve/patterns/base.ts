@@ -256,6 +256,19 @@ function hashHelper(o: Hashable): any {
 }
 
 export type FireEventResult = false | undefined | ValidationError[];
+
+/**
+ * These are the possible values that walkers may return internaly on calls to
+ * ``fireEvent``.
+ *
+ * A value of ``false`` indicates there was no error and nothing else to report.
+ *
+ * An array of ``RefWalker`` indicates element matches.
+ *
+ * An array of ``ValidationError`` indicates validation errors.
+ *
+ * The value ``undefined`` indicates that the event did not match.
+ */
 export type InternalFireEventResult = false | undefined |
   (ValidationError | RefWalker)[];
 export type EndResult = false | ValidationError[];
@@ -835,28 +848,6 @@ export abstract class InternalWalker<T extends BasePattern>
    * we are processing attributes.
    */
   abstract canEndAttribute: boolean;
-}
-
-/**
- * This is the class of all walkers that may be seen by code that uses
- * salve. For historical reasons, it is just called ``Walker`` and not
- * ``ExternalWalker``.
- */
-export abstract class Walker<T extends BasePattern>
-  extends BaseWalker<T> {
-  /**
-   * Passes an event to the walker for handling. The Walker will determine
-   * whether it or one of its children can handle the event.
-   *
-   * @param name The event name.
-   *
-   * @param params The event parameters.
-   *
-   * @returns The value ``false`` if there was no error. The value ``undefined``
-   * if no walker matches the pattern. Otherwise, an array of
-   * [[ValidationError]] objects.
-   */
-  abstract fireEvent(name: string, params: string[]): FireEventResult;
 }
 
 //  LocalWords:  RNG MPL lookahead xmlns uri CodeMirror tokenizer enterStartTag

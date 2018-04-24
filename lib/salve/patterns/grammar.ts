@@ -13,9 +13,9 @@ import { NameResolver } from "../name_resolver";
 import { filter, union } from "../set";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
-import { BasePattern, EndResult, Event, EventSet, FireEventResult,
+import { BasePattern, BaseWalker, EndResult, Event, EventSet, FireEventResult,
          InternalFireEventResult, InternalWalker, makeEventSet, Pattern,
-         Walker } from "./base";
+         } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
 import { Ref, RefWalker } from "./ref";
@@ -224,7 +224,7 @@ class MisplacedElementWalker implements IWalker {
 /**
  * Walker for [[Grammar]].
  */
-export class GrammarWalker extends Walker<Grammar> {
+export class GrammarWalker extends BaseWalker<Grammar> {
   private readonly nameResolver: NameResolver;
 
   private _swallowAttributeValue: boolean;
