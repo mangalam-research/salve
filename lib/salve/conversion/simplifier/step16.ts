@@ -165,11 +165,9 @@ function clone(node: Element): Element;
 function clone(node: Text): Text;
 function clone(node: Element | Text): Element| Text {
   if (node instanceof Element) {
-    const ret = new Element(node);
     const newChildren = node.children.map(clone);
-    ret.append(newChildren);
 
-    return ret;
+    return new Element(node, newChildren);
   }
 
   if (node instanceof Text) {

@@ -40,27 +40,7 @@ export class Parser {
 export type ConcreteNode = Element | Text;
 
 export abstract class Node {
-  /** The children of this element. */
-  readonly children: ConcreteNode[] = [];
-
   abstract readonly text: string;
-
-  /**
-   * The element children of this element.
-   */
-  get elements(): IterableIterator<Element>{
-    // tslint:disable-next-line:no-var-self no-this-assignment
-    const me = this;
-
-    return (function *(): IterableIterator<Element> {
-      for (const child of me.children) {
-        // tslint:disable-next-line:no-use-before-declare
-        if (child instanceof Element) {
-          yield child;
-        }
-      }
-    }());
-  }
 
   protected _parent: Element | undefined;
 
@@ -95,27 +75,6 @@ export abstract class Node {
 
     parent.replaceChildWith(this, replacement);
   }
-
-  empty(): void {
-    const children = this.children.splice(0, this.children.length);
-    for (const child of children) {
-      child.parent = undefined;
-    }
-  }
-
-  protected indexOfChild(this: ConcreteNode, child: ConcreteNode): number {
-    const parent = child.parent;
-    if (parent !== this) {
-      throw new Error("the child is not a child of this");
-    }
-
-    const index = parent.children.indexOf(child);
-    if (index === -1) {
-      throw new Error("child not among children");
-    }
-
-    return index;
-  }
 }
 
 const emptyNS = Object.create(null);
@@ -145,9 +104,30 @@ export class Element extends Node {
   attributes: Record<string, sax.QualifiedAttribute>;
 
   /**
-   * @param node The value of the ``node`` created by the SAX parser.
+   * The element children of this element.
    */
-  constructor(node: sax.QualifiedTag | Element) {
+  get elements(): IterableIterator<Element>{
+    // tslint:disable-next-line:no-var-self no-this-assignment
+    const me = this;
+
+    return (function *(): IterableIterator<Element> {
+      for (const child of me.children) {
+        // tslint:disable-next-line:no-use-before-declare
+        if (child instanceof Element) {
+          yield child;
+        }
+      }
+    }());
+  }
+
+  /**
+   * @param node The value of the ``node`` created by the SAX parser.
+   *
+   * @param children The children of this element. **These children must not yet
+   * be children of any element.**
+   */
+  constructor(node: sax.QualifiedTag | Element,
+              readonly children: ConcreteNode[] = []) {
     super();
     this.name = node.name;
     this.prefix = node.prefix;
@@ -174,6 +154,10 @@ export class Element extends Node {
     }
     else {
       this.attributes = node.attributes;
+    }
+
+    for (const child of children) {
+      child.parent = this;
     }
   }
 
@@ -294,9 +278,11 @@ export class Element extends Node {
   replaceChildAt(i: number, replacement: ConcreteNode): void {
     const child = this.children[i];
 
-    if (child === replacement) {
-      return;
-    }
+    // In practice this is not a great optimization.
+    //
+    // if (child === replacement) {
+    //   return;
+    // }
 
     if (replacement.parent !== undefined) {
       replacement.parent.removeChild(replacement);
@@ -358,6 +344,27 @@ export class Element extends Node {
       el.parent = this;
     }
     this.children.splice(index, 0, ...toInsert);
+  }
+
+  empty(): void {
+    const children = this.children.splice(0, this.children.length);
+    for (const child of children) {
+      child.parent = undefined;
+    }
+  }
+
+  protected indexOfChild(this: ConcreteNode, child: ConcreteNode): number {
+    const parent = child.parent;
+    if (parent !== this) {
+      throw new Error("the child is not a child of this");
+    }
+
+    const index = parent.children.indexOf(child);
+    if (index === -1) {
+      throw new Error("child not among children");
+    }
+
+    return index;
   }
 
   /**
@@ -541,7 +548,8 @@ export class BasicParser extends Parser {
    * the XML file but a holder for the tree of elements. It has a single child
    * which is the root of the actual file parsed.
    */
-  protected readonly stack: { el: Element; children: ConcreteNode[] }[];
+  protected readonly stack: { node: sax.QualifiedTag;
+                              children: ConcreteNode[]; }[];
 
   protected drop: number = 0;
 
@@ -549,9 +557,9 @@ export class BasicParser extends Parser {
               protected readonly validator: ValidatorI = new NullValidator()) {
     super(saxParser);
     this.stack = [{
-      // We cheat. The el field of the top level stack item won't ever be
+      // We cheat. The node field of the top level stack item won't ever be
       // accessed.
-      el: undefined as any,
+      node: undefined as any,
       children: [],
     }];
   }
@@ -577,13 +585,8 @@ export class BasicParser extends Parser {
       return;
     }
 
-    const me = new Element(node);
-    const top = this.stack[0];
-
-    top.children.push(me);
-
     this.stack.unshift({
-      el: me,
+      node,
       children: [],
     });
   }
@@ -600,8 +603,8 @@ export class BasicParser extends Parser {
     }
 
     // tslint:disable-next-line:no-non-null-assertion
-    const top = this.stack.shift()!;
-    top.el.append(top.children);
+    const { node: topNode, children } = this.stack.shift()!;
+    this.stack[0].children.push(new Element(topNode, children));
   }
 
   ontext(text: string): void {
@@ -643,7 +646,7 @@ export class ConversionParser extends BasicParser {
     }
 
     const top = this.stack[0];
-    const local = top.el.local;
+    const local = top.node.local;
     // The parser does not allow non-RNG nodes, so we don't need to check the
     // namespace.
     const keepWhitespaceNodes = local === "param" || local === "value";
