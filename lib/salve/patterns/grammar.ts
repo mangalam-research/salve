@@ -330,11 +330,11 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     if (name === "text") {
       // Process whitespace nodes
       const text = params[0];
-      if (text === "") {
-        throw new Error("firing empty text events makes no sense");
-      }
-
       if (!/\S/.test(text)) {
+        if (text === "") {
+          throw new Error("firing empty text events makes no sense");
+        }
+
         // We don't check the old value of suspendedWs because salve does not
         // allow two text events in a row. So we should never have to
         // concatenate values.
@@ -392,9 +392,42 @@ export class GrammarWalker extends BaseWalker<Grammar> {
       return [new ValidationError("attribute value required")];
     }
 
-    let ret = this._fireOnCurrentWalkers(name, params);
+    const ret = this._fireOnCurrentWalkers(name, params);
 
-    if (ret === undefined) {
+    const errors: ValidationError[] = [];
+    if (ret instanceof Array) {
+      // The only events that may return Ref in the array are those that
+      // start elements.
+      if (name === "enterStartTag" || name === "startTagAndAttributes") {
+        const newWalkers: InternalWalker<BasePattern>[] = [];
+        const boundName = new Name("", params[0], params[1]);
+        for (const item of ret) {
+          if (item instanceof ValidationError) {
+            errors.push(item);
+          }
+          else {
+            const walker = item.element.newWalker(this.nameResolver,
+                                                  boundName);
+            // If we get anything else than false here, the internal logic is
+            // wrong.
+            if (walker.fireEvent(name, params) !== false) {
+              throw new Error("error or failed to match on a new element \
+walker: the internal logic is incorrect");
+            }
+            newWalkers.push(walker);
+          }
+        }
+
+        if (newWalkers.length !== 0) {
+          this.elementWalkerStack.unshift(newWalkers);
+        }
+      }
+      else {
+        // We cannot have Ref in the array.
+        errors.push(...ret as ValidationError[]);
+      }
+    }
+    else if (ret === undefined) {
       switch (name) {
         case "enterStartTag":
         case "startTagAndAttributes":
@@ -402,16 +435,13 @@ export class GrammarWalker extends BaseWalker<Grammar> {
           if (this.misplacedDepth > 0) {
             this.misplacedDepth++;
             this.elementWalkerStack.unshift([new MisplacedElementWalker()]);
-
-            // We swallow the error.
-            ret = false;
           }
           else {
             const elName = new Name("", params[0], params[1]);
-            ret = [new ElementNameError(
+            errors.push(new ElementNameError(
               name === "enterStartTag" ?
                 "tag not allowed here" :
-                "tag not allowed here with these attributes", elName)];
+                "tag not allowed here with these attributes", elName));
 
             // Try to infer what element is meant by this errant tag. If we
             // can't find a candidate, then fall back to a dumb mode.
@@ -433,24 +463,26 @@ export class GrammarWalker extends BaseWalker<Grammar> {
           }
           break;
         case "endTag":
-          ret = [new ElementNameError("unexpected end tag",
-                                      new Name("", params[0], params[1]))];
+          errors.push(new ElementNameError("unexpected end tag",
+                                           new Name("", params[0], params[1])));
           break;
         case "attributeName":
-          ret = [new AttributeNameError("attribute not allowed here",
-                                        new Name("", params[0], params[1]))];
+          errors.push(new AttributeNameError(
+            "attribute not allowed here",
+            new Name("", params[0], params[1])));
           this._swallowAttributeValue = true;
           break;
         case "attributeNameAndValue":
-          ret = [new AttributeNameError("attribute not allowed here",
-                                        new Name("", params[0], params[1]))];
+          errors.push(new AttributeNameError(
+            "attribute not allowed here",
+            new Name("", params[0], params[1])));
           break;
         case "attributeValue":
-          ret = [new ValidationError("unexpected attributeValue event; it \
-is likely that fireEvent is incorrectly called")];
+          errors.push(new ValidationError("unexpected attributeValue event; it \
+is likely that fireEvent is incorrectly called"));
           break;
         case "text":
-          ret = [new ValidationError("text not allowed here")];
+          errors.push(new ValidationError("text not allowed here"));
           break;
         case "leaveStartTag":
           // If MisplacedElementWalker did not exist then we would get here if a
@@ -470,38 +502,6 @@ ${name}`);
       }
     }
 
-    const errors: ValidationError[] = [];
-    if (ret instanceof Array) {
-      const newWalkers: InternalWalker<BasePattern>[] = [];
-      let boundName: Name | undefined;
-      for (const item of ret) {
-        if (item instanceof ValidationError) {
-          errors.push(item);
-        }
-        else {
-          if (boundName === undefined) {
-            boundName = new Name("", params[0], params[1]);
-          }
-
-          const walker = item.element.newWalker(this.nameResolver,
-                                                boundName);
-          // If we get anything else than false here, the internal logic is
-          // wrong.
-          if (walker.fireEvent(name, params) !== false) {
-            throw new Error("error or failed to match on a new element \
-walker: the internal logic is incorrect");
-          }
-          newWalkers.push(walker);
-        }
-      }
-
-      if (newWalkers.length !== 0) {
-        this.elementWalkerStack.unshift(newWalkers);
-      }
-    }
-
-    const finalResult = errors.length !== 0 ? errors : false;
-
     if (name === "endTag") {
       // We do not need to end the walkers because the fireEvent handler
       // for elements calls end when it sees an "endTag" event.
@@ -518,14 +518,15 @@ walker: the internal logic is incorrect");
     if (wsErr === undefined) {
       // If we have another error, we don't want to make an issue that text
       // was not matched. Otherwise, we want to alert the user.
-      wsErr = !finalResult ?
-        [new ValidationError("text not allowed here")] : [];
+      if (errors.length === 0) {
+        errors.push(new ValidationError("text not allowed here"));
+      }
     }
-    else if (wsErr === false) {
-      return finalResult;
+    else if (wsErr) {
+      errors.push(...wsErr);
     }
 
-    return !finalResult ? wsErr : wsErr.concat(finalResult);
+    return errors.length !== 0 ? errors : false;
   }
 
   private _fireOnCurrentWalkers(name: string,
