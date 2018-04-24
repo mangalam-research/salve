@@ -105,10 +105,6 @@ export abstract class Node {
 
   protected indexOfChild(this: ConcreteNode, child: ConcreteNode): number {
     const parent = child.parent;
-    if (parent === undefined) {
-      throw new Error("no parent");
-    }
-
     if (parent !== this) {
       throw new Error("the child is not a child of this");
     }
@@ -278,14 +274,17 @@ export class Element extends Node {
   }
 
   removeChild(child: ConcreteNode): void {
-    this.removeChildAt(this.indexOfChild(child));
+    // We purposely don't call removeChildAt, so as to save a call.
+    //
+    // We don't check whether there's an element at [0]. If not, a hard fail is
+    // appropriate. It shouldn't happen.
+    this.children.splice(this.indexOfChild(child), 1)[0].parent = undefined;
   }
 
   removeChildAt(i: number): void {
-    const children = this.children.splice(i, 1);
-    if (children[0] !== undefined) {
-      children[0].parent = undefined;
-    }
+    // We don't check whether there's an element at [0]. If not, a hard fail is
+    // appropriate. It shouldn't happen.
+    this.children.splice(i, 1)[0].parent = undefined;
   }
 
   replaceChildWith(child: ConcreteNode, replacement: ConcreteNode): void {
@@ -439,12 +438,6 @@ export class Text extends Node {
   }
 }
 
-interface TagInfo {
-  uri: string;
-  local: string;
-  hasContext: boolean;
-}
-
 export interface ValidatorI {
   onopentag(node: sax.QualifiedTag): void;
   onclosetag(node: sax.QualifiedTag): void;
@@ -458,8 +451,8 @@ export class Validator implements ValidatorI {
   /** The walker used for validating. */
   private readonly walker: GrammarWalker;
 
-  /** The tag stack. */
-  private readonly tagStack: TagInfo[] = [];
+  /** The context stack. */
+  private readonly contextStack: boolean[] = [];
 
   /** A text buffer... */
   private textBuf: string = "";
@@ -504,22 +497,18 @@ export class Validator implements ValidatorI {
     }
     this.fireEvent("startTagAndAttributes", [node.uri, node.local,
                                              ...attributeEvents]);
-    this.tagStack.unshift({
-      uri: node.uri,
-      local: node.local,
-      hasContext,
-    });
+    this.contextStack.unshift(hasContext);
   }
 
   onclosetag(node: sax.QualifiedTag): void {
     this.flushTextBuf();
-    const tagInfo: TagInfo | undefined = this.tagStack.shift();
-    if (tagInfo === undefined) {
+    const hasContext = this.contextStack.shift();
+    if (hasContext === undefined) {
       throw new Error("stack underflow");
     }
 
-    this.fireEvent("endTag", [tagInfo.uri, tagInfo.local]);
-    if (tagInfo.hasContext) {
+    this.fireEvent("endTag", [node.uri, node.local]);
+    if (hasContext) {
       this.walker.leaveContext();
     }
   }
