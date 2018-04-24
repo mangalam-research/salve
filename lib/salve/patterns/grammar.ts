@@ -539,9 +539,7 @@ walker: the internal logic is incorrect");
           // when the context was added to this._misplacedElements. The endTag
           // event corresponds to the enterStartTag event that was issued for
           // the misplaced element.
-          const startEvent = topMisplacedElement.event;
           this._misplacedElements.shift();
-          this._fireOnCurrentWalkers("endTag", [startEvent[1], startEvent[2]]);
         }
       }
       else {
