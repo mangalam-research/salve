@@ -327,23 +327,6 @@ export class GrammarWalker extends BaseWalker<Grammar> {
    */
   // tslint:disable-next-line: max-func-body-length
   fireEvent(name: string, params: string[]): FireEventResult {
-    if (name === "text") {
-      // Process whitespace nodes
-      const text = params[0];
-      if (!/\S/.test(text)) {
-        if (text === "") {
-          throw new Error("firing empty text events makes no sense");
-        }
-
-        // We don't check the old value of suspendedWs because salve does not
-        // allow two text events in a row. So we should never have to
-        // concatenate values.
-        this.suspendedWs = text;
-
-        return false;
-      }
-    }
-
     // Whitespaces are problematic from a validation perspective. On the one
     // hand, if an element may contain only other elements and no text, then XML
     // allows putting whitespace between the elements. That whitespace must not
@@ -365,6 +348,29 @@ export class GrammarWalker extends BaseWalker<Grammar> {
       case "enterStartTag":
       case "startTagAndAttributes":
         break;
+        // Earlier versions of salve processed text events ahead of this switch
+        // block, but we moved it here to improve performance. There's no issue
+        // with having a case for text here because salve disallows firing more
+        // than one text event in sequence.
+      case "text": {
+        // Process whitespace nodes
+        const text = params[0];
+        if (!/\S/.test(text)) {
+          if (text === "") {
+            throw new Error("firing empty text events makes no sense");
+          }
+
+          // We don't check the old value of suspendedWs because salve does not
+          // allow two text events in a row. So we should never have to
+          // concatenate values.
+          this.suspendedWs = text;
+          this.ignoreNextWs = ignoreNextWsNow;
+
+          return false;
+        }
+
+        break;
+      }
       case "endTag":
         this.ignoreNextWs = true;
         /* falls through */
@@ -533,28 +539,22 @@ ${name}`);
                                 params: string[]): InternalFireEventResult {
     const walkers = this.elementWalkerStack[0];
 
-    if (walkers.length === 0) {
-      return undefined;
-    }
+    // Checking whether walkers.length === 0 would not be a particularly useful
+    // optimization, as we don't let that happen.
 
-    // We want noMatch true if none of the walkers matched.
-    let noMatch = true;
     let arr: (ValidationError | RefWalker)[] = [];
     const remainingWalkers: IWalker[] = [];
     for (const walker of walkers) {
       const result = walker.fireEvent(name, params);
       // We immediately filter out results that report a match (i.e. false).
-      if (result !== undefined) {
-        noMatch = false;
-        if (result !== false) {
-          // There's no point in recording errors if we're going to toss them
-          // anyway.
-          if (remainingWalkers.length === 0) {
-            arr = arr.concat(result);
-          }
-        }
-        else {
-          remainingWalkers.push(walker);
+      if (result === false) {
+        remainingWalkers.push(walker);
+      }
+      else if (result !== undefined) {
+        // There's no point in recording errors if we're going to toss them
+        // anyway.
+        if (remainingWalkers.length === 0) {
+          arr = arr.concat(result);
         }
       }
     }
@@ -563,19 +563,14 @@ ${name}`);
     // were not, then we just keep the successful ones. But removing all walkers
     // at once prevents us from giving useful error messages.
     if (remainingWalkers.length !== 0) {
-      // Yes, we modify the array in-place.
-      walkers.splice(0, walkers.length, ...remainingWalkers);
+      this.elementWalkerStack[0] = remainingWalkers;
 
       // If some of the walkers matched, we ignore the errors from the other
       // walkers.
       return false;
     }
 
-    if (noMatch) {
-      return undefined;
-    }
-
-    return (arr.length !== 0) ? arr : false;
+    return (arr.length !== 0) ? arr : undefined;
   }
 
   canEnd(attribute: boolean = false): boolean {
