@@ -228,18 +228,9 @@ the tree created from the RNG. (See above.) The events currently supported by
   event per line. You have to concatenate the lines and fire a single ``text``
   event.
 
-  Do note generate ``text`` events with an empty string as the
+  Do not generate ``text`` events with an empty string as the
   value. (Conversely, a valid document **must** have an ``attributeValue`` for
   all attributes, even those that have empty text as a value.)
-
-``"enterContext", []``
-  Emitted when entering a new namespace context.
-
-``"leaveContext", []``
-  Emitted when leaving a namespace context.
-
-``"definePrefix", [prefix, uri]``
-  Emitted when defining a namespace prefix.
 
 Salve support a couple of compact events that serve to pass as one event data
 that would normally be passed as multiple events:
@@ -277,24 +268,23 @@ then what the parser has seen by the time it gets to the end of the buffer is an
 will not see a ``leaveStartTag`` event until the user enters the greater-than
 symbol ending the start tag.
 
-You must issue an ``enterContext`` event each time you encounter a start tag
-that defines namespaces and issue ``leaveContext`` when you encounter its
-corresponding end tag. You must also issue ``definePrefix`` for each prefix
+You must call ``enterContext()`` each time you encounter a start tag that
+defines namespaces and call ``leaveContext()`` when you encounter its
+corresponding end tag. You must alsocall ``definePrefix(...)`` for each prefix
 defined by the element. Example::
 
     <p xmlns="q" xmlns:foo="foons">...
 
-would require issuing::
+would require calling::
 
-    "enterContext", []
-    "definePrefix", ["", "q"]
-    "definePrefix", ["foo", "foons"]
+    enterContext()
+    definePrefix("", "q")
+    definePrefix("foo", "foons")
 
-Presumably, after firing the events above, your code would call
-``resolveName("p")`` on your walker to determine what namespace ``p`` is in,
-which would yield the result ``"q"``. And then it would fire the
-``enterStartTag`` event with ``q`` as the namespace and ``p`` as the local name
-of the tag::
+Presumably, after the above, your code would call ``resolveName("p")`` on your
+walker to determine what namespace ``p`` is in, which would yield the result
+``"q"``. And then it would fire the ``enterStartTag`` event with ``q`` as the
+namespace and ``p`` as the local name of the tag::
 
     "enterStartTag", ["q", "p"]
 
@@ -307,8 +297,8 @@ default namespace in effect **before** it started, which could be other than
 ``q``. Similarly, ``leaveContext`` must be issued after the corresponding
 ``endTag`` event.
 
-For the lazy: it is possible to issue ``enterContext`` for each start tag and
-``leaveContext`` for each end tag irrespective of whether or not the start tag
+For the lazy: it is possible to call ``enterContext()`` for each start tag and
+``leaveContext()`` for each end tag irrespective of whether or not the start tag
 declares new namespaces. The test suite does it this way.  Note, however, that
 performance will be affected somewhat because name resolution will have to
 potentially search a deeper stack of contexts than would be strictly necessary.

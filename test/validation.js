@@ -128,7 +128,24 @@ class EventRecorder {
         `\ninvoking fireEvent with Event: ${evParams.join(", ").trim()
 .replace(/\s+\n/g, "\n")}`, evParams);
     }
-    const ret = walker.fireEvent(evParams[0], evParams.slice(1));
+
+    let ret;
+    switch (evParams[0]) {
+    case "enterContext":
+      walker.enterContext();
+      ret = false;
+      break;
+    case "leaveContext":
+      walker.leaveContext();
+      ret = false;
+      break;
+    case "definePrefix":
+      walker.definePrefix(...evParams.slice(1));
+      ret = false;
+      break;
+    default:
+      ret = walker.fireEvent(evParams[0], evParams.slice(1));
+    }
     this.ce.compare(`fireEvent returned ${errorsToString(ret)}`, evParams);
     if (this.check_possible) {
       const possibleEvs = Array.from(walker.possible());

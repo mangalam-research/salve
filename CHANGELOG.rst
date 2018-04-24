@@ -19,6 +19,9 @@ here unless they include a fix to a specific issue reported on github.
 
   - Breaking change: fireEvent no longer takes ``Event`` objects.
 
+  - Breaking change: enterContext/leaveContext/definePrefix are now methods
+    rather than events.
+
   - New feature: introduce a pair of "compact" events named
     ``attributeNameAndValue`` and ``startTagAndAttributes`` which allow passing
     a smaller number of events to salve.

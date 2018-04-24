@@ -9,7 +9,7 @@ import * as sax from "sax";
 
 import { ValidationError } from "../errors";
 import { XML1_NAMESPACE, XMLNS_NAMESPACE } from "../name_resolver";
-import { Grammar, Walker } from "../patterns";
+import { Grammar, GrammarWalker } from "../patterns";
 import { fixPrototype } from "../tools";
 import { RELAXNG_URI } from "./simplifier/util";
 
@@ -456,7 +456,7 @@ export class Validator implements ValidatorI {
   readonly errors: ValidationError[] = [];
 
   /** The walker used for validating. */
-  private readonly walker: Walker<Grammar>;
+  private readonly walker: GrammarWalker;
 
   /** The tag stack. */
   private readonly tagStack: TagInfo[] = [];
@@ -493,10 +493,10 @@ export class Validator implements ValidatorI {
       if ((local === "" && name === "xmlns") ||
           prefix === "xmlns") { // xmlns="..." or xmlns:q="..."
         if (!hasContext) {
-          this.fireEvent("enterContext", []);
+          this.walker.enterContext();
           hasContext = true;
         }
-        this.fireEvent("definePrefix", [local, value]);
+        this.walker.definePrefix(local, value);
       }
       else {
         attributeEvents.push(uri, local, value);
@@ -520,7 +520,7 @@ export class Validator implements ValidatorI {
 
     this.fireEvent("endTag", [tagInfo.uri, tagInfo.local]);
     if (tagInfo.hasContext) {
-      this.fireEvent("leaveContext", []);
+      this.walker.leaveContext();
     }
   }
 

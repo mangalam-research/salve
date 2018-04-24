@@ -126,9 +126,9 @@ export async function parse(rngSource: string | Grammar,
       }
     }
     if (nsDefinitions.length !== 0) {
-      fireEvent("enterContext", []);
+      walker.enterContext();
       for (const definition of nsDefinitions) {
-        fireEvent("definePrefix", definition);
+        walker.definePrefix(definition[0], definition[1]);
       }
     }
     fireEvent("enterStartTag", [node.uri, node.local]);
@@ -155,7 +155,7 @@ export async function parse(rngSource: string | Grammar,
     }
     fireEvent("endTag", [tagInfo.uri, tagInfo.local]);
     if (tagInfo.hasContext) {
-      fireEvent("leaveContext", []);
+      walker.leaveContext();
     }
   };
 

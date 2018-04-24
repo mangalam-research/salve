@@ -301,6 +301,18 @@ export class GrammarWalker extends Walker<Grammar> {
     return this.nameResolver.unresolveName(uri, name);
   }
 
+  enterContext(): void {
+    this.nameResolver.enterContext();
+  }
+
+  leaveContext(): void {
+    this.nameResolver.leaveContext();
+  }
+
+  definePrefix(prefix: string, uri: string): void {
+    this.nameResolver.definePrefix(prefix, uri);
+  }
+
   /**
    * On a [[GrammarWalker]] this method cannot return ``undefined``. An
    * undefined value would mean nothing matched, which is a validation error.
@@ -315,35 +327,21 @@ export class GrammarWalker extends Walker<Grammar> {
    */
   // tslint:disable-next-line: max-func-body-length
   fireEvent(name: string, params: string[]): FireEventResult {
-    switch (name) {
-      case "enterContext":
-        this.nameResolver.enterContext();
+    if (name === "text") {
+      // Process whitespace nodes
+      const text = params[0];
+      if (text === "") {
+        throw new Error("firing empty text events makes no sense");
+      }
+
+      if (!/\S/.test(text)) {
+        // We don't check the old value of suspendedWs because salve does not
+        // allow two text events in a row. So we should never have to
+        // concatenate values.
+        this.suspendedWs = text;
 
         return false;
-      case "leaveContext":
-        this.nameResolver.leaveContext();
-
-        return false;
-      case "definePrefix":
-        this.nameResolver.definePrefix(params[0], params[1]);
-
-        return false;
-      case "text":
-        // Process whitespace nodes
-        const text = params[0];
-        if (text === "") {
-          throw new Error("firing empty text events makes no sense");
-        }
-
-        if (!/\S/.test(text)) {
-          // We don't check the old value of suspendedWs because salve does not
-          // allow two text events in a row. So we should never have to
-          // concatenate values.
-          this.suspendedWs = text;
-
-          return false;
-        }
-      default:
+      }
     }
 
     // Whitespaces are problematic from a validation perspective. On the one
