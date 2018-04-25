@@ -431,6 +431,10 @@ export class Element extends Node {
 
     return attr;
   }
+
+  clone(): Element {
+    return new Element(this, this.children.map((child) => child.clone()));
+  }
 }
 
 export class Text extends Node {
@@ -442,6 +446,10 @@ export class Text extends Node {
    */
   constructor(readonly text: string) {
     super();
+  }
+
+  clone(): Text {
+    return new Text(this.text);
   }
 }
 

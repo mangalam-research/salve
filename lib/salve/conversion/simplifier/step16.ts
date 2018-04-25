@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element, Text } from "../parser";
+import { Element } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
 import { findDescendantsByLocalName, removeUnreferencedDefs } from "./util";
 
@@ -85,7 +85,7 @@ function removeDefsWithoutElement(state: State, el: Element): void {
     }
 
     const defChild = child.children[0] as Element;
-    defChild.remove();
+    child.empty(); // Effectively remove defChild from its parent.
     const name = child.mustGetAttribute("name");
     state.removedDefines.set(name, { topElement: defChild, used: false });
 
@@ -131,15 +131,15 @@ function substituteRefs(state: State, el: Element): Element {
       // If the definition was used, clone it to allow for multiple copies of
       // the definition's content to be put into the tree if it is references
       // multiple times.
-      let cloned = def.used ? clone(def.topElement) : def.topElement;
-      if (!def.used) {
+      if (def.used) {
+        ret = def.topElement.clone();
+      }
+      else {
         // Walk the element we're about to put into the tree. We walk it only
         // once, and record the result of walking it.
-        def.topElement = cloned = substituteRefs(state, cloned);
+        def.topElement = ret = substituteRefs(state, def.topElement);
         def.used = true;
       }
-
-      ret = cloned;
     }
   }
   else if (!skip.has(local)) {
@@ -159,20 +159,6 @@ function substituteRefs(state: State, el: Element): Element {
   }
 
   return ret;
-}
-
-function clone(node: Element): Element;
-function clone(node: Text): Text;
-function clone(node: Element | Text): Element| Text {
-  if (node instanceof Element) {
-    return new Element(node, node.children.map(clone));
-  }
-
-  if (node instanceof Text) {
-    return new Text(node.text);
-  }
-
-  throw new Error("cannot clone node");
 }
 
 /**
