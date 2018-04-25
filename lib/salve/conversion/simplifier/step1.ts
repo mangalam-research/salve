@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element } from "../parser";
+import { Element, Text } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
 import { findMultiDescendantsByLocalName, getName, groupBy, indexBy,
          RELAXNG_URI } from "./util";
@@ -63,6 +63,35 @@ class Step1 {
       }
       else if (name !== "xmlns" && uri !== "" && prefix !== "xmlns") {
         delete attrs[name];
+      }
+    }
+
+    for (const attrName of ["name", "type", "combine"]) {
+      const attr = el.getAttribute(attrName);
+      if (attr !== undefined) {
+        el.setAttribute(attrName, attr.trim());
+      }
+    }
+
+    const local = el.local;
+    // We don't normalize text nodes in param or value.
+    if (!(local === "param" || local === "value")) {
+      const children = el.children;
+      for (let i = 0; i < children.length; ++i) {
+        const child = children[i];
+        if (child instanceof Element) {
+          continue;
+        }
+
+        const clean = child.text.trim();
+        if (clean === "") {
+          el.removeChildAt(i);
+          // Move back so that we don't skip an element...
+          i--;
+        }
+        else if (local === "name") {
+          child.replaceWith(new Text(clean));
+        }
       }
     }
 
@@ -181,12 +210,21 @@ grammar`);
 }
 
 /**
- * Modify the tree so that all references to external resources (``externalRef``
- * and ``include``) are replaced by the contents of the references. It
- * essentially "flattens" a schema made of group of documents to a single
- * document.
+ * Modify the tree:
  *
- * Note that step1 also subsumes what was step2 in the XSLT-based transforms.
+ * - All references to external resources (``externalRef`` and ``include``) are
+ *   replaced by the contents of the references. It essentially "flattens" a
+ *   schema made of group of documents to a single document.
+ *
+ * - Remove text nodes that contain only white spaces.  Text nodes in the
+ *   elements ``param`` and ``value`` are excluded.
+ *
+ * - Trim the text node in the elements named ``name``.
+ *
+ * - Also trim the values of the attributes ``name``, ``type`` and ``combine``.
+ *
+ * Note that step1 also subsumes what was step2 and step3 in the XSLT-based
+ * transforms.
  *
  * @param documentBase The base URI of the tree being processed.
  *

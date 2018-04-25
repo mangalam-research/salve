@@ -1,16 +1,2 @@
 <?xml version="1.0"?>
-<group xml:base="er_sub1/" xmlns="http://relaxng.org/ns/structure/1.0" xmlns:q="uriQ">
-  <group>
-    <group xml:base="sub2">
-      <group>
-        <group xml:base="sub3/y">
-          <element datatypeLibrary="" name="x" xml:base="file:@CURDIR@/step1/er_sub1/sub3/x">
-  <element datatypeLibrary="moo" name="z" xml:base="file:@CURDIR@/step1/er_sub1/sub3/z">
-  <empty/>
-</element>
-</element>
-        </group>
-      </group>
-    </group>
-  </group>
-</group>
+<group xmlns="http://relaxng.org/ns/structure/1.0" xmlns:q="uriQ"><group><group xml:base="sub2"><group><group xml:base="sub3/y"><element datatypeLibrary="" name="x" xml:base="file:@CURDIR@/step1/er_sub1/sub3/x"><element datatypeLibrary="moo" name="z" xml:base="file:@CURDIR@/step1/er_sub1/sub3/z"><empty/></element></element></group></group></group></group></group>

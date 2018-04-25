@@ -1,12 +1,2 @@
 <?xml version="1.0"?>
-<grammar xml:base="inc_sub1/" xmlns="http://relaxng.org/ns/structure/1.0">
-  <div datatypeLibrary="" xml:base="file:@CURDIR@/step1/inc_sub1/"><div>
-  <div datatypeLibrary="" xml:base="file:@CURDIR@/step1/inc_sub1/throughBase"><div>
-  <start>
-    <element name="foo">
-      <empty/>
-    </element>
-  </start>
-</div></div>
-</div></div>
-</grammar>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"><div datatypeLibrary=""><div><div datatypeLibrary=""><div><start><element name="foo"><empty/></element></start></div></div></div></div></grammar>

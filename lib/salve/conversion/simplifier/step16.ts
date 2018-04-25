@@ -165,9 +165,7 @@ function clone(node: Element): Element;
 function clone(node: Text): Text;
 function clone(node: Element | Text): Element| Text {
   if (node instanceof Element) {
-    const newChildren = node.children.map(clone);
-
-    return new Element(node, newChildren);
+    return new Element(node, node.children.map(clone));
   }
 
   if (node instanceof Text) {

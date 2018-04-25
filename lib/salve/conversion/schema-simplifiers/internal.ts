@@ -548,11 +548,6 @@ export class InternalSimplifier extends BaseSimplifier {
       tree = await simplifier.step1(schemaPath, tree, this.parse.bind(this));
     }
 
-    if (this.options.simplifyTo >= 3) {
-      this.stepStart(3);
-      tree = simplifier.step3(tree);
-    }
-
     if (this.options.simplifyTo >= 4) {
       this.stepStart(4);
       tree = simplifier.step4(tree);
