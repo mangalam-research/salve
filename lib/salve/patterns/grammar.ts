@@ -342,8 +342,6 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     // whitespace is to satisfy a data or value pattern because they can require
     // a sequence of whitespaces.
     let wsErr: FireEventResult = false;
-    const ignoreNextWsNow = this.ignoreNextWs;
-    this.ignoreNextWs = false;
     if (name === "text") {
       // Earlier versions of salve processed text events ahead of this switch
       // block, but we moved it here to improve performance. There's no issue
@@ -360,19 +358,21 @@ export class GrammarWalker extends BaseWalker<Grammar> {
         // allow two text events in a row. So we should never have to
         // concatenate values.
         this.suspendedWs = text;
-        this.ignoreNextWs = ignoreNextWsNow;
 
         return false;
       }
     }
     else if (name === "endTag") {
-        this.ignoreNextWs = true;
-        if (!ignoreNextWsNow && this.suspendedWs !== undefined) {
-          // Casting is safe here because text events cannot return
-          // elements.
-          wsErr = this._fireOnCurrentWalkers(
-            "text", [this.suspendedWs]) as FireEventResult;
-        }
+      if (!this.ignoreNextWs && this.suspendedWs !== undefined) {
+        // Casting is safe here because text events cannot return
+        // elements.
+        wsErr = this._fireOnCurrentWalkers(
+          "text", [this.suspendedWs]) as FireEventResult;
+      }
+      this.ignoreNextWs = true;
+    }
+    else {
+      this.ignoreNextWs = false;
     }
     // Absorb the whitespace: poof, gone!
     this.suspendedWs = undefined;

@@ -227,23 +227,6 @@ ${this.constructor.name} other class ${s.constructor.name}`);
 }
 
 /**
- * A set of objects. The objects are distinguished by a hash
- * function.
- */
-export class HashSet extends HashBase {
-
-  /**
-   * Adds a value to the set.
-   *
-   * @param x The value to add. This value must be hashable by the hash function
-   * that was used to create the collection.
-   */
-  add(x: any): void {
-    this._store(this.hashF(x), x);
-  }
-}
-
-/**
  * A map of (key, value) pairs. The keys are distinguished by means of a hash
  * function.
  */
