@@ -45,15 +45,11 @@ export abstract class Node {
   protected _parent: Element | undefined;
 
   get parent(): Element | undefined {
-    return this.getParent();
+    return this._parent;
   }
 
   set parent(value: Element | undefined) {
     this.setParent(value);
-  }
-
-  protected getParent(): Element | undefined {
-    return this._parent;
   }
 
   protected setParent(value: Element | undefined): void {
@@ -162,11 +158,6 @@ export class Element extends Node {
   }
 
   setParent(value: Element | undefined): void {
-    // This can save appreciable time.
-    if (value === this.parent) {
-      return;
-    }
-
     //
     // The cost of looking for cycles is noticeable. So we should use this
     // only when debugging new code.
@@ -182,7 +173,8 @@ export class Element extends Node {
     // }
 
     this._path = undefined; // This becomes void.
-    super.setParent(value);
+    // We inline super.setParent here:
+    this._parent = value;
   }
 
   resolve(name: string): string | undefined {
