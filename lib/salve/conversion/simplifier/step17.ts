@@ -12,37 +12,6 @@ import { removeUnreferencedDefs } from "./util";
 const skip = new Set(["name", "anyName", "nsName", "param", "empty",
                       "text", "value", "notAllowed", "ref"]);
 
-function attributeHandler(el: Element): void {
-  // An attribute (or list, group, interleave, oneOrMore) with at least one
-  // notAllowed is replaced with notAllowed.
-  // tslint:disable-next-line:no-non-null-assertion
-  el.parent!.replaceChildWith(el, Element.makeElement("notAllowed"));
-}
-const handlers = {
-  choice(el: Element, firstNA: boolean, secondNA: boolean): void {
-    // tslint:disable-next-line:no-non-null-assertion
-    const parent = el.parent!;
-    if (firstNA && secondNA) {
-      // A choice with two notAllowed is replaced with notAllowed.
-      parent.replaceChildWith(el, Element.makeElement("notAllowed"));
-    }
-    else {
-      // A choice with exactly one notAllowed is replaced with the other child
-      // of the choice.
-      parent.replaceChildWith(el, el.children[firstNA ? 1 : 0] as Element);
-    }
-  },
-  attribute: attributeHandler,
-  list: attributeHandler,
-  group: attributeHandler,
-  interleave: attributeHandler,
-  oneOrMore: attributeHandler,
-  except(el: Element): void {
-    // An except with notAllowed is removed.
-    el.remove();
-  },
-};
-
 function walk(el: Element, refs: Set<string>): void {
   const local = el.local;
 
@@ -63,15 +32,41 @@ function walk(el: Element, refs: Set<string>): void {
     return;
   }
 
-  const handler = (handlers as any)[local];
+  const firstNA = (el.children[0] as Element).local === "notAllowed";
+  const second = el.children[1] as Element;
+  const secondNA = second !== undefined && second.local === "notAllowed";
 
-  if (handler) {
-    const firstNA = (el.children[0] as Element).local === "notAllowed";
-    const second = el.children[1] as Element;
-    const secondNA = second !== undefined && second.local === "notAllowed";
-
-    if (firstNA || secondNA) {
-      handler(el, firstNA, secondNA);
+  if (firstNA || secondNA) {
+    // tslint:disable-next-line:no-non-null-assertion
+    const parent = el.parent!;
+    // We used to have a map from which we'd get a handler to call but that
+    // method is not faster than this switch.
+    switch (local) {
+      case "choice":
+        if (firstNA && secondNA) {
+          // A choice with two notAllowed is replaced with notAllowed.
+          parent.replaceChildWith(el, Element.makeElement("notAllowed"));
+        }
+        else {
+          // A choice with exactly one notAllowed is replaced with the other
+          // child of the choice.
+          parent.replaceChildWith(el, el.children[firstNA ? 1 : 0] as Element);
+        }
+        break;
+      case "attribute":
+      case "list":
+      case "group":
+      case "interleave":
+      case "oneOrMore":
+        // An attribute (or list, group, interleave, oneOrMore) with at least
+        // one notAllowed is replaced with notAllowed.
+        parent.replaceChildWith(el, Element.makeElement("notAllowed"));
+        break;
+      case "except":
+        // An except with notAllowed is removed.
+        el.remove();
+        break;
+      default:
     }
   }
 
