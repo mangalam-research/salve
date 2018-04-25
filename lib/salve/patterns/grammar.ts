@@ -344,37 +344,29 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     let wsErr: FireEventResult = false;
     const ignoreNextWsNow = this.ignoreNextWs;
     this.ignoreNextWs = false;
-    switch (name) {
-      case "enterStartTag":
-      case "startTagAndAttributes":
-        break;
-        // Earlier versions of salve processed text events ahead of this switch
-        // block, but we moved it here to improve performance. There's no issue
-        // with having a case for text here because salve disallows firing more
-        // than one text event in sequence.
-      case "text": {
-        // Process whitespace nodes
-        const text = params[0];
-        if (!/\S/.test(text)) {
-          if (text === "") {
-            throw new Error("firing empty text events makes no sense");
-          }
-
-          // We don't check the old value of suspendedWs because salve does not
-          // allow two text events in a row. So we should never have to
-          // concatenate values.
-          this.suspendedWs = text;
-          this.ignoreNextWs = ignoreNextWsNow;
-
-          return false;
+    if (name === "text") {
+      // Earlier versions of salve processed text events ahead of this switch
+      // block, but we moved it here to improve performance. There's no issue
+      // with having a case for text here because salve disallows firing more
+      // than one text event in sequence.
+      // Process whitespace nodes
+      const text = params[0];
+      if (!/\S/.test(text)) {
+        if (text === "") {
+          throw new Error("firing empty text events makes no sense");
         }
 
-        break;
+        // We don't check the old value of suspendedWs because salve does not
+        // allow two text events in a row. So we should never have to
+        // concatenate values.
+        this.suspendedWs = text;
+        this.ignoreNextWs = ignoreNextWsNow;
+
+        return false;
       }
-      case "endTag":
+    }
+    else if (name === "endTag") {
         this.ignoreNextWs = true;
-        /* falls through */
-      default:
         if (!ignoreNextWsNow && this.suspendedWs !== undefined) {
           // Casting is safe here because text events cannot return
           // elements.
