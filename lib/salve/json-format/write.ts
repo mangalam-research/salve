@@ -355,51 +355,24 @@ OPTION_NO_PATHS},"d":`);
   }
 }
 
-/**
- * A [[ConversionWalker]] specialized in gathering the names used for Relax NG's
- * ``<ref>`` and ``<define>`` elements.
- */
-class NameGatherer extends ConversionWalker {
-  /**
-   * The names gathered. Each name is associated with the number of times it
-   * was seen. This property is valid after the walker has walked the element
-   * tree.
-   */
-  readonly names: {[name: string]: number} =  Object.create(null);
+function gatherNamed(el: Element, all: Map<string, Element[]>): void {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
 
-  walk(el: Element): void {
-    this.walkChildren(el);
-    if (el.local === "define" || el.local === "ref") {
-      const name: string = el.mustGetAttribute("name");
-      if (!(name in this.names)) {
-        this.names[name] = 0;
+    if (child.local === "define" || child.local === "ref") {
+      const name = child.mustGetAttribute("name");
+      let els = all.get(name);
+      if (els === undefined) {
+        els = [];
+        all.set(name, els);
       }
 
-      this.names[name]++;
+      els.push(child);
     }
-  }
-}
 
-/**
- * A [[ConversionWalker]] specialized in reassigning the names used by Relax
- * NG's ``<ref>`` and ``<define>`` elements.
- *
- * @param names This is a map whose keys are the names that already exist in the
- * element tree and the values are the new names to use. A ``(key, value)`` pair
- * indicates that ``key`` should be replaced with ``value``. It is up to the
- * caller to ensure that two keys do not share the same value and that the map
- * is complete.
- */
-class Renamer extends ConversionWalker {
-  constructor(protected names: {[name: string]: string}) {
-    super();
-  }
-
-  walk(el: Element): void {
-    if (el.local === "define" || el.local === "ref") {
-      el.setAttribute("name", this.names[el.mustGetAttribute("name")]);
-    }
-    this.walkChildren(el);
+    gatherNamed(child, all);
   }
 }
 
@@ -413,30 +386,21 @@ class Renamer extends ConversionWalker {
  * @param tree The schema to modify, in the form of a tree of elements.
  */
 export function renameRefsDefines(tree: Element): void {
-  // Gather names
-  const g = new NameGatherer();
-  g.walk(tree);
-  const names = g.names;
-
+  const names = new Map<string, Element[]>();
+  gatherNamed(tree, names);
   // Now assign new names with shorter new names being assigned to those
   // original names that are most frequent.
-  const sorted = Object.keys(names)
-    .map((key) => ({ key: key, freq: names[key] }));
+  const sorted = Array.from(names.entries());
   // Yes, we want to sort in reverse order of frequency, highest first.
-  sorted.sort((a, b) => b.freq - a.freq);
+  sorted.sort(([_keyA, elsA], [_keyB, elsB]) => elsB.length - elsA.length);
 
-  // The map has to be from string to string because in general we may use other
-  // renaming schemes. However, the code that generates the JSON checks whether
-  // the string is a number and stores a number in the JSON.
-  const newNames: Record<string, string> = {};
   let id = 1;
-  sorted.forEach((elem) => {
-    newNames[elem.key] = String(id++);
+  sorted.forEach(([_, els]) => {
+    const strId = String(id++);
+    for (const el of els) {
+      el.setAttribute("name", strId);
+    }
   });
-
-  // Perform the renaming.
-  const renamer = new Renamer(newNames);
-  renamer.walk(tree);
 }
 
 export function writeTreeToJSON(tree: Element, formatVersion: number,
