@@ -65,7 +65,11 @@ function gatherGrammars(el: Element, state: State): void {
     state.root = stack[0];
   }
 
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     gatherGrammars(child, state);
   }
 
@@ -120,11 +124,11 @@ function transformGrammars(root: GrammarNode,
 
   if (grammar !== root) {
     // Remove the remaining ``grammar`` and ``start`` elements.
-    const start = grammar.grammar.elements.next().value;
+    const start = grammar.grammar.children[0] as Element;
     if (start.local !== "start") {
       throw new Error("there should be a single start element in the grammar!");
     }
-    const pattern = start.elements.next().value;
+    const pattern = start.children[0] as Element;
     grammar.grammar.replaceWith(pattern);
   }
 

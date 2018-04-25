@@ -18,7 +18,11 @@ function walk(el: Element, refs: Set<string>): void {
   // Since we walk the children first, all the transformations that pertain to
   // the children are applied before we deal with the parent, and there should
   // not be any need to process the tree multiple times.
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     // Skip those elements that cannot contain notAllowed.
     if (skip.has(child.local)) {
       continue;
@@ -75,7 +79,11 @@ function walk(el: Element, refs: Set<string>): void {
     return;
   }
 
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     const childLocal = child.local;
     if (childLocal === "ref") {
       refs.add(child.mustGetAttribute("name"));

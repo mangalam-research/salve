@@ -11,8 +11,8 @@ export const RELAXNG_URI = "http://relaxng.org/ns/structure/1.0";
 
 export function findFirstChildByLocalName(el: Element,
                                           name: string): Element | null {
-  for (const child of el.elements) {
-    if (child.local === name) {
+  for (const child of el.children) {
+    if (child instanceof Element  && child.local === name) {
       return child;
     }
   }
@@ -31,7 +31,11 @@ export function findChildrenByLocalName(el: Element,
 export function findDescendantsByLocalName(el: Element,
                                            name: string): Element[] {
   let ret: Element[] = [];
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     if (child.local === name) {
       ret.push(child);
     }
@@ -59,7 +63,11 @@ function _findMultiDescendantsByLocalName(el: Element,
                                           names: string[],
                                           ret: Record<string, Element[]>):
 void {
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     const name = child.local;
     if (names.includes(name)) {
       ret[name].push(child);

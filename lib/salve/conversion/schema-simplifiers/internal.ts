@@ -97,7 +97,11 @@ function checkStep10Constraints(el: Element): void {
     default:
   }
 
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     checkStep10Constraints(child);
   }
 
@@ -344,7 +348,11 @@ on string values (section 7.2)`);
       default:
     }
 
-    for (const child of el.elements) {
+    for (const child of el.children) {
+      if (!(child instanceof Element)) {
+        continue;
+      }
+
       _generalCheck(child, ret, newState);
     }
 
@@ -390,7 +398,11 @@ function findOccurring(el: Element,
 
 function _findOccuring(el: Element, names: string[],
                        ret: Record<string, Element[]>): void {
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     const name = child.local;
     if (names.includes(name)) {
       ret[name].push(child);

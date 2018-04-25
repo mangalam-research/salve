@@ -104,23 +104,6 @@ export class Element extends Node {
   attributes: Record<string, sax.QualifiedAttribute>;
 
   /**
-   * The element children of this element.
-   */
-  get elements(): IterableIterator<Element>{
-    // tslint:disable-next-line:no-var-self no-this-assignment
-    const me = this;
-
-    return (function *(): IterableIterator<Element> {
-      for (const child of me.children) {
-        // tslint:disable-next-line:no-use-before-declare
-        if (child instanceof Element) {
-          yield child;
-        }
-      }
-    }());
-  }
-
-  /**
    * @param node The value of the ``node`` created by the SAX parser.
    *
    * @param children The children of this element. **These children must not yet
@@ -246,8 +229,8 @@ export class Element extends Node {
       ret += `[@name='${name}']`;
     }
     else {
-      for (const child of this.elements) {
-        if (child.local === "name") {
+      for (const child of this.children) {
+        if (child instanceof Element && child.local === "name") {
           ret += `[@name='${child.text}']`;
           break;
         }

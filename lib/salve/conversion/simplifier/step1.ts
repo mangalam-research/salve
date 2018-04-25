@@ -95,7 +95,11 @@ class Step1 {
       }
     }
 
-    for (const child of el.elements) {
+    for (const child of el.children) {
+      if (!(child instanceof Element)) {
+        continue;
+      }
+
       await this.walk(currentBase, seenURLs, currentRoot, child);
     }
 

@@ -91,7 +91,11 @@ function walk(el: Element, parentNs: string | null): void {
     }
   }
 
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     walk(child, currentNs !== undefined ? currentNs : parentNs);
   }
 }

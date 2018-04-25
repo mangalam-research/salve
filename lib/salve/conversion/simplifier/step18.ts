@@ -52,16 +52,10 @@ const handlers: Record<string, Handler> = {
 };
 
 function walk(el: Element): void {
-  if (el.children.length === 0) {
-    return;
-  }
-
-  for (const child of el.elements) {
-    if (skip.has(child.local)) {
-      continue;
+  for (const child of el.children) {
+    if (child instanceof Element && !skip.has(child.local)) {
+      walk(child);
     }
-
-    walk(child);
   }
 
   const handler = handlers[el.local];
