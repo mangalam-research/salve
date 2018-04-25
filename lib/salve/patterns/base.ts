@@ -300,13 +300,6 @@ result is (false |  (ValidationError | RefWalker)[]) {
  * no subpatterns.)
  */
 export class BasePattern {
-  /**
-   * The next id to associate to the next Pattern object to be created. This is
-   * used so that [[hash]] can return unique values.
-   */
-  private static __id: number = 0; // tslint:disable-line:variable-name
-
-  readonly id: string;
   readonly xmlPath: string;
 
   /**
@@ -314,25 +307,7 @@ export class BasePattern {
    * the simplified RNG tree. Used in debugging.
    */
   constructor(xmlPath: string) {
-    this.id = `P${this.__newID()}`;
     this.xmlPath = xmlPath;
-  }
-
-  /**
-   * This method is mainly used to be able to use these objects in a
-   * [["hashstructs".HashSet]] or a [["hashstructs".HashMap]].
-   *
-   * Returns a hash guaranteed to be unique to this object. There are some
-   * limitations. First, if this module is instantiated twice, the objects
-   * created by the two instances cannot mix without violating the uniqueness
-   * guarantee. Second, the hash is a monotonically increasing counter, so when
-   * it reaches beyond the maximum integer that the JavaScript vm can handle,
-   * things go kaboom. Third, this hash is meant to work within salve only.
-   *
-   * @returns A hash unique to this object.
-   */
-  hash(): string {
-    return this.id;
   }
 
   /**
@@ -385,15 +360,6 @@ export class BasePattern {
    */
   hasEmptyPattern(): boolean {
     return false;
-  }
-
-  /**
-   * Gets a new Pattern id.
-   *
-   * @returns The new id.
-   */
-  private __newID(): number {
-    return BasePattern.__id++;
   }
 }
 
@@ -640,14 +606,6 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
  */
 export abstract class BaseWalker<T extends BasePattern> {
 
-  /**
-   * The next id to associate to the next Walker object to be created. This is
-   * used so that [[hash]] can return unique values.
-   */
-  private static __id: number = 0; // tslint:disable-line:variable-name
-
-  readonly id: string = `W${this.__newID()}`;
-
   protected readonly el: T;
 
   protected possibleCached: EventSet | undefined;
@@ -672,23 +630,6 @@ export abstract class BaseWalker<T extends BasePattern> {
         wrap(this, "_suppressAttributes", plainTracer);
         wrap(this, "_clone", plainTracer);
     }
-  }
-
-  /**
-   * This method is mainly used to be able to use these objects in a
-   * [["hashstructs".HashSet]] or a [["hashstructs".HashMap]].
-   *
-   * Returns a hash guaranteed to be unique to this object. There are some
-   * limitations. First, if this module is instantiated twice, the objects
-   * created by the two instances cannot mix without violating the uniqueness
-   * guarantee. Second, the hash is a monotonically increasing counter, so when
-   * it reaches beyond the maximum integer that the JavaScript vm can handle,
-   * things go kaboom. Third, this hash is meant to work within salve only.
-   *
-   * @returns A hash unique to this object.
-   */
-  hash(): string {
-    return this.id;
   }
 
   /**
@@ -803,15 +744,6 @@ export abstract class BaseWalker<T extends BasePattern> {
     memo.add(obj, other);
 
     return other;
-  }
-
-  /**
-   * Gets a new Walker id.
-   *
-   * @returns The new id.
-   */
-  private __newID(): number {
-    return BaseWalker.__id++;
   }
 
   hasEmptyPattern(): boolean {
