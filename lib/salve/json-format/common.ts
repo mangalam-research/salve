@@ -7,15 +7,14 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { AnyName, Attribute, BasePattern, Choice, Data, Define, Element, Empty,
-         EName, Grammar, Group, Interleave, List, Name, NameChoice, NotAllowed,
+         Grammar, Group, Interleave, List, Name, NameChoice, NotAllowed,
          NsName, OneOrMore, Param, Ref, Text, Value } from "../patterns";
 
 export type NamePattern = Name | NameChoice | NsName | AnyName;
 
 export type PatternCtor = { new (...args: any[]): (BasePattern | NamePattern) };
-export type ENameCtor = { new (...args: any[]): EName };
 
-export type Ctors = PatternCtor | ENameCtor | typeof Array;
+export type Ctors = PatternCtor | typeof Array;
 
 //
 // MODIFICATIONS TO THIS TABLE MUST BE REFLECTED IN ALL OTHER TABLES IN THIS
@@ -38,7 +37,9 @@ export const codeToConstructor: Ctors[] = [
   Element,
   Define,
   Grammar,
-  EName,
+  // EName used to be in this slot. Yes, we cheat with a cast. salve will
+  // crash hard if this slot is accessed, which is what we want.
+  undefined as any,
   Interleave,
   Name,
   NameChoice,
@@ -67,7 +68,8 @@ nameToCode.Attribute = 12;
 nameToCode.Element = 13;
 nameToCode.Define = 14;
 nameToCode.Grammar = 15;
-nameToCode.EName = 16;
+// Historical value.
+// nameToCode.EName = 16;
 nameToCode.Interleave = 17;
 nameToCode.Name = 18;
 nameToCode.NameChoice = 19;

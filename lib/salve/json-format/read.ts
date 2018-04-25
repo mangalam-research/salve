@@ -7,7 +7,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { EName, Grammar } from "../patterns";
+import { Grammar } from "../patterns";
 import { fixPrototype } from "../tools";
 import { codeToConstructor, OPTION_NO_PATHS, PatternCtor } from "./common";
 
@@ -61,7 +61,7 @@ class V2JSONWalker {
     if (args.length !== 0) {
       this._transformArray(args);
     }
-    if (this.addPath && ctor !== EName) {
+    if (this.addPath) {
       args.unshift("");
     }
 
