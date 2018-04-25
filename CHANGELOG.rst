@@ -39,6 +39,10 @@ here unless they include a fix to a specific issue reported on github.
   - Fix: ``bin/parse.js`` you can actually pass a RNG file to it, as suggested
     by the documentation.
 
+  - HashMap had clearly be marked as private for a long time and so you should
+    not have depended on it for your own code. It has now been removed, and the
+    internals that depended on it have been rewritten to no longer depend on it.
+
 * 6.0.0:
 
   - New feature: salve now has its own native logic for validating and

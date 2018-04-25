@@ -5,12 +5,11 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { AttributeNameError, AttributeValueError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, EndResult, EventSet, InternalFireEventResult,
-         InternalWalker, isAttributeEvent, makeEventSet,
-         TwoSubpatterns } from "./base";
+import { addWalker, BasePattern, CloneMap, EndResult, EventSet,
+         InternalFireEventResult, InternalWalker, isAttributeEvent,
+         makeEventSet, TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<group>``.
@@ -40,10 +39,10 @@ class GroupWalker extends InternalWalker<Group> {
    * @param nameResolver The name resolver that can be used to convert namespace
    * prefixes to namespaces.
    */
-  protected constructor(walker: GroupWalker, memo: HashMap);
+  protected constructor(walker: GroupWalker, memo: CloneMap);
   protected constructor(el: Group, nameResolver: NameResolver);
   protected constructor(elOrWalker: GroupWalker | Group,
-                        nameResolverOrMemo: HashMap | NameResolver) {
+                        nameResolverOrMemo: CloneMap | NameResolver) {
     if ((elOrWalker as Group).newWalker !== undefined) {
       const el = elOrWalker as Group;
       const nameResolver = nameResolverOrMemo as NameResolver;
@@ -60,7 +59,7 @@ class GroupWalker extends InternalWalker<Group> {
     }
     else {
       const walker = elOrWalker as GroupWalker;
-      const memo = nameResolverOrMemo as HashMap;
+      const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
       this.suppressedAttributes = walker.suppressedAttributes;
       this.hasAttrs = walker.hasAttrs;

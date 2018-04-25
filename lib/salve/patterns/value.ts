@@ -6,10 +6,9 @@
  */
 import { Datatype, registry } from "../datatypes";
 import { ValidationError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, EndResult, Event, EventSet, InternalWalker, makeEventSet,
-         Pattern } from "./base";
+import { addWalker, CloneMap, EndResult, Event, EventSet, InternalWalker,
+         makeEventSet, Pattern } from "./base";
 
 /**
  * Value pattern.
@@ -79,10 +78,10 @@ class ValueWalker extends InternalWalker<Value> {
   canEnd: boolean;
   canEndAttribute: boolean;
 
-  protected constructor(other: ValueWalker, memo: HashMap);
+  protected constructor(other: ValueWalker, memo: CloneMap);
   protected constructor(el: Value, nameResolver: NameResolver);
   protected constructor(elOrWalker: Value |  ValueWalker,
-                        nameResolverOrMemo: HashMap | NameResolver) {
+                        nameResolverOrMemo: CloneMap | NameResolver) {
     if ((elOrWalker as Value).newWalker !== undefined) {
       const el = elOrWalker as Value;
       const nameResolver = nameResolverOrMemo as NameResolver;
@@ -95,7 +94,7 @@ class ValueWalker extends InternalWalker<Value> {
     }
     else {
       const walker = elOrWalker as ValueWalker;
-      const memo = nameResolverOrMemo as HashMap;
+      const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.context = walker.context !== undefined ?

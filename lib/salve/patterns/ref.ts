@@ -1,8 +1,8 @@
 import { ElementNameError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { ConcreteName } from "../name_patterns";
-import { addWalker, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, makeEventSet, Pattern } from "./base";
+import { addWalker, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, makeEventSet,
+         Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
 
@@ -54,9 +54,9 @@ export class RefWalker extends InternalWalker<Ref> {
   /**
    * @param el The pattern for which this walker was constructed.
    */
-  protected constructor(walker: RefWalker, memo: HashMap);
+  protected constructor(walker: RefWalker, memo: CloneMap);
   protected constructor(el: Ref);
-  protected constructor(elOrWalker: RefWalker | Ref, memo?: HashMap) {
+  protected constructor(elOrWalker: RefWalker | Ref, memo?: CloneMap) {
     if ((elOrWalker as Ref).newWalker !== undefined) {
       super(elOrWalker as Ref);
       this.element = elOrWalker.element;
@@ -67,7 +67,7 @@ export class RefWalker extends InternalWalker<Ref> {
     }
     else {
       const walker = elOrWalker as RefWalker;
-      super(walker, memo as HashMap);
+      super(walker, memo as CloneMap);
       this.startName = walker.startName;
       this.startTagEvent = walker.startTagEvent;
       this.element = walker.element;

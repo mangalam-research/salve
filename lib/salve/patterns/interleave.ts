@@ -4,10 +4,9 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, EndResult, EventSet,
+import { addWalker, BasePattern, CloneMap, EndResult, EventSet,
          InternalFireEventResult, InternalWalker, isAttributeEvent,
          makeEventSet, matched, TwoSubpatterns } from "./base";
 
@@ -39,10 +38,10 @@ class InterleaveWalker extends InternalWalker<Interleave> {
    * @param resolver The name resolver that
    * can be used to convert namespace prefixes to namespaces.
    */
-  protected constructor(walker: InterleaveWalker, memo: HashMap);
+  protected constructor(walker: InterleaveWalker, memo: CloneMap);
   protected constructor(el: Interleave, nameResolver: NameResolver);
   protected constructor(elOrWalker: InterleaveWalker | Interleave,
-                        nameResolverOrMemo: NameResolver | HashMap) {
+                        nameResolverOrMemo: NameResolver | CloneMap) {
     if ((elOrWalker as Interleave).newWalker !== undefined) {
       const el = elOrWalker as Interleave;
       const nameResolver = nameResolverOrMemo as NameResolver;
@@ -58,7 +57,7 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     }
     else {
       const walker = elOrWalker as InterleaveWalker;
-      const memo = nameResolverOrMemo as HashMap;
+      const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.ended = walker.ended;

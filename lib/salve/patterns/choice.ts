@@ -5,13 +5,12 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { ChoiceError } from "../errors";
-import { HashMap } from "../hashstructs";
 import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, isAttributeEvent, makeEventSet, Pattern,
-         TwoSubpatterns } from "./base";
+import { BasePattern, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, isAttributeEvent,
+         makeEventSet, Pattern, TwoSubpatterns } from "./base";
 import { Empty } from "./empty";
 
 /**
@@ -51,10 +50,10 @@ class ChoiceWalker extends InternalWalker<Choice> {
   canEndAttribute: boolean;
   canEnd: boolean;
 
-  protected constructor(walker: ChoiceWalker, memo: HashMap);
+  protected constructor(walker: ChoiceWalker, memo: CloneMap);
   protected constructor(el: Choice, nameResolver: NameResolver);
   protected constructor(elOrWalker: ChoiceWalker | Choice,
-                        nameResolverOrMemo: NameResolver | HashMap)
+                        nameResolverOrMemo: NameResolver | CloneMap)
   {
     if ((elOrWalker as Choice).newWalker !== undefined) {
       const el = elOrWalker as Choice;
@@ -72,7 +71,7 @@ class ChoiceWalker extends InternalWalker<Choice> {
     }
     else {
       const walker = elOrWalker as ChoiceWalker;
-      const memo = nameResolverOrMemo as HashMap;
+      const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
@@ -255,10 +254,10 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
   canEndAttribute: boolean;
   canEnd: boolean;
 
-  protected constructor(walker: OptionalChoiceWalker, memo: HashMap);
+  protected constructor(walker: OptionalChoiceWalker, memo: CloneMap);
   protected constructor(el: Choice, nameResolver: NameResolver);
   protected constructor(elOrWalker: OptionalChoiceWalker | Choice,
-                        nameResolverOrMemo: NameResolver | HashMap)
+                        nameResolverOrMemo: NameResolver | CloneMap)
   {
     if ((elOrWalker as Choice).newWalker !== undefined) {
       const el = elOrWalker as Choice;
@@ -273,7 +272,7 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
     }
     else {
       const walker = elOrWalker as OptionalChoiceWalker;
-      const memo = nameResolverOrMemo as HashMap;
+      const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);

@@ -4,12 +4,11 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, EndResult, EventSet, InternalFireEventResult,
-         InternalWalker, isAttributeEvent, makeEventSet, matched,
-         OneSubpattern } from "./base";
+import { addWalker, BasePattern, CloneMap, EndResult, EventSet,
+         InternalFireEventResult, InternalWalker, isAttributeEvent,
+         makeEventSet, matched, OneSubpattern } from "./base";
 
 /**
  * A pattern for ``<oneOrMore>``.
@@ -38,10 +37,10 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
    * @param resolver The name resolver that can be used to convert namespace
    * prefixes to namespaces.
    */
-  protected constructor(walker: OneOrMoreWalker, memo: HashMap);
+  protected constructor(walker: OneOrMoreWalker, memo: CloneMap);
   protected constructor(el: OneOrMore, nameResolver: NameResolver);
   protected constructor(elOrWalker: OneOrMoreWalker | OneOrMore,
-                        nameResolverOrMemo: NameResolver | HashMap) {
+                        nameResolverOrMemo: NameResolver | CloneMap) {
     if ((elOrWalker as OneOrMore).newWalker !== undefined) {
       const el = elOrWalker as OneOrMore;
       const nameResolver = nameResolverOrMemo as NameResolver;
@@ -56,7 +55,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     }
     else {
       const walker = elOrWalker as OneOrMoreWalker;
-      const memo = nameResolverOrMemo as HashMap;
+      const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
       this.suppressedAttributes = walker.suppressedAttributes;
       this.hasAttrs = walker.hasAttrs;

@@ -7,15 +7,14 @@
 import { EName } from "../ename";
 import { AttributeNameError, ElementNameError,
          ValidationError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { filter, union } from "../set";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
-import { BasePattern, BaseWalker, EndResult, Event, EventSet, FireEventResult,
-         InternalFireEventResult, InternalWalker, makeEventSet, Pattern,
-         } from "./base";
+import { BasePattern, BaseWalker, CloneMap, EndResult, Event, EventSet,
+         FireEventResult, InternalFireEventResult, InternalWalker, makeEventSet,
+         Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
 import { Ref, RefWalker } from "./ref";
@@ -182,7 +181,7 @@ interface IWalker {
   canEnd: boolean;
   canEndAttribute: boolean;
   end(attribute?: boolean): EndResult;
-  _clone(memo: HashMap): IWalker;
+  _clone(memo: CloneMap): IWalker;
   possible(): EventSet;
   _possible(): EventSet;
 }
@@ -216,7 +215,7 @@ class MisplacedElementWalker implements IWalker {
     return makeEventSet();
   }
 
-  _clone<T extends this>(this: T, memo: HashMap): T {
+  _clone<T extends this>(this: T, memo: CloneMap): T {
     return new (this.constructor as { new (...args: any[]): T })();
   }
 }
@@ -241,10 +240,10 @@ export class GrammarWalker extends BaseWalker<Grammar> {
    * @param el The grammar for which this walker was
    * created.
    */
-  protected constructor(walker: GrammarWalker, memo: HashMap);
+  protected constructor(walker: GrammarWalker, memo: CloneMap);
   protected constructor(el: Grammar);
   protected constructor(elOrWalker: GrammarWalker | Grammar,
-                        memo?: HashMap) {
+                        memo?: CloneMap) {
     if ((elOrWalker as Grammar).newWalker !== undefined) {
       const grammar = elOrWalker as Grammar;
       super(grammar);

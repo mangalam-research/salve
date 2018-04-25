@@ -6,7 +6,6 @@
  */
 
 import { ValidationError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import * as util from "../util";
@@ -236,23 +235,8 @@ export function makeEventSet(init?: Event | Iterable<Event>): EventSet {
   return new Set(init);
 }
 
-interface Hashable {
-  hash(): any;
-}
-
 export interface Clonable {
   clone(): this;
-}
-
-/**
- * Calls the ``hash()`` method on the object passed to it.
- *
- * @private
- * @param o An object that implements ``hash()``.
- * @returns The return value of ``hash()``.
- */
-function hashHelper(o: Hashable): any {
-  return o.hash();
 }
 
 export type FireEventResult = false | undefined | ValidationError[];
@@ -500,6 +484,8 @@ export function isAttributeEvent(name: string): boolean {
           name === "attributeNameAndValue");
 }
 
+interface NodeMap extends Map<string, false | NodeMap> {}
+
 /**
  * Utility function used mainly in testing to transform a set of
  * events into a string containing a tree structure.  The principle is to
@@ -527,68 +513,54 @@ export function isAttributeEvent(name: string): boolean {
  * @returns A string which contains the tree described above.
  */
 export function eventsToTreeString(evs: Event[] | EventSet): string {
-  function hashF(x: any): any {
-    return x;
-  }
-
   const eventArray = (evs instanceof Set) ? Array.from(evs) : evs;
 
-  const hash: HashMap = new HashMap(hashF);
-  eventArray.forEach((ev: Event) => {
-    const params: (string|ConcreteName)[] = ev.params;
+  const hash: NodeMap = new Map();
+  eventArray.forEach((ev) => {
+    const params = ev.params;
 
-    let node: HashMap = hash;
-    for (let i: number = 0; i < params.length; ++i) {
-      if (i === params.length - 1) {
-        // Our HashSet/Map cannot deal with undefined values. So we mark
-        // leaf elements with the value false.
-        node.add(params[i], false);
+    let node = hash;
+    const last = params.length - 1;
+    for (let i = 0; i < params.length; ++i) {
+      const key = params[i].toString();
+      if (i === last) {
+        node.set(key, false);
       }
       else {
-        let nextNode: HashMap | undefined = node.has(params[i]);
+        let nextNode = node.get(key) as NodeMap | undefined;
         if (nextNode === undefined) {
-          nextNode = new HashMap(hashF);
-          node.add(params[i], nextNode);
+          nextNode = new Map();
+          node.set(key, nextNode);
         }
         node = nextNode;
       }
     }
   });
 
-  // We don't set dumpTree to const because the compiler has a fit when dumpTree
-  // is accessed recursively.
-  // tslint:disable-next-line:prefer-const
-  let dumpTree: (hash: HashMap) => string =
-    // tslint:disable-next-line:only-arrow-functions
-    (function makeDumpTree(): (hash: HashMap) => string {
-      let dumpTreeBuf: string = "";
-      const dumpTreeIndent: string = "    ";
+  function dumpTree(toDump: NodeMap, indent: string): string {
+    let ret = "";
+    const keys = Array.from(toDump.keys());
+    keys.sort();
+    for (const key of keys) {
+      // tslint:disable-next-line:no-non-null-assertion
+      const sub = toDump.get(key)!;
+      if (sub !== false) {
+        ret += `${indent}${key}:\n`;
+        ret += dumpTree(sub, `${indent}    `);
+      }
+      else {
+        ret += `${indent}${key}\n`;
+      }
+    }
 
-      // tslint:disable-next-line:no-shadowed-variable
-      return (hash: HashMap): string => {
-        let ret: string = "";
-        const keys: any[] = hash.keys();
-        keys.sort();
-        for (const key of keys) {
-          const sub: any | undefined = hash.has(key);
-          if (sub !== false) {
-            ret += `${dumpTreeBuf}${key}:\n`;
-            dumpTreeBuf += dumpTreeIndent;
-            ret += dumpTree(hash.has(key));
-            dumpTreeBuf = dumpTreeBuf.slice(dumpTreeIndent.length);
-          }
-          else {
-            ret += `${dumpTreeBuf}${key}\n`;
-          }
-        }
+    return ret;
+  }
 
-        return ret;
-      };
-    }());
-
-  return dumpTree(hash);
+  return dumpTree(hash, "");
   /* tslint:enable */
 }
+
+export type CloneMap = Map<any, any>;
 
 /**
  * Roughly speaking each [[Pattern]] object has a corresponding ``Walker`` class
@@ -613,7 +585,7 @@ export abstract class BaseWalker<T extends BasePattern> {
   /**
    * @param el The element to which this walker belongs.
    */
-  protected constructor(other: BaseWalker<T>, memo: HashMap);
+  protected constructor(other: BaseWalker<T>, memo: CloneMap);
   protected constructor(el: T);
   protected constructor(elOrWalker: T | BaseWalker<T>) {
     if (elOrWalker instanceof BasePattern) {
@@ -677,7 +649,7 @@ export abstract class BaseWalker<T extends BasePattern> {
    * @returns A deep copy of the Walker.
    */
   clone(): this {
-    return this._clone(new HashMap(hashHelper));
+    return this._clone(new Map<any, any>());
   }
 
  /**
@@ -699,7 +671,7 @@ export abstract class BaseWalker<T extends BasePattern> {
   *
   * @returns The clone.
   */
-  _clone(memo: HashMap): this {
+  _clone(memo: CloneMap): this {
     return new (this.constructor as any)(this, memo);
   }
 
@@ -735,13 +707,13 @@ export abstract class BaseWalker<T extends BasePattern> {
    *
    * @returns A clone of ``obj``.
    */
-  protected _cloneIfNeeded<C extends Clonable>(obj: C, memo: HashMap): C {
-    let other: C = memo.has(obj);
+  protected _cloneIfNeeded<C extends Clonable>(obj: C, memo: CloneMap): C {
+    let other = memo.get(obj);
     if (other !== undefined) {
-      return other;
+      return other as C;
     }
     other = obj.clone();
-    memo.add(obj, other);
+    memo.set(obj, other);
 
     return other;
   }

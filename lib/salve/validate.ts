@@ -27,11 +27,4 @@ export { NameResolver } from "./name_resolver";
 export { Base as BaseName, ConcreteName, Name, NameChoice, NsName,
          AnyName } from "./name_patterns";
 
-/**
- * Do not use this. This is here only for historical reasons and may be yanked
- * at any time.
- * @private
- */
-export { HashMap } from "./hashstructs";
-
 //  LocalWords:  rng Mangalam Dubeau MPL RNG constructTree validator

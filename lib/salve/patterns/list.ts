@@ -5,10 +5,9 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { ValidationError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, BasePattern, EndResult, EventSet, InternalFireEventResult,
-         InternalWalker, OneSubpattern } from "./base";
+import { addWalker, BasePattern, CloneMap, EndResult, EventSet,
+         InternalFireEventResult, InternalWalker, OneSubpattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -45,10 +44,10 @@ class ListWalker extends InternalWalker<List> {
   canEnd: boolean;
   canEndAttribute: boolean;
 
-  protected constructor(other: ListWalker, memo: HashMap);
+  protected constructor(other: ListWalker, memo: CloneMap);
   protected constructor(el: List, nameResolver: NameResolver);
   protected constructor(elOrWalker: List | ListWalker,
-                        nameResolverOrMemo: NameResolver | HashMap) {
+                        nameResolverOrMemo: NameResolver | CloneMap) {
     if ((elOrWalker as List).newWalker !== undefined) {
       const el = elOrWalker as List;
       const nameResolver = nameResolverOrMemo as NameResolver;
@@ -59,7 +58,7 @@ class ListWalker extends InternalWalker<List> {
     }
     else {
       const walker = elOrWalker as ListWalker;
-      const memo = nameResolverOrMemo as HashMap;
+      const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.subwalker = walker.subwalker._clone(memo);

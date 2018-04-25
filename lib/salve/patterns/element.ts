@@ -5,12 +5,12 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { ElementNameError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { filter } from "../set";
-import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, makeEventSet, Pattern } from "./base";
+import { BasePattern, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, makeEventSet,
+         Pattern } from "./base";
 import { Define } from "./define";
 import { NotAllowed } from "./not_allowed";
 import { Ref } from "./ref";
@@ -84,11 +84,11 @@ class ElementWalker extends InternalWalker<Element> {
    * @param nameResolver The name resolver that
    * can be used to convert namespace prefixes to namespaces.
    */
-  protected constructor(walker: ElementWalker, memo: HashMap);
+  protected constructor(walker: ElementWalker, memo: CloneMap);
   protected constructor(el: Element, nameResolver: NameResolver,
                         boundName: Name);
   protected constructor(elOrWalker: ElementWalker | Element,
-                        nameResolverOrMemo: NameResolver | HashMap,
+                        nameResolverOrMemo: NameResolver | CloneMap,
                         boundName?: Name) {
     if ((elOrWalker as Element).newWalker !== undefined) {
       const el = elOrWalker as Element;
@@ -105,7 +105,7 @@ class ElementWalker extends InternalWalker<Element> {
     }
     else {
       const walker = elOrWalker as ElementWalker;
-      const memo = nameResolverOrMemo as HashMap;
+      const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.endedStartTag = walker.endedStartTag;

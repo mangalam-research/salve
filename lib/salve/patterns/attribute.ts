@@ -5,11 +5,10 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { AttributeNameError, AttributeValueError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { map } from "../set";
-import { addWalker, BasePattern, EndResult, Event, EventSet,
+import { addWalker, BasePattern, CloneMap, EndResult, Event, EventSet,
          InternalFireEventResult, InternalWalker, makeEventSet,
          Pattern } from "./base";
 import { Define } from "./define";
@@ -68,10 +67,10 @@ class AttributeWalker extends InternalWalker<Attribute> {
    * @param nameResolver The name resolver that can be used to convert namespace
    * prefixes to namespaces.
    */
-  protected constructor(walker: AttributeWalker, memo: HashMap);
+  protected constructor(walker: AttributeWalker, memo: CloneMap);
   protected constructor(el: Attribute, nameResolver: NameResolver);
   protected constructor(elOrWalker: AttributeWalker | Attribute,
-                        nameResolverOrMemo: HashMap | NameResolver) {
+                        nameResolverOrMemo: CloneMap | NameResolver) {
     if ((elOrWalker as Attribute).newWalker !== undefined) {
       const el = elOrWalker as Attribute;
       super(el);
@@ -85,7 +84,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
     }
     else {
       const walker = elOrWalker as AttributeWalker;
-      const memo = nameResolverOrMemo as HashMap;
+      const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
       this.suppressedAttributes = walker.suppressedAttributes;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);

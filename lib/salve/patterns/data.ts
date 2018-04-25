@@ -6,10 +6,9 @@
  */
 import { Datatype, RawParameter, registry } from "../datatypes";
 import { ValidationError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, EndResult, Event, EventSet, InternalWalker, makeEventSet,
-         Pattern } from "./base";
+import { addWalker, CloneMap, EndResult, Event, EventSet, InternalWalker,
+         makeEventSet, Pattern } from "./base";
 /**
  * Data pattern.
  */
@@ -77,10 +76,10 @@ class DataWalker extends InternalWalker<Data> {
    * @param resolver The name resolver that can be used to convert namespace
    * prefixes to namespaces.
    */
-  protected constructor(other: DataWalker, memo: HashMap);
+  protected constructor(other: DataWalker, memo: CloneMap);
   protected constructor(el: Data, nameResolver: NameResolver);
   protected constructor(elOrWalker: DataWalker | Data,
-                        nameResolverOrMemo: NameResolver | HashMap) {
+                        nameResolverOrMemo: NameResolver | CloneMap) {
     if ((elOrWalker as Data).newWalker !== undefined) {
       const el = elOrWalker as Data;
       const nameResolver = nameResolverOrMemo as NameResolver;
@@ -95,7 +94,7 @@ class DataWalker extends InternalWalker<Data> {
     }
     else {
       const walker = elOrWalker as DataWalker;
-      const memo = nameResolverOrMemo as HashMap;
+      const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.context = walker.context !== undefined ?

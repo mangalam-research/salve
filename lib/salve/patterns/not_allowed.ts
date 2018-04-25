@@ -4,8 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { HashMap } from "../hashstructs";
-import { addWalker, EventSet, InternalWalker, makeEventSet,
+import { addWalker, CloneMap, EventSet, InternalWalker, makeEventSet,
          Pattern } from "./base";
 
 /**
@@ -23,15 +22,15 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
   /**
    * @param el The pattern for which this walker was created.
    */
-  protected constructor(walker: NotAllowedWalker, memo: HashMap);
+  protected constructor(walker: NotAllowedWalker, memo: CloneMap);
   protected constructor(el: NotAllowed);
   protected constructor(elOrWalker: NotAllowedWalker | NotAllowed,
-                        memo?: HashMap) {
+                        memo?: CloneMap) {
     if ((elOrWalker as NotAllowed).newWalker !== undefined) {
       super(elOrWalker as NotAllowed);
     }
     else {
-      super(elOrWalker as NotAllowedWalker, memo as HashMap);
+      super(elOrWalker as NotAllowedWalker, memo as CloneMap);
     }
 
     this.canEnd = true;

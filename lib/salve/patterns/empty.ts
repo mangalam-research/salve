@@ -4,8 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { HashMap } from "../hashstructs";
-import { addWalker, EventSet, InternalWalker, makeEventSet,
+import { addWalker, CloneMap, EventSet, InternalWalker, makeEventSet,
          Pattern } from "./base";
 
 /**
@@ -33,10 +32,10 @@ export class EmptyWalker extends InternalWalker<Empty> {
   canEnd: boolean;
   canEndAttribute: boolean;
 
-  protected constructor(other: EmptyWalker, memo: HashMap);
+  protected constructor(other: EmptyWalker, memo: CloneMap);
   protected constructor(el: Empty);
-  protected constructor(elOrWalker: Empty | EmptyWalker, memo?: HashMap) {
-    super(elOrWalker as EmptyWalker, memo as HashMap);
+  protected constructor(elOrWalker: Empty | EmptyWalker, memo?: CloneMap) {
+    super(elOrWalker as EmptyWalker, memo as CloneMap);
     this.canEnd = true;
     this.canEndAttribute = true;
   }
