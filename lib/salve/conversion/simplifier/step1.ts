@@ -6,7 +6,6 @@
  */
 import { Element } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
-import { step0 } from "./step0";
 import { findMultiDescendantsByLocalName, getName, groupBy, indexBy,
          RELAXNG_URI } from "./util";
 
@@ -16,49 +15,15 @@ export function resolveURL(base: URL, tail: string): URL {
   return new URL(tail, base.toString());
 }
 
-export function findBase(el: Element, documentBase: URL): URL {
-  const thisBase = el.getAttribute("xml:base");
-  const parent = el.parent;
-  if (thisBase !== undefined) {
-    return resolveURL(parent !== undefined ?
-                      findBase(parent, documentBase) :
-                      documentBase, thisBase);
-  }
+type Handler = (parentBase: URL, seenURLs: string[],
+                el: Element) => Promise<Element | null>;
 
-  return parent !== undefined ? findBase(parent, documentBase) : documentBase;
-}
-
-/**
- * Recursively drop all attributes which are not either in the namespace "" or
- * in the Relax NG namespace. Any attribute setting a namespace is preserved.
- *
- * @param el The element to process. It is modified in place.
- */
-function dropForeignAttrs(el: Element): void {
-  const attrs = el.getRawAttributes();
-  for (const name of Object.keys(attrs)) {
-    const attr = attrs[name];
-    if (name !== "xmlns" && attr.uri !== RELAXNG_URI && attr.uri !== "" &&
-        attr.prefix !== "xmlns") {
-      delete attrs[name];
-    }
-  }
-
-  for (const child of el.elements) {
-    dropForeignAttrs(child);
-  }
-}
-
-type Handler = (documentBase: URL,
-                seenURLs: string[], el: Element) => Promise<Element | null>;
-
-async function loadFromElement(documentBase: URL,
+async function loadFromElement(currentBase: URL,
                                seenURLs: string[],
                                el: Element,
                                parse: Parser): Promise<{ tree: Element;
                                                          resolved: URL; }> {
-  const resolved = resolveURL(findBase(el, documentBase),
-                              el.mustGetAttribute("href"));
+  const resolved = resolveURL(currentBase, el.mustGetAttribute("href"));
   if (seenURLs.includes(resolved.toString())) {
     throw new SchemaValidationError(`detected an import loop: \
 ${seenURLs.reverse().concat(resolved.toString()).join("\n")}`);
@@ -70,29 +35,45 @@ ${seenURLs.reverse().concat(resolved.toString()).join("\n")}`);
 class Step1 {
   constructor(private readonly parser: Parser) {}
 
-  async processFile(documentBase: URL, seenURLs: string[],
-                    tree: Element): Promise<Element> {
-    step0(tree);
-    const currentTree = await this.walk(documentBase, seenURLs, tree, tree);
-
-    // At this point it is safe to drop all the attributes in the XML
-    // namespace. "xml:base" in particular is no longer of any use.
-    dropForeignAttrs(currentTree);
-
-    return currentTree;
-  }
-
-  async walk(documentBase: URL, seenURLs: string[], root: Element,
+  async walk(parentBase: URL, seenURLs: string[], root: Element,
              el: Element): Promise<Element> {
     let currentRoot = root;
+    const baseAttr = el.getAttribute("xml:base");
+    const currentBase = baseAttr === undefined ? parentBase :
+      resolveURL(parentBase, baseAttr);
+
+    // The XML parser we use immediately drops all *elements* which are not in
+    // the RELAXNG_URI namespace so we don't have to remove them here.
+
+    // We move all RNG nodes into the default namespace.
+    el.prefix = "";
+    el.name = el.local;
+
+    // At this point it is safe to drop all the attributes in the XML
+    // namespace. "xml:base" in particular is no longer of any use. We do keep
+    // namespace declarations, as they are used later for resolving QNames.
+    const attrs = el.getRawAttributes();
+    for (const name of Object.keys(attrs)) {
+      const attr = attrs[name];
+      const { uri, prefix } = attr;
+      if (uri === RELAXNG_URI) {
+        // We move all RNG nodes into the default namespace.
+        attr.prefix = "";
+        attr.name = attr.local;
+      }
+      else if (name !== "xmlns" && uri !== "" && prefix !== "xmlns") {
+        delete attrs[name];
+      }
+    }
+
     for (const child of el.elements) {
-      await this.walk(documentBase, seenURLs, currentRoot, child);
+      await this.walk(currentBase, seenURLs, currentRoot, child);
     }
 
     const handler = (this as any as Record<string, Handler>)[el.local];
 
     if (handler !== undefined) {
-      const replacement = await handler.call(this, documentBase, seenURLs, el);
+      const replacement = await handler.call(this, currentBase, seenURLs, el);
       if (replacement !== null) {
         if (el === currentRoot) {
           // We have a new root.
@@ -101,7 +82,7 @@ class Step1 {
 
         // We have to walk the replacement too. (And yes, this could change
         // the root.)
-        currentRoot = await this.walk(documentBase, seenURLs, currentRoot,
+        currentRoot = await this.walk(currentBase, seenURLs, currentRoot,
                                       replacement);
       }
     }
@@ -109,15 +90,14 @@ class Step1 {
     return currentRoot;
   }
 
-  async externalRef(documentBase: URL, seenURLs: string[],
+  async externalRef(currentBase: URL, seenURLs: string[],
                     el: Element): Promise<Element | null> {
     // tslint:disable-next-line:prefer-const
     let { tree: includedTree, resolved } =
-      await loadFromElement(documentBase, seenURLs,
-                            el, this.parser);
-    includedTree = await this.processFile(resolved,
-                                          [resolved.toString(), ...seenURLs],
-                                          includedTree);
+      await loadFromElement(currentBase, seenURLs, el, this.parser);
+    includedTree = await this.walk(resolved,
+                                   [resolved.toString(), ...seenURLs],
+                                   includedTree, includedTree);
     const ns = el.getAttribute("ns");
     const treeNs = includedTree.getAttribute("ns");
     if (ns !== undefined && treeNs === undefined) {
@@ -130,10 +110,9 @@ class Step1 {
     // If parent is null then we are at the root and we cannot remove the
     // element.
     if (el.parent !== undefined) {
-      // Since step1, and consequently step0, have been applied to this tree,
-      // its default namespace is the Relax NG one. So we can remove it to avoid
-      // redeclaring it. We don't want to do this though if we're forming the
-      // root of the new tree.
+      // By this point, the tree's default namespace is the Relax NG one. So we
+      // can remove it to avoid redeclaring it. We don't want to do this though
+      // if we're forming the root of the new tree.
       includedTree.removeAttribute("xmlns");
 
       el.replaceWith(includedTree);
@@ -142,17 +121,15 @@ class Step1 {
     return includedTree;
   }
 
-  async include(documentBase: URL, seenURLs: string[],
+  async include(currentBase: URL, seenURLs: string[],
                 el: Element): Promise<Element | null> {
     const { tree: includedTree, resolved } =
-      await loadFromElement(documentBase, seenURLs,
-                            el, this.parser);
-    await this.processFile(resolved, [resolved.toString(), ...seenURLs],
-                           includedTree);
+      await loadFromElement(currentBase, seenURLs, el, this.parser);
+    await this.walk(resolved, [resolved.toString(), ...seenURLs],
+                    includedTree, includedTree);
 
-    // Since step1, and consequently step0, have been applied to this tree, its
-    // only namespace is the Relax NG one, and it is the default namespace. So
-    // we can remove it to avoid redeclaring it.
+    // By this point, the tree's default namespace is the Relax NG one. So we
+    // can remove it to avoid redeclaring it.
     includedTree.removeAttribute("xmlns");
     if (includedTree.local !== "grammar") {
       throw new SchemaValidationError("include does not point to a document " +
@@ -223,6 +200,6 @@ grammar`);
 export async function step1(documentBase: URL,
                             tree: Element,
                             parser: Parser): Promise<Element> {
-  return new Step1(parser).processFile(documentBase, [documentBase.toString()],
-                                       tree);
+  return new Step1(parser).walk(documentBase, [documentBase.toString()], tree,
+                                tree);
 }

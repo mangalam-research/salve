@@ -10,8 +10,6 @@ const { expect } = require("chai");
 const conversion = require("../build/dist/lib/salve/conversion");
 const simplifier =
       require("../build/dist/lib/salve/conversion/simplifier");
-const step1 =
-      require("../build/dist/lib/salve/conversion/simplifier/step1");
 const sax = require("sax");
 
 const dataDir = path.join(__dirname, "rng_simplification_data");
@@ -202,63 +200,6 @@ describe("rng simplification", () => {
       });
     });
   }
-
-  describe("findBase", () => {
-    function findElementByAttr(tree, elName, attrName, attrValue) {
-      if (tree.local === elName) {
-        const attr = tree.getAttribute(attrName);
-        if (attr === attrValue) {
-          return tree;
-        }
-      }
-
-      for (const child of tree.elements) {
-        const found = findElementByAttr(child, elName, attrName, attrValue);
-        if (found) {
-          return found;
-        }
-      }
-
-      return null;
-    }
-
-    const findBaseDir = path.join(__dirname,
-                                  "rng_simplification_data", "findBase");
-    const { findBase } = step1;
-    it("simple", () => {
-      const inpath = path.join(findBaseDir, "simple.rng");
-      const tree = parseJS(inpath);
-      const sub1 = `file://${path.join(findBaseDir, "sub1/")}`;
-      const inpathURL = new URL(`file://${inpath}`);
-      expect(findBase(tree, inpathURL).toString()).to.equal(sub1);
-
-      const group1 = findElementByAttr(tree, "group", "xml:base", "sub2");
-      const sub2 = `file://${path.join(findBaseDir, "sub1", "sub2")}`;
-      expect(findBase(group1, inpathURL).toString()).to.equal(sub2);
-
-      const group2 = findElementByAttr(tree, "group", "xml:base", "sub3/y");
-      const sub3 = `file://${path.join(findBaseDir, "sub1", "sub3/y")}`;
-      expect(findBase(group2, inpathURL).toString()).to.equal(sub3);
-    });
-
-    it("absolute", () => {
-      const inpath = path.join(findBaseDir, "absolute.rng");
-      const tree = parseJS(inpath);
-      const inpathURL = new URL(`file://${inpath}`);
-      expect(findBase(tree, inpathURL).toString())
-        .to.equal("file:///blah/blah");
-
-      const group1 = findElementByAttr(tree, "group", "xml:base", "sub2");
-      const sub2 = "/blah/sub2";
-      expect(findBase(group1, inpathURL).toString())
-        .to.equal(`file://${sub2}`);
-
-      const group2 = findElementByAttr(tree, "group", "xml:base", "sub3/y");
-      const sub3 = path.join(path.dirname(sub2), "sub3/y");
-      expect(findBase(group2, inpathURL).toString())
-        .to.equal(`file://${sub3}`);
-    });
-  });
 
   makeStepTest(1);
   makeStepTest(3);

@@ -5,8 +5,6 @@
  * using. The step numbers are equivalent to those in the XSLT pipeline with the
  * following exceptions:
  *
- * - ``step0`` does not exist as a separate step in the XSLT pipline.
- *
  * - Some steps are combined. The driving principles are:
  *
  *  + Steps are not combined if a later step is entirely dependent on the work
