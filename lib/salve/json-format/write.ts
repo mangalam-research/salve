@@ -80,7 +80,7 @@ class DefaultConversionWalker extends ConversionWalker {
    * to [[openConstruct]].
    */
   closeConstruct(close: string): void {
-    const top: ConstructState | undefined = this._constructState.shift();
+    const top = this._constructState.shift();
     if (top !== undefined) {
       if (close !== top.close) {
         throw new Error(`construct mismatch: ${top.close} vs ${close}`);
@@ -94,10 +94,13 @@ class DefaultConversionWalker extends ConversionWalker {
    * Outputs a separator (",") if this is not the first item in the construct.
    */
   newItem(): void {
-    if (!this._constructState[0].first) {
-      this._output += ",";
+    const top = this._constructState[0];
+    if (top.first) {
+      top.first = false;
+
+      return;
     }
-    this._constructState[0].first = false;
+    this._output += ",";
   }
 
   /**
@@ -121,22 +124,9 @@ class DefaultConversionWalker extends ConversionWalker {
    */
   outputAsString(thing: string | Node): void {
     this.newItem();
-    this._output += JSON.stringify(thing instanceof Node ? thing.text : thing);
-  }
-
-  /**
-   * Outputs a key-value pair. Both are strings. Outputs a separator (",") if
-   * this is not the first item in the construct. The double-quotes in the
-   * strings will be escaped and the strings will be surrounded by double quotes
-   * in the output.
-   *
-   * @param key The key to output.
-   * @param value The value to output.
-   */
-  outputKeyValue(key: string, value: string): void {
-    this.newItem();
-
-    this._output += `${JSON.stringify(key)}:${JSON.stringify(value)}`;
+    const text = (thing instanceof Node ? thing.text : thing)
+      .replace(/(["\\])/g, "\\$1");
+    this._output += `"${text}"`;
   }
 
   /**
