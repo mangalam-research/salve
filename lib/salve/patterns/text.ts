@@ -43,7 +43,7 @@ class TextWalker extends InternalWalker<Text> {
     }
     else {
       const walker = elOrWalker as TextWalker;
-      super(walker, memo as CloneMap);
+      super(walker);
       this.ended = walker.ended;
     }
 

@@ -95,7 +95,7 @@ class ValueWalker extends InternalWalker<Value> {
     else {
       const walker = elOrWalker as ValueWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker, memo);
+      super(walker);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.context = walker.context !== undefined ?
         { resolver: this.nameResolver } : undefined;

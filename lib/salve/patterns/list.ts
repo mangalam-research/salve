@@ -59,7 +59,7 @@ class ListWalker extends InternalWalker<List> {
     else {
       const walker = elOrWalker as ListWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker, memo);
+      super(walker);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.subwalker = walker.subwalker._clone(memo);
       this.canEnd = walker.canEnd;

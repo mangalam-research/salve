@@ -58,7 +58,7 @@ class GroupWalker extends InternalWalker<Group> {
     else {
       const walker = elOrWalker as GroupWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker, memo);
+      super(walker);
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.walkerA = walker.walkerA._clone(memo);

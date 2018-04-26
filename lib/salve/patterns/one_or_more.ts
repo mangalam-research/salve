@@ -54,7 +54,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     else {
       const walker = elOrWalker as OneOrMoreWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker, memo);
+      super(walker);
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.currentIteration = walker.currentIteration._clone(memo);

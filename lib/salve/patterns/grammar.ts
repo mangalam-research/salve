@@ -237,8 +237,7 @@ export class GrammarWalker extends BaseWalker<Grammar> {
    */
   protected constructor(walker: GrammarWalker, memo: CloneMap);
   protected constructor(el: Grammar);
-  protected constructor(elOrWalker: GrammarWalker | Grammar,
-                        memo?: CloneMap) {
+  protected constructor(elOrWalker: GrammarWalker | Grammar, memo?: CloneMap) {
     if ((elOrWalker as Grammar).newWalker !== undefined) {
       const grammar = elOrWalker as Grammar;
       super(grammar);
@@ -250,8 +249,7 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     }
     else {
       const walker = elOrWalker as GrammarWalker;
-      // tslint:disable-next-line:no-non-null-assertion
-      super(walker, memo!);
+      super(walker);
       // tslint:disable-next-line:no-non-null-assertion
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo!);
       this.elementWalkerStack = walker.elementWalkerStack

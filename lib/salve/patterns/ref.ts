@@ -66,7 +66,7 @@ export class RefWalker extends InternalWalker<Ref> {
     }
     else {
       const walker = elOrWalker as RefWalker;
-      super(walker, memo as CloneMap);
+      super(walker);
       this.startName = walker.startName;
       this.startTagEvent = walker.startTagEvent;
       this.element = walker.element;

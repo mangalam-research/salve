@@ -4,13 +4,17 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { addWalker, CloneMap, Event, EventSet, InternalWalker,
-         Pattern } from "./base";
+import { Event, EventSet, InternalWalker, Pattern } from "./base";
 
 /**
  * Pattern for ``<notAllowed/>``.
  */
-export class NotAllowed extends Pattern {}
+export class NotAllowed extends Pattern {
+  newWalker(): NotAllowedWalker {
+    // tslint:disable-next-line:no-use-before-declare
+    return singleton;
+  }
+}
 
 /**
  * Walker for [[NotAllowed]];
@@ -22,19 +26,20 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
   /**
    * @param el The pattern for which this walker was created.
    */
-  protected constructor(walker: NotAllowedWalker, memo: CloneMap);
-  protected constructor(el: NotAllowed);
-  protected constructor(elOrWalker: NotAllowedWalker | NotAllowed,
-                        memo?: CloneMap) {
-    if ((elOrWalker as NotAllowed).newWalker !== undefined) {
-      super(elOrWalker as NotAllowed);
-    }
-    else {
-      super(elOrWalker as NotAllowedWalker, memo as CloneMap);
-    }
-
+  protected constructor(el: NotAllowed) {
+    super(el);
     this.canEnd = true;
     this.canEndAttribute = true;
+  }
+
+  static makeNew(el: NotAllowed): NotAllowedWalker {
+    return new NotAllowedWalker(el);
+  }
+
+  // Since NotAllowedWalker is a singleton, the cloning operation just
+  // returns the original walker.
+  clone(): this {
+    return this;
   }
 
   possible(): EventSet {
@@ -50,6 +55,6 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
   }
 }
 
-addWalker(NotAllowed, NotAllowedWalker);
+const singleton = NotAllowedWalker.makeNew(new NotAllowed("FAKE ELEMENT"));
 
 //  LocalWords:  RNG's MPL possibleCached

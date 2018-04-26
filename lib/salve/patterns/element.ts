@@ -104,7 +104,7 @@ class ElementWalker extends InternalWalker<Element> {
     else {
       const walker = elOrWalker as ElementWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker, memo);
+      super(walker);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.endedStartTag = walker.endedStartTag;
       this.walker = walker.walker._clone(memo);

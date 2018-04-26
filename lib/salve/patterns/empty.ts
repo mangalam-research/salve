@@ -35,7 +35,7 @@ export class EmptyWalker extends InternalWalker<Empty> {
   protected constructor(other: EmptyWalker, memo: CloneMap);
   protected constructor(el: Empty);
   protected constructor(elOrWalker: Empty | EmptyWalker, memo?: CloneMap) {
-    super(elOrWalker as EmptyWalker, memo as CloneMap);
+    super(elOrWalker as EmptyWalker);
     this.canEnd = true;
     this.canEndAttribute = true;
   }

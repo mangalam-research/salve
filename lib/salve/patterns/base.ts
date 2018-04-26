@@ -564,17 +564,11 @@ export abstract class BaseWalker<T extends BasePattern> {
   protected readonly el: T;
 
   /**
-   * @param el The element to which this walker belongs.
+   * @param elOrWalker The element to which this walker belongs. Or the walker
+   * from which to clone this one.
    */
-  protected constructor(other: BaseWalker<T>, memo: CloneMap);
-  protected constructor(el: T);
   protected constructor(elOrWalker: T | BaseWalker<T>) {
-    if (elOrWalker instanceof BasePattern) {
-      this.el = elOrWalker;
-    }
-    else {
-      this.el = elOrWalker.el;
-    }
+    this.el = elOrWalker instanceof BasePattern ? elOrWalker : elOrWalker.el;
     if (DEBUG) {
         wrap(this, "_possible", possibleTracer);
         wrap(this, "fireEvent", fireEventTracer);

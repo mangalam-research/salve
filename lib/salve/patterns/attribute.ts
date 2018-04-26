@@ -82,7 +82,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
     else {
       const walker = elOrWalker as AttributeWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker, memo);
+      super(walker);
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.seenName = walker.seenName;
       this.subwalker = walker.subwalker._clone(memo);
