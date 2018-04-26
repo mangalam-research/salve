@@ -67,7 +67,7 @@ class ListWalker extends InternalWalker<List> {
     }
   }
 
-  _possible(): EventSet {
+  possible(): EventSet {
     return this.subwalker.possible();
   }
 

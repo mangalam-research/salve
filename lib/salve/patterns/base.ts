@@ -577,10 +577,7 @@ export type CloneMap = Map<any, any>;
  * Note that users of this API do not instantiate Walker objects themselves.
  */
 export abstract class BaseWalker<T extends BasePattern> {
-
   protected readonly el: T;
-
-  protected possibleCached: EventSet | undefined;
 
   /**
    * @param el The element to which this walker belongs.
@@ -593,7 +590,6 @@ export abstract class BaseWalker<T extends BasePattern> {
     }
     else {
       this.el = elOrWalker.el;
-      this.possibleCached = elOrWalker.possibleCached;
     }
     if (DEBUG) {
         wrap(this, "_possible", possibleTracer);
@@ -609,20 +605,7 @@ export abstract class BaseWalker<T extends BasePattern> {
    *
    * @returns The set of events that can be fired without resulting in an error.
    */
-  possible(): EventSet {
-    return makeEventSet(this._possible());
-  }
-
-  /**
-   * Helper method for possible(). The possible() method is designed to be safe,
-   * in that the value it returns is not shared, so the caller may change it
-   * without breaking anything. However, this method returns a value that may
-   * not be modified by the caller. It is used internally among the classes of
-   * this file to save copying time.
-   *
-   * @returns The set of events that can be fired without resulting in an error.
-   */
-  abstract _possible(): EventSet;
+  abstract possible(): EventSet;
 
   // These functions return true if there is no problem, or a list of
   // ValidationError objects otherwise.

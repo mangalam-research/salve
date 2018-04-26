@@ -88,25 +88,25 @@ class ChoiceWalker extends InternalWalker<Choice> {
     return new ChoiceWalker(el, nameResolver);
   }
 
-  _possible(): EventSet {
-    if (this.possibleCached !== undefined) {
-      return this.possibleCached;
-    }
-
+  possible(): EventSet {
     const walkerA = this.walkerA;
-    this.possibleCached = this.deactivateA ? undefined : walkerA._possible();
+    let ret = this.deactivateA ? undefined : walkerA.possible();
 
     const walkerB = this.walkerB;
     if (!this.deactivateB) {
-      this.possibleCached = makeEventSet(this.possibleCached);
-      const possibleB = walkerB._possible();
-      union(this.possibleCached, possibleB);
+      const possibleB = walkerB.possible();
+      if (ret === undefined) {
+        ret = possibleB;
+      }
+      else {
+        union(ret, possibleB);
+      }
     }
-    else if (this.possibleCached === undefined) {
-      this.possibleCached = makeEventSet();
+    else if (ret === undefined) {
+      ret = makeEventSet();
     }
 
-    return this.possibleCached;
+    return ret;
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
@@ -119,7 +119,6 @@ class ChoiceWalker extends InternalWalker<Choice> {
       return undefined;
     }
 
-    this.possibleCached = undefined;
     const retA = this.deactivateA ? undefined :
       this.walkerA.fireEvent(name, params);
     const retB = this.deactivateB ? undefined :
@@ -177,7 +176,6 @@ class ChoiceWalker extends InternalWalker<Choice> {
     // We don't protect against multiple calls to _suppressAttributes.
     // ElementWalker is the only walker that initiates _suppressAttributes
     // and it calls it only once per walker.
-    this.possibleCached = undefined; // no longer valid
     this.walkerA._suppressAttributes();
     this.walkerB._suppressAttributes();
   }
@@ -288,15 +286,8 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
     return new OptionalChoiceWalker(el, nameResolver);
   }
 
-  _possible(): EventSet {
-    if (this.possibleCached !== undefined) {
-      return this.possibleCached;
-    }
-
-    this.possibleCached = this.ended ? makeEventSet() :
-      this.walkerB._possible();
-
-    return this.possibleCached;
+  possible(): EventSet {
+    return this.ended ? makeEventSet() : this.walkerB.possible();
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
@@ -309,7 +300,6 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
       return undefined;
     }
 
-    this.possibleCached = undefined;
     const retA = (name === "text" && !/\S/.test(params[0])) ? false : undefined;
     const retB = this.walkerB.fireEvent(name, params);
 
@@ -334,7 +324,6 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
     // We don't protect against multiple calls to _suppressAttributes.
     // ElementWalker is the only walker that initiates _suppressAttributes
     // and it calls it only once per walker.
-    this.possibleCached = undefined; // no longer valid
     this.walkerB._suppressAttributes();
   }
 

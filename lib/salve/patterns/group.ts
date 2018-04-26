@@ -72,18 +72,12 @@ class GroupWalker extends InternalWalker<Group> {
     }
   }
 
-  _possible(): EventSet {
-    if (this.possibleCached !== undefined) {
-      return this.possibleCached;
-    }
-
+  possible(): EventSet {
     if (this.ended) {
-      this.possibleCached = makeEventSet();
-
-      return this.possibleCached;
+      return makeEventSet();
     }
 
-    const cached = this.possibleCached = this.walkerA.possible();
+    const ret = this.walkerA.possible();
 
     // When suppressedAttributes is true, if we are in the midst of processing
     // walker a and it cannot end yet, then we do not want to see anything from
@@ -94,10 +88,10 @@ class GroupWalker extends InternalWalker<Group> {
       // is the responsibility of ElementWalker to ensure that when the start
       // tag is not closed it is events that pertain to anything else than
       // attributes or ending the start tag are not passed up to the user.
-      union(cached, this.walkerB._possible());
+      union(ret, this.walkerB.possible());
     }
 
-    return cached;
+    return ret;
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
@@ -106,8 +100,6 @@ class GroupWalker extends InternalWalker<Group> {
     if (evIsAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
-
-    this.possibleCached = undefined;
 
     // This is useful because it is possible for fireEvent to be called
     // after end() has been called.
@@ -166,7 +158,6 @@ class GroupWalker extends InternalWalker<Group> {
     // We don't protect against multiple calls to _suppressAttributes.
     // ElementWalker is the only walker that initiates _suppressAttributes
     // and it calls it only once per walker.
-    this.possibleCached = undefined; // no longer valid
     this.suppressedAttributes = true;
     this.walkerA._suppressAttributes();
     this.walkerB._suppressAttributes();

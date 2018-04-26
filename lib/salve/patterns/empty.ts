@@ -51,17 +51,7 @@ export class EmptyWalker extends InternalWalker<Empty> {
   }
 
   possible(): EventSet {
-    // Save some time by avoiding calling _possible. We always want to return a
-    // new object here.
     return makeEventSet();
-  }
-
-  _possible(): EventSet {
-    if (this.possibleCached === undefined) {
-      this.possibleCached = makeEventSet();
-    }
-
-    return this.possibleCached;
   }
 
   fireEvent(name: string, params: string[]): false | undefined {

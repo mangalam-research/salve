@@ -69,21 +69,15 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     }
   }
 
-  _possible(): EventSet {
-    if (this.possibleCached !== undefined) {
-      return this.possibleCached;
-    }
-
+  possible(): EventSet {
     if (this.ended) {
-      this.possibleCached = makeEventSet();
-
-      return this.possibleCached;
+      return makeEventSet();
     }
 
-    const cached = this.possibleCached = this.walkerA.possible();
-    union(cached, this.walkerB._possible());
+    const ret = this.walkerA.possible();
+    union(ret, this.walkerB.possible());
 
-    return cached;
+    return ret;
   }
 
   //
@@ -121,8 +115,6 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     if (evIsAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
-
-    this.possibleCached = undefined;
 
     // This is useful because it is possible for fireEvent to be called
     // after end() has been called.
@@ -168,7 +160,6 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     // We don't protect against multiple calls to _suppressAttributes.
     // ElementWalker is the only walker that initiates _suppressAttributes
     // and it calls it only once per walker.
-    this.possibleCached = undefined; // no longer valid
     this.walkerA._suppressAttributes();
     this.walkerB._suppressAttributes();
   }

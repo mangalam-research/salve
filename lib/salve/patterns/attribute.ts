@@ -97,7 +97,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
     }
   }
 
-  _possible(): EventSet {
+  possible(): EventSet {
     // We've been suppressed!
     if (this.suppressedAttributes || this.canEnd) {
       return makeEventSet();
@@ -108,18 +108,13 @@ class AttributeWalker extends InternalWalker<Attribute> {
     }
 
     // Convert text events to attributeValue events.
-    return map(this.subwalker._possible(), (ev: Event) => {
+    return map(this.subwalker.possible(), (ev: Event) => {
       if (ev.params[0] !== "text") {
         throw new Error(`unexpected event type: ${ev.params[0]}`);
       }
 
       return new Event("attributeValue", ev.params[1]);
     });
-  }
-
-  possible(): EventSet {
-    // _possible always return new sets.
-    return this._possible();
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {

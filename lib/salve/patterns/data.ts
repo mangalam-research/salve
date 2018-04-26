@@ -105,15 +105,11 @@ class DataWalker extends InternalWalker<Data> {
     }
   }
 
-  _possible(): EventSet {
-    if (this.possibleCached === undefined) {
-      // We completely ignore the possible exception when producing the
-      // possibilities. There is no clean way to specify such an exception.
-      this.possibleCached = this.matched ? makeEventSet() :
+  possible(): EventSet {
+    // We completely ignore the possible exception when producing the
+    // possibilities. There is no clean way to specify such an exception.
+    return this.matched ? makeEventSet() :
         makeEventSet(new Event("text", this.el.datatype.regexp));
-    }
-
-    return this.possibleCached;
   }
 
   fireEvent(name: string, params: string[]): false | undefined {
@@ -146,7 +142,6 @@ class DataWalker extends InternalWalker<Data> {
     this.matched = true;
     this.canEnd = true;
     this.canEndAttribute = true;
-    this.possibleCached = undefined;
 
     return false;
   }

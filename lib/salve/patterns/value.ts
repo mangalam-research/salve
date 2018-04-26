@@ -105,13 +105,9 @@ class ValueWalker extends InternalWalker<Value> {
     }
   }
 
-  _possible(): EventSet {
-    if (this.possibleCached === undefined) {
-      this.possibleCached = this.matched ? makeEventSet() :
+  possible(): EventSet {
+    return this.matched ? makeEventSet() :
         makeEventSet(new Event("text", this.el.rawValue));
-    }
-
-    return this.possibleCached;
   }
 
   fireEvent(name: string, params: string[]): false | undefined {
@@ -122,7 +118,6 @@ class ValueWalker extends InternalWalker<Value> {
 
     this.matched = true;
     this.canEndAttribute = this.canEnd = true;
-    this.possibleCached = undefined;
 
     return false;
   }

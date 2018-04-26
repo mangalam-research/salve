@@ -124,12 +124,12 @@ class ElementWalker extends InternalWalker<Element> {
     return new ElementWalker(el, nameResolver, boundName);
   }
 
-  _possible(): EventSet {
+  possible(): EventSet {
     if (!this.endedStartTag) {
       const walker = this.walker;
 
       const ret =
-        filter(walker._possible(), (poss: Event) => poss.isAttributeEvent);
+        filter(walker.possible(), (poss: Event) => poss.isAttributeEvent);
 
       if (walker.canEndAttribute) {
         ret.add(ElementWalker._leaveStartTagEvent);
@@ -139,7 +139,7 @@ class ElementWalker extends InternalWalker<Element> {
     }
     else if (!this.canEnd) {
       const walker = this.walker;
-      const posses = makeEventSet(walker._possible());
+      const posses = walker.possible();
       if (walker.canEnd) {
         posses.add(this.endTagEvent);
       }
@@ -148,11 +148,6 @@ class ElementWalker extends InternalWalker<Element> {
     }
 
     return makeEventSet();
-  }
-
-  // _possible always returns new sets
-  possible(): EventSet {
-    return this._possible();
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {

@@ -51,12 +51,8 @@ class TextWalker extends InternalWalker<Text> {
     this.canEndAttribute = true;
   }
 
-  _possible(): EventSet {
-    if (this.possibleCached === undefined) {
-      this.possibleCached = makeEventSet(TextWalker._textEvent);
-    }
-
-    return this.possibleCached;
+  possible(): EventSet {
+    return  makeEventSet(TextWalker._textEvent);
   }
 
   fireEvent(name: string): false | undefined {

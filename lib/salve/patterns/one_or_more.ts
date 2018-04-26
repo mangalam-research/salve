@@ -7,8 +7,8 @@
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
 import { addWalker, BasePattern, CloneMap, EndResult, EventSet,
-         InternalFireEventResult, InternalWalker, isAttributeEvent,
-         makeEventSet, matched, OneSubpattern } from "./base";
+         InternalFireEventResult, InternalWalker, isAttributeEvent, matched,
+         OneSubpattern } from "./base";
 
 /**
  * A pattern for ``<oneOrMore>``.
@@ -68,25 +68,19 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     }
   }
 
-  _possible(): EventSet {
-    if (this.possibleCached !== undefined) {
-      return this.possibleCached;
-    }
-
-    this.possibleCached = this.currentIteration._possible();
+  possible(): EventSet {
+    const ret = this.currentIteration.possible();
 
     if (this.currentIteration.canEnd) {
-      this.possibleCached = makeEventSet(this.possibleCached);
-
       this._instantiateNextIteration();
       // nextIteration is necessarily defined here due to the previous call.
       // tslint:disable-next-line:no-non-null-assertion
-      const nextPossible: EventSet = this.nextIteration!._possible();
+      const nextPossible = this.nextIteration!.possible();
 
-      union(this.possibleCached, nextPossible);
+      union(ret, nextPossible);
     }
 
-    return this.possibleCached;
+    return ret;
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
@@ -94,8 +88,6 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     if (evIsAttributeEvent && !this.hasAttrs) {
       return undefined;
     }
-
-    this.possibleCached = undefined;
 
     const currentIteration = this.currentIteration;
 
@@ -151,8 +143,6 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     // ElementWalker is the only walker that initiates _suppressAttributes
     // and it calls it only once per walker.
     this.suppressedAttributes = true;
-    this.possibleCached = undefined; // No longer valid.
-
     this.currentIteration._suppressAttributes();
 
     if (this.nextIteration !== undefined) {

@@ -38,16 +38,7 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
   }
 
   possible(): EventSet {
-    // Save some time by avoiding calling _possible
     return makeEventSet();
-  }
-
-  _possible(): EventSet {
-    if (this.possibleCached === undefined) {
-      this.possibleCached = makeEventSet();
-    }
-
-    return this.possibleCached;
   }
 
   fireEvent(): undefined {

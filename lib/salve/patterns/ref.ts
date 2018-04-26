@@ -76,7 +76,7 @@ export class RefWalker extends InternalWalker<Ref> {
     }
   }
 
-  _possible(): EventSet {
+  possible(): EventSet {
     return makeEventSet(this.canEnd ? undefined : this.startTagEvent);
   }
 

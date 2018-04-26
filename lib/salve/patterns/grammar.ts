@@ -183,7 +183,6 @@ interface IWalker {
   end(attribute?: boolean): EndResult;
   _clone(memo: CloneMap): IWalker;
   possible(): EventSet;
-  _possible(): EventSet;
 }
 
 class MisplacedElementWalker implements IWalker {
@@ -208,10 +207,6 @@ class MisplacedElementWalker implements IWalker {
   }
 
   possible(): EventSet {
-    return makeEventSet();
-  }
-
-  _possible(): EventSet {
     return makeEventSet();
   }
 
@@ -590,10 +585,10 @@ ${name}`);
     return finalResult.length !== 0 ? finalResult : false;
   }
 
-  _possible(): EventSet {
+  possible(): EventSet {
     let possible = makeEventSet();
     for (const walker of this.elementWalkerStack[0]) {
-      union(possible, walker._possible());
+      union(possible, walker.possible());
     }
 
     // If we have any attributeValue possible, then the only possible
@@ -608,10 +603,6 @@ ${name}`);
     }
 
     return possible;
-  }
-
-  possible(): EventSet {
-    return this._possible();
   }
 
   _suppressAttributes(): void {
