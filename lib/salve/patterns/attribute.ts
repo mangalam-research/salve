@@ -8,8 +8,9 @@ import { AttributeNameError, AttributeValueError } from "../errors";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { map } from "../set";
-import { addWalker, BasePattern, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, Pattern } from "./base";
+import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, Event,
+         EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -83,7 +84,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
       const walker = elOrWalker as AttributeWalker;
       const memo = nameResolverOrMemo as CloneMap;
       super(walker);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.seenName = walker.seenName;
       this.subwalker = walker.subwalker._clone(memo);
       this.name = walker.name;

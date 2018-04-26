@@ -6,8 +6,9 @@
  */
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { addWalker, BasePattern, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, OneSubpattern } from "./base";
+import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, Event,
+         EventSet, InternalFireEventResult, InternalWalker,
+         OneSubpattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -60,7 +61,7 @@ class ListWalker extends InternalWalker<List> {
       const walker = elOrWalker as ListWalker;
       const memo = nameResolverOrMemo as CloneMap;
       super(walker);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.subwalker = walker.subwalker._clone(memo);
       this.canEnd = walker.canEnd;
       this.canEndAttribute = walker.canEndAttribute;

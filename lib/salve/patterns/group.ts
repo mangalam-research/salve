@@ -7,8 +7,8 @@
 import { AttributeNameError, AttributeValueError } from "../errors";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isAttributeEvent,
+import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, Event,
+         EventSet, InternalFireEventResult, InternalWalker, isAttributeEvent,
          TwoSubpatterns } from "./base";
 
 /**
@@ -60,7 +60,7 @@ class GroupWalker extends InternalWalker<Group> {
       const memo = nameResolverOrMemo as CloneMap;
       super(walker);
       this.hasAttrs = walker.hasAttrs;
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.walkerA = walker.walkerA._clone(memo);
       this.walkerB = walker.walkerB._clone(memo);
       this.ended = walker.ended;

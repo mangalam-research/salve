@@ -6,7 +6,7 @@
  */
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, CloneMap, EndResult, EventSet,
+import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, EventSet,
          InternalFireEventResult, InternalWalker, isAttributeEvent, matched,
          OneSubpattern } from "./base";
 
@@ -56,7 +56,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
       const memo = nameResolverOrMemo as CloneMap;
       super(walker);
       this.hasAttrs = walker.hasAttrs;
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.currentIteration = walker.currentIteration._clone(memo);
       this.nextIteration = walker.nextIteration !== undefined ?
         walker.nextIteration._clone(memo) : undefined;

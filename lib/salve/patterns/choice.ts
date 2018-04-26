@@ -8,7 +8,7 @@ import { ChoiceError } from "../errors";
 import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { BasePattern, CloneMap, EndResult, Event, EventSet,
+import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
          InternalFireEventResult, InternalWalker, isAttributeEvent, Pattern,
          TwoSubpatterns } from "./base";
 import { Empty } from "./empty";
@@ -74,7 +74,7 @@ class ChoiceWalker extends InternalWalker<Choice> {
       const memo = nameResolverOrMemo as CloneMap;
       super(walker);
       this.hasAttrs = walker.hasAttrs;
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.walkerA = walker.walkerA._clone(memo);
       this.walkerB = walker.walkerB._clone(memo);
       this.deactivateA = walker.deactivateA;
@@ -338,7 +338,7 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
       const memo = nameResolverOrMemo as CloneMap;
       super(walker);
       this.hasAttrs = walker.hasAttrs;
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.walkerB = walker.walkerB._clone(memo);
       this.ended = walker.ended;
       this.canEndAttribute = walker.canEndAttribute;

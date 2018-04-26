@@ -7,7 +7,7 @@
 import { ElementNameError } from "../errors";
 import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
-import { BasePattern, CloneMap, EndResult, Event, EventSet,
+import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
          InternalFireEventResult, InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { NotAllowed } from "./not_allowed";
@@ -105,7 +105,7 @@ class ElementWalker extends InternalWalker<Element> {
       const walker = elOrWalker as ElementWalker;
       const memo = nameResolverOrMemo as CloneMap;
       super(walker);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.endedStartTag = walker.endedStartTag;
       this.walker = walker.walker._clone(memo);
 

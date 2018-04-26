@@ -547,6 +547,36 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
 export type CloneMap = Map<any, any>;
 
 /**
+ * Helper method for cloning. This method should be called to clone objects that
+ * do not participate in the ``clone``, protocol. This typically means instance
+ * properties that are not ``Walker`` objects and not immutable.
+ *
+ * This method will call a ``clone`` method on ``obj``, when it determines
+ * that cloning must happen.
+ *
+ * @param obj The object to clone.
+ *
+ * @param memo A mapping of old object to copy object. As a tree of patterns
+ * is being cloned, this memo is populated. So if A is cloned to B then a
+ * mapping from A to B is stored in the memo. If A is seen again in the same
+ * cloning operation, then it will be substituted with B instead of creating a
+ * new object. This should be the same object as the one passed to the
+ * constructor.
+ *
+ * @returns A clone of ``obj``.
+ */
+export function cloneIfNeeded<C extends Clonable>(obj: C, memo: CloneMap): C {
+  let other = memo.get(obj);
+  if (other !== undefined) {
+    return other as C;
+  }
+  other = obj.clone();
+  memo.set(obj, other);
+
+  return other;
+}
+
+/**
  * Roughly speaking each [[Pattern]] object has a corresponding ``Walker`` class
  * that models an object which is able to walk the pattern to which it
  * belongs. So an ``Element`` has an ``ElementWalker`` and an ``Attribute`` has
@@ -611,36 +641,6 @@ export abstract class BaseWalker<T extends BasePattern> {
   */
   _clone(memo: CloneMap): this {
     return new (this.constructor as any)(this, memo);
-  }
-
-  /**
-   * Helper method for cloning. This method should be called to clone objects
-   * that do not participate in the ``clone``, protocol. This typically means
-   * instance properties that are not ``Walker`` objects and not immutable.
-   *
-   * This method will call a ``clone`` method on ``obj``, when it determines
-   * that cloning must happen.
-   *
-   * @param obj The object to clone.
-   *
-   * @param memo A mapping of old object to copy object. As a tree of patterns
-   * is being cloned, this memo is populated. So if A is cloned to B then a
-   * mapping from A to B is stored in the memo. If A is seen again in the same
-   * cloning operation, then it will be substituted with B instead of creating a
-   * new object. This should be the same object as the one passed to the
-   * constructor.
-   *
-   * @returns A clone of ``obj``.
-   */
-  protected _cloneIfNeeded<C extends Clonable>(obj: C, memo: CloneMap): C {
-    let other = memo.get(obj);
-    if (other !== undefined) {
-      return other as C;
-    }
-    other = obj.clone();
-    memo.set(obj, other);
-
-    return other;
   }
 
   hasEmptyPattern(): boolean {

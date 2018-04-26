@@ -7,8 +7,8 @@
 import { Datatype, RawParameter, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { addWalker, CloneMap, EndResult, Event, EventSet, InternalWalker,
-         Pattern } from "./base";
+import { addWalker, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
+         InternalWalker, Pattern } from "./base";
 /**
  * Data pattern.
  */
@@ -96,7 +96,7 @@ class DataWalker extends InternalWalker<Data> {
       const walker = elOrWalker as DataWalker;
       const memo = nameResolverOrMemo as CloneMap;
       super(walker);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.context = walker.context !== undefined ?
         { resolver: this.nameResolver } : undefined;
       this.matched = walker.matched;

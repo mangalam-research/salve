@@ -12,8 +12,8 @@ import { NameResolver } from "../name_resolver";
 import { filter, union } from "../set";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
-import { BasePattern, BaseWalker, CloneMap, EndResult, Event, EventSet,
-         FireEventResult, InternalFireEventResult, InternalWalker,
+import { BasePattern, BaseWalker, cloneIfNeeded, CloneMap, EndResult, Event,
+         EventSet, FireEventResult, InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
@@ -251,7 +251,7 @@ export class GrammarWalker extends BaseWalker<Grammar> {
       const walker = elOrWalker as GrammarWalker;
       super(walker);
       // tslint:disable-next-line:no-non-null-assertion
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo!);
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo!);
       this.elementWalkerStack = walker.elementWalkerStack
       // tslint:disable-next-line:no-non-null-assertion
         .map((walkers) => walkers.map((x) => x._clone(memo!)));

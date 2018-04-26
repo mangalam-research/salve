@@ -6,8 +6,8 @@
  */
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isAttributeEvent,
+import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, Event,
+         EventSet, InternalFireEventResult, InternalWalker, isAttributeEvent,
          matched, TwoSubpatterns } from "./base";
 
 /**
@@ -59,7 +59,7 @@ class InterleaveWalker extends InternalWalker<Interleave> {
       const walker = elOrWalker as InterleaveWalker;
       const memo = nameResolverOrMemo as CloneMap;
       super(walker);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.ended = walker.ended;
       this.hasAttrs = walker.hasAttrs;
       this.walkerA = walker.walkerA._clone(memo);
