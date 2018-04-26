@@ -380,17 +380,6 @@ export class Element extends Node {
     return (attr !== undefined) ? attr.value : undefined;
   }
 
-  getAttributes(): Record<string, string> {
-    const ret: Record<string, string> = Object.create(null);
-    const attributes = this.attributes;
-    const keys = Object.keys(attributes);
-    for (const key of keys) {
-      ret[key] = attributes[key].value;
-    }
-
-    return ret;
-  }
-
   getRawAttributes(): Record<string, sax.QualifiedAttribute> {
     return this.attributes;
   }

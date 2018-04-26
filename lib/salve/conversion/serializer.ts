@@ -96,7 +96,7 @@ function _serialize(mixed: boolean,
   let buf = "";
 
   buf += `${curIndent}<${el.local}`;
-  const attrs = el.getAttributes();
+  const attrs = el.getRawAttributes();
   const names = Object.keys(attrs);
   names.sort();
   for (const name of names) {
