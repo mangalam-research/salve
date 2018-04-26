@@ -28,6 +28,7 @@ class GroupWalker extends InternalWalker<Group> {
   private ended: boolean;
   private walkerA: InternalWalker<BasePattern>;
   private walkerB: InternalWalker<BasePattern>;
+  private endedA: boolean;
   private readonly nameResolver: NameResolver;
   canEndAttribute: boolean;
   canEnd: boolean;
@@ -51,6 +52,7 @@ class GroupWalker extends InternalWalker<Group> {
       this.ended = false;
       const walkerA = this.walkerA = el.patA.newWalker(nameResolver);
       const walkerB = this.walkerB = el.patB.newWalker(nameResolver);
+      this.endedA = false;
       this.canEndAttribute = !this.hasAttrs ||
         (walkerA.canEndAttribute && walkerB.canEndAttribute);
       this.canEnd = walkerA.canEnd && walkerB.canEnd;
@@ -62,6 +64,7 @@ class GroupWalker extends InternalWalker<Group> {
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.walkerA = walker.walkerA._clone(memo);
       this.walkerB = walker.walkerB._clone(memo);
+      this.endedA = walker.endedA;
       this.ended = walker.ended;
       this.canEndAttribute = walker.canEndAttribute;
       this.canEnd = walker.canEnd;
@@ -108,22 +111,24 @@ class GroupWalker extends InternalWalker<Group> {
 
     const walkerA = this.walkerA;
     const walkerB = this.walkerB;
-    const retA = walkerA.fireEvent(name, params);
-    if (retA !== undefined) {
-      if (evIsAttributeEvent) {
-        this.canEndAttribute = walkerA.canEndAttribute &&
-          walkerB.canEndAttribute;
+    if (!this.endedA) {
+      const retA = walkerA.fireEvent(name, params);
+      if (retA !== undefined) {
+        if (evIsAttributeEvent) {
+          this.canEndAttribute = walkerA.canEndAttribute &&
+            walkerB.canEndAttribute;
+        }
+
+        this.canEnd = walkerA.canEnd && walkerB.canEnd;
+
+        return retA;
       }
 
-      this.canEnd = walkerA.canEnd && walkerB.canEnd;
-
-      return retA;
-    }
-
-    // We must return right away if walkerA cannot yet end. Only attribute
-    // events are allowed to move forward.
-    if (!evIsAttributeEvent && !walkerA.canEnd) {
-      return undefined;
+      // We must return right away if walkerA cannot yet end. Only attribute
+      // events are allowed to move forward.
+      if (!evIsAttributeEvent && !walkerA.canEnd) {
+        return undefined;
+      }
     }
 
     const retB = walkerB.fireEvent(name, params);
@@ -137,6 +142,7 @@ class GroupWalker extends InternalWalker<Group> {
     // walkerA, if we've not already done so.
     if (!evIsAttributeEvent && retB !== undefined) {
       const endRet = walkerA.end();
+      this.endedA = true;
 
       // Combine the possible errors.
       if (!retB) {

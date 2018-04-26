@@ -4,8 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { addWalker, CloneMap, Event, EventSet, InternalWalker,
-         Pattern } from "./base";
+import { Event, EventSet, InternalWalker, Pattern } from "./base";
 
 /**
  * Pattern for ``<text/>``.
@@ -16,6 +15,11 @@ export class Text extends Pattern {
     // effectively allow the container to be empty.
     return true;
   }
+
+  newWalker(): InternalWalker<Text> {
+    // tslint:disable-next-line:no-use-before-declare
+    return singleton;
+  }
 }
 
 /**
@@ -25,47 +29,41 @@ export class Text extends Pattern {
  */
 class TextWalker extends InternalWalker<Text> {
   private static readonly _textEvent: Event = new Event("text", /^.*$/);
-
-  private ended: boolean;
-
   canEnd: boolean;
   canEndAttribute: boolean;
 
   /**
    * @param el The pattern for which this walker was constructed.
    */
-  protected constructor(walker: TextWalker, memo: CloneMap);
-  protected constructor(el: Text);
-  protected constructor(elOrWalker: TextWalker | Text, memo?: CloneMap) {
-    if ((elOrWalker as Text).newWalker !== undefined) {
-      super(elOrWalker as Text);
-      this.ended = false;
-    }
-    else {
-      const walker = elOrWalker as TextWalker;
-      super(walker);
-      this.ended = walker.ended;
-    }
-
+  protected constructor(el: Text) {
+    super(el);
     this.canEnd = true;
     this.canEndAttribute = true;
   }
 
+  static makeNew(el: Text): TextWalker {
+    return new TextWalker(el);
+  }
+
+  // Since TextWalker is a singleton, the cloning operation just
+  // returns the original walker.
+  clone(): this {
+    return this;
+  }
+
   possible(): EventSet {
-    return  new Set([TextWalker._textEvent]);
+    return new Set([TextWalker._textEvent]);
   }
 
   possibleAttributes(): EventSet {
-    return  new Set<Event>();
+    return new Set<Event>();
   }
 
   fireEvent(name: string): false | undefined {
-    return !this.ended && (name === "text") ? false : undefined;
+    return (name === "text") ? false : undefined;
   }
 
   end(): false {
-    this.ended = true;
-
     return false;
   }
 
@@ -73,6 +71,7 @@ class TextWalker extends InternalWalker<Text> {
     return false;
   }
 }
-addWalker(Text, TextWalker);
+
+const singleton = TextWalker.makeNew(new Text("FAKE ELEMENT"));
 
 //  LocalWords:  RNG's MPL possibleCached
