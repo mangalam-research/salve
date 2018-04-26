@@ -63,11 +63,11 @@ class ChoiceWalker extends InternalWalker<Choice> {
       this.nameResolver = nameResolver;
       this.deactivateA = false;
       this.deactivateB = false;
-      this.walkerA = this.el.patA.newWalker(nameResolver);
-      this.walkerB = this.el.patB.newWalker(nameResolver);
+      const walkerA = this.walkerA = el.patA.newWalker(nameResolver);
+      const walkerB = this.walkerB = el.patB.newWalker(nameResolver);
       this.canEndAttribute = !this.hasAttrs ||
-        this.walkerA.canEndAttribute || this.walkerB.canEndAttribute;
-      this.canEnd = this.walkerA.canEnd || this.walkerB.canEnd;
+        walkerA.canEndAttribute || walkerB.canEndAttribute;
+      this.canEnd = walkerA.canEnd || walkerB.canEnd;
     }
     else {
       const walker = elOrWalker as ChoiceWalker;
@@ -277,7 +277,7 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
       this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
       this.ended = false;
-      this.walkerB = this.el.patB.newWalker(nameResolver);
+      this.walkerB = el.patB.newWalker(nameResolver);
       this.canEndAttribute = true;
       this.canEnd = true;
     }

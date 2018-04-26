@@ -90,7 +90,7 @@ class ValueWalker extends InternalWalker<Value> {
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
       this.matched = false;
-      this.canEndAttribute = this.canEnd = this.el.hasEmptyPattern();
+      this.canEndAttribute = this.canEnd = el.hasEmptyPattern();
     }
     else {
       const walker = elOrWalker as ValueWalker;

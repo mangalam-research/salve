@@ -49,8 +49,8 @@ class InterleaveWalker extends InternalWalker<Interleave> {
       this.nameResolver = nameResolver;
       this.ended = false;
       this.hasAttrs = el.hasAttrs();
-      this.walkerA = this.el.patA.newWalker(nameResolver);
-      this.walkerB = this.el.patB.newWalker(nameResolver);
+      this.walkerA = el.patA.newWalker(nameResolver);
+      this.walkerB = el.patB.newWalker(nameResolver);
       this.canEndAttribute = !this.hasAttrs ||
         (this.walkerA.canEndAttribute && this.walkerB.canEndAttribute);
       this.canEnd = this.walkerA.canEnd && this.walkerB.canEnd;

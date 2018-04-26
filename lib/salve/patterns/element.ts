@@ -93,7 +93,7 @@ class ElementWalker extends InternalWalker<Element> {
       const nameResolver = nameResolverOrMemo as NameResolver;
       super(el);
       this.nameResolver = nameResolver;
-      this.walker = this.el.pat.newWalker(nameResolver);
+      this.walker = el.pat.newWalker(nameResolver);
       this.endedStartTag = false;
       // tslint:disable-next-line:no-non-null-assertion
       this.boundName = boundName!;

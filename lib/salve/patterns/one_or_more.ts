@@ -46,7 +46,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
       super(el);
       this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
-      this.currentIteration = this.el.pat.newWalker(nameResolver);
+      this.currentIteration = el.pat.newWalker(nameResolver);
       this.canEndAttribute = !this.hasAttrs ||
         this.currentIteration.canEndAttribute;
       this.canEnd = this.currentIteration.canEnd;
