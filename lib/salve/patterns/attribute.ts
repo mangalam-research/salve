@@ -133,31 +133,25 @@ class AttributeWalker extends InternalWalker<Attribute> {
     else if ((name === "attributeName" || name === "attributeNameAndValue") &&
              this.name.match(params[0], params[1])) {
       this.seenName = true;
-      ret = false;
 
-      if (name === "attributeNameAndValue") {
-        value = params[2];
+      if (name === "attributeName") {
+        return false;
       }
+
+      value = params[2];
     }
 
     if (value !== undefined) {
       this.canEnd = true;
       this.canEndAttribute = true;
 
-      if (value !== "") {
-        ret = this.subwalker.fireEvent("text", [value]);
+      ret = value !== "" ? this.subwalker.fireEvent("text", [value]) : false;
 
-        if (ret === undefined) {
-          ret = [new AttributeValueError("invalid attribute value",
-                                         this.name)];
-        }
+      if (ret === undefined) {
+        ret = [new AttributeValueError("invalid attribute value", this.name)];
       }
-      else {
-        ret = false;
-      }
-
       // Attributes end immediately.
-      if (ret === false) {
+      else if (ret === false) {
         ret = this.subwalker.end();
       }
     }
@@ -170,20 +164,16 @@ class AttributeWalker extends InternalWalker<Attribute> {
       return false;
     }
 
-    if (!this.seenName) {
-      //
-      // We set the _canEnd flags true even though we did not end properly. This
-      // prevents producing errors about the same attribute multiple times,
-      // because end is called by element walkers when leaveStartTag is
-      // encountered, and again when the element closes.
-      this.canEnd = true;
-      this.canEndAttribute = true;
+    // We set the canEnd flags true even though we did not end properly. This
+    // prevents producing errors about the same attribute multiple times,
+    // because end is called by element walkers when leaveStartTag is
+    // encountered, and again when the element closes.
+    this.canEnd = true;
+    this.canEndAttribute = true;
 
-      return [new AttributeNameError("attribute missing", this.name)];
-    }
-
-    // If we get here, necessarily we have not seen a value.
-    return [new AttributeValueError("attribute value missing", this.name)];
+    return [this.seenName ?
+            new AttributeValueError("attribute value missing", this.name) :
+            new AttributeNameError("attribute missing", this.name)];
   }
 
   end(): EndResult {
