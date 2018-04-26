@@ -82,10 +82,10 @@ class ValueWalker extends InternalWalker<Value> {
   protected constructor(el: Value, nameResolver: NameResolver);
   protected constructor(elOrWalker: Value |  ValueWalker,
                         nameResolverOrMemo: CloneMap | NameResolver) {
+    super(elOrWalker);
     if ((elOrWalker as Value).newWalker !== undefined) {
       const el = elOrWalker as Value;
       const nameResolver = nameResolverOrMemo as NameResolver;
-      super(el);
       this.nameResolver = nameResolver;
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
@@ -95,7 +95,6 @@ class ValueWalker extends InternalWalker<Value> {
     else {
       const walker = elOrWalker as ValueWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker);
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.context = walker.context !== undefined ?
         { resolver: this.nameResolver } : undefined;

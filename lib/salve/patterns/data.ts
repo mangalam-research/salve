@@ -80,11 +80,10 @@ class DataWalker extends InternalWalker<Data> {
   protected constructor(el: Data, nameResolver: NameResolver);
   protected constructor(elOrWalker: DataWalker | Data,
                         nameResolverOrMemo: NameResolver | CloneMap) {
+    super(elOrWalker);
     if ((elOrWalker as Data).newWalker !== undefined) {
       const el = elOrWalker as Data;
       const nameResolver = nameResolverOrMemo as NameResolver;
-      super(el);
-
       this.nameResolver = nameResolver;
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
@@ -95,7 +94,6 @@ class DataWalker extends InternalWalker<Data> {
     else {
       const walker = elOrWalker as DataWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker);
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.context = walker.context !== undefined ?
         { resolver: this.nameResolver } : undefined;

@@ -42,10 +42,10 @@ class GroupWalker extends InternalWalker<Group> {
   protected constructor(el: Group, nameResolver: NameResolver);
   protected constructor(elOrWalker: GroupWalker | Group,
                         nameResolverOrMemo: CloneMap | NameResolver) {
+    super(elOrWalker);
     if ((elOrWalker as Group).newWalker !== undefined) {
       const el = elOrWalker as Group;
       const nameResolver = nameResolverOrMemo as NameResolver;
-      super(el);
       this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
       this.ended = false;
@@ -58,7 +58,6 @@ class GroupWalker extends InternalWalker<Group> {
     else {
       const walker = elOrWalker as GroupWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker);
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.walkerA = walker.walkerA._clone(memo);

@@ -70,9 +70,9 @@ class AttributeWalker extends InternalWalker<Attribute> {
   protected constructor(el: Attribute, nameResolver: NameResolver);
   protected constructor(elOrWalker: AttributeWalker | Attribute,
                         nameResolverOrMemo: CloneMap | NameResolver) {
+    super(elOrWalker);
     if ((elOrWalker as Attribute).newWalker !== undefined) {
       const el = elOrWalker as Attribute;
-      super(el);
       this.nameResolver = nameResolverOrMemo as NameResolver;
       this.subwalker = el.pat.newWalker(this.nameResolver);
       this.name = el.name;
@@ -83,7 +83,6 @@ class AttributeWalker extends InternalWalker<Attribute> {
     else {
       const walker = elOrWalker as AttributeWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker);
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.seenName = walker.seenName;
       this.subwalker = walker.subwalker._clone(memo);

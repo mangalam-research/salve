@@ -40,10 +40,10 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
   protected constructor(el: OneOrMore, nameResolver: NameResolver);
   protected constructor(elOrWalker: OneOrMoreWalker | OneOrMore,
                         nameResolverOrMemo: NameResolver | CloneMap) {
+    super(elOrWalker);
     if ((elOrWalker as OneOrMore).newWalker !== undefined) {
       const el = elOrWalker as OneOrMore;
       const nameResolver = nameResolverOrMemo as NameResolver;
-      super(el);
       this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
       this.currentIteration = el.pat.newWalker(nameResolver);
@@ -54,7 +54,6 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     else {
       const walker = elOrWalker as OneOrMoreWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker);
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.currentIteration = walker.currentIteration._clone(memo);

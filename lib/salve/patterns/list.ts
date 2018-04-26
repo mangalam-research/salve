@@ -49,10 +49,10 @@ class ListWalker extends InternalWalker<List> {
   protected constructor(el: List, nameResolver: NameResolver);
   protected constructor(elOrWalker: List | ListWalker,
                         nameResolverOrMemo: NameResolver | CloneMap) {
+    super(elOrWalker);
     if ((elOrWalker as List).newWalker !== undefined) {
       const el = elOrWalker as List;
       const nameResolver = nameResolverOrMemo as NameResolver;
-      super(el);
       this.nameResolver = nameResolver;
       this.subwalker = el.pat.newWalker(nameResolver);
       this.canEndAttribute = this.canEnd = this.hasEmptyPattern();
@@ -60,7 +60,6 @@ class ListWalker extends InternalWalker<List> {
     else {
       const walker = elOrWalker as ListWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker);
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.subwalker = walker.subwalker._clone(memo);
       this.canEnd = walker.canEnd;

@@ -42,10 +42,10 @@ class InterleaveWalker extends InternalWalker<Interleave> {
   protected constructor(el: Interleave, nameResolver: NameResolver);
   protected constructor(elOrWalker: InterleaveWalker | Interleave,
                         nameResolverOrMemo: NameResolver | CloneMap) {
+    super(elOrWalker);
     if ((elOrWalker as Interleave).newWalker !== undefined) {
       const el = elOrWalker as Interleave;
       const nameResolver = nameResolverOrMemo as NameResolver;
-      super(el);
       this.nameResolver = nameResolver;
       this.ended = false;
       this.hasAttrs = el.hasAttrs();
@@ -58,7 +58,6 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     else {
       const walker = elOrWalker as InterleaveWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker);
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.ended = walker.ended;
       this.hasAttrs = walker.hasAttrs;

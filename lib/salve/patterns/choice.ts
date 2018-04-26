@@ -55,10 +55,10 @@ class ChoiceWalker extends InternalWalker<Choice> {
   protected constructor(elOrWalker: ChoiceWalker | Choice,
                         nameResolverOrMemo: NameResolver | CloneMap)
   {
+    super(elOrWalker);
     if ((elOrWalker as Choice).newWalker !== undefined) {
       const el = elOrWalker as Choice;
       const nameResolver = nameResolverOrMemo as NameResolver;
-      super(el);
       this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
       this.deactivateA = false;
@@ -72,7 +72,6 @@ class ChoiceWalker extends InternalWalker<Choice> {
     else {
       const walker = elOrWalker as ChoiceWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker);
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.walkerA = walker.walkerA._clone(memo);
@@ -322,10 +321,10 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
   protected constructor(elOrWalker: OptionalChoiceWalker | Choice,
                         nameResolverOrMemo: NameResolver | CloneMap)
   {
+    super(elOrWalker);
     if ((elOrWalker as Choice).newWalker !== undefined) {
       const el = elOrWalker as Choice;
       const nameResolver = nameResolverOrMemo as NameResolver;
-      super(el);
       this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
       this.ended = false;
@@ -336,7 +335,6 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
     else {
       const walker = elOrWalker as OptionalChoiceWalker;
       const memo = nameResolverOrMemo as CloneMap;
-      super(walker);
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.walkerB = walker.walkerB._clone(memo);
