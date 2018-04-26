@@ -29,6 +29,11 @@ here unless they include a fix to a specific issue reported on github.
     ever visible to client code is ``GrammarWalker`` and this is the class that
     should be used in variable declarations rather than ``Walker``.
 
+  - Breaking change: this is probably not going to be an issue generally because
+    there usually no need for *client code* to create ``NameChoice`` objects but
+    the constructor has changed and now takes two individual pattern parameters
+    for the choices instead of a two-element array.
+
   - New feature: introduce a pair of "compact" events named
     ``attributeNameAndValue`` and ``startTagAndAttributes`` which allow passing
     a smaller number of events to salve.

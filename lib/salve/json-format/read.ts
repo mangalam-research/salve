@@ -183,7 +183,7 @@ const kindToArgFilter: (ArgFilter | undefined)[] = [
   undefined, // EName,
   twoPatternFilter, // Interleave,
   undefined, // Name,
-  undefined, // NameChoice,
+  twoPatternFilter, // NameChoice,
   undefined, // NsName,
   undefined, // AnyName,
 ];

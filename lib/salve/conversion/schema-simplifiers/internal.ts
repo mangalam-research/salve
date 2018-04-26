@@ -29,8 +29,8 @@ function makeNamePattern(el: Element): ConcreteName {
     case "name":
       return new Name("", el.mustGetAttribute("ns"), el.text);
     case "choice":
-      return new NameChoice("", [makeNamePattern(first),
-                                 makeNamePattern(second)]);
+      return new NameChoice("", makeNamePattern(first),
+                            makeNamePattern(second));
     case "anyName": {
       return new AnyName("",
                          first !== undefined ? makeNamePattern(first) :

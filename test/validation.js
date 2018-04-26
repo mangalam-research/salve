@@ -838,8 +838,8 @@ describe("Name pattern", () => {
       Asimple = new salve.Name("", "a", "b");
       Acomplex = new salve.AnyName("");
       b = new salve.Name("", "c", "d");
-      simple = new salve.NameChoice("", [Asimple, b]);
-      complex = new salve.NameChoice("", [Acomplex, b]);
+      simple = new salve.NameChoice("", Asimple, b);
+      complex = new salve.NameChoice("", Acomplex, b);
     });
 
     it("is simple or complex depending on contents", () => {
@@ -871,11 +871,7 @@ describe("Name pattern", () => {
       assert.isTrue(complex.wildcardMatch("c", "d"));
 
       const x = new salve.NameChoice(
-        "",
-        [
-          new salve.AnyName("", new salve.Name("", "c", "d")),
-          b,
-        ]);
+        "", new salve.AnyName("", new salve.Name("", "c", "d")), b);
       // This is false because our AnyName explicitly excludes {c}d.
       assert.isFalse(x.wildcardMatch("c", "d"));
       assert.isTrue(x.wildcardMatch("a", "b"));
@@ -1036,10 +1032,11 @@ describe("Name pattern", () => {
       // {q}moo from the names matched.
       doubleExceptWithChoice =
         new salve.AnyName("",
-                          new salve.NameChoice("", [
+                          new salve.NameChoice(
+                            "",
                             new salve.Name("", "q", "moo"),
                             new salve.NsName("", "a",
-                                             new salve.Name("", "a", "foo"))]));
+                                             new salve.Name("", "a", "foo"))));
     });
 
     it("is not simple", () => {

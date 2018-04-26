@@ -238,18 +238,16 @@ export class Name extends Base {
  */
 export class NameChoice extends Base {
 
-  readonly a: ConcreteName;
-  readonly b: ConcreteName;
-
   /**
    * @param path See parent class.
    *
-   * @param pats An array of length 2 which
-   * contains the two choices allowed by this object.
+   * @param a The first choice.
+   *
+   * @param b The second choice.
    */
-  constructor(path: string, pats: ConcreteName[]) {
+  constructor(path: string, readonly a: ConcreteName,
+              readonly b: ConcreteName) {
     super(path);
-    [this.a, this.b] = pats;
   }
 
   /**
@@ -268,9 +266,9 @@ export class NameChoice extends Base {
     let ret: ConcreteName;
     if (names.length > 1) {
       // More than one name left. Convert them to a tree.
-      let top = new NameChoice("", [names[0], names[1]]);
+      let top = new NameChoice("", names[0], names[1]);
       for (let ix = 2; ix < names.length; ix++) {
-        top = new NameChoice("", [top, names[ix]]);
+        top = new NameChoice("", top, names[ix]);
       }
 
       ret = top;
@@ -300,7 +298,7 @@ export class NameChoice extends Base {
     const b = this.b.intersection(other);
 
     if (a !== 0 && b !== 0) {
-      return new NameChoice("", [a, b]);
+      return new NameChoice("", a, b);
     }
 
     if (a !== 0) {
@@ -326,7 +324,7 @@ export class NameChoice extends Base {
     const newB = b instanceof NameChoice ? b.applyRecursively(fn) : fn(b);
 
     if (newA !== 0 && newB !== 0) {
-      return new NameChoice(this.path, [newA, newB]);
+      return new NameChoice(this.path, newA, newB);
     }
 
     if (newA !== 0) {
@@ -508,7 +506,7 @@ export class NsName extends Base {
       return new NsName(this.path, this.ns,
                         (this.except === undefined) ?
                         other :
-                        new NameChoice(this.path, [this.except, other]));
+                        new NameChoice(this.path, this.except, other));
     }
 
     if (other.except === undefined) {
@@ -660,7 +658,7 @@ export class AnyName extends Base {
       if (other.except !== undefined && this.except !== undefined) {
         return new AnyName(this.path,
                            new NameChoice(this.path,
-                                          [this.except, other.except]));
+                                          this.except, other.except));
       }
 
       return (other.except !== undefined) ? other : this;

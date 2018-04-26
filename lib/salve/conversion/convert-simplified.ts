@@ -91,8 +91,8 @@ function walkNameClass(el: Element): ConcreteName {
   switch (el.local) {
     case "choice":
       return new NameChoice(el.path,
-                            [walkNameClass(el.children[0] as Element),
-                             walkNameClass(el.children[1] as Element)]);
+                            walkNameClass(el.children[0] as Element),
+                            walkNameClass(el.children[1] as Element));
     case "name":
       return new Name(el.path, el.mustGetAttribute("ns"), el.text);
     case "nsName":
