@@ -103,10 +103,10 @@ function transformGrammars(root: GrammarNode,
     grammar.defines.concat(grammar.refs,
                            ...grammar.childGrammars.map((x) => x.parentRefs));
 
+  const suffix = `-gr-${grammar.id}`;
   // Make all names unique globally.
   for (const el of toRename) {
-    el.setAttribute("name",
-                    `${el.mustGetAttribute("name")}-gr-${grammar.id}`);
+    el.setAttribute("name", el.mustGetAttribute("name") + suffix);
   }
 
   // Move the ``define`` elements to the root grammar. We do this on the root
