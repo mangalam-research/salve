@@ -559,15 +559,14 @@ ${name}`);
     return (arr.length !== 0) ? arr : undefined;
   }
 
-  canEnd(attribute: boolean = false): boolean {
+  canEnd(): boolean {
     const top = this.elementWalkerStack[0];
 
     return this.elementWalkerStack.length === 1 &&
-      top.length > 0 && ((attribute && top[0].canEndAttribute) ||
-                         (!attribute && top[0].canEnd));
+      top.length > 0 && top[0].canEnd;
   }
 
-  end(attribute: boolean = false): EndResult {
+  end(): EndResult {
     if (this.elementWalkerStack.length < 1) {
       throw new Error("stack underflow");
     }
@@ -575,7 +574,7 @@ ${name}`);
     let finalResult: ValidationError[] = [];
     for (const stackElement of this.elementWalkerStack) {
       for (const walker of stackElement) {
-        const result = walker.end(attribute);
+        const result = walker.end();
         if (result) {
           finalResult = finalResult.concat(result);
         }

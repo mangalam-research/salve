@@ -588,22 +588,6 @@ export abstract class BaseWalker<T extends BasePattern> {
   // ValidationError objects otherwise.
 
   /**
-   * Obtain the errors that would occur if the walker were to end here. Note the
-   * conditional phrasing. It **must** be idempotent. Therefore it **must not**
-   * change the state of the walker. The internal code of salve will sometimes
-   * call end more than once on the same walker.
-   *
-   * @param attribute ``true`` if calling this method while processing
-   * attributes, ``false`` otherwise.
-   *
-   * @returns ``false`` if the walker ended without error. Otherwise, the
-   * errors.
-   */
-  end(attribute: boolean = false): EndResult {
-    return false;
-  }
-
-  /**
    * Deep copy the Walker.
    *
    * @returns A deep copy of the Walker.
@@ -712,6 +696,22 @@ export abstract class InternalWalker<T extends BasePattern>
    * an error. This method may not be called on ``ElementWalker``.
    */
   abstract possibleAttributes(): EventSet;
+
+  /**
+   * Obtain the errors that would occur if the walker were to end here. Note the
+   * conditional phrasing. It **must** be idempotent. Therefore it **must not**
+   * change the state of the walker. The internal code of salve will sometimes
+   * call end more than once on the same walker.
+   *
+   * @param attribute ``true`` if calling this method while processing
+   * attributes, ``false`` otherwise.
+   *
+   * @returns ``false`` if the walker ended without error. Otherwise, the
+   * errors.
+   */
+  end(attribute: boolean = false): EndResult {
+    return false;
+  }
 }
 
 //  LocalWords:  RNG MPL lookahead xmlns uri CodeMirror tokenizer enterStartTag

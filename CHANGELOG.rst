@@ -34,6 +34,13 @@ here unless they include a fix to a specific issue reported on github.
     the constructor has changed and now takes two individual pattern parameters
     for the choices instead of a two-element array.
 
+  - Breaking change: this is probably also not going to be an issue either
+    generally because calling ``canEnd`` and ``end`` with the ``attribute``
+    parameter true on ``GrammarWalker`` made no damn sense in the first
+    place. (It makes no sense to inquire whether a ``GrammarWalker`` can end
+    seeing *attributes* by opposition to just ending.) At any rate, that
+    parameter has been removed.
+
   - New feature: introduce a pair of "compact" events named
     ``attributeNameAndValue`` and ``startTagAndAttributes`` which allow passing
     a smaller number of events to salve.
