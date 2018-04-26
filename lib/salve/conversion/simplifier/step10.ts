@@ -30,15 +30,15 @@ function walk(state: State, el: Element): Element | null {
 
       switch (local) {
         case "mixed":
-          el.name = el.local = "interleave";
+          el.local = "interleave";
           toAppend.push(Element.makeElement("text"));
           break;
         case "optional":
-          el.name = el.local = "choice";
+          el.local = "choice";
           toAppend.push(Element.makeElement("empty"));
           break;
         case "zeroOrMore":
-          el.name = el.local = "choice";
+          el.local = "choice";
           const oneOrMore = Element.makeElement("oneOrMore");
           oneOrMore.append(toAppend.length === 0 ? el.children.slice() :
                            toAppend);

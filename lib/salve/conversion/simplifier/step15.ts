@@ -119,7 +119,7 @@ function transformGrammars(root: GrammarNode,
 
   // Rename all parentRef elements to ref elements.
   for (const parentRef of grammar.parentRefs) {
-    parentRef.name = parentRef.local = "ref";
+    parentRef.local = "ref";
   }
 
   if (grammar !== root) {

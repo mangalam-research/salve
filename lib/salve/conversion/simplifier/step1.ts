@@ -47,7 +47,6 @@ class Step1 {
 
     // We move all RNG nodes into the default namespace.
     el.prefix = "";
-    el.name = el.local;
 
     // At this point it is safe to drop all the attributes in the XML
     // namespace. "xml:base" in particular is no longer of any use. We do keep
@@ -199,11 +198,9 @@ grammar`);
         def.remove();
       }
     }
-    el.name = "div";
     el.local = "div";
     el.setAttribute("datatypeLibrary", "");
     el.removeAttribute("href");
-    includedTree.name = "div";
     includedTree.local = "div";
     // Insert the grammar element (now named "div") into the include element
     // (also now named "div").

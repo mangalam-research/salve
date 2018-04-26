@@ -87,8 +87,6 @@ export class Element extends Node {
    */
   private _path: string | undefined;
 
-  name: string;
-
   prefix: string;
 
   local: string;
@@ -108,7 +106,6 @@ export class Element extends Node {
   constructor(node: sax.QualifiedTag | Element,
               readonly children: ConcreteNode[] = []) {
     super();
-    this.name = node.name;
     this.prefix = node.prefix;
     this.local = node.local;
     this.uri = node.uri;
