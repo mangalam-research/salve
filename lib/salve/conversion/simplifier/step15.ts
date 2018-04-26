@@ -122,14 +122,14 @@ function transformGrammars(root: GrammarNode,
     parentRef.local = "ref";
   }
 
+  const start = grammar.grammar.children[0] as Element;
+  if (start.local !== "start") {
+    throw new Error("there should be a single start element in the grammar!");
+  }
+
   if (grammar !== root) {
     // Remove the remaining ``grammar`` and ``start`` elements.
-    const start = grammar.grammar.children[0] as Element;
-    if (start.local !== "start") {
-      throw new Error("there should be a single start element in the grammar!");
-    }
-    const pattern = start.children[0] as Element;
-    grammar.grammar.replaceWith(pattern);
+    grammar.grammar.replaceWith(start.children[0] as Element);
   }
 
 }
@@ -143,7 +143,7 @@ function transformGrammars(root: GrammarNode,
  *   plus 1. Then we add to ``define/@name`` the string ``-gr-{id}`` where
  *   ``{id}`` is the grammar's id of the grammar to which the ``define``
  *   belongs. NOTE: this pattern was selected to avoid a clash with step 16,
- *   which creates new ``define`` element.
+ *   which creates new ``define`` elements.
  *
  * - Rename each ``ref`` and ``parentRef`` to preserve the references the
  *   establish to ``define`` elements.

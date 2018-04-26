@@ -193,8 +193,12 @@ export function getAncestorsByLocalNames(el: Element,
  * **Important**: this is a very ad-hoc function, not meant for general
  * consumption. For one thing, this function works only if called with ``el``
  * pointing to a top-level ``grammar`` element **after** all ``grammar``
- * elements have been reduced to a single ``grammar`` and all ``define``
- * elements moved to that single ``grammar``.
+ * elements have been reduced to a single ``grammar``, all ``define`` elements
+ * moved to that single ``grammar``, and ``grammar`` contains ``start`` as the
+ * first element, and the rest of the children are all ``define`` elements.
+ *
+ * This function does no check these constraints!!! You must call it from a
+ * stage where these constraints hold.
  *
  * This function does not guard against misuse. It must be called from steps
  * that execute after the above assumption holds.
@@ -205,13 +209,14 @@ export function getAncestorsByLocalNames(el: Element,
  * was a reference to the name, and the ``define`` is kept. Otherwise, the
  * ``define`` is removed.
  */
-export function removeUnreferencedDefs(el: Element,
-                                       seen: Set<string>): void {
-  const keep = el.children
-    .filter((child) =>
-            !(child instanceof Element) ||
-            child.local !== "define" ||
-            seen.has(child.mustGetAttribute("name")));
-  el.empty();
-  el.append(keep);
+export function removeUnreferencedDefs(el: Element, seen: Set<string>): void {
+  const children = el.children as Element[];
+  for (let ix = 1; ix < children.length; ++ix) {
+    if (seen.has(children[ix].mustGetAttribute("name"))) {
+      continue;
+    }
+
+    el.removeChildAt(ix);
+    --ix;
+  }
 }
