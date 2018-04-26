@@ -54,8 +54,8 @@ export class Attribute extends Pattern {
 class AttributeWalker extends InternalWalker<Attribute> {
   private seenName: boolean;
   private readonly subwalker: InternalWalker<BasePattern>;
-  private readonly attrNameEvent: Event;
   private readonly nameResolver: NameResolver;
+  private readonly name: ConcreteName;
   canEndAttribute: boolean;
   canEnd: boolean;
 
@@ -74,7 +74,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
       super(el);
       this.nameResolver = nameResolverOrMemo as NameResolver;
       this.subwalker = el.pat.newWalker(this.nameResolver);
-      this.attrNameEvent = new Event("attributeName", el.name);
+      this.name = el.name;
       this.seenName = false;
       this.canEndAttribute = false;
       this.canEnd = false;
@@ -86,8 +86,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.seenName = walker.seenName;
       this.subwalker = walker.subwalker._clone(memo);
-      // No need to clone; values are immutable.
-      this.attrNameEvent = walker.attrNameEvent;
+      this.name = walker.name;
       this.canEndAttribute = walker.canEndAttribute;
       this.canEnd = walker.canEnd;
     }
@@ -103,7 +102,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
     }
 
     if (!this.seenName) {
-      return new Set([this.attrNameEvent]);
+      return new Set([new Event("attributeName", this.name)]);
     }
 
     // Convert text events to attributeValue events.
@@ -132,7 +131,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
       }
     }
     else if ((name === "attributeName" || name === "attributeNameAndValue") &&
-             this.el.name.match(params[0], params[1])) {
+             this.name.match(params[0], params[1])) {
       this.seenName = true;
       ret = false;
 
@@ -150,7 +149,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
 
         if (ret === undefined) {
           ret = [new AttributeValueError("invalid attribute value",
-                                         this.el.name)];
+                                         this.name)];
         }
       }
       else {
@@ -180,11 +179,11 @@ class AttributeWalker extends InternalWalker<Attribute> {
       this.canEnd = true;
       this.canEndAttribute = true;
 
-      return [new AttributeNameError("attribute missing", this.el.name)];
+      return [new AttributeNameError("attribute missing", this.name)];
     }
 
     // If we get here, necessarily we have not seen a value.
-    return [new AttributeValueError("attribute value missing", this.el.name)];
+    return [new AttributeValueError("attribute value missing", this.name)];
   }
 }
 
