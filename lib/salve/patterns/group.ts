@@ -154,51 +154,18 @@ class GroupWalker extends InternalWalker<Group> {
     return retB;
   }
 
-  end(attribute: boolean = false): EndResult {
+  end(): EndResult {
     if (this.ended) {
       return false;
     }
 
-    if ((attribute && this.canEndAttribute) || (!attribute && this.canEnd)) {
-      // We're done once and for all only if called with attribute === false
-      // or if we don't have any attributes.
-      if (!this.hasAttrs || !attribute) {
-        this.ended = true;
-      }
+    if (this.canEnd) {
+      this.ended = true;
 
       return false;
     }
 
-    let ret: EndResult;
-
-    const walkerA = this.walkerA;
-    const walkerB = this.walkerB;
-
-    if (attribute) {
-      const aHas = this.el.patA.hasAttrs();
-      const bHas = this.el.patB.hasAttrs();
-      if (aHas) {
-        ret = walkerA.end(true);
-
-        if (bHas) {
-          const endB = walkerB.end(true);
-          if (endB) {
-            ret = ret ? ret.concat(endB) : endB;
-          }
-        }
-
-        return ret;
-      }
-
-      if (bHas) {
-        return walkerB.end(true);
-      }
-
-      return false;
-    }
-
-    const retA = walkerA.end(false);
-
+    const retA = this.walkerA.end();
     // If we get here and the only errors we get are attribute errors,
     // we must move on to check the second walker too.
     if (retA) {
@@ -211,16 +178,37 @@ class GroupWalker extends InternalWalker<Group> {
       }
     }
 
-    const retB = walkerB.end(false);
+    const retB = this.walkerB.end();
     if (retB) {
-      if (!retA) {
-        return retB;
-      }
-
-      return retA.concat(retB);
+      return retA ? retA.concat(retB) : retB;
     }
 
     return retA;
+  }
+
+  endAttributes(): EndResult {
+    if (this.ended || this.canEndAttribute) {
+      return false;
+    }
+
+    if (this.el.patA.hasAttrs()) {
+      let ret = this.walkerA.endAttributes();
+
+      if (this.el.patB.hasAttrs()) {
+        const endB = this.walkerB.endAttributes();
+        if (endB) {
+          ret = ret ? ret.concat(endB) : endB;
+        }
+      }
+
+      return ret;
+    }
+
+    if (this.el.patB.hasAttrs()) {
+      return this.walkerB.endAttributes();
+    }
+
+    return false;
   }
 }
 

@@ -193,19 +193,71 @@ class ChoiceWalker extends InternalWalker<Choice> {
     return retB;
   }
 
-  end(attribute: boolean = false): EndResult {
-    if ((attribute && this.canEndAttribute) || (!attribute && this.canEnd)) {
+  end(): EndResult {
+    if (this.canEnd) {
       // Instead of an ended flag, we set both flags.
-      if (!attribute) {
-        this.deactivateA = true;
-        this.deactivateB = true;
-      }
+      this.deactivateA = true;
+      this.deactivateB = true;
 
       return false;
     }
 
-    const retA = this.deactivateA ? false : this.walkerA.end(attribute);
-    const retB = this.deactivateB ? false : this.walkerB.end(attribute);
+    const retA = this.deactivateA ? false : this.walkerA.end();
+    const retB = this.deactivateB ? false : this.walkerB.end();
+
+    if (!retA) {
+      return retB;
+    }
+
+    if (!retB) {
+      return retA;
+    }
+
+    // If we are here both walkers exist and returned an error. We combine the
+    // errors no matter which walker may have been deactivated.
+    const namesA: namePatterns.Base[] = [];
+    let notAChoiceError = false;
+    this.walkerA.possible().forEach((ev: Event) => {
+      if (ev.params[0] === "enterStartTag") {
+        namesA.push(ev.params[1] as namePatterns.Base);
+      }
+      else {
+        notAChoiceError = true;
+      }
+    });
+
+    // The as boolean casts are necessary due to a flaw in the type inference
+    // done by TS. Without the cast, TS thinks notAChoiceError is necessarily
+    // false here and tslint issues a warning.
+    if (!(notAChoiceError as boolean)) {
+      const namesB: namePatterns.Base[] = [];
+      this.walkerB.possible().forEach((ev: Event) => {
+        if (ev.params[0] === "enterStartTag") {
+          namesB.push(ev.params[1] as namePatterns.Base);
+        }
+        else {
+          notAChoiceError = true;
+        }
+      });
+
+      if (!(notAChoiceError as boolean)) {
+        return [new ChoiceError(namesA, namesB)];
+      }
+    }
+
+    // If we get here, we were not able to raise a ChoiceError, possibly
+    // because there was not enough information to decide among the two
+    // walkers. Return whatever error comes first.
+    return retA;
+  }
+
+  endAttributes(): EndResult {
+    if (this.canEndAttribute) {
+      return false;
+    }
+
+    const retA = this.deactivateA ? false : this.walkerA.endAttributes();
+    const retB = this.deactivateB ? false : this.walkerB.endAttributes();
 
     if (!retA) {
       return retB;
@@ -337,17 +389,22 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
     return retB;
   }
 
-  end(attribute: boolean = false): EndResult {
-    if ((attribute && this.canEndAttribute) || (!attribute && this.canEnd)) {
-      // Instead of an ended flag, we set both flags.
-      if (!attribute) {
-        this.ended = true;
-      }
+  end(): EndResult {
+    if (this.canEnd) {
+      this.ended = true;
 
       return false;
     }
 
-    return this.walkerB.end(attribute);
+    return this.walkerB.end();
+  }
+
+  endAttributes(): EndResult {
+    if (this.canEndAttribute) {
+      return false;
+    }
+
+    return this.walkerB.endAttributes();
   }
 }
 

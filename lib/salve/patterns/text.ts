@@ -68,6 +68,10 @@ class TextWalker extends InternalWalker<Text> {
 
     return false;
   }
+
+  endAttributes(): false {
+    return false;
+  }
 }
 addWalker(Text, TextWalker);
 

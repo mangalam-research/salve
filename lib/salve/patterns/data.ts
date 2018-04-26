@@ -150,8 +150,12 @@ class DataWalker extends InternalWalker<Data> {
     return false;
   }
 
-  end(attribute: boolean = false): EndResult {
+  end(): EndResult {
     return this.canEnd ? false : [new ValidationError("value required")];
+  }
+
+  endAttributes(): EndResult {
+    return false;
   }
 }
 

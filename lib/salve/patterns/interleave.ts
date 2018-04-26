@@ -167,26 +167,37 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     return undefined;
   }
 
-  end(attribute: boolean = false): EndResult {
+  end(): EndResult {
     if (this.ended) {
       return false;
     }
 
-    if ((attribute && this.canEndAttribute) || (!attribute && this.canEnd)) {
-      // We're done once and for all only if called with attribute === false
-      // or if we don't have any attributes.
-      if (!this.hasAttrs || !attribute) {
-        this.ended = true;
-      }
+    if (this.canEnd) {
+      this.ended = true;
 
       return false;
     }
 
-    const retA = this.walkerA.end(attribute);
-    const retB = this.walkerB.end(attribute);
+    const retA = this.walkerA.end();
+    const retB = this.walkerB.end();
 
     if (!retA) {
-      return !retB ? false : retB;
+      return retB;
+    }
+
+    return !retB ? retA : retA.concat(retB);
+  }
+
+  endAttributes(): EndResult {
+    if (this.ended || this.canEndAttribute) {
+      return false;
+    }
+
+    const retA = this.walkerA.endAttributes();
+    const retB = this.walkerB.endAttributes();
+
+    if (!retA) {
+      return retB;
     }
 
     return !retB ? retA : retA.concat(retB);

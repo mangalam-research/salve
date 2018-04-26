@@ -698,18 +698,22 @@ export abstract class InternalWalker<T extends BasePattern>
   abstract possibleAttributes(): EventSet;
 
   /**
-   * Obtain the errors that would occur if the walker were to end here. Note the
-   * conditional phrasing. It **must** be idempotent. Therefore it **must not**
-   * change the state of the walker. The internal code of salve will sometimes
-   * call end more than once on the same walker.
-   *
-   * @param attribute ``true`` if calling this method while processing
-   * attributes, ``false`` otherwise.
+   * End the walker.
    *
    * @returns ``false`` if the walker ended without error. Otherwise, the
    * errors.
    */
-  end(attribute: boolean = false): EndResult {
+  end(): EndResult {
+    return false;
+  }
+
+  /**
+   * End the processing of attributes.
+   *
+   * @returns ``false`` if the walker ended without error. Otherwise, the
+   * errors.
+   */
+  endAttributes(): EndResult {
     return false;
   }
 }

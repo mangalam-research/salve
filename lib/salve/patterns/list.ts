@@ -105,14 +105,18 @@ class ListWalker extends InternalWalker<List> {
     return false;
   }
 
-  end(attribute: boolean = false): EndResult {
+  end(): EndResult {
     if (this.canEnd) {
       return false;
     }
 
-    const ret = this.subwalker.end(attribute);
+    const ret = this.subwalker.end();
 
     return ret !== false ? ret : [new ValidationError("unfulfilled list")];
+  }
+
+  endAttributes(): EndResult {
+    return false;
   }
 }
 

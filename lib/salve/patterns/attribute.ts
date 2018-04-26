@@ -165,7 +165,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
     return ret;
   }
 
-  end(attribute: boolean = false): EndResult {
+  endAttributes(): EndResult {
     if (this.canEnd) {
       return false;
     }
@@ -184,6 +184,10 @@ class AttributeWalker extends InternalWalker<Attribute> {
 
     // If we get here, necessarily we have not seen a value.
     return [new AttributeValueError("attribute value missing", this.name)];
+  }
+
+  end(): EndResult {
+    return false;
   }
 }
 

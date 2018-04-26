@@ -135,10 +135,12 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     return undefined;
   }
 
-  end(attribute: boolean = false): EndResult {
-    return (attribute && this.canEndAttribute) || (!attribute && this.canEnd) ?
-      false :
-      this.currentIteration.end(attribute);
+  end(): EndResult {
+    return this.canEnd ? false : this.currentIteration.end();
+  }
+
+  endAttributes(): EndResult {
+    return this.canEndAttribute ? false : this.currentIteration.endAttributes();
   }
 }
 

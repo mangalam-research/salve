@@ -207,19 +207,19 @@ class ElementWalker extends InternalWalker<Element> {
       case "leaveStartTag":
         this.endedStartTag = true;
 
-        return this.el.pat.hasAttrs() ? walker.end(true) : false;
+        return this.el.pat.hasAttrs() ? walker.endAttributes() : false;
       default:
     }
 
     return walker.fireEvent(name, params);
   }
 
-  end(attribute: boolean = false): EndResult {
-    if (attribute || this.canEnd) {
+  end(): EndResult {
+    if (this.canEnd) {
       return false;
     }
 
-    const walkerRet = this.walker.end(attribute);
+    const walkerRet = this.walker.end();
     const ret = walkerRet ? walkerRet : [];
 
     ret.push(new ElementNameError(this.endedStartTag ?
@@ -228,6 +228,10 @@ class ElementWalker extends InternalWalker<Element> {
                                   this.boundName));
 
     return ret;
+  }
+
+  endAttributes(): EndResult {
+    throw new Error("calling endAttributes on ElementWalker is illegal");
   }
 }
 

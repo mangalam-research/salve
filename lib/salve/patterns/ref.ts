@@ -95,9 +95,13 @@ export class RefWalker extends InternalWalker<Ref> {
     return undefined;
   }
 
-  end(attribute: boolean = false): EndResult {
-    return !attribute && !this.canEnd ?
+  end(): EndResult {
+    return !this.canEnd ?
       [new ElementNameError("tag required", this.startName)] : false;
+  }
+
+  endAttributes(): EndResult {
+    return false;
   }
 }
 

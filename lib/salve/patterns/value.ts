@@ -126,8 +126,13 @@ class ValueWalker extends InternalWalker<Value> {
     return false;
   }
 
-  end(attribute: boolean = false): EndResult {
+  end(): EndResult {
     return this.canEnd ? false :
+      [new ValidationError(`value required: ${this.el.rawValue}`)];
+  }
+
+  endAttributes(): EndResult {
+    return this.canEndAttribute ? false :
       [new ValidationError(`value required: ${this.el.rawValue}`)];
   }
 }
