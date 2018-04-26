@@ -30,7 +30,15 @@ export function findChildrenByLocalName(el: Element,
 
 export function findDescendantsByLocalName(el: Element,
                                            name: string): Element[] {
-  let ret: Element[] = [];
+  const ret: Element[] = [];
+  _findDescendantsByLocalName(el, name, ret);
+
+  return ret;
+}
+
+export function _findDescendantsByLocalName(el: Element,
+                                            name: string,
+                                            ret: Element[]): void {
   for (const child of el.children) {
     if (!(child instanceof Element)) {
       continue;
@@ -40,10 +48,8 @@ export function findDescendantsByLocalName(el: Element,
       ret.push(child);
     }
 
-    ret = ret.concat(findDescendantsByLocalName(child, name));
+    _findDescendantsByLocalName(child, name, ret);
   }
-
-  return ret;
 }
 
 export function findMultiDescendantsByLocalName(el: Element,
