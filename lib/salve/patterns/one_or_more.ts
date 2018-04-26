@@ -69,12 +69,10 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     const ret = this.currentIteration.possible();
 
     if (this.currentIteration.canEnd) {
-      this._instantiateNextIteration();
-      // nextIteration is necessarily defined here due to the previous call.
-      // tslint:disable-next-line:no-non-null-assertion
-      const nextPossible = this.nextIteration!.possible();
-
-      union(ret, nextPossible);
+      if (this.nextIteration === undefined) {
+        this.nextIteration = this.el.pat.newWalker(this.nameResolver);
+      }
+      union(ret, this.nextIteration.possible());
     }
 
     return ret;
@@ -84,12 +82,10 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     const ret = this.currentIteration.possibleAttributes();
 
     if (this.currentIteration.canEnd) {
-      this._instantiateNextIteration();
-      // nextIteration is necessarily defined here due to the previous call.
-      // tslint:disable-next-line:no-non-null-assertion
-      const nextPossible = this.nextIteration!.possibleAttributes();
-
-      union(ret, nextPossible);
+      if (this.nextIteration === undefined) {
+        this.nextIteration = this.el.pat.newWalker(this.nameResolver);
+      }
+      union(ret, this.nextIteration.possibleAttributes());
     }
 
     return ret;
@@ -114,18 +110,17 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     }
 
     if (currentIteration.canEnd) {
-      this._instantiateNextIteration();
-      // nextIteration is necessarily defined here due to the previous call.
-      // tslint:disable-next-line:no-non-null-assertion
-      const nextRet = this.nextIteration!.fireEvent(name, params);
+      if (this.nextIteration === undefined) {
+        this.nextIteration = this.el.pat.newWalker(this.nameResolver);
+      }
+      const nextRet = this.nextIteration.fireEvent(name, params);
       if (matched(nextRet)) {
         if (currentIteration.end()) {
           throw new Error(
             "internal error; canEnd returns true but end() fails");
         }
 
-        // tslint:disable-next-line:no-non-null-assertion
-        this.currentIteration = this.nextIteration!;
+        this.currentIteration = this.nextIteration;
         this.nextIteration = undefined;
         if (evIsAttributeEvent) {
           this.canEndAttribute = this.currentIteration.canEndAttribute;
@@ -144,12 +139,6 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     return (attribute && this.canEndAttribute) || (!attribute && this.canEnd) ?
       false :
       this.currentIteration.end(attribute);
-  }
-
-  private _instantiateNextIteration(): void {
-    if (this.nextIteration === undefined) {
-      this.nextIteration = this.el.pat.newWalker(this.nameResolver);
-    }
   }
 }
 
