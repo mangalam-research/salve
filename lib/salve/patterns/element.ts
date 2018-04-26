@@ -9,8 +9,7 @@ import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { filter } from "../set";
 import { BasePattern, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, makeEventSet,
-         Pattern } from "./base";
+         InternalFireEventResult, InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { NotAllowed } from "./not_allowed";
 import { Ref } from "./ref";
@@ -147,7 +146,7 @@ class ElementWalker extends InternalWalker<Element> {
       return posses;
     }
 
-    return makeEventSet();
+    return new Set<Event>();
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {

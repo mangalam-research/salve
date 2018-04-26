@@ -7,9 +7,9 @@
 import { AttributeNameError, AttributeValueError } from "../errors";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, CloneMap, EndResult, EventSet,
+import { addWalker, BasePattern, CloneMap, EndResult, Event, EventSet,
          InternalFireEventResult, InternalWalker, isAttributeEvent,
-         makeEventSet, TwoSubpatterns } from "./base";
+         TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<group>``.
@@ -74,7 +74,7 @@ class GroupWalker extends InternalWalker<Group> {
 
   possible(): EventSet {
     if (this.ended) {
-      return makeEventSet();
+      return new Set<Event>();
     }
 
     const ret = this.walkerA.possible();

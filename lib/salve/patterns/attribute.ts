@@ -9,8 +9,7 @@ import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { map } from "../set";
 import { addWalker, BasePattern, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, makeEventSet,
-         Pattern } from "./base";
+         InternalFireEventResult, InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -100,11 +99,11 @@ class AttributeWalker extends InternalWalker<Attribute> {
   possible(): EventSet {
     // We've been suppressed!
     if (this.suppressedAttributes || this.canEnd) {
-      return makeEventSet();
+      return new Set<Event>();
     }
 
     if (!this.seenName) {
-      return makeEventSet(this.attrNameEvent);
+      return new Set([this.attrNameEvent]);
     }
 
     // Convert text events to attributeValue events.

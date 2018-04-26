@@ -9,8 +9,8 @@ import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
 import { BasePattern, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isAttributeEvent,
-         makeEventSet, Pattern, TwoSubpatterns } from "./base";
+         InternalFireEventResult, InternalWalker, isAttributeEvent, Pattern,
+         TwoSubpatterns } from "./base";
 import { Empty } from "./empty";
 
 /**
@@ -103,7 +103,7 @@ class ChoiceWalker extends InternalWalker<Choice> {
       }
     }
     else if (ret === undefined) {
-      ret = makeEventSet();
+      ret = new Set<Event>();
     }
 
     return ret;
@@ -287,7 +287,7 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
   }
 
   possible(): EventSet {
-    return this.ended ? makeEventSet() : this.walkerB.possible();
+    return this.ended ? new Set<Event>() : this.walkerB.possible();
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {

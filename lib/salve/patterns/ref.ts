@@ -1,8 +1,7 @@
 import { ElementNameError } from "../errors";
 import { ConcreteName } from "../name_patterns";
 import { addWalker, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, makeEventSet,
-         Pattern } from "./base";
+         InternalFireEventResult, InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
 
@@ -77,7 +76,7 @@ export class RefWalker extends InternalWalker<Ref> {
   }
 
   possible(): EventSet {
-    return makeEventSet(this.canEnd ? undefined : this.startTagEvent);
+    return new Set<Event>(this.canEnd ? undefined : [this.startTagEvent]);
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {

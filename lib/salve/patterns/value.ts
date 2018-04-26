@@ -8,7 +8,7 @@ import { Datatype, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
 import { addWalker, CloneMap, EndResult, Event, EventSet, InternalWalker,
-         makeEventSet, Pattern } from "./base";
+         Pattern } from "./base";
 
 /**
  * Value pattern.
@@ -106,8 +106,8 @@ class ValueWalker extends InternalWalker<Value> {
   }
 
   possible(): EventSet {
-    return this.matched ? makeEventSet() :
-        makeEventSet(new Event("text", this.el.rawValue));
+    return new Set(this.matched ? undefined :
+                   [new Event("text", this.el.rawValue)]);
   }
 
   fireEvent(name: string, params: string[]): false | undefined {

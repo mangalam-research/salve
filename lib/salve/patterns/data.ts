@@ -8,7 +8,7 @@ import { Datatype, RawParameter, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
 import { addWalker, CloneMap, EndResult, Event, EventSet, InternalWalker,
-         makeEventSet, Pattern } from "./base";
+         Pattern } from "./base";
 /**
  * Data pattern.
  */
@@ -108,8 +108,8 @@ class DataWalker extends InternalWalker<Data> {
   possible(): EventSet {
     // We completely ignore the possible exception when producing the
     // possibilities. There is no clean way to specify such an exception.
-    return this.matched ? makeEventSet() :
-        makeEventSet(new Event("text", this.el.datatype.regexp));
+    return new Set(this.matched ? undefined :
+                   [new Event("text", this.el.datatype.regexp)]);
   }
 
   fireEvent(name: string, params: string[]): false | undefined {

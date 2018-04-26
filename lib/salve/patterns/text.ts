@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { addWalker, CloneMap, Event, EventSet, InternalWalker, makeEventSet,
+import { addWalker, CloneMap, Event, EventSet, InternalWalker,
          Pattern } from "./base";
 
 /**
@@ -52,7 +52,7 @@ class TextWalker extends InternalWalker<Text> {
   }
 
   possible(): EventSet {
-    return  makeEventSet(TextWalker._textEvent);
+    return  new Set([TextWalker._textEvent]);
   }
 
   fireEvent(name: string): false | undefined {

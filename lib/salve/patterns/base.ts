@@ -219,22 +219,6 @@ export function addWalker<T>(elCls: any, walkerCls: any): void {
 
 export type EventSet = Set<Event>;
 
-export function makeEventSet(init?: Event | Iterable<Event>): EventSet {
-  if (init === undefined) {
-    return new Set();
-  }
-
-  // tslint:disable-next-line:no-use-before-declare
-  if (init instanceof Event) {
-    const ret = new Set();
-    ret.add(init);
-
-    return ret;
-  }
-
-  return new Set(init);
-}
-
 export interface Clonable {
   clone(): this;
 }

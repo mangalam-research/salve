@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { addWalker, CloneMap, EventSet, InternalWalker, makeEventSet,
+import { addWalker, CloneMap, Event, EventSet, InternalWalker,
          Pattern } from "./base";
 
 /**
@@ -38,7 +38,7 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
   }
 
   possible(): EventSet {
-    return makeEventSet();
+    return new Set<Event>();
   }
 
   fireEvent(): undefined {

@@ -6,9 +6,9 @@
  */
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, CloneMap, EndResult, EventSet,
+import { addWalker, BasePattern, CloneMap, EndResult, Event, EventSet,
          InternalFireEventResult, InternalWalker, isAttributeEvent,
-         makeEventSet, matched, TwoSubpatterns } from "./base";
+         matched, TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<interleave>``.
@@ -71,7 +71,7 @@ class InterleaveWalker extends InternalWalker<Interleave> {
 
   possible(): EventSet {
     if (this.ended) {
-      return makeEventSet();
+      return new Set<Event>();
     }
 
     const ret = this.walkerA.possible();

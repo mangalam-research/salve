@@ -13,7 +13,7 @@ import { filter, union } from "../set";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
 import { BasePattern, BaseWalker, CloneMap, EndResult, Event, EventSet,
-         FireEventResult, InternalFireEventResult, InternalWalker, makeEventSet,
+         FireEventResult, InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
@@ -207,7 +207,7 @@ class MisplacedElementWalker implements IWalker {
   }
 
   possible(): EventSet {
-    return makeEventSet();
+    return new Set<Event>();
   }
 
   _clone<T extends this>(this: T, memo: CloneMap): T {
@@ -586,7 +586,7 @@ ${name}`);
   }
 
   possible(): EventSet {
-    let possible = makeEventSet();
+    let possible = new Set<Event>();
     for (const walker of this.elementWalkerStack[0]) {
       union(possible, walker.possible());
     }
