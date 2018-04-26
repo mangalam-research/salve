@@ -160,64 +160,54 @@ class ElementWalker extends InternalWalker<Element> {
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
-    if (this.canEnd) {
-      return undefined;
-    }
+    // This is not a useful optimization. canEnd becomes true once we see
+    // the end tag, which means that this walker will be popped of
+    // GrammarWalker's stack and won't be called again.
+    //
+    // if (this.canEnd) {
+    //   return undefined;
+    // }
 
     const walker = this.walker;
-    if (!this.endedStartTag) {
-      let leaveNow = false;
-      switch (name) {
-        case "enterStartTag":
-        case "startTagAndAttributes":
-          if (!this.boundName.match(params[0], params[1])) {
-            throw new Error("event starting the element had an incorrect name");
-          }
+    if (this.endedStartTag) {
+      if (name === "endTag") {
+        // We cannot get here if canEnd is already true. So this will
+        // necessarily leave it false or set it to true but it won't set a true
+        // canEnd back to false.
+        this.canEnd = this.boundName.match(params[0], params[1]);
 
-          if (name === "enterStartTag") {
-            return false;
-          }
-
-          // We need to handle all attributes and leave the start tag.
-          for (let ix = 2; ix < params.length; ix += 3) {
-            const attrRet = walker.fireEvent("attributeNameAndValue",
-                                             params.slice(ix, ix + 3));
-            if (attrRet !== false) {
-              return attrRet;
-            }
-          }
-
-          leaveNow = true;
-          break;
-        case "leaveStartTag":
-          leaveNow = true;
-          break;
-        default:
-      }
-
-      if (leaveNow) {
-        this.endedStartTag = true;
-
-        return this.el.pat.hasAttrs() ? walker.end(true) : false;
+        return walker.end();
       }
 
       return walker.fireEvent(name, params);
     }
 
-    // Since we segregate walkers through the GrammarWalker's
-    // elementWalkerStack, the events endTag and leaveStartTag cannot possibly
-    // be handled by subpatterns.
     switch (name) {
-      case "endTag": {
-        if (this.boundName.match(params[0], params[1])) {
-          this.canEnd = true;
+      case "enterStartTag":
+        if (!this.boundName.match(params[0], params[1])) {
+          throw new Error("event starting the element had an incorrect name");
         }
 
-        return walker.end();
-      }
+        return false;
+      case "startTagAndAttributes":
+        if (!this.boundName.match(params[0], params[1])) {
+          throw new Error("event starting the element had an incorrect name");
+        }
+
+        // We need to handle all attributes and leave the start tag.
+        for (let ix = 2; ix < params.length; ix += 3) {
+          const attrRet = walker.fireEvent("attributeNameAndValue",
+                                           params.slice(ix, ix + 3));
+          if (attrRet !== false) {
+            return attrRet;
+          }
+        }
+
+        /* fall through */
       case "leaveStartTag":
-        throw new Error("unexpected leaveStartTag event; it is likely that " +
-                        "fireEvent is incorrectly called");
+        this.endedStartTag = true;
+
+        return this.el.pat.hasAttrs() ? walker.end(true) : false;
       default:
     }
 

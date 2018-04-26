@@ -628,26 +628,6 @@ describe("GrammarWalker.fireEvent", () => {
       assert.equal(ret[0].toString(), "text not allowed here");
     });
 
-    it("duplicate leaveStartTag", () => {
-      // Read the RNG tree.
-      const source = fileAsString("test/simple/simplified-rng.js");
-
-      const tree = salve.readTreeFromJSON(source);
-      const walker = tree.newWalker();
-      let ret = walker.fireEvent("enterStartTag", ["", "html"]);
-      assert.isFalse(ret);
-      ret = walker.fireEvent("attributeName", ["", "style"]);
-      assert.isFalse(ret);
-      ret = walker.fireEvent("attributeValue", ["", "x"]);
-      assert.isFalse(ret);
-      ret = walker.fireEvent("leaveStartTag", []);
-      assert.isFalse(ret);
-      assert.throws(() => walker.fireEvent("leaveStartTag", []),
-                    Error,
-                    "unexpected leaveStartTag event; it is likely that \
-fireEvent is incorrectly called");
-    });
-
     it("duplicate attributeValue", () => {
       // Read the RNG tree.
       const source = fileAsString("test/simple/simplified-rng.js");
