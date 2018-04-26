@@ -6,7 +6,7 @@
  */
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { addWalker, BasePattern, CloneMap, EndResult, EventSet,
+import { addWalker, BasePattern, CloneMap, EndResult, Event, EventSet,
          InternalFireEventResult, InternalWalker, OneSubpattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
@@ -69,6 +69,10 @@ class ListWalker extends InternalWalker<List> {
 
   possible(): EventSet {
     return this.subwalker.possible();
+  }
+
+  possibleAttributes(): EventSet {
+    return new Set<Event>();
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {

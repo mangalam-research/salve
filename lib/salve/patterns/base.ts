@@ -584,13 +584,6 @@ export abstract class BaseWalker<T extends BasePattern> {
     }
   }
 
-  /**
-   * Fetch the set of possible events at the current stage of parsing.
-   *
-   * @returns The set of events that can be fired without resulting in an error.
-   */
-  abstract possible(): EventSet;
-
   // These functions return true if there is no problem, or a list of
   // ValidationError objects otherwise.
 
@@ -719,6 +712,19 @@ export abstract class InternalWalker<T extends BasePattern>
    * we are processing attributes.
    */
   abstract canEndAttribute: boolean;
+
+  /**
+   * @returns The set of non-attribute event that can be fired without resulting
+   * in an error. ``ElementWalker`` exceptionally returns all possible events,
+   * including attribute events.
+   */
+  abstract possible(): EventSet;
+
+  /**
+   * @returns The set of attribute events that can be fired without resulting in
+   * an error. This method may not be called on ``ElementWalker``.
+   */
+  abstract possibleAttributes(): EventSet;
 }
 
 //  LocalWords:  RNG MPL lookahead xmlns uri CodeMirror tokenizer enterStartTag

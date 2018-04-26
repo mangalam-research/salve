@@ -80,6 +80,17 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     return ret;
   }
 
+  possibleAttributes(): EventSet {
+    if (this.ended) {
+      return new Set<Event>();
+    }
+
+    const ret = this.walkerA.possibleAttributes();
+    union(ret, this.walkerB.possibleAttributes());
+
+    return ret;
+  }
+
   //
   // Interleave is very unusual among the patterns due to the fact that it
   // ignores subpattern order. For instance

@@ -79,17 +79,20 @@ class GroupWalker extends InternalWalker<Group> {
 
     const ret = this.walkerA.possible();
 
-    // When suppressedAttributes is true, if we are in the midst of processing
-    // walker a and it cannot end yet, then we do not want to see anything from
-    // b yet.
-    if (!this.suppressedAttributes || this.walkerA.canEnd) {
-      // We used to filter the possibilities to only attribute events when
-      // this.suppressedAttributes was false, but that's a costly operation. It
-      // is the responsibility of ElementWalker to ensure that when the start
-      // tag is not closed it is events that pertain to anything else than
-      // attributes or ending the start tag are not passed up to the user.
+    if (this.walkerA.canEnd) {
       union(ret, this.walkerB.possible());
     }
+
+    return ret;
+  }
+
+  possibleAttributes(): EventSet {
+    if (this.ended) {
+      return new Set<Event>();
+    }
+
+    const ret = this.walkerA.possibleAttributes();
+    union(ret, this.walkerB.possibleAttributes());
 
     return ret;
   }

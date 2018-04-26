@@ -110,6 +110,10 @@ class ValueWalker extends InternalWalker<Value> {
                    [new Event("text", this.el.rawValue)]);
   }
 
+  possibleAttributes(): EventSet {
+    return new Set<Event>();
+  }
+
   fireEvent(name: string, params: string[]): false | undefined {
     if (this.matched || name !== "text" ||
        !this.el.datatype.equal(params[0], this.el.value, this.context)) {

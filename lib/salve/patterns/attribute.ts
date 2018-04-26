@@ -97,6 +97,10 @@ class AttributeWalker extends InternalWalker<Attribute> {
   }
 
   possible(): EventSet {
+    return new Set<Event>();
+  }
+
+  possibleAttributes(): EventSet {
     // We've been suppressed!
     if (this.suppressedAttributes || this.canEnd) {
       return new Set<Event>();

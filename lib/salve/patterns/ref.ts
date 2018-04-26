@@ -76,7 +76,11 @@ export class RefWalker extends InternalWalker<Ref> {
   }
 
   possible(): EventSet {
-    return new Set<Event>(this.canEnd ? undefined : [this.startTagEvent]);
+    return new Set(this.canEnd ? undefined : [this.startTagEvent]);
+  }
+
+  possibleAttributes(): EventSet {
+    return new Set<Event>();
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {

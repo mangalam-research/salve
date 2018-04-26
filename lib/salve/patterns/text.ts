@@ -55,6 +55,10 @@ class TextWalker extends InternalWalker<Text> {
     return  new Set([TextWalker._textEvent]);
   }
 
+  possibleAttributes(): EventSet {
+    return  new Set<Event>();
+  }
+
   fireEvent(name: string): false | undefined {
     return !this.ended && (name === "text") ? false : undefined;
   }

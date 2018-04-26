@@ -83,6 +83,21 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     return ret;
   }
 
+  possibleAttributes(): EventSet {
+    const ret = this.currentIteration.possibleAttributes();
+
+    if (this.currentIteration.canEnd) {
+      this._instantiateNextIteration();
+      // nextIteration is necessarily defined here due to the previous call.
+      // tslint:disable-next-line:no-non-null-assertion
+      const nextPossible = this.nextIteration!.possibleAttributes();
+
+      union(ret, nextPossible);
+    }
+
+    return ret;
+  }
+
   fireEvent(name: string, params: string[]): InternalFireEventResult {
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {

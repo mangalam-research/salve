@@ -41,6 +41,10 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
     return new Set<Event>();
   }
 
+  possibleAttributes(): EventSet {
+    return new Set<Event>();
+  }
+
   fireEvent(): undefined {
     return undefined; // we never match!
   }

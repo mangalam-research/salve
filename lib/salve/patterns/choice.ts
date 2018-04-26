@@ -109,6 +109,27 @@ class ChoiceWalker extends InternalWalker<Choice> {
     return ret;
   }
 
+  possibleAttributes(): EventSet {
+    const walkerA = this.walkerA;
+    let ret = this.deactivateA ? undefined : walkerA.possibleAttributes();
+
+    const walkerB = this.walkerB;
+    if (!this.deactivateB) {
+      const possibleB = walkerB.possibleAttributes();
+      if (ret === undefined) {
+        ret = possibleB;
+      }
+      else {
+        union(ret, possibleB);
+      }
+    }
+    else if (ret === undefined) {
+      ret = new Set<Event>();
+    }
+
+    return ret;
+  }
+
   fireEvent(name: string, params: string[]): InternalFireEventResult {
     if (this.deactivateA && this.deactivateB) {
       return undefined;
@@ -288,6 +309,10 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
 
   possible(): EventSet {
     return this.ended ? new Set<Event>() : this.walkerB.possible();
+  }
+
+  possibleAttributes(): EventSet {
+    return this.ended ? new Set<Event>() : this.walkerB.possibleAttributes();
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {

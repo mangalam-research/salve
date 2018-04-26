@@ -112,6 +112,10 @@ class DataWalker extends InternalWalker<Data> {
                    [new Event("text", this.el.datatype.regexp)]);
   }
 
+  possibleAttributes(): EventSet {
+    return new Set();
+  }
+
   fireEvent(name: string, params: string[]): false | undefined {
     if (this.matched || name !== "text" ||
         this.el.datatype.disallows(params[0], this.el.params, this.context)) {

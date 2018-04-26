@@ -54,6 +54,10 @@ export class EmptyWalker extends InternalWalker<Empty> {
     return new Set<Event>();
   }
 
+  possibleAttributes(): EventSet {
+    return new Set<Event>();
+  }
+
   fireEvent(name: string, params: string[]): false | undefined {
     return ((name === "text") && !/\S/.test(params[0])) ? false : undefined;
   }

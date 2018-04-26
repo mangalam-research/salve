@@ -7,7 +7,6 @@
 import { ElementNameError } from "../errors";
 import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
-import { filter } from "../set";
 import { BasePattern, CloneMap, EndResult, Event, EventSet,
          InternalFireEventResult, InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
@@ -124,11 +123,18 @@ class ElementWalker extends InternalWalker<Element> {
   }
 
   possible(): EventSet {
+    // Contrarily to all other implementations, which must only return
+    // non-attribute events. This implementation actually returns all types of
+    // possible events. Representing this distinction through TS type
+    // declarations would be cumbersome. The exception works because of the way
+    // Relax NG constrains the structure of a simplified schema. The only
+    // possible caller for this method is ``GrammarWalker``, which also aims to
+    // return all possible events.
+
     if (!this.endedStartTag) {
       const walker = this.walker;
 
-      const ret =
-        filter(walker.possible(), (poss: Event) => poss.isAttributeEvent);
+      const ret = walker.possibleAttributes();
 
       if (walker.canEndAttribute) {
         ret.add(ElementWalker._leaveStartTagEvent);
@@ -147,6 +153,10 @@ class ElementWalker extends InternalWalker<Element> {
     }
 
     return new Set<Event>();
+  }
+
+  possibleAttributes(): EventSet {
+    throw new Error("calling possibleAttributes on ElementWalker is invalid");
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
