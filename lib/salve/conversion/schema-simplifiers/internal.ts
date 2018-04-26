@@ -7,11 +7,12 @@
  */
 import * as sax from "sax";
 
+import { registry, ValueError, ValueValidationError } from "../../datatypes";
 import { readTreeFromJSON } from "../../json-format/read";
-import { AnyName, ConcreteName, Grammar, Name, NameChoice,
-         NsName } from "../../patterns";
+import { AnyName, ConcreteName, Data, Grammar, Name, NameChoice, NsName,
+         Value } from "../../patterns";
 import * as relaxng from "../../schemas/relaxng";
-import { BasicParser, Element, Validator } from "../parser";
+import { BasicParser, Element, Text, Validator } from "../parser";
 import { registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { SchemaValidationError } from "../schema-validation";
@@ -19,6 +20,7 @@ import * as simplifier from "../simplifier";
 import { findDescendantsByLocalName, findMultiDescendantsByLocalName,
          findMultiNames, getName, indexBy } from "../simplifier/util";
 import { BaseSimplifier } from "./base";
+import { fromQNameToURI, localName } from "./common";
 
 function makeNamePattern(el: Element): ConcreteName {
   const first = el.children[0] as Element;
@@ -186,18 +188,19 @@ interface State {
   inInterlave: boolean;
   inGroup: boolean;
   attrNameCache: Map<Element, ConcreteName>;
+  typeWarnings: string[];
 }
 
-// Sets for these did not appear to provide performance benefits.
 const prohibitedInStart =
-  ["attribute", "data", "value", "text", "list", "group", "interleave",
-   "oneOrMore", "empty"];
+  new Set(["attribute", "data", "value", "text", "list", "group", "interleave",
+           "oneOrMore", "empty"]);
 
-const prohibitedInList = ["list", "ref", "attribute", "text", "interleave"];
+const prohibitedInList =
+  new Set(["list", "ref", "attribute", "text", "interleave"]);
 
 const prohibitedInDataExcept =
-  ["attribute", "ref", "text", "list", "group", "interleave", "oneOrMore",
-   "empty"];
+  new Set(["attribute", "ref", "text", "list", "group", "interleave",
+           "oneOrMore", "empty"]);
 
 class ProhibitedPath extends SchemaValidationError {
   constructor(path: string) {
@@ -209,11 +212,13 @@ class ProhibitedPath extends SchemaValidationError {
  * Perform the final constraint checks, and record some information
  * for checkInterleaveRestriction.
  */
-function generalCheck(el: Element): Record<string, Element[]> {
+function generalCheck(el: Element): { cache: Record<string, Element[]>;
+                                      typeWarnings: string[]; } {
   const ret = Object.create(null);
   ret.interleave = [];
   ret.define = [];
 
+  const typeWarnings: string[] = [];
   _generalCheck(el, ret, {
     inStart: false,
     inAttribute: false,
@@ -225,9 +230,10 @@ function generalCheck(el: Element): Record<string, Element[]> {
     inInterlave: false,
     inGroup: false,
     attrNameCache: new Map(),
+    typeWarnings,
   });
 
-  return ret;
+  return { cache: ret, typeWarnings };
 }
 
 function getAttrName(attr: Element,
@@ -248,12 +254,11 @@ function _generalCheck(el: Element,
   const name = el.local;
 
   // Or'ing is faster than checking if the name is in an array or a set.
-  if (name === "interleave" ||
-      name === "define") {
+  if (name === "interleave" || name === "define") {
     ret[name].push(el);
   }
 
-  if (state.inStart && prohibitedInStart.includes(name)) {
+  if (state.inStart && prohibitedInStart.has(name)) {
       throw new ProhibitedPath(`start//${name}`);
   }
 
@@ -261,14 +266,15 @@ function _generalCheck(el: Element,
     throw new ProhibitedPath(`attribute//${name}`);
   }
 
-  if (state.inList && prohibitedInList.includes(name)) {
+  if (state.inList && prohibitedInList.has(name)) {
     throw new ProhibitedPath(`list//${name}`);
   }
 
-  if (state.inDataExcept && prohibitedInDataExcept.includes(name)) {
+  if (state.inDataExcept && prohibitedInDataExcept.has(name)) {
     throw new ProhibitedPath(`data/except//${name}`);
   }
 
+  const children = el.children;
   switch (name) {
     case "attribute":
       if (state.inOneOrMoreGroup) {
@@ -286,10 +292,108 @@ function _generalCheck(el: Element,
 class must be a descendant of oneOrMore (section 7.3)");
       }
       break;
+    case "value": {
+      let value = el.text;
+      const dataType = el.mustGetAttribute("type");
+      const libname = el.mustGetAttribute("datatypeLibrary");
+      let ns = el.mustGetAttribute("ns");
+
+      const lib = registry.find(libname);
+      if (lib === undefined) {
+        throw new ValueValidationError(
+          el.path,
+          [new ValueError(`unknown datatype library: ${libname}`)]);
+      }
+
+      const datatype = lib.types[dataType];
+      if (datatype === undefined) {
+        throw new ValueValidationError(
+          el.path,
+          [new ValueError(`unknown datatype ${dataType} in \
+${(libname === "") ? "default library" : `library ${libname}`}`)]);
+      }
+
+      if (datatype.needsContext &&
+          // tslint:disable-next-line: no-http-string
+          !(libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+            (dataType === "QName" || dataType === "NOTATION"))) {
+        throw new Error("datatype needs context but is not " +
+                        "QName or NOTATION form the XML Schema " +
+                        "library: don't know how to handle");
+      }
+
+      if (datatype.needsContext) {
+        // Change ns to the namespace we need.
+        ns = fromQNameToURI(value, el);
+        el.setAttribute("ns", ns);
+        value = localName(value);
+        el.empty();
+        el.append(new Text(value));
+      }
+
+      const valuePattern = new Value(el.path, value, dataType, libname, ns);
+
+      // Accessing the value will cause it to be validated.
+      // tslint:disable-next-line:no-unused-expression
+      valuePattern.value;
+
+      // tslint:disable-next-line: no-http-string
+      if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+          (dataType === "ENTITY" || dataType === "ENTITIES")) {
+        state.typeWarnings.push(
+          `WARNING: ${el.path} uses the ${dataType} type in library \
+${libname}`);
+      }
+      break;
+    }
+    case "data": {
+      // Except is necessarily last.
+      const hasExcept = (children.length !== 0 &&
+                         (children[children.length - 1] as Element) .local ===
+                         "except");
+
+      const dataType = el.mustGetAttribute("type");
+      const libname = el.mustGetAttribute("datatypeLibrary");
+      const lib = registry.find(libname);
+      if (lib === undefined) {
+        throw new ValueValidationError(
+          el.path, [new ValueError(`unknown datatype library: ${libname}`)]);
+      }
+
+      if (lib.types[dataType] === undefined) {
+        throw new ValueValidationError(
+          el.path,
+          [new ValueError(`unknown datatype ${dataType} in \
+${(libname === "") ? "default library" : `library ${libname}`}`)]);
+      }
+
+      const params = children.slice(
+        0, hasExcept ? children.length - 1 : undefined).map(
+          (child: Element) => ({
+            name: child.mustGetAttribute("name"),
+            value: child.text,
+          }));
+
+      const data = new Data(el.path, dataType, libname, params);
+
+      // This causes the parameters to be checked. We do not need to do
+      // anything with the value.
+      // tslint:disable-next-line:no-unused-expression
+      data.params;
+
+      // tslint:disable-next-line: no-http-string
+      if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+          (dataType === "ENTITY" || dataType === "ENTITIES")) {
+        state.typeWarnings.push(
+          `WARNING: ${el.path} uses the ${dataType} type in library \
+${libname}`);
+      }
+      break;
+    }
     default:
   }
 
-  if (el.children.length > 0) {
+  if (children.length > 0) {
     // This code is crafted to avoid coyping the state object needlessly.
     let newState = state;
     switch (name) {
@@ -337,7 +441,7 @@ class must be a descendant of oneOrMore (section 7.3)");
         }
         break;
       case "define":
-        const element = el.children[0] as Element;
+        const element = children[0] as Element;
         const pattern = element.children[1] as Element;
         const contentType = computeContentType(pattern);
         if (contentType === null) {
@@ -348,7 +452,7 @@ on string values (section 7.2)`);
       default:
     }
 
-    for (const child of el.children) {
+    for (const child of children) {
       if (!(child instanceof Element)) {
         continue;
       }
@@ -357,10 +461,10 @@ on string values (section 7.2)`);
     }
 
     if (name === "group" || name === "interleave") {
-      const attrs1 = findOccurring(el.children[0] as Element,
+      const attrs1 = findOccurring(children[0] as Element,
                                    ["attribute"]).attribute;
       if (attrs1.length !== 0) {
-        const attrs2 = findOccurring(el.children[1] as Element,
+        const attrs2 = findOccurring(children[1] as Element,
                                      ["attribute"]).attribute;
         if (attrs2.length !== 0) {
           for (const attr1 of attrs1) {
@@ -615,9 +719,9 @@ export class InternalSimplifier extends BaseSimplifier {
           checkStart = Date.now();
         }
 
-        const cachedQueries = generalCheck(tree);
-        checkInterleaveRestriction(cachedQueries, tree);
-        warnings = this.processDatatypes(tree);
+        const check = generalCheck(tree);
+        warnings = check.typeWarnings;
+        checkInterleaveRestriction(check.cache, tree);
 
         if (this.options.timing) {
           // tslint:disable-next-line:no-non-null-assertion no-console

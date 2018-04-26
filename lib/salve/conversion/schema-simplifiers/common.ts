@@ -28,13 +28,13 @@ function inAttribute(el: Element): boolean {
   return false;
 }
 
-function localName(value: string): string {
+export function localName(value: string): string {
   const sep: number = value.indexOf(":");
 
   return (sep === -1) ? value : value.slice(sep + 1);
 }
 
-function fromQNameToURI(value: string, el: Element): string {
+export function fromQNameToURI(value: string, el: Element): string {
   const attribute: boolean = inAttribute(el);
   let parts: string[] = value.split(":");
 
