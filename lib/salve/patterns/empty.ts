@@ -4,8 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { addWalker, CloneMap, Event, EventSet, InternalWalker,
-         Pattern } from "./base";
+import { Event, EventSet, InternalWalker, Pattern } from "./base";
 
 /**
  * Pattern for ``<empty/>``.
@@ -15,7 +14,7 @@ export class Empty extends Pattern {
     return true;
   }
 
-  newWalker(): EmptyWalker {
+  newWalker(): InternalWalker<Empty> {
     // tslint:disable-next-line:no-use-before-declare
     return singleton;
   }
@@ -28,14 +27,12 @@ export class Empty extends Pattern {
  *
  * @param resolver Ignored by this walker.
  */
-export class EmptyWalker extends InternalWalker<Empty> {
+class EmptyWalker extends InternalWalker<Empty> {
   canEnd: boolean;
   canEndAttribute: boolean;
 
-  protected constructor(other: EmptyWalker, memo: CloneMap);
-  protected constructor(el: Empty);
-  protected constructor(elOrWalker: Empty | EmptyWalker, memo?: CloneMap) {
-    super(elOrWalker as EmptyWalker);
+  protected constructor(el: Empty) {
+    super(el);
     this.canEnd = true;
     this.canEndAttribute = true;
   }
@@ -62,8 +59,6 @@ export class EmptyWalker extends InternalWalker<Empty> {
     return ((name === "text") && !/\S/.test(params[0])) ? false : undefined;
   }
 }
-
-addWalker(Empty, EmptyWalker);
 
 const singleton = EmptyWalker.makeNew(new Empty("FAKE ELEMENT"));
 
