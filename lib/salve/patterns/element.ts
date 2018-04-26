@@ -198,10 +198,7 @@ class ElementWalker extends InternalWalker<Element> {
       if (leaveNow) {
         this.endedStartTag = true;
 
-        const errs = this.el.pat.hasAttrs() ? walker.end(true) : false;
-        walker._suppressAttributes();
-
-        return errs;
+        return this.el.pat.hasAttrs() ? walker.end(true) : false;
       }
 
       return walker.fireEvent(name, params);
@@ -225,11 +222,6 @@ class ElementWalker extends InternalWalker<Element> {
     }
 
     return walker.fireEvent(name, params);
-  }
-
-  _suppressAttributes(): void {
-    // _suppressAttributes does not cross element boundary
-    return;
   }
 
   end(attribute: boolean = false): EndResult {

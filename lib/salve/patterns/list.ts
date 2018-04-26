@@ -105,10 +105,6 @@ class ListWalker extends InternalWalker<List> {
     return false;
   }
 
-  _suppressAttributes(): void {
-    // Lists cannot contain attributes.
-  }
-
   end(attribute: boolean = false): EndResult {
     if (this.canEnd) {
       return false;

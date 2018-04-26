@@ -23,7 +23,6 @@ export class  OneOrMore extends OneSubpattern {
  * Walker for [[OneOrMore]]
  */
 class OneOrMoreWalker extends InternalWalker<OneOrMore> {
-  private suppressedAttributes: boolean;
   private readonly hasAttrs: boolean;
   private currentIteration: InternalWalker<BasePattern>;
   private nextIteration: InternalWalker<BasePattern> | undefined;
@@ -46,7 +45,6 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
       const nameResolver = nameResolverOrMemo as NameResolver;
       super(el);
       this.hasAttrs = el.hasAttrs();
-      this.suppressedAttributes = false;
       this.nameResolver = nameResolver;
       this.currentIteration = this.el.pat.newWalker(nameResolver);
       this.canEndAttribute = !this.hasAttrs ||
@@ -57,7 +55,6 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
       const walker = elOrWalker as OneOrMoreWalker;
       const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
-      this.suppressedAttributes = walker.suppressedAttributes;
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.currentIteration = walker.currentIteration._clone(memo);
@@ -143,28 +140,6 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     return undefined;
   }
 
-  _suppressAttributes(): void {
-    // A oneOrMore element can happen if we have the pattern ``(attribute * {
-    // text })+`` for instance. Once converted to the simplified RNG, it
-    // becomes:
-    //
-    // ``<oneOrMore><attribute><anyName/><rng:text/></attribute></oneOrMore>``
-    //
-    // An attribute in ``oneOrMore`` cannot happen when ``anyName`` is not used
-    // because an attribute of any given name cannot be repeated.
-    //
-
-    // We don't protect against multiple calls to _suppressAttributes.
-    // ElementWalker is the only walker that initiates _suppressAttributes
-    // and it calls it only once per walker.
-    this.suppressedAttributes = true;
-    this.currentIteration._suppressAttributes();
-
-    if (this.nextIteration !== undefined) {
-      this.nextIteration._suppressAttributes();
-    }
-  }
-
   end(attribute: boolean = false): EndResult {
     return (attribute && this.canEndAttribute) || (!attribute && this.canEnd) ?
       false :
@@ -174,16 +149,6 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
   private _instantiateNextIteration(): void {
     if (this.nextIteration === undefined) {
       this.nextIteration = this.el.pat.newWalker(this.nameResolver);
-
-      // Whereas _suppressAttributes calls _instantiateCurrentIteration() so
-      // that currentIteration is always existing and its _suppressAttributes()
-      // method is called before _suppressAttributes() returns, the same is not
-      // true of nextIteration. So if we create it **after**
-      // _suppressAttributes() was called we need to call _suppressAttributes()
-      // on it.
-      if (this.suppressedAttributes) {
-        this.nextIteration._suppressAttributes();
-      }
     }
   }
 }

@@ -99,10 +99,6 @@ export class RefWalker extends InternalWalker<Ref> {
     return !attribute && !this.canEnd ?
       [new ElementNameError("tag required", this.startName)] : false;
   }
-
-  _suppressAttributes(): void {
-    // We don't cross ref/define boundaries.
-  }
 }
 
 addWalker(Ref, RefWalker);

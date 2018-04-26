@@ -48,10 +48,6 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
   fireEvent(): undefined {
     return undefined; // we never match!
   }
-
-  _suppressAttributes(): void {
-    // We don't contain attributes...
-  }
 }
 
 addWalker(NotAllowed, NotAllowedWalker);

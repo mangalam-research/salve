@@ -167,14 +167,6 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     return undefined;
   }
 
-  _suppressAttributes(): void {
-    // We don't protect against multiple calls to _suppressAttributes.
-    // ElementWalker is the only walker that initiates _suppressAttributes
-    // and it calls it only once per walker.
-    this.walkerA._suppressAttributes();
-    this.walkerB._suppressAttributes();
-  }
-
   end(attribute: boolean = false): EndResult {
     if (this.ended) {
       return false;

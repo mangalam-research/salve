@@ -63,10 +63,6 @@ class TextWalker extends InternalWalker<Text> {
     return !this.ended && (name === "text") ? false : undefined;
   }
 
-  _suppressAttributes(): void {
-    // We don't contain attributes...
-  }
-
   end(): false {
     this.ended = true;
 

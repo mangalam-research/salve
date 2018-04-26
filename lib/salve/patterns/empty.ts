@@ -61,10 +61,6 @@ export class EmptyWalker extends InternalWalker<Empty> {
   fireEvent(name: string, params: string[]): false | undefined {
     return ((name === "text") && !/\S/.test(params[0])) ? false : undefined;
   }
-
-  _suppressAttributes(): void {
-    // We don't contain attributes...
-  }
 }
 
 addWalker(Empty, EmptyWalker);

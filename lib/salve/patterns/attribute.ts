@@ -52,7 +52,6 @@ export class Attribute extends Pattern {
  * Walker for [[Attribute]].
  */
 class AttributeWalker extends InternalWalker<Attribute> {
-  private suppressedAttributes: boolean;
   private seenName: boolean;
   private readonly subwalker: InternalWalker<BasePattern>;
   private readonly attrNameEvent: Event;
@@ -73,7 +72,6 @@ class AttributeWalker extends InternalWalker<Attribute> {
     if ((elOrWalker as Attribute).newWalker !== undefined) {
       const el = elOrWalker as Attribute;
       super(el);
-      this.suppressedAttributes = false;
       this.nameResolver = nameResolverOrMemo as NameResolver;
       this.subwalker = el.pat.newWalker(this.nameResolver);
       this.attrNameEvent = new Event("attributeName", el.name);
@@ -85,7 +83,6 @@ class AttributeWalker extends InternalWalker<Attribute> {
       const walker = elOrWalker as AttributeWalker;
       const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
-      this.suppressedAttributes = walker.suppressedAttributes;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.seenName = walker.seenName;
       this.subwalker = walker.subwalker._clone(memo);
@@ -101,8 +98,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
   }
 
   possibleAttributes(): EventSet {
-    // We've been suppressed!
-    if (this.suppressedAttributes || this.canEnd) {
+    if (this.canEnd) {
       return new Set<Event>();
     }
 
@@ -123,7 +119,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
   fireEvent(name: string, params: string[]): InternalFireEventResult {
     // If canEnd is true, we've done everything we could. So we don't
     // want to match again.
-    if (this.suppressedAttributes || this.canEnd) {
+    if (this.canEnd) {
       return undefined;
     }
 
@@ -170,10 +166,6 @@ class AttributeWalker extends InternalWalker<Attribute> {
     return ret;
   }
 
-  _suppressAttributes(): void {
-    this.suppressedAttributes = true;
-  }
-
   end(attribute: boolean = false): EndResult {
     if (this.canEnd) {
       return false;
@@ -185,15 +177,6 @@ class AttributeWalker extends InternalWalker<Attribute> {
       // prevents producing errors about the same attribute multiple times,
       // because end is called by element walkers when leaveStartTag is
       // encountered, and again when the element closes.
-      //
-      // This status has to be maintained separately from suppressedAttributes
-      // because it controls how errors are reported, whereas
-      // suppressedAttributes is broader in scope. (Or to put it differently, it
-      // it may be impossible to know whether an attribute is missing until the
-      // element is closed: by that time suppressedAttributes will be true, but
-      // we still want to report the error. So we have to inhibit error
-      // reporting on the basis of a state different from suppressedAttributes.)
-      //
       this.canEnd = true;
       this.canEndAttribute = true;
 

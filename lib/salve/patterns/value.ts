@@ -130,10 +130,6 @@ class ValueWalker extends InternalWalker<Value> {
     return this.canEnd ? false :
       [new ValidationError(`value required: ${this.el.rawValue}`)];
   }
-
-  _suppressAttributes(): void {
-    // No child attributes.
-  }
 }
 
 addWalker(Value, ValueWalker);

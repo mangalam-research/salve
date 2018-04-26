@@ -153,10 +153,6 @@ class DataWalker extends InternalWalker<Data> {
   end(attribute: boolean = false): EndResult {
     return this.canEnd ? false : [new ValidationError("value required")];
   }
-
-  _suppressAttributes(): void {
-    // No child attributes.
-  }
 }
 
 addWalker(Data, DataWalker);

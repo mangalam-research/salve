@@ -193,14 +193,6 @@ class ChoiceWalker extends InternalWalker<Choice> {
     return retB;
   }
 
-  _suppressAttributes(): void {
-    // We don't protect against multiple calls to _suppressAttributes.
-    // ElementWalker is the only walker that initiates _suppressAttributes
-    // and it calls it only once per walker.
-    this.walkerA._suppressAttributes();
-    this.walkerB._suppressAttributes();
-  }
-
   end(attribute: boolean = false): EndResult {
     if ((attribute && this.canEndAttribute) || (!attribute && this.canEnd)) {
       // Instead of an ended flag, we set both flags.
@@ -343,13 +335,6 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
     this.canEnd = this.walkerB.canEnd;
 
     return retB;
-  }
-
-  _suppressAttributes(): void {
-    // We don't protect against multiple calls to _suppressAttributes.
-    // ElementWalker is the only walker that initiates _suppressAttributes
-    // and it calls it only once per walker.
-    this.walkerB._suppressAttributes();
   }
 
   end(attribute: boolean = false): EndResult {

@@ -24,7 +24,6 @@ export class Group extends TwoSubpatterns {
  * Walker for [[Group]].
  */
 class GroupWalker extends InternalWalker<Group> {
-  private suppressedAttributes: boolean;
   private readonly hasAttrs: boolean;
   private ended: boolean;
   private walkerA: InternalWalker<BasePattern>;
@@ -47,7 +46,6 @@ class GroupWalker extends InternalWalker<Group> {
       const el = elOrWalker as Group;
       const nameResolver = nameResolverOrMemo as NameResolver;
       super(el);
-      this.suppressedAttributes = false;
       this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
       this.ended = false;
@@ -61,7 +59,6 @@ class GroupWalker extends InternalWalker<Group> {
       const walker = elOrWalker as GroupWalker;
       const memo = nameResolverOrMemo as CloneMap;
       super(walker, memo);
-      this.suppressedAttributes = walker.suppressedAttributes;
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
       this.walkerA = walker.walkerA._clone(memo);
@@ -155,15 +152,6 @@ class GroupWalker extends InternalWalker<Group> {
     }
 
     return retB;
-  }
-
-  _suppressAttributes(): void {
-    // We don't protect against multiple calls to _suppressAttributes.
-    // ElementWalker is the only walker that initiates _suppressAttributes
-    // and it calls it only once per walker.
-    this.suppressedAttributes = true;
-    this.walkerA._suppressAttributes();
-    this.walkerB._suppressAttributes();
   }
 
   end(attribute: boolean = false): EndResult {

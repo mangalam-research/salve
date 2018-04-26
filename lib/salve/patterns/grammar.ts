@@ -604,10 +604,6 @@ ${name}`);
 
     return possible;
   }
-
-  _suppressAttributes(): void {
-    throw new Error("_suppressAttributes cannot be called on a GrammarWalker");
-  }
 }
 
 // Nope, we're using a custom function.

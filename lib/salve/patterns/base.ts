@@ -636,19 +636,6 @@ export abstract class BaseWalker<T extends BasePattern> {
   }
 
   /**
-   * Helper function used to prevent Walker objects from reporting attribute
-   * events as possible. In RelaxNG it is normal to mix attributes and elements
-   * in patterns. However, XML validation segregates attributes and
-   * elements. Once a start tag has been processed, attributes are not possible
-   * until a new start tag begins. For instance, if a Walker is processing
-   * ``<foo a="1">``, as soon as the greater than symbol is encountered,
-   * attribute events are no longer possible. This function informs the Walker
-   * of this fact.
-   *
-   */
-  abstract _suppressAttributes(): void;
-
-  /**
    * Helper method for cloning. This method should be called to clone objects
    * that do not participate in the ``clone``, protocol. This typically means
    * instance properties that are not ``Walker`` objects and not immutable.
