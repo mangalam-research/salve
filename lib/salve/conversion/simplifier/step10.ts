@@ -98,48 +98,6 @@ function walk(check: boolean, state: State, el: Element): Element | null {
 
       el.append(toAppend);
       break;
-    case "element":
-      if (el.children.length > 2) {
-        const group = Element.makeElement("group");
-        group.append(el.children.slice(1));
-        el.append(group);
-      }
-
-      if (check) {
-        checkNames(el.children[0] as Element);
-      }
-      break;
-    case "except":
-      if (el.children.length > 1) {
-        const choice = Element.makeElement("choice");
-        choice.grabChildren(el);
-        el.append(choice);
-      }
-      break;
-    case "attribute":
-      if (el.children.length === 1) {
-        el.append(Element.makeElement("text"));
-      }
-
-      if (check) {
-        checkNames(el.children[0] as Element);
-        for (const attrName of findMultiNames(el, ["name"]).name) {
-          switch (attrName.getAttribute("ns")) {
-            case "":
-              if (attrName.text === "xmlns") {
-                throw new SchemaValidationError(
-                  "found attribute with name xmlns outside all namespaces");
-              }
-              break;
-              // tslint:disable-next-line:no-http-string
-            case "http://www.w3.org/2000/xmlns":
-              throw new SchemaValidationError(
-                "found attribute in namespace http://www.w3.org/2000/xmlns");
-            default:
-          }
-        }
-      }
-      break;
     case "choice":
     case "group":
     case "interleave":
@@ -167,6 +125,48 @@ function walk(check: boolean, state: State, el: Element): Element | null {
           wrap.append(el.children.slice(0, 2));
           el.prepend(wrap);
         }
+      }
+      break;
+    case "element":
+      if (el.children.length > 2) {
+        const group = Element.makeElement("group");
+        group.append(el.children.slice(1));
+        el.append(group);
+      }
+
+      if (check) {
+        checkNames(el.children[0] as Element);
+      }
+      break;
+    case "attribute":
+      if (el.children.length === 1) {
+        el.append(Element.makeElement("text"));
+      }
+
+      if (check) {
+        checkNames(el.children[0] as Element);
+        for (const attrName of findMultiNames(el, ["name"]).name) {
+          switch (attrName.getAttribute("ns")) {
+            case "":
+              if (attrName.text === "xmlns") {
+                throw new SchemaValidationError(
+                  "found attribute with name xmlns outside all namespaces");
+              }
+              break;
+              // tslint:disable-next-line:no-http-string
+            case "http://www.w3.org/2000/xmlns":
+              throw new SchemaValidationError(
+                "found attribute in namespace http://www.w3.org/2000/xmlns");
+            default:
+          }
+        }
+      }
+      break;
+    case "except":
+      if (el.children.length > 1) {
+        const choice = Element.makeElement("choice");
+        choice.grabChildren(el);
+        el.append(choice);
       }
       break;
     default:

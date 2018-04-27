@@ -57,11 +57,11 @@ function walk(el: Element, refs: Set<string>): void {
           parent.replaceChildWith(el, el.children[firstNA ? 1 : 0] as Element);
         }
         break;
+      case "group":
+      case "oneOrMore":
+      case "interleave":
       case "attribute":
       case "list":
-      case "group":
-      case "interleave":
-      case "oneOrMore":
         // An attribute (or list, group, interleave, oneOrMore) with at least
         // one notAllowed is replaced with notAllowed.
         parent.replaceChildWith(el, Element.makeElement("notAllowed"));

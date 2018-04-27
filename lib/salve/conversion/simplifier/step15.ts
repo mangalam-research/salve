@@ -33,6 +33,14 @@ function gatherGrammars(el: Element, state: State): void {
   const top = stack[0];
   let shift = false;
   switch (local) {
+    case "ref":
+      top.refs.push(el);
+      top.refNames.add(el.mustGetAttribute("name"));
+      break;
+    case "define":
+      top.defines.push(el);
+      top.defineNames.add(el.mustGetAttribute("name"));
+      break;
     case "grammar":
       shift = true;
       const thisGrammar = new GrammarNode(++state.latestId, el);
@@ -40,14 +48,6 @@ function gatherGrammars(el: Element, state: State): void {
       if (top !== undefined) {
         top.childGrammars.push(thisGrammar);
       }
-      break;
-    case "define":
-      top.defines.push(el);
-      top.defineNames.add(el.mustGetAttribute("name"));
-      break;
-    case "ref":
-      top.refs.push(el);
-      top.refNames.add(el.mustGetAttribute("name"));
       break;
     case "parentRef":
       top.parentRefs.push(el);
