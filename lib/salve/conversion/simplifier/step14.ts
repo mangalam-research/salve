@@ -43,7 +43,8 @@ function combine(els: Element[]): void {
           `more than one ${makeName(el)} without @combine`);
       }
       undefinedCombine = true;
-    } else {
+    }
+    else {
       if (combineAs === undefined) {
         combineAs = combineAttr;
       }

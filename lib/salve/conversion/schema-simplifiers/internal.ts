@@ -17,8 +17,7 @@ import { registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { SchemaValidationError } from "../schema-validation";
 import * as simplifier from "../simplifier";
-import { findDescendantsByLocalName, findMultiDescendantsByLocalName,
-         findMultiNames, getName, indexBy } from "../simplifier/util";
+import { findMultiNames, getName, indexBy } from "../simplifier/util";
 import { BaseSimplifier } from "./base";
 import { fromQNameToURI, localName } from "./common";
 
@@ -47,69 +46,6 @@ function makeNamePattern(el: Element): ConcreteName {
     default:
       throw new Error(`unexpected element in name pattern ${el.local}`);
   }
-}
-
-function checkStep10Constraints(el: Element): void {
-  switch (el.local) {
-    case "except":
-      // parent cannot be undefined at this point.
-      // tslint:disable-next-line:no-non-null-assertion
-      switch (el.parent!.local) {
-        case "anyName":
-          if (findDescendantsByLocalName(el, "anyName").length !== 0) {
-            throw new SchemaValidationError(
-              "an except in anyName has an anyName descendant");
-          }
-          break;
-        case "nsName": {
-          const { anyName: anyNames, nsName: nsNames } =
-            findMultiDescendantsByLocalName(el, ["anyName", "nsName"]);
-          if (anyNames.length !== 0) {
-            throw new SchemaValidationError(
-              "an except in nsName has an anyName descendant");
-          }
-
-          if (nsNames.length !== 0) {
-            throw new SchemaValidationError(
-              "an except in nsName has an nsName descendant");
-          }
-          break;
-        }
-        default:
-      }
-      break;
-    case "attribute":
-      for (const attrName of findMultiNames(el, ["name"]).name) {
-        switch (attrName.getAttribute("ns")) {
-          case "":
-            if (attrName.text === "xmlns") {
-              throw new SchemaValidationError(
-                "found attribute with name xmlns outside all namespaces");
-            }
-            break;
-            // tslint:disable-next-line:no-http-string
-          case "http://www.w3.org/2000/xmlns":
-            throw new SchemaValidationError(
-              "found attribute in namespace http://www.w3.org/2000/xmlns");
-          default:
-        }
-      }
-
-      break;
-    default:
-  }
-
-  for (const child of el.children) {
-    if (!(child instanceof Element)) {
-      continue;
-    }
-
-    checkStep10Constraints(child);
-  }
-
-  // We do not do the checks on ``data`` and ``value`` here. They are done
-  // later. The upshot is that fragments of the schema that may be removed in
-  // later steps are not checked here.
 }
 
 enum ContentType {
@@ -682,13 +618,7 @@ export class InternalSimplifier extends BaseSimplifier {
 
     if (this.options.simplifyTo >= 10) {
       this.stepStart(10);
-      tree = simplifier.step10(tree);
-
-      // This has to happen after step 13 has been applied, which is included in
-      // step 10.
-      if (this.options.validate) {
-        checkStep10Constraints(tree);
-      }
+      tree = simplifier.step10(tree, this.options.validate);
     }
 
     if (this.options.simplifyTo >= 14) {

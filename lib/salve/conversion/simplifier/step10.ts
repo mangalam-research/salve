@@ -5,13 +5,58 @@
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
 import { Element } from "../parser";
+import { SchemaValidationError } from "../schema-validation";
+import { findDescendantsByLocalName, findMultiDescendantsByLocalName,
+         findMultiNames} from "./util";
+
+// We do not do the checks on ``data`` and ``value`` here. They are done
+// later. The upshot is that fragments of the schema that may be removed in
+// later steps are not checked here.
 
 interface State {
   root: Element;
 }
 
+function checkNames(el: Element): void {
+  if (el.local === "except") {
+    // parent cannot be undefined at this point.
+    // tslint:disable-next-line:no-non-null-assertion
+    switch (el.parent!.local) {
+      case "anyName":
+        if (findDescendantsByLocalName(el, "anyName").length !== 0) {
+          throw new SchemaValidationError(
+            "an except in anyName has an anyName descendant");
+        }
+        break;
+      case "nsName": {
+        const { anyName: anyNames, nsName: nsNames } =
+          findMultiDescendantsByLocalName(el, ["anyName", "nsName"]);
+        if (anyNames.length !== 0) {
+          throw new SchemaValidationError(
+            "an except in nsName has an anyName descendant");
+        }
+
+        if (nsNames.length !== 0) {
+          throw new SchemaValidationError(
+            "an except in nsName has an nsName descendant");
+        }
+        break;
+      }
+      default:
+    }
+  }
+
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
+    checkNames(child);
+  }
+}
+
 // tslint:disable-next-line:max-func-body-length
-function walk(state: State, el: Element): Element | null {
+function walk(check: boolean, state: State, el: Element): Element | null {
   const local = el.local;
 
   switch (local) {
@@ -59,6 +104,10 @@ function walk(state: State, el: Element): Element | null {
         group.append(el.children.slice(1));
         el.append(group);
       }
+
+      if (check) {
+        checkNames(el.children[0] as Element);
+      }
       break;
     case "except":
       if (el.children.length > 1) {
@@ -70,6 +119,25 @@ function walk(state: State, el: Element): Element | null {
     case "attribute":
       if (el.children.length === 1) {
         el.append(Element.makeElement("text"));
+      }
+
+      if (check) {
+        checkNames(el.children[0] as Element);
+        for (const attrName of findMultiNames(el, ["name"]).name) {
+          switch (attrName.getAttribute("ns")) {
+            case "":
+              if (attrName.text === "xmlns") {
+                throw new SchemaValidationError(
+                  "found attribute with name xmlns outside all namespaces");
+              }
+              break;
+              // tslint:disable-next-line:no-http-string
+            case "http://www.w3.org/2000/xmlns":
+              throw new SchemaValidationError(
+                "found attribute in namespace http://www.w3.org/2000/xmlns");
+            default:
+          }
+        }
       }
       break;
     case "choice":
@@ -111,9 +179,9 @@ function walk(state: State, el: Element): Element | null {
       continue;
     }
 
-    let replaced = walk(state, child);
+    let replaced = walk(check, state, child);
     while (replaced !== null) {
-      replaced = walk(state, replaced);
+      replaced = walk(check, state, replaced);
     }
   }
 
@@ -158,16 +226,18 @@ function walk(state: State, el: Element): Element | null {
  *
  * @param el The tree to process. It is modified in-place.
  *
+ * @param check Whether to perform constraint checks.
+ *
  * @returns The new root of the tree.
  */
-export function step10(el: Element): Element {
+export function step10(el: Element, check: boolean): Element {
   const state: State = {
     root: el,
   };
 
-  let replaced = walk(state, el);
+  let replaced = walk(check, state, el);
   while (replaced !== null) {
-    replaced = walk(state, replaced);
+    replaced = walk(check, state, replaced);
   }
 
   return state.root;
