@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { ConcreteNode, Element } from "../parser";
+import { Element } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
 import { findChildrenByLocalName, findDescendantsByLocalName, getName,
          groupBy } from "./util";
@@ -59,13 +59,15 @@ function combine(els: Element[]): void {
   }
 
   let wrapper = Element.makeElement(combineAs);
-  wrapper.append(els[0].children.slice().concat(els[1].children));
+  wrapper.grabChildren(els[0]);
+  wrapper.grabChildren(els[1]);
   els[1].remove();
 
   if (els.length > 2) {
     for (const el of els.slice(2)) {
       const newWrapper = Element.makeElement(combineAs);
-      newWrapper.append(([wrapper] as ConcreteNode[]).concat(el.children));
+      newWrapper.append(wrapper);
+      newWrapper.grabChildren(el);
       el.remove();
       wrapper = newWrapper;
     }

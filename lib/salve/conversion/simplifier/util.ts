@@ -9,17 +9,6 @@ import { Element } from "../parser";
 // tslint:disable-next-line:no-http-string
 export const RELAXNG_URI = "http://relaxng.org/ns/structure/1.0";
 
-export function findFirstChildByLocalName(el: Element,
-                                          name: string): Element | null {
-  for (const child of el.children) {
-    if (child instanceof Element  && child.local === name) {
-      return child;
-    }
-  }
-
-  return null;
-}
-
 export function findChildrenByLocalName(el: Element,
                                         name: string): Element[] {
   return el
@@ -141,31 +130,23 @@ export function indexBy<T>(arr: T[],
  *
  * @param arr The array to index.
  *
- * @param makeKey A function that takes an array element and makes a key or
- * multiple keys by which this element will be indexed. If the function returns
- * multiple keys then the element is indexed by all the keys produced.
+ * @param makeKey A function that takes an array element and makes a key by
+ * which this element will be indexed.
  *
  * @return The grouped elements.
  */
 export function groupBy<T>(arr: T[],
-                           makeKey: (x: T) => (string | string[])):
-Map<string, T[]> {
+                           makeKey: (x: T) => string): Map<string, T[]> {
   const ret = new Map<string, T[]>();
   for (const x of arr) {
-    let keys = makeKey(x);
-
-    if (!(keys instanceof Array)) {
-      keys = [keys];
+    const key = makeKey(x);
+    let list = ret.get(key);
+    if (list === undefined) {
+      list = [];
+      ret.set(key, list);
     }
 
-    for (const key of keys) {
-      let list = ret.get(key);
-      if (list === undefined) {
-        list = [];
-        ret.set(key, list);
-      }
-      list.push(x);
-    }
+    list.push(x);
   }
 
   return ret;
@@ -178,20 +159,6 @@ Map<string, T[]> {
  */
 export function getName(el: Element): string {
   return el.mustGetAttribute("name");
-}
-
-export function getAncestorsByLocalNames(el: Element,
-                                         names: string[]): Element[] {
-  const ancestors = [];
-  let parent = el.parent;
-  while (parent !== undefined) {
-    if (names.includes(parent.local)) {
-      ancestors.push(parent);
-    }
-    parent = parent.parent;
-  }
-
-  return ancestors;
 }
 
 /**

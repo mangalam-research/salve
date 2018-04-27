@@ -97,8 +97,7 @@ function removeDefsWithoutElement(state: State, el: Element): void {
     return false;
   });
 
-  el.empty();
-  el.append(keep);
+  el.replaceContent(keep);
 }
 
 /**

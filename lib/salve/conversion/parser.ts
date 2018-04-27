@@ -325,6 +325,30 @@ export class Element extends Node {
     }
   }
 
+  /**
+   * Gets all the children from another element and append them to this
+   * element. This is a faster operation than done through other means.
+   *
+   * @param src The element form which to get the children.
+   */
+  grabChildren(src: Element): void {
+    const children = src.children.splice(0, src.children.length);
+    this.children.push(...children);
+    for (const child of children) {
+      child.parent = this;
+    }
+  }
+
+  replaceContent(children: ConcreteNode[]): void {
+    const prev = this.children.splice(0, this.children.length, ...children);
+    for (const child of prev) {
+      child.parent = undefined;
+    }
+    for (const child of children) {
+      child.parent = this;
+    }
+  }
+
   protected indexOfChild(this: ConcreteNode, child: ConcreteNode): number {
     const parent = child.parent;
     if (parent !== this) {

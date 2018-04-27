@@ -24,7 +24,7 @@ function walk(state: State, el: Element): Element | null {
       let toAppend = [];
       if (el.children.length > 1) {
         const group = Element.makeElement("group");
-        group.append(el.children.slice());
+        group.grabChildren(el);
         toAppend.push(group);
       }
 
@@ -40,8 +40,12 @@ function walk(state: State, el: Element): Element | null {
         case "zeroOrMore":
           el.local = "choice";
           const oneOrMore = Element.makeElement("oneOrMore");
-          oneOrMore.append(toAppend.length === 0 ? el.children.slice() :
-                           toAppend);
+          if (toAppend.length === 0) {
+            oneOrMore.grabChildren(el);
+          }
+          else {
+            oneOrMore.append(toAppend);
+          }
           toAppend = [oneOrMore, Element.makeElement("empty")];
           break;
         default:
@@ -59,7 +63,7 @@ function walk(state: State, el: Element): Element | null {
     case "except":
       if (el.children.length > 1) {
         const choice = Element.makeElement("choice");
-        choice.append(el.children.slice());
+        choice.grabChildren(el);
         el.append(choice);
       }
       break;
