@@ -93,7 +93,8 @@ export class Element extends Node {
 
   uri: string;
 
-  ns: Record<string, string>;
+  // ns is meant to be immutable.
+  private readonly ns: Record<string, string>;
 
   attributes: Record<string, sax.QualifiedAttribute>;
 
@@ -103,55 +104,50 @@ export class Element extends Node {
    * @param children The children of this element. **These children must not yet
    * be children of any element.**
    */
-  constructor(node: sax.QualifiedTag | Element,
+  constructor(prefix: string,
+              local: string,
+              uri: string,
+              ns: Record<string, string>,
+              attributes: Record<string, sax.QualifiedAttribute>,
               readonly children: ConcreteNode[] = []) {
     super();
-    this.prefix = node.prefix;
-    this.local = node.local;
-    this.uri = node.uri;
-
-    // We create a new object even when using a sax node. Sax uses a prototype
-    // trick to flatten the hierarchy of namespace declarations but that screws
-    // us over when we mutate the tree. It is simpler to just undo the trick and
-    // have a resolve() method that searches up the tree. We don't do that many
-    // searches anyway.
-    this.ns = Object.assign(Object.create(null), node.ns);
-
-    if (node instanceof Element) {
-      // The strategy of pre-filling the new object and then updating the keys
-      // appears to be faster than inserting new keys one by one.
-      const thisAttrs = this.attributes =
-        Object.assign(Object.create(null), node.attributes);
-      for (const key of Object.keys(thisAttrs)) {
-        // We do not use Object.create(null) here because there's no advantage
-        // to it.
-        thisAttrs[key] = {...thisAttrs[key]};
-      }
-    }
-    else {
-      this.attributes = node.attributes;
-    }
+    this.prefix = prefix;
+    this.local = local;
+    this.uri = uri;
+    // Namespace declarations are immutable.
+    // Cast to cheat and read it from the Element being cloned.
+    this.ns = ns;
+    this.attributes = attributes;
 
     for (const child of children) {
       child.parent = this;
     }
   }
 
+  static fromSax(node: sax.QualifiedTag, children: ConcreteNode[]): Element {
+    return new Element(
+      node.prefix,
+      node.local,
+      node.uri,
+      // We create a new object even when using a sax node. Sax uses a prototype
+      // trick to flatten the hierarchy of namespace declarations but that
+      // screws us over when we mutate the tree. It is simpler to just undo the
+      // trick and have a resolve() method that searches up the tree. We don't
+      // do that many searches anyway.
+      Object.assign(Object.create(null), node.ns),
+      node.attributes,
+      children);
+  }
+
   static makeElement(name: string): Element {
-    return new Element({
-      local: name,
-      name: name,
-      uri: "",
-      prefix: "",
-      // We always pass the same object as ns. The constructor will clone it
-      // anyway. So we save an unnecessary object creation.
-      ns: emptyNS,
-      attributes: Object.create(null),
-      // We do not care about this flag. Sax sets it when reading a file, but it
-      // is useless for us. Any element which has no children will be serialized
-      // as a self-closing element.
-      isSelfClosing: false,
-    });
+    return new Element(
+      "",
+      name,
+      "",
+      // We always pass the same object as ns. So we save an unnecessary object
+      // creation.
+      emptyNS,
+      Object.create(null));
   }
 
   setParent(value: Element | undefined): void {
@@ -418,15 +414,27 @@ export class Element extends Node {
   }
 
   clone(): Element {
-    return new Element(this, this.children.map((child) => child.clone()));
+    // The strategy of pre-filling the new object and then updating the keys
+    // appears to be faster than inserting new keys one by one.
+    const attributes = Object.assign(Object.create(null), this.attributes);
+    for (const key of Object.keys(attributes)) {
+      // We do not use Object.create(null) here because there's no advantage
+      // to it.
+      attributes[key] = {...attributes[key]};
+    }
+
+    return new Element(
+      this.prefix,
+      this.local,
+      this.uri,
+      this.ns,
+      attributes,
+      this.children.map((child) => child.clone()));
   }
 }
 
 export class Text extends Node {
   /**
-   * @param parent The parent element, or a undefined if this is the root
-   * element.
-   *
    * @param text The textual value.
    */
   constructor(readonly text: string) {
@@ -597,7 +605,7 @@ export class BasicParser extends Parser {
 
     // tslint:disable-next-line:no-non-null-assertion
     const { node: topNode, children } = this.stack.shift()!;
-    this.stack[0].children.push(new Element(topNode, children));
+    this.stack[0].children.push(Element.fromSax(topNode, children));
   }
 
   ontext(text: string): void {
