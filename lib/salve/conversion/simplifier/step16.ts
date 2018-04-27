@@ -24,9 +24,9 @@ interface State {
   seenRefs: Set<string>;
 }
 
-function wrapElements(state: State, root: Element): void {
+function wrapElements(state: State, root: Element): Element[] {
   let elementCount = 0;
-  const { seenRefs, grammarEl } = state;
+  const { seenRefs } = state;
   const toAppend = [];
   for (const el of findDescendantsByLocalName(root, "element")) {
     elementCount++;
@@ -56,7 +56,7 @@ function wrapElements(state: State, root: Element): void {
     }
   }
 
-  grammarEl.append(toAppend);
+  return toAppend;
 }
 
 // Performance note: as of 2018-03-08, checkDefinitionCycles is not a major
@@ -197,8 +197,12 @@ export function step16(tree: Element): Element {
   // wrapping first, we eliminate those cases that are valid Relax NG. Any
   // remaining ``define`` which is without a top-level ``element`` and is
   // self-referential is invalid.
-  wrapElements(state, currentTree);
+  const toAppend = wrapElements(state, currentTree);
+  // We wait until appending the new definitions so that the following operation
+  // does not have to scan through them needlessly. The new definitions contain
+  // ``element`` as their top pattern so they cannot be removed.
   removeDefsWithoutElement(state, currentTree);
+  currentTree.append(toAppend);
   currentTree = substituteRefs(state, currentTree);
   removeUnreferencedDefs(currentTree, state.seenRefs);
 
