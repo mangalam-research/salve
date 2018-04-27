@@ -59,43 +59,31 @@ function wrapElements(state: State, root: Element): Element[] {
   return toAppend;
 }
 
-// Performance note: as of 2018-03-08, checkDefinitionCycles is not a major
-// performance gobbler. Running a simplification with it removed does not make a
-// major difference.
-function checkDefinitionCycles(name: string, el: Element): void {
-  const refs = findDescendantsByLocalName(el, "ref");
-  for (const ref of refs) {
-    if (ref.mustGetAttribute("name") === name) {
-      throw new SchemaValidationError(
-        `circularity on the definition named ${name}`);
-    }
-  }
-}
-
 function removeDefsWithoutElement(state: State, el: Element): void {
   // A define which does not contain an ``element`` child is going to be
   // removed. Any reference to it will have to be replaced with the content of
   // the ``define``.
-  const keep = el.children.filter((child) => {
-    if (!(child instanceof Element) || child.local !== "define" ||
-        // Define elements by this time have a single child, which is an
-        // element (but may not be an ``element`` element).
-        (child.children[0] as Element).local === "element") {
-      return true;
+  const removedDefines = state.removedDefines;
+  const children = el.children;
+  // We always keep ``start``.
+  const keep = [children[0]];
+  // The el parameter is the grammar. By this stage, it has a ``start`` element
+  // as its first child, and ``define`` elements for the remainder of its
+  // children.
+  for (let ix = 1; ix < children.length; ++ix) {
+    const child = children[ix] as Element;
+    // Define elements by this time have a single child, which is an
+    // element (but may not be an ``element`` element).
+    const topElement = child.children[0] as Element;
+    if (topElement.local === "element") {
+      keep.push(child);
+      continue;
     }
 
-    const defChild = child.children[0] as Element;
-    child.empty(); // Effectively remove defChild from its parent.
+    child.empty(); // Effectively removes top from its parent.
     const name = child.mustGetAttribute("name");
-    state.removedDefines.set(name, { topElement: defChild, used: false });
-
-    // We've already done the wrapping of ``element`` in ``define`` so a
-    // ``define`` which is without a top-level ``element`` and is
-    // self-referential is invalid. Check for that.
-    checkDefinitionCycles(name, defChild);
-
-    return false;
-  });
+    removedDefines.set(name, { topElement, used: false });
+  }
 
   el.replaceContent(keep);
 }
@@ -112,7 +100,8 @@ function removeDefsWithoutElement(state: State, el: Element): void {
  * @returns A replacement for the element, which may be equal to ``el`` if there
  * is no replacement.
  */
-function substituteRefs(state: State, el: Element): Element {
+function substituteRefs(state: State, el: Element,
+                        seenNames: Set<string>): Element {
   const local = el.local;
 
   let ret = el;
@@ -120,6 +109,10 @@ function substituteRefs(state: State, el: Element): Element {
     // If a reference is to a definition that does not contain an element
     // element as the top element, move the definition in place of the ref.
     const name = el.mustGetAttribute("name");
+    if (seenNames.has(name)) {
+      throw new SchemaValidationError(
+        `circularity on the definition named ${name}`);
+    }
     const def = state.removedDefines.get(name);
     if (def === undefined) {
       // We are keeping this reference, so mark it as seen. Otherwise, we're
@@ -136,7 +129,10 @@ function substituteRefs(state: State, el: Element): Element {
       else {
         // Walk the element we're about to put into the tree. We walk it only
         // once, and record the result of walking it.
-        def.topElement = ret = substituteRefs(state, def.topElement);
+
+        const newNames = new Set(seenNames);
+        newNames.add(name);
+        def.topElement = ret = substituteRefs(state, def.topElement, newNames);
         def.used = true;
       }
     }
@@ -150,7 +146,7 @@ function substituteRefs(state: State, el: Element): Element {
         continue;
       }
 
-      const substitute = substituteRefs(state, child);
+      const substitute = substituteRefs(state, child, seenNames);
       if (child !== substitute) {
         el.replaceChildAt(ix, substitute);
       }
@@ -203,7 +199,7 @@ export function step16(tree: Element): Element {
   // ``element`` as their top pattern so they cannot be removed.
   removeDefsWithoutElement(state, currentTree);
   currentTree.append(toAppend);
-  currentTree = substituteRefs(state, currentTree);
+  currentTree = substituteRefs(state, currentTree, new Set());
   removeUnreferencedDefs(currentTree, state.seenRefs);
 
   return currentTree;
