@@ -101,8 +101,8 @@ export function step14(el: Element): Element {
     const defs = findChildrenByLocalName(grammar, "define");
     const grouped = groupBy(defs, getName);
 
-    for (const name of Object.keys(grouped)) {
-      combine(grouped[name]);
+    for (const group of grouped.values()) {
+      combine(group);
     }
   }
 

@@ -185,8 +185,8 @@ class Step1 {
     const includeDefsMap = indexBy(includeDefs, getName);
     const grammarDefsMap = groupBy(grammarDefs, getName);
 
-    for (const key of Object.keys(includeDefsMap)) {
-      const defs = grammarDefsMap[key];
+    for (const key of includeDefsMap.keys()) {
+      const defs = grammarDefsMap.get(key);
 
       if (defs === undefined) {
         throw new SchemaValidationError(

@@ -532,8 +532,9 @@ function checkInterleaveRestriction(cached: Record<string, Element[]>,
   function getElementNamesForDefine(name: string): ConcreteName {
     let pattern = defineNameToElementNames.get(name);
     if (pattern === undefined) {
-      const def = definesByName[name];
-      const element = def.children[0] as Element;
+      const def = definesByName.get(name);
+      // tslint:disable-next-line:no-non-null-assertion
+      const element = def!.children[0] as Element;
       const namePattern = element.children[0] as Element;
       pattern = makeNamePattern(namePattern);
       defineNameToElementNames.set(name, pattern);

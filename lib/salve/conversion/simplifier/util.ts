@@ -124,10 +124,10 @@ export function findMultiNames(el: Element,
  * @return The indexed elements.
  */
 export function indexBy<T>(arr: T[],
-                           makeKey: (x: T) => string): Record<string, T> {
-  const ret = Object.create(null);
+                           makeKey: (x: T) => string): Map<string, T> {
+  const ret = new Map<string, T>();
   for (const x of arr) {
-    ret[makeKey(x)] = x;
+    ret.set(makeKey(x), x);
   }
 
   return ret;
@@ -149,8 +149,8 @@ export function indexBy<T>(arr: T[],
  */
 export function groupBy<T>(arr: T[],
                            makeKey: (x: T) => (string | string[])):
-Record<string, T[]> {
-  const ret: Record<string, T[]> = Object.create(null);
+Map<string, T[]> {
+  const ret = new Map<string, T[]>();
   for (const x of arr) {
     let keys = makeKey(x);
 
@@ -159,9 +159,10 @@ Record<string, T[]> {
     }
 
     for (const key of keys) {
-      let list = ret[key];
+      let list = ret.get(key);
       if (list === undefined) {
-        list = ret[key] = [];
+        list = [];
+        ret.set(key, list);
       }
       list.push(x);
     }
