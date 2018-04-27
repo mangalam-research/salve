@@ -35,7 +35,7 @@ function gatherGrammars(el: Element, state: State): void {
   switch (local) {
     case "grammar":
       shift = true;
-      const thisGrammar = new GrammarNode(state.latestId++, el);
+      const thisGrammar = new GrammarNode(++state.latestId, el);
       stack.unshift(thisGrammar);
       if (top !== undefined) {
         top.childGrammars.push(thisGrammar);
@@ -55,7 +55,7 @@ function gatherGrammars(el: Element, state: State): void {
       break;
     default:
       if (state.root === null) {
-        stack.unshift(new GrammarNode(state.latestId++, el));
+        stack.unshift(new GrammarNode(++state.latestId, el));
         shift = true;
       }
   }
@@ -78,7 +78,8 @@ function gatherGrammars(el: Element, state: State): void {
   }
 }
 
-function transformGrammars(root: GrammarNode,
+function transformGrammars(multiple: boolean,
+                           root: GrammarNode,
                            parent: GrammarNode | null,
                            grammar: GrammarNode): void {
   for (const name of grammar.refNames) {
@@ -114,7 +115,7 @@ function transformGrammars(root: GrammarNode,
   root.grammar.append(grammar.defines);
 
   for (const child of grammar.childGrammars) {
-    transformGrammars(root, grammar, child);
+    transformGrammars(multiple, root, grammar, child);
   }
 
   // Rename all parentRef elements to ref elements.
@@ -175,15 +176,41 @@ export function step15(el: Element): Element {
   }
 
   const state: State = {
-    latestId: 1,
+    latestId: 0,
     root: null,
     stack: [],
   };
 
   gatherGrammars(root, state);
 
+  const multiple = state.latestId !== 1;
+
   // tslint:disable-next-line:no-non-null-assertion
-  transformGrammars(state.root!, null, state.root!);
+  const grammar = state.root!;
+  if (multiple) {
+    transformGrammars(multiple, grammar, null, grammar);
+  }
+  else {
+    // If we have only a single grammar, we can reduce the work to this.
+    for (const name of grammar.refNames) {
+      if (!grammar.defineNames.has(name)) {
+        throw new SchemaValidationError(`dangling ref: ${name}`);
+      }
+    }
+
+    if (grammar.parentRefNames.size !== 0) {
+      throw new SchemaValidationError("top-level grammar contains parentRef!");
+    }
+
+    // Move the ``define`` elements to the root grammar. We do this on the root
+    // grammar too so that the ``define`` elements are moved after ``start``.
+    grammar.grammar.append(grammar.defines);
+
+    const start = grammar.grammar.children[0] as Element;
+    if (start.local !== "start") {
+      throw new Error("there should be a single start element in the grammar!");
+    }
+  }
 
   return root;
 }
