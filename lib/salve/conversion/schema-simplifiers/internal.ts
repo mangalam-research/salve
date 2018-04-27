@@ -48,41 +48,56 @@ function makeNamePattern(el: Element): ConcreteName {
   }
 }
 
-enum ContentType {
+const enum ContentType {
   EMPTY,
   COMPLEX,
   SIMPLE,
 }
 
-function groupable(a: ContentType, b: ContentType): boolean {
-  return a === ContentType.EMPTY || b === ContentType.EMPTY ||
-    (a === ContentType.COMPLEX && b === ContentType.COMPLEX);
-}
-
 function computeContentType(pattern: Element): ContentType | null {
   const name = pattern.local;
   switch (name) {
-    case "value":
-    case "data":
-    case "list":
-      return ContentType.SIMPLE;
-    case "text":
-    case "ref":
-      return ContentType.COMPLEX;
-    case "empty":
-    case "attribute":
-      return ContentType.EMPTY;
-    case "interleave":
-    case "group": {
+    case "group":
+    case "interleave": {
       const firstCt = computeContentType(pattern.children[0] as Element);
-
       if (firstCt === null) {
         return null;
       }
 
       const secondCt = computeContentType(pattern.children[1] as Element);
+      if (secondCt === null) {
+        return null;
+      }
 
-      return secondCt !== null && groupable(firstCt, secondCt) ?
+      // These tests combine the groupable(firstCt, secondCt) test together with
+      // the requirement that we return the content type which is the greatest.
+      if (firstCt === ContentType.COMPLEX && secondCt === ContentType.COMPLEX) {
+        return ContentType.COMPLEX;
+      }
+
+      if (firstCt === ContentType.EMPTY) {
+        return secondCt;
+      }
+
+      return (secondCt === ContentType.EMPTY) ? firstCt : null;
+    }
+    case "choice": {
+      // We check secondCt first because the schema simplification puts
+      // ``empty`` in the first slot. If the first slot is ``empty``, there's no
+      // opportunity for short-circuiting the computation. On the other hand if
+      // the second child has a simple content type, we don't neet to know
+      // whether the first child is empty or not.
+      const secondCt = computeContentType(pattern.children[1] as Element);
+
+      // If the secondCt is simple, we already know what the max value of the
+      // two content types is and we can return right away.
+      if (secondCt === null || secondCt === ContentType.SIMPLE) {
+        return secondCt;
+      }
+
+      const firstCt = computeContentType(pattern.children[0] as Element);
+
+      return firstCt !== null ?
         (firstCt > secondCt ? firstCt : secondCt) : null;
     }
     case "oneOrMore":
@@ -96,18 +111,16 @@ function computeContentType(pattern: Element): ContentType | null {
       // if ct === null then forcibly ct !== ContentType.SIMPLE is true so we
       // can simplify to the following.
       return ct !== ContentType.SIMPLE ? ct : null;
-    case "choice": {
-      const firstCt = computeContentType(pattern.children[0] as Element);
-
-      if (firstCt === null) {
-        return null;
-      }
-
-      const secondCt = computeContentType(pattern.children[1] as Element);
-
-      return secondCt !== null ?
-        (firstCt > secondCt ? firstCt : secondCt) : null;
-    }
+    case "text":
+    case "ref":
+      return ContentType.COMPLEX;
+    case "empty":
+    case "attribute":
+      return ContentType.EMPTY;
+    case "value":
+    case "data":
+    case "list":
+      return ContentType.SIMPLE;
     default:
       throw new Error(`unexpected element: ${name}`);
   }
