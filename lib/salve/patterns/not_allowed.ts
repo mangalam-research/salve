@@ -26,19 +26,21 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
   /**
    * @param el The pattern for which this walker was created.
    */
-  protected constructor(el: NotAllowed) {
+  constructor(el: NotAllowed) {
     super(el);
     this.canEnd = true;
     this.canEndAttribute = true;
   }
 
-  static makeNew(el: NotAllowed): NotAllowedWalker {
-    return new NotAllowedWalker(el);
+  // Since NotAllowedWalker is a singleton, the cloning operation just
+  // returns the original walker.
+  clone(): this {
+    return this;
   }
 
   // Since NotAllowedWalker is a singleton, the cloning operation just
   // returns the original walker.
-  clone(): this {
+  _clone(): this {
     return this;
   }
 
@@ -55,6 +57,6 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
   }
 }
 
-const singleton = NotAllowedWalker.makeNew(new NotAllowed("FAKE ELEMENT"));
+const singleton = new NotAllowedWalker(new NotAllowed("FAKE ELEMENT"));
 
 //  LocalWords:  RNG's MPL possibleCached

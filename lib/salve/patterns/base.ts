@@ -199,24 +199,6 @@ if (DEBUG) {
   /* tslint:enable */
 }
 
-/**
- * Sets up a ``newWalker`` method in a prototype.
- *
- * @private
- * @param elCls The class that will get the new method.
- * @param walkerCls The Walker class to instantiate.
- */
-/* tslint:disable: no-invalid-this */
-export function addWalker<T>(elCls: any, walkerCls: any): void {
-  // `resolver` is a NameResolver.
-  // tslint:disable-next-line:only-arrow-functions
-  elCls.prototype.newWalker = function newWalker(this: any,
-                                                 resolver: NameResolver): T {
-    return new walkerCls(this, resolver) as T;
-  };
-}
-/* tslint:enable */
-
 export type EventSet = Set<Event>;
 
 export interface Clonable {
@@ -345,6 +327,12 @@ export abstract class Pattern extends BasePattern {
    * @returns A walker.
    */
   newWalker(resolver: NameResolver): InternalWalker<BasePattern> {
+    // Rather than make it abstract, we provide a default implementation for
+    // this method, which throws an exception if called. We could probably
+    // reorganize the code to do without but a) we would not gain much b) it
+    // would complicate the type hierarchy. The cost is not worth the
+    // benefits. There are two patterns that land on this default implementation
+    // and neither can have newWalker called on them anyway.
     throw new Error("derived classes must override this");
   }
 }
@@ -639,9 +627,7 @@ export abstract class BaseWalker<T extends BasePattern> {
   *
   * @returns The clone.
   */
-  _clone(memo: CloneMap): this {
-    return new (this.constructor as any)(this, memo);
-  }
+  abstract _clone(memo: CloneMap): this;
 
   hasEmptyPattern(): boolean {
     return this.el.hasEmptyPattern();
@@ -717,4 +703,4 @@ export abstract class InternalWalker<T extends BasePattern>
 //  LocalWords:  NameResolver args unshift HashSet subpatterns newID NG vm pre
 //  LocalWords:  firstName lastName attributeValue leaveStartTag dumpTree const
 //  LocalWords:  dumpTreeBuf subwalker fireEvent suppressAttributes HashMap
-//  LocalWords:  ValidationError addWalker RefWalker DefineWalker
+//  LocalWords:  ValidationError RefWalker DefineWalker

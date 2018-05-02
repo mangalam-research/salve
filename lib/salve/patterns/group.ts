@@ -7,8 +7,8 @@
 import { AttributeNameError, AttributeValueError } from "../errors";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, Event,
-         EventSet, InternalFireEventResult, InternalWalker, isAttributeEvent,
+import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, isAttributeEvent,
          TwoSubpatterns } from "./base";
 
 /**
@@ -17,6 +17,11 @@ import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, Event,
 export class Group extends TwoSubpatterns {
   protected _computeHasEmptyPattern(): boolean {
     return this.patA.hasEmptyPattern() && this.patB.hasEmptyPattern();
+  }
+
+  newWalker(nameResolver: NameResolver): InternalWalker<Group> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new GroupWalker(this, nameResolver);
   }
 }
 
@@ -39,10 +44,10 @@ class GroupWalker extends InternalWalker<Group> {
    * @param nameResolver The name resolver that can be used to convert namespace
    * prefixes to namespaces.
    */
-  protected constructor(walker: GroupWalker, memo: CloneMap);
-  protected constructor(el: Group, nameResolver: NameResolver);
-  protected constructor(elOrWalker: GroupWalker | Group,
-                        nameResolverOrMemo: CloneMap | NameResolver) {
+  constructor(walker: GroupWalker, memo: CloneMap);
+  constructor(el: Group, nameResolver: NameResolver);
+  constructor(elOrWalker: GroupWalker | Group,
+              nameResolverOrMemo: CloneMap | NameResolver) {
     super(elOrWalker);
     if ((elOrWalker as Group).newWalker !== undefined) {
       const el = elOrWalker as Group;
@@ -69,6 +74,10 @@ class GroupWalker extends InternalWalker<Group> {
       this.canEndAttribute = walker.canEndAttribute;
       this.canEnd = walker.canEnd;
     }
+  }
+
+  _clone(memo: CloneMap): this {
+    return new GroupWalker(this, memo) as this;
   }
 
   possible(): EventSet {
@@ -216,7 +225,5 @@ class GroupWalker extends InternalWalker<Group> {
     return false;
   }
 }
-
-addWalker(Group, GroupWalker);
 
 //  LocalWords:  RNG's MPL instantiateWalkers walkerA retB canEnd endedA

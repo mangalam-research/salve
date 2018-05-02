@@ -28,12 +28,12 @@ export class Choice extends TwoSubpatterns {
     return this.patA.hasEmptyPattern() || this.patB.hasEmptyPattern();
   }
 
-  newWalker(resolver: NameResolver): InternalWalker<BasePattern> {
+  newWalker(resolver: NameResolver): InternalWalker<Choice> {
     return this.optional ?
       // tslint:disable-next-line:no-use-before-declare
-      OptionalChoiceWalker.makeWalker(this, resolver) :
+      new OptionalChoiceWalker(this, resolver) :
       // tslint:disable-next-line:no-use-before-declare
-      ChoiceWalker.makeWalker(this, resolver);
+      new ChoiceWalker(this, resolver);
   }
 }
 
@@ -50,10 +50,10 @@ class ChoiceWalker extends InternalWalker<Choice> {
   canEndAttribute: boolean;
   canEnd: boolean;
 
-  protected constructor(walker: ChoiceWalker, memo: CloneMap);
-  protected constructor(el: Choice, nameResolver: NameResolver);
-  protected constructor(elOrWalker: ChoiceWalker | Choice,
-                        nameResolverOrMemo: NameResolver | CloneMap)
+  constructor(walker: ChoiceWalker, memo: CloneMap);
+  constructor(el: Choice, nameResolver: NameResolver);
+  constructor(elOrWalker: ChoiceWalker | Choice,
+              nameResolverOrMemo: NameResolver | CloneMap)
   {
     super(elOrWalker);
     if ((elOrWalker as Choice).newWalker !== undefined) {
@@ -83,8 +83,8 @@ class ChoiceWalker extends InternalWalker<Choice> {
     }
   }
 
-  static makeWalker(el: Choice, nameResolver: NameResolver): ChoiceWalker {
-    return new ChoiceWalker(el, nameResolver);
+  _clone(memo: CloneMap): this {
+    return new ChoiceWalker(this, memo) as this;
   }
 
   possible(): EventSet {
@@ -316,10 +316,10 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
   canEndAttribute: boolean;
   canEnd: boolean;
 
-  protected constructor(walker: OptionalChoiceWalker, memo: CloneMap);
-  protected constructor(el: Choice, nameResolver: NameResolver);
-  protected constructor(elOrWalker: OptionalChoiceWalker | Choice,
-                        nameResolverOrMemo: NameResolver | CloneMap)
+  constructor(walker: OptionalChoiceWalker, memo: CloneMap);
+  constructor(el: Choice, nameResolver: NameResolver);
+  constructor(elOrWalker: OptionalChoiceWalker | Choice,
+              nameResolverOrMemo: NameResolver | CloneMap)
   {
     super(elOrWalker);
     if ((elOrWalker as Choice).newWalker !== undefined) {
@@ -344,9 +344,8 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
     }
   }
 
-  static makeWalker(el: Choice,
-                    nameResolver: NameResolver): OptionalChoiceWalker {
-    return new OptionalChoiceWalker(el, nameResolver);
+  _clone(memo: CloneMap): this {
+    return new OptionalChoiceWalker(this, memo) as this;
   }
 
   possible(): EventSet {

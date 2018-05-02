@@ -8,9 +8,8 @@ import { AttributeNameError, AttributeValueError } from "../errors";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { map } from "../set";
-import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, Event,
-         EventSet, InternalFireEventResult, InternalWalker,
-         Pattern } from "./base";
+import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -47,6 +46,11 @@ export class Attribute extends Pattern {
   hasEmptyPattern(): boolean {
     return false;
   }
+
+  newWalker(nameResolver: NameResolver): InternalWalker<Attribute> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new AttributeWalker(this, nameResolver);
+  }
 }
 
 /**
@@ -66,10 +70,10 @@ class AttributeWalker extends InternalWalker<Attribute> {
    * @param nameResolver The name resolver that can be used to convert namespace
    * prefixes to namespaces.
    */
-  protected constructor(walker: AttributeWalker, memo: CloneMap);
-  protected constructor(el: Attribute, nameResolver: NameResolver);
-  protected constructor(elOrWalker: AttributeWalker | Attribute,
-                        nameResolverOrMemo: CloneMap | NameResolver) {
+  constructor(walker: AttributeWalker, memo: CloneMap);
+  constructor(el: Attribute, nameResolver: NameResolver);
+  constructor(elOrWalker: AttributeWalker | Attribute,
+              nameResolverOrMemo: CloneMap | NameResolver) {
     super(elOrWalker);
     if ((elOrWalker as Attribute).newWalker !== undefined) {
       const el = elOrWalker as Attribute;
@@ -90,6 +94,10 @@ class AttributeWalker extends InternalWalker<Attribute> {
       this.canEndAttribute = walker.canEndAttribute;
       this.canEnd = walker.canEnd;
     }
+  }
+
+  _clone(memo: CloneMap): this {
+    return new AttributeWalker(this, memo) as this;
   }
 
   possible(): EventSet {
@@ -180,8 +188,6 @@ class AttributeWalker extends InternalWalker<Attribute> {
     return false;
   }
 }
-
-addWalker(Attribute, AttributeWalker);
 
 //  LocalWords:  RNG's MPL RNG attributeName attributeValue ev params
 //  LocalWords:  neutralizeAttribute

@@ -1,7 +1,8 @@
 import { ElementNameError } from "../errors";
 import { ConcreteName } from "../name_patterns";
-import { addWalker, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, Pattern } from "./base";
+import { NameResolver } from "../name_resolver";
+import { CloneMap, EndResult, Event, EventSet, InternalFireEventResult,
+         InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
 
@@ -41,6 +42,11 @@ resolved");
 
     return resolvesTo.pat;
   }
+
+  newWalker(_nameResolver: NameResolver): InternalWalker<Ref> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new RefWalker(this);
+  }
 }
 
 export class RefWalker extends InternalWalker<Ref> {
@@ -53,9 +59,9 @@ export class RefWalker extends InternalWalker<Ref> {
   /**
    * @param el The pattern for which this walker was constructed.
    */
-  protected constructor(walker: RefWalker, memo: CloneMap);
-  protected constructor(el: Ref);
-  protected constructor(elOrWalker: RefWalker | Ref, memo?: CloneMap) {
+  constructor(walker: RefWalker, memo: CloneMap);
+  constructor(el: Ref);
+  constructor(elOrWalker: RefWalker | Ref, memo?: CloneMap) {
     if ((elOrWalker as Ref).newWalker !== undefined) {
       super(elOrWalker as Ref);
       this.element = elOrWalker.element;
@@ -73,6 +79,10 @@ export class RefWalker extends InternalWalker<Ref> {
       this.canEndAttribute = walker.canEndAttribute;
       this.canEnd = walker.canEnd;
     }
+  }
+
+  _clone(memo: CloneMap): this {
+    return new RefWalker(this, memo) as this;
   }
 
   possible(): EventSet {
@@ -104,5 +114,3 @@ export class RefWalker extends InternalWalker<Ref> {
     return false;
   }
 }
-
-addWalker(Ref, RefWalker);

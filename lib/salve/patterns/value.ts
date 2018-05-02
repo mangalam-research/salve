@@ -7,8 +7,8 @@
 import { Datatype, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { addWalker, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalWalker, Pattern } from "./base";
+import { cloneIfNeeded, CloneMap, EndResult, Event, EventSet, InternalWalker,
+         Pattern } from "./base";
 
 /**
  * Value pattern.
@@ -66,6 +66,11 @@ export class Value extends Pattern {
   hasEmptyPattern(): boolean {
     return this.rawValue === "";
   }
+
+  newWalker(nameResolver: NameResolver): InternalWalker<Value> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new ValueWalker(this, nameResolver);
+  }
 }
 
 /**
@@ -78,10 +83,10 @@ class ValueWalker extends InternalWalker<Value> {
   canEnd: boolean;
   canEndAttribute: boolean;
 
-  protected constructor(other: ValueWalker, memo: CloneMap);
-  protected constructor(el: Value, nameResolver: NameResolver);
-  protected constructor(elOrWalker: Value |  ValueWalker,
-                        nameResolverOrMemo: CloneMap | NameResolver) {
+  constructor(other: ValueWalker, memo: CloneMap);
+  constructor(el: Value, nameResolver: NameResolver);
+  constructor(elOrWalker: Value |  ValueWalker,
+              nameResolverOrMemo: CloneMap | NameResolver) {
     super(elOrWalker);
     if ((elOrWalker as Value).newWalker !== undefined) {
       const el = elOrWalker as Value;
@@ -102,6 +107,10 @@ class ValueWalker extends InternalWalker<Value> {
       this.canEnd = walker.canEnd;
       this.canEndAttribute = walker.canEndAttribute;
     }
+  }
+
+  _clone(memo: CloneMap): this {
+    return new ValueWalker(this, memo) as this;
   }
 
   possible(): EventSet {
@@ -135,7 +144,5 @@ class ValueWalker extends InternalWalker<Value> {
       [new ValidationError(`value required: ${this.el.rawValue}`)];
   }
 }
-
-addWalker(Value, ValueWalker);
 
 //  LocalWords:  RNG's MPL RNG nd possibleCached

@@ -6,9 +6,8 @@
  */
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, Event,
-         EventSet, InternalFireEventResult, InternalWalker,
-         OneSubpattern } from "./base";
+import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, OneSubpattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -33,6 +32,11 @@ export class List extends OneSubpattern {
   hasAttrs(): boolean {
     return false;
   }
+
+  newWalker(nameResolver: NameResolver): InternalWalker<List> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new ListWalker(this, nameResolver);
+  }
 }
 
 /**
@@ -45,10 +49,10 @@ class ListWalker extends InternalWalker<List> {
   canEnd: boolean;
   canEndAttribute: boolean;
 
-  protected constructor(other: ListWalker, memo: CloneMap);
-  protected constructor(el: List, nameResolver: NameResolver);
-  protected constructor(elOrWalker: List | ListWalker,
-                        nameResolverOrMemo: NameResolver | CloneMap) {
+  constructor(other: ListWalker, memo: CloneMap);
+  constructor(el: List, nameResolver: NameResolver);
+  constructor(elOrWalker: List | ListWalker,
+              nameResolverOrMemo: NameResolver | CloneMap) {
     super(elOrWalker);
     if ((elOrWalker as List).newWalker !== undefined) {
       const el = elOrWalker as List;
@@ -65,6 +69,10 @@ class ListWalker extends InternalWalker<List> {
       this.canEnd = walker.canEnd;
       this.canEndAttribute = walker.canEndAttribute;
     }
+  }
+
+  _clone(memo: CloneMap): this {
+    return new ListWalker(this, memo) as this;
   }
 
   possible(): EventSet {
@@ -119,7 +127,5 @@ class ListWalker extends InternalWalker<List> {
     return false;
   }
 }
-
-addWalker(List, ListWalker);
 
 //  LocalWords:  RNG's MPL nd

@@ -172,7 +172,7 @@ export class Grammar extends BasePattern {
    */
   newWalker(): GrammarWalker {
     // tslint:disable-next-line:no-use-before-declare
-    return GrammarWalker.makeWalker(this);
+    return GrammarWalker.make(this);
   }
 }
 
@@ -261,8 +261,12 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     }
   }
 
-  static makeWalker(el: Grammar): GrammarWalker {
+  static make(el: Grammar): GrammarWalker {
     return new GrammarWalker(el);
+  }
+
+  _clone(memo: CloneMap): this {
+    return new GrammarWalker(this, memo) as this;
   }
 
   /**
@@ -602,11 +606,8 @@ ${name}`);
   }
 }
 
-// Nope, we're using a custom function.
-// addWalker(Grammar, GrammarWalker);
-
 //  LocalWords:  RNG's MPL unresolvable runtime RNG NG firstName enterContext
 //  LocalWords:  leaveContext definePrefix whitespace enterStartTag endTag
-//  LocalWords:  fireEvent attributeValue attributeName leaveStartTag addWalker
+//  LocalWords:  fireEvent attributeValue attributeName leaveStartTag
 //  LocalWords:  misplacedElements ElementNameError GrammarWalker's
 //  LocalWords:  suppressAttributes GrammarWalker

@@ -7,8 +7,8 @@
 import { Datatype, RawParameter, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { addWalker, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalWalker, Pattern } from "./base";
+import { cloneIfNeeded, CloneMap, EndResult, Event, EventSet, InternalWalker,
+         Pattern } from "./base";
 /**
  * Data pattern.
  */
@@ -58,6 +58,11 @@ export class Data extends Pattern {
     return !(this.except !== undefined && this.except.hasEmptyPattern()) &&
       !this.datatype.disallows("", this.params);
   }
+
+  newWalker(nameResolver: NameResolver): InternalWalker<Data> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new DataWalker(this, nameResolver);
+  }
 }
 
 /**
@@ -76,10 +81,10 @@ class DataWalker extends InternalWalker<Data> {
    * @param resolver The name resolver that can be used to convert namespace
    * prefixes to namespaces.
    */
-  protected constructor(other: DataWalker, memo: CloneMap);
-  protected constructor(el: Data, nameResolver: NameResolver);
-  protected constructor(elOrWalker: DataWalker | Data,
-                        nameResolverOrMemo: NameResolver | CloneMap) {
+  constructor(other: DataWalker, memo: CloneMap);
+  constructor(el: Data, nameResolver: NameResolver);
+  constructor(elOrWalker: DataWalker | Data,
+              nameResolverOrMemo: NameResolver | CloneMap) {
     super(elOrWalker);
     if ((elOrWalker as Data).newWalker !== undefined) {
       const el = elOrWalker as Data;
@@ -101,6 +106,10 @@ class DataWalker extends InternalWalker<Data> {
       this.canEnd = walker.canEnd;
       this.canEndAttribute = walker.canEndAttribute;
     }
+  }
+
+  _clone(memo: CloneMap): this {
+    return new DataWalker(this, memo) as this;
   }
 
   possible(): EventSet {
@@ -156,7 +165,5 @@ class DataWalker extends InternalWalker<Data> {
     return false;
   }
 }
-
-addWalker(Data, DataWalker);
 
 //  LocalWords:  RNG's MPL RNG nd possibleCached

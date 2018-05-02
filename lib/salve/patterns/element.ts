@@ -32,13 +32,12 @@ export class Element extends BasePattern {
     this.notAllowed = this.pat instanceof NotAllowed;
   }
 
-  // addWalker(Element, ElementWalker); Nope... see below..
   newWalker(resolver: NameResolver,
             boundName: Name): InternalWalker<BasePattern> {
     return this.notAllowed ?
       this.pat.newWalker(resolver) :
       // tslint:disable-next-line:no-use-before-declare
-      ElementWalker.makeWalker(this, resolver, boundName);
+      new ElementWalker(this, resolver, boundName);
   }
 
   hasAttrs(): boolean {
@@ -82,12 +81,11 @@ class ElementWalker extends InternalWalker<Element> {
    * @param nameResolver The name resolver that
    * can be used to convert namespace prefixes to namespaces.
    */
-  protected constructor(walker: ElementWalker, memo: CloneMap);
-  protected constructor(el: Element, nameResolver: NameResolver,
-                        boundName: Name);
-  protected constructor(elOrWalker: ElementWalker | Element,
-                        nameResolverOrMemo: NameResolver | CloneMap,
-                        boundName?: Name) {
+  constructor(walker: ElementWalker, memo: CloneMap);
+  constructor(el: Element, nameResolver: NameResolver, boundName: Name);
+  constructor(elOrWalker: ElementWalker | Element,
+              nameResolverOrMemo: NameResolver | CloneMap,
+              boundName?: Name) {
     super(elOrWalker);
     if ((elOrWalker as Element).newWalker !== undefined) {
       const el = elOrWalker as Element;
@@ -116,9 +114,8 @@ class ElementWalker extends InternalWalker<Element> {
     }
   }
 
-  static makeWalker(el: Element, nameResolver: NameResolver,
-                    boundName: Name): ElementWalker {
-    return new ElementWalker(el, nameResolver, boundName);
+  _clone(memo: CloneMap): this {
+    return new ElementWalker(this, memo) as this;
   }
 
   possible(): EventSet {
@@ -234,6 +231,6 @@ class ElementWalker extends InternalWalker<Element> {
   }
 }
 
-//  LocalWords:  RNG's MPL RNG addWalker ElementWalker leaveStartTag valueEvs
+//  LocalWords:  RNG's MPL RNG ElementWalker leaveStartTag valueEvs
 //  LocalWords:  enterStartTag attributeValue endTag errored subwalker
 //  LocalWords:  neutralizeAttribute boundName fireEvent suppressAttributes

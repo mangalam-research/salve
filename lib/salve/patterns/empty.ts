@@ -31,19 +31,21 @@ class EmptyWalker extends InternalWalker<Empty> {
   canEnd: boolean;
   canEndAttribute: boolean;
 
-  protected constructor(el: Empty) {
+  constructor(el: Empty) {
     super(el);
     this.canEnd = true;
     this.canEndAttribute = true;
   }
 
-  static makeNew(el: Empty): EmptyWalker {
-    return new EmptyWalker(el);
+  // Since the Empty walker is a singleton, the cloning operation just
+  // returns the original walker.
+  clone(): this {
+    return this;
   }
 
   // Since the Empty walker is a singleton, the cloning operation just
   // returns the original walker.
-  clone(): this {
+  _clone(): this {
     return this;
   }
 
@@ -60,6 +62,6 @@ class EmptyWalker extends InternalWalker<Empty> {
   }
 }
 
-const singleton = EmptyWalker.makeNew(new Empty("FAKE ELEMENT"));
+const singleton = new EmptyWalker(new Empty("FAKE ELEMENT"));
 
 //  LocalWords:  RNG's MPL possibleCached

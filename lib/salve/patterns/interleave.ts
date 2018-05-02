@@ -6,9 +6,9 @@
  */
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, Event,
-         EventSet, InternalFireEventResult, InternalWalker, isAttributeEvent,
-         matched, TwoSubpatterns } from "./base";
+import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, isAttributeEvent, matched,
+         TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<interleave>``.
@@ -16,6 +16,11 @@ import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, Event,
 export class Interleave extends TwoSubpatterns {
   protected _computeHasEmptyPattern(): boolean {
     return this.patA.hasEmptyPattern() && this.patB.hasEmptyPattern();
+  }
+
+  newWalker(nameResolver: NameResolver): InternalWalker<Interleave> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new InterleaveWalker(this, nameResolver);
   }
 }
 
@@ -38,10 +43,10 @@ class InterleaveWalker extends InternalWalker<Interleave> {
    * @param resolver The name resolver that
    * can be used to convert namespace prefixes to namespaces.
    */
-  protected constructor(walker: InterleaveWalker, memo: CloneMap);
-  protected constructor(el: Interleave, nameResolver: NameResolver);
-  protected constructor(elOrWalker: InterleaveWalker | Interleave,
-                        nameResolverOrMemo: NameResolver | CloneMap) {
+  constructor(walker: InterleaveWalker, memo: CloneMap);
+  constructor(el: Interleave, nameResolver: NameResolver);
+  constructor(elOrWalker: InterleaveWalker | Interleave,
+              nameResolverOrMemo: NameResolver | CloneMap) {
     super(elOrWalker);
     if ((elOrWalker as Interleave).newWalker !== undefined) {
       const el = elOrWalker as Interleave;
@@ -66,6 +71,10 @@ class InterleaveWalker extends InternalWalker<Interleave> {
       this.canEndAttribute = walker.canEndAttribute;
       this.canEnd = walker.canEnd;
     }
+  }
+
+  _clone(memo: CloneMap): this {
+    return new InterleaveWalker(this, memo) as this;
   }
 
   possible(): EventSet {
@@ -202,7 +211,5 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     return !retB ? retA : retA.concat(retB);
   }
 }
-
-addWalker(Interleave, InterleaveWalker);
 
 //  LocalWords:  RNG's MPL NG inA inB instantiateWalkers fireEvent retA retB

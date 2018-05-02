@@ -6,7 +6,7 @@
  */
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, EventSet,
+import { BasePattern, cloneIfNeeded, CloneMap, EndResult, EventSet,
          InternalFireEventResult, InternalWalker, isAttributeEvent, matched,
          OneSubpattern } from "./base";
 
@@ -16,6 +16,11 @@ import { addWalker, BasePattern, cloneIfNeeded, CloneMap, EndResult, EventSet,
 export class  OneOrMore extends OneSubpattern {
   _computeHasEmptyPattern(): boolean {
     return this.pat.hasEmptyPattern();
+  }
+
+  newWalker(nameResolver: NameResolver): InternalWalker<OneOrMore> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new OneOrMoreWalker(this, nameResolver);
   }
 }
 
@@ -36,10 +41,10 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
    * @param resolver The name resolver that can be used to convert namespace
    * prefixes to namespaces.
    */
-  protected constructor(walker: OneOrMoreWalker, memo: CloneMap);
-  protected constructor(el: OneOrMore, nameResolver: NameResolver);
-  protected constructor(elOrWalker: OneOrMoreWalker | OneOrMore,
-                        nameResolverOrMemo: NameResolver | CloneMap) {
+  constructor(walker: OneOrMoreWalker, memo: CloneMap);
+  constructor(el: OneOrMore, nameResolver: NameResolver);
+  constructor(elOrWalker: OneOrMoreWalker | OneOrMore,
+              nameResolverOrMemo: NameResolver | CloneMap) {
     super(elOrWalker);
     if ((elOrWalker as OneOrMore).newWalker !== undefined) {
       const el = elOrWalker as OneOrMore;
@@ -62,6 +67,10 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
       this.canEndAttribute = walker.canEndAttribute;
       this.canEnd = walker.canEnd;
     }
+  }
+
+  _clone(memo: CloneMap): this {
+    return new OneOrMoreWalker(this, memo) as this;
   }
 
   possible(): EventSet {
@@ -142,8 +151,6 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     return this.canEndAttribute ? false : this.currentIteration.endAttributes();
   }
 }
-
-addWalker(OneOrMore, OneOrMoreWalker);
 
 //  LocalWords:  RNG's MPL currentIteration nextIteration canEnd oneOrMore rng
 //  LocalWords:  anyName suppressAttributes instantiateCurrentIteration

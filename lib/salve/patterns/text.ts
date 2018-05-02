@@ -35,19 +35,21 @@ class TextWalker extends InternalWalker<Text> {
   /**
    * @param el The pattern for which this walker was constructed.
    */
-  protected constructor(el: Text) {
+  constructor(el: Text) {
     super(el);
     this.canEnd = true;
     this.canEndAttribute = true;
   }
 
-  static makeNew(el: Text): TextWalker {
-    return new TextWalker(el);
+  // Since TextWalker is a singleton, the cloning operation just
+  // returns the original walker.
+  clone(): this {
+    return this;
   }
 
   // Since TextWalker is a singleton, the cloning operation just
   // returns the original walker.
-  clone(): this {
+  _clone(): this {
     return this;
   }
 
@@ -72,6 +74,6 @@ class TextWalker extends InternalWalker<Text> {
   }
 }
 
-const singleton = TextWalker.makeNew(new Text("FAKE ELEMENT"));
+const singleton = new TextWalker(new Text("FAKE ELEMENT"));
 
 //  LocalWords:  RNG's MPL possibleCached
