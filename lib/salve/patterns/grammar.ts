@@ -388,7 +388,7 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     const ret = this._fireOnCurrentWalkers(name, params);
 
     const errors: ValidationError[] = [];
-    if (ret instanceof Array) {
+    if (ret !== undefined && ret !== false) {
       // The only events that may return Ref in the array are those that
       // start elements.
       if (name === "enterStartTag" || name === "startTagAndAttributes") {

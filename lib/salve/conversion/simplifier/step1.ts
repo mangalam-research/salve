@@ -204,7 +204,7 @@ grammar`);
     includedTree.local = "div";
     // Insert the grammar element (now named "div") into the include element
     // (also now named "div").
-    el.prepend(includedTree);
+    el.prependChild(includedTree);
 
     return null;
   }

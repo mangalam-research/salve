@@ -112,7 +112,7 @@ function transformGrammars(multiple: boolean,
 
   // Move the ``define`` elements to the root grammar. We do this on the root
   // grammar too so that the ``define`` elements are moved after ``start``.
-  root.grammar.append(grammar.defines);
+  root.grammar.appendChildren(grammar.defines);
 
   for (const child of grammar.childGrammars) {
     transformGrammars(multiple, root, grammar, child);
@@ -168,8 +168,8 @@ export function step15(el: Element): Element {
   if (el.local !== "grammar") {
     root = Element.makeElement("grammar");
     const start = Element.makeElement("start");
-    root.append(start);
-    start.append(el);
+    root.appendChild(start);
+    start.appendChild(el);
 
     root.setXMLNS(RELAXNG_URI);
     el.removeAttribute("xmlns");
@@ -204,7 +204,7 @@ export function step15(el: Element): Element {
 
     // Move the ``define`` elements to the root grammar. We do this on the root
     // grammar too so that the ``define`` elements are moved after ``start``.
-    grammar.grammar.append(grammar.defines);
+    grammar.grammar.appendChildren(grammar.defines);
 
     const start = grammar.grammar.children[0] as Element;
     if (start.local !== "start") {

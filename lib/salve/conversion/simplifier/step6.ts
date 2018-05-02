@@ -37,8 +37,8 @@ function walk(el: Element, parentNs: string | null): void {
           }
         }
 
-        nameEl.append(new Text(name));
-        el.prepend(nameEl);
+        nameEl.appendChild(new Text(name));
+        el.prependChild(nameEl);
       }
       break;
     case "name":

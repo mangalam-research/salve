@@ -67,14 +67,14 @@ function combine(els: Element[]): void {
   if (els.length > 2) {
     for (const el of els.slice(2)) {
       const newWrapper = Element.makeElement(combineAs);
-      newWrapper.append(wrapper);
+      newWrapper.appendChild(wrapper);
       newWrapper.grabChildren(el);
       el.remove();
       wrapper = newWrapper;
     }
   }
 
-  els[0].append(wrapper);
+  els[0].appendChild(wrapper);
   els[0].removeAttribute("combine");
 }
 

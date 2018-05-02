@@ -52,7 +52,7 @@ function wrapElements(state: State, root: Element): Element[] {
       const defEl = Element.makeElement("define");
       toAppend.push(defEl);
       defEl.setAttribute("name", name);
-      defEl.append(el);
+      defEl.appendChild(el);
     }
   }
 
@@ -198,7 +198,7 @@ export function step16(tree: Element): Element {
   // does not have to scan through them needlessly. The new definitions contain
   // ``element`` as their top pattern so they cannot be removed.
   removeDefsWithoutElement(state, currentTree);
-  currentTree.append(toAppend);
+  currentTree.appendChildren(toAppend);
   currentTree = substituteRefs(state, currentTree, new Set());
   removeUnreferencedDefs(currentTree, state.seenRefs);
 

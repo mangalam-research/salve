@@ -131,7 +131,7 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
           el.setAttribute("ns", ns);
           value = localName(value);
           el.empty();
-          el.append(new Text(value));
+          el.appendChild(new Text(value));
         }
 
         const valuePattern = new Value(el.path, value, type, libname, ns);

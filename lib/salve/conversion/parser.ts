@@ -262,47 +262,37 @@ export class Element extends Node {
     replacement.parent = this;
   }
 
-  append(child: ConcreteNode | ConcreteNode[]): void {
+  appendChild(child: ConcreteNode): void {
     // It is faster to use custom code than to rely on insertAt: splice
     // operations are costly.
-    if (child instanceof Array) {
-      for (const el of child) {
-        if (el.parent !== undefined) {
-          el.parent.removeChild(el);
-        }
-        el.parent = this;
-      }
-      this.children.push(...child);
+    if (child.parent !== undefined) {
+      child.parent.removeChild(child);
     }
-    else {
-      if (child.parent !== undefined) {
-        child.parent.removeChild(child);
-      }
-      child.parent = this;
-      this.children.push(child);
-    }
+    child.parent = this;
+    this.children.push(child);
   }
 
-  prepend(child: ConcreteNode | ConcreteNode[]): void {
-    if (child instanceof Array) {
-      for (const el of child) {
-        if (el.parent !== undefined) {
-          el.parent.removeChild(el);
-        }
-        el.parent = this;
+  appendChildren(children: ConcreteNode[]): void {
+    // It is faster to use custom code than to rely on insertAt: splice
+    // operations are costly.
+    for (const el of children) {
+      if (el.parent !== undefined) {
+        el.parent.removeChild(el);
       }
-      this.children.unshift(...child);
+      el.parent = this;
     }
-    else {
-      // It is faster to do this than to rely on insertAt: splice operations
-      // are costly.
-      if (child.parent !== undefined) {
-        child.parent.removeChild(child);
-      }
-      child.parent = this;
-      this.children.unshift(child);
-    }
+    this.children.push(...children);
   }
+
+  prependChild(child: ConcreteNode): void {
+    // It is faster to do this than to rely on insertAt: splice operations
+    // are costly.
+    if (child.parent !== undefined) {
+      child.parent.removeChild(child);
+    }
+    child.parent = this;
+    this.children.unshift(child);
+    }
 
   insertAt(index: number, toInsert: ConcreteNode[]): void {
     for (const el of toInsert) {
@@ -480,7 +470,7 @@ export class Validator implements ValidatorI {
 
   protected fireEvent(name: string, args: string[]): void {
     const ret = this.walker.fireEvent(name, args);
-    if (ret instanceof Array) {
+    if (ret as boolean) {
       this.errors.push(...ret);
     }
   }

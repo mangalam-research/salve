@@ -89,14 +89,14 @@ function walk(check: boolean, state: State, el: Element): Element | null {
             oneOrMore.grabChildren(el);
           }
           else {
-            oneOrMore.append(toAppend);
+            oneOrMore.appendChildren(toAppend);
           }
           toAppend = [oneOrMore, Element.makeElement("empty")];
           break;
         default:
       }
 
-      el.append(toAppend);
+      el.appendChildren(toAppend);
       break;
     case "choice":
     case "group":
@@ -122,16 +122,16 @@ function walk(check: boolean, state: State, el: Element): Element | null {
       else {
         while (el.children.length > 2) {
           const wrap = Element.makeElement(local);
-          wrap.append(el.children.slice(0, 2));
-          el.prepend(wrap);
+          wrap.appendChildren(el.children.slice(0, 2));
+          el.prependChild(wrap);
         }
       }
       break;
     case "element":
       if (el.children.length > 2) {
         const group = Element.makeElement("group");
-        group.append(el.children.slice(1));
-        el.append(group);
+        group.appendChildren(el.children.slice(1));
+        el.appendChild(group);
       }
 
       if (check) {
@@ -140,7 +140,7 @@ function walk(check: boolean, state: State, el: Element): Element | null {
       break;
     case "attribute":
       if (el.children.length === 1) {
-        el.append(Element.makeElement("text"));
+        el.appendChild(Element.makeElement("text"));
       }
 
       if (check) {
@@ -166,7 +166,7 @@ function walk(check: boolean, state: State, el: Element): Element | null {
       if (el.children.length > 1) {
         const choice = Element.makeElement("choice");
         choice.grabChildren(el);
-        el.append(choice);
+        el.appendChild(choice);
       }
       break;
     default:
