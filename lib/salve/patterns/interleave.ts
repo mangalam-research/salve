@@ -7,7 +7,7 @@
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
 import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isAttributeEvent, matched,
+         InternalFireEventResult, InternalWalker, isAttributeEvent,
          TwoSubpatterns } from "./base";
 
 /**
@@ -130,22 +130,23 @@ class InterleaveWalker extends InternalWalker<Interleave> {
   // pattern to another one.
   //
   fireEvent(name: string, params: string[]): InternalFireEventResult {
+    const ret = new InternalFireEventResult(false);
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return undefined;
+      return ret;
     }
 
     // This is useful because it is possible for fireEvent to be called
     // after end() has been called.
     if (this.ended) {
-      return undefined;
+      return ret;
     }
 
     const walkerA = this.walkerA;
     const walkerB = this.walkerB;
 
     const retA = walkerA.fireEvent(name, params);
-    if (matched(retA)) {
+    if (retA.matched) {
       if (evIsAttributeEvent) {
         this.canEndAttribute =
           walkerA.canEndAttribute && walkerB.canEndAttribute;
@@ -161,7 +162,7 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     }
 
     const retB = walkerB.fireEvent(name, params);
-    if (matched(retB)) {
+    if (retB.matched) {
       if (evIsAttributeEvent) {
         this.canEndAttribute =
           walkerA.canEndAttribute && walkerB.canEndAttribute;
@@ -172,7 +173,7 @@ class InterleaveWalker extends InternalWalker<Interleave> {
       return retB;
     }
 
-    return undefined;
+    return ret;
   }
 
   end(): EndResult {

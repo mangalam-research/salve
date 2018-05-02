@@ -207,41 +207,43 @@ export interface Clonable {
 
 export type FireEventResult = false | undefined | ValidationError[];
 
-/**
- * These are the possible values that walkers may return internaly on calls to
- * ``fireEvent``.
- *
- * A value of ``false`` indicates there was no error and nothing else to report.
- *
- * An array of ``RefWalker`` indicates element matches.
- *
- * An array of ``ValidationError`` indicates validation errors.
- *
- * The value ``undefined`` indicates that the event did not match.
- */
-export type InternalFireEventResult = false | undefined |
-  (ValidationError | RefWalker)[];
-export type EndResult = false | ValidationError[];
+export class InternalFireEventResult {
+  errors?: ValidationError[];
+  refs? : RefWalker[];
 
-export function matched(result: InternalFireEventResult):
-result is (false |  (ValidationError | RefWalker)[]) {
-  if (result === undefined) {
-    return false;
-  }
+  constructor(public matched: boolean) {}
 
-  if (result === false) {
-    return true;
-  }
-
-  for (const x of result) {
-    // Any ElementI present in the array means there was a match.
-    if (!(x instanceof ValidationError)) {
-      return true;
+  static fromEndResult(result: EndResult): InternalFireEventResult {
+    if (result === false) {
+      return new InternalFireEventResult(true);
     }
+
+    const ret = new InternalFireEventResult(false);
+    ret.errors = result;
+
+    return ret;
   }
 
-  return false;
+  combine(other: InternalFireEventResult): this {
+    if (this.errors === undefined) {
+      this.errors = other.errors;
+    }
+    else if (other.errors !== undefined) {
+      this.errors = this.errors.concat(other.errors);
+    }
+
+    if (this.refs === undefined) {
+      this.refs = other.refs;
+    }
+    else if (other.refs !== undefined) {
+      this.refs = this.refs.concat(other.refs);
+    }
+
+    return this;
+  }
 }
+
+export type EndResult = false | ValidationError[];
 
 /**
  * These patterns form a JavaScript representation of the simplified RNG

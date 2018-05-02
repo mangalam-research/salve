@@ -7,7 +7,7 @@
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
 import { BasePattern, cloneIfNeeded, CloneMap, EndResult, EventSet,
-         InternalFireEventResult, InternalWalker, isAttributeEvent, matched,
+         InternalFireEventResult, InternalWalker, isAttributeEvent,
          OneSubpattern } from "./base";
 
 /**
@@ -100,15 +100,16 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
+    let ret = new InternalFireEventResult(false);
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return undefined;
+      return ret;
     }
 
     const currentIteration = this.currentIteration;
 
-    const ret = currentIteration.fireEvent(name, params);
-    if (ret !== undefined) {
+    ret = currentIteration.fireEvent(name, params);
+    if (ret.matched || ret.errors !== undefined) {
       if (evIsAttributeEvent) {
         this.canEndAttribute = currentIteration.canEndAttribute;
       }
@@ -122,7 +123,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
         this.nextIteration = this.el.pat.newWalker(this.nameResolver);
       }
       const nextRet = this.nextIteration.fireEvent(name, params);
-      if (matched(nextRet)) {
+      if (nextRet.matched) {
         if (currentIteration.end()) {
           throw new Error(
             "internal error; canEnd returns true but end() fails");
@@ -140,7 +141,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
       return nextRet;
     }
 
-    return undefined;
+    return ret;
   }
 
   end(): EndResult {

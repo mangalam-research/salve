@@ -130,25 +130,24 @@ class ChoiceWalker extends InternalWalker<Choice> {
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
+    const ret = new InternalFireEventResult(false);
     if (this.deactivateA && this.deactivateB) {
-      return undefined;
+      return ret;
     }
 
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return undefined;
+      return ret;
     }
 
-    const retA = this.deactivateA ? undefined :
+    const retA = this.deactivateA ? new InternalFireEventResult(false) :
       this.walkerA.fireEvent(name, params);
-    const retB = this.deactivateB ? undefined :
+    const retB = this.deactivateB ? new InternalFireEventResult(false) :
       this.walkerB.fireEvent(name, params);
 
-    if (retA !== undefined) {
-      if (retB === undefined) {
+    if (retA.matched || retA.errors !== undefined) {
+      if (!retB.matched && retB.errors === undefined) {
         this.deactivateB = true;
-        // If we get here, retA is not undefined therefore, this.deactivateA
-        // cannot be true.
         if (evIsAttributeEvent) {
           this.canEndAttribute = this.walkerA.canEndAttribute;
         }
@@ -158,8 +157,6 @@ class ChoiceWalker extends InternalWalker<Choice> {
         return retA;
       }
 
-      // If we get here retB is not undefined, therefore this.deactivateB cannot
-      // be true.
       if (evIsAttributeEvent) {
         this.canEndAttribute = this.walkerA.canEndAttribute ||
           this.walkerB.canEndAttribute;
@@ -167,21 +164,13 @@ class ChoiceWalker extends InternalWalker<Choice> {
 
       this.canEnd = this.walkerA.canEnd || this.walkerB.canEnd;
 
-      if (!retB) {
-        return retA;
-      }
-
-      return !retA ? retB : retA.concat(retB);
+      return retA.combine(retB);
     }
 
-    // We do not need to test if retA is undefined because we would not get
-    // here if it were not.
-    if (retB === undefined) {
-      return undefined;
+    if (!retB.matched && retB.errors === undefined) {
+      return ret;
     }
 
-    // If we get here retB is not undefined, therefore this.deactivateB cannot
-    // be true.
     this.deactivateA = true;
     if (evIsAttributeEvent) {
       this.canEndAttribute = this.walkerB.canEndAttribute;
@@ -357,24 +346,26 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
+    const ret = new InternalFireEventResult(false);
     if (this.ended) {
-      return undefined;
+      return ret;
     }
 
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return undefined;
+      return ret;
     }
 
-    const retA = (name === "text" && !/\S/.test(params[0])) ? false : undefined;
+    const retA =
+      new InternalFireEventResult(name === "text" && !/\S/.test(params[0]));
     const retB = this.walkerB.fireEvent(name, params);
 
-    if (retA !== undefined) {
-      return (retB === undefined || retB === false) ? retA : retB;
+    if (retA.matched) {
+      return retB.errors === undefined ? retA : retB;
     }
 
-    if (retB === undefined) {
-      return undefined;
+    if (!retB.matched && retB.errors === undefined) {
+      return ret;
     }
 
     if (evIsAttributeEvent) {

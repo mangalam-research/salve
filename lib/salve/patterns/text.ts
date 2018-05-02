@@ -4,7 +4,8 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Event, EventSet, InternalWalker, Pattern } from "./base";
+import { Event, EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 
 /**
  * Pattern for ``<text/>``.
@@ -61,8 +62,8 @@ class TextWalker extends InternalWalker<Text> {
     return new Set<Event>();
   }
 
-  fireEvent(name: string): false | undefined {
-    return (name === "text") ? false : undefined;
+  fireEvent(name: string): InternalFireEventResult {
+    return new InternalFireEventResult(name === "text");
   }
 
   end(): false {

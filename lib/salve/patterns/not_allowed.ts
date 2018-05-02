@@ -4,7 +4,8 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Event, EventSet, InternalWalker, Pattern } from "./base";
+import { Event, EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 
 /**
  * Pattern for ``<notAllowed/>``.
@@ -52,8 +53,8 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
     return new Set<Event>();
   }
 
-  fireEvent(): undefined {
-    return undefined; // we never match!
+  fireEvent(): InternalFireEventResult {
+    return new InternalFireEventResult(false); // we never match!
   }
 }
 

@@ -7,8 +7,8 @@
 import { Datatype, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { cloneIfNeeded, CloneMap, EndResult, Event, EventSet, InternalWalker,
-         Pattern } from "./base";
+import { cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, Pattern } from "./base";
 
 /**
  * Value pattern.
@@ -122,16 +122,16 @@ class ValueWalker extends InternalWalker<Value> {
     return new Set<Event>();
   }
 
-  fireEvent(name: string, params: string[]): false | undefined {
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
     if (this.matched || name !== "text" ||
        !this.el.datatype.equal(params[0], this.el.value, this.context)) {
-      return undefined;
+      return new InternalFireEventResult(false);
     }
 
     this.matched = true;
     this.canEndAttribute = this.canEnd = true;
 
-    return false;
+    return new InternalFireEventResult(true);
   }
 
   end(): EndResult {

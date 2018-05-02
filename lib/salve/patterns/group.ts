@@ -106,23 +106,24 @@ class GroupWalker extends InternalWalker<Group> {
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
+    const ret = new InternalFireEventResult(false);
     const evIsAttributeEvent = isAttributeEvent(name);
 
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return undefined;
+      return ret;
     }
 
     // This is useful because it is possible for fireEvent to be called
     // after end() has been called.
     if (this.ended) {
-      return undefined;
+      return ret;
     }
 
     const walkerA = this.walkerA;
     const walkerB = this.walkerB;
     if (!this.endedA) {
       const retA = walkerA.fireEvent(name, params);
-      if (retA !== undefined) {
+      if (retA.matched || retA.errors !== undefined) {
         if (evIsAttributeEvent) {
           this.canEndAttribute = walkerA.canEndAttribute &&
             walkerB.canEndAttribute;
@@ -136,7 +137,7 @@ class GroupWalker extends InternalWalker<Group> {
       // We must return right away if walkerA cannot yet end. Only attribute
       // events are allowed to move forward.
       if (!evIsAttributeEvent && !walkerA.canEnd) {
-        return undefined;
+        return ret;
       }
     }
 
@@ -149,19 +150,19 @@ class GroupWalker extends InternalWalker<Group> {
 
     // Non-attribute event: if walker b matched the event then we must end
     // walkerA, if we've not already done so.
-    if (!evIsAttributeEvent && retB !== undefined) {
+    if (!evIsAttributeEvent && (retB.matched || retB.errors !== undefined)) {
       const endRet = walkerA.end();
       this.endedA = true;
 
       // Combine the possible errors.
-      if (!retB) {
+      if (retB.refs === undefined) {
         // retB must be false, because retB === undefined has been
         // eliminated above; toss it.
-        return endRet;
+        return InternalFireEventResult.fromEndResult(endRet);
       }
 
       if (endRet) {
-        return retB.concat(endRet);
+        return retB.combine(InternalFireEventResult.fromEndResult(endRet));
       }
     }
 

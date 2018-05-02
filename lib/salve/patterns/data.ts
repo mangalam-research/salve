@@ -7,8 +7,8 @@
 import { Datatype, RawParameter, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { cloneIfNeeded, CloneMap, EndResult, Event, EventSet, InternalWalker,
-         Pattern } from "./base";
+import { cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, Pattern } from "./base";
 /**
  * Data pattern.
  */
@@ -123,10 +123,11 @@ class DataWalker extends InternalWalker<Data> {
     return new Set();
   }
 
-  fireEvent(name: string, params: string[]): false | undefined {
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    const ret = new InternalFireEventResult(false);
     if (this.matched || name !== "text" ||
         this.el.datatype.disallows(params[0], this.el.params, this.context)) {
-      return undefined;
+      return ret;
     }
 
     if (this.el.except !== undefined) {
@@ -135,8 +136,8 @@ class DataWalker extends InternalWalker<Data> {
 
       // False, so the except does match the text, and so this pattern does
       // not match it.
-      if (exceptRet === false) {
-        return undefined;
+      if (exceptRet.matched) {
+        return ret;
       }
 
       // Otherwise, it is undefined, in which case it means the except does
@@ -154,7 +155,9 @@ class DataWalker extends InternalWalker<Data> {
     this.canEnd = true;
     this.canEndAttribute = true;
 
-    return false;
+    ret.matched = true;
+
+    return ret;
   }
 
   end(): EndResult {

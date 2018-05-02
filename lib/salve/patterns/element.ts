@@ -172,7 +172,7 @@ class ElementWalker extends InternalWalker<Element> {
         // canEnd back to false.
         this.canEnd = this.boundName.match(params[0], params[1]);
 
-        return walker.end();
+        return InternalFireEventResult.fromEndResult(walker.end());
       }
 
       return walker.fireEvent(name, params);
@@ -184,7 +184,7 @@ class ElementWalker extends InternalWalker<Element> {
           throw new Error("event starting the element had an incorrect name");
         }
 
-        return false;
+        return new InternalFireEventResult(true);
       case "startTagAndAttributes":
         if (!this.boundName.match(params[0], params[1])) {
           throw new Error("event starting the element had an incorrect name");
@@ -194,7 +194,7 @@ class ElementWalker extends InternalWalker<Element> {
         for (let ix = 2; ix < params.length; ix += 3) {
           const attrRet = walker.fireEvent("attributeNameAndValue",
                                            params.slice(ix, ix + 3));
-          if (attrRet !== false) {
+          if (!attrRet.matched) {
             return attrRet;
           }
         }
@@ -203,7 +203,9 @@ class ElementWalker extends InternalWalker<Element> {
       case "leaveStartTag":
         this.endedStartTag = true;
 
-        return this.el.pat.hasAttrs() ? walker.endAttributes() : false;
+        return this.el.pat.hasAttrs() ?
+          InternalFireEventResult.fromEndResult(walker.endAttributes()) :
+          new InternalFireEventResult(true);
       default:
     }
 

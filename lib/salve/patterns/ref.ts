@@ -99,10 +99,13 @@ export class RefWalker extends InternalWalker<Ref> {
         this.startName.match(params[0], params[1])) {
       this.canEnd = true;
 
-      return [this];
+      const match = new InternalFireEventResult(true);
+      match.refs = [this];
+
+      return match;
     }
 
-    return undefined;
+    return new InternalFireEventResult(false);
   }
 
   end(): EndResult {

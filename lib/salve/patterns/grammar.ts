@@ -17,7 +17,7 @@ import { BasePattern, BaseWalker, cloneIfNeeded, CloneMap, EndResult, Event,
          Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
-import { Ref, RefWalker } from "./ref";
+import { Ref } from "./ref";
 
 /**
  * This is an exception raised to indicate references to undefined entities in a
@@ -196,9 +196,9 @@ class MisplacedElementWalker implements IWalker {
     switch (name) {
       case "enterStartTag":
       case "startTagAndAttributes":
-        return undefined;
+        return new InternalFireEventResult(false);
       default:
-        return false;
+        return new InternalFireEventResult(true);
     }
   }
 
@@ -336,7 +336,7 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     // The only case where we'd want to pass a node consisting entirely of
     // whitespace is to satisfy a data or value pattern because they can require
     // a sequence of whitespaces.
-    let wsErr: FireEventResult = false;
+    let wsErr: InternalFireEventResult = new InternalFireEventResult(true);
     if (name === "text") {
       // Earlier versions of salve processed text events ahead of this switch
       // block, but we moved it here to improve performance. There's no issue
@@ -361,8 +361,7 @@ export class GrammarWalker extends BaseWalker<Grammar> {
       if (!this.ignoreNextWs && this.suspendedWs !== undefined) {
         // Casting is safe here because text events cannot return
         // elements.
-        wsErr = this._fireOnCurrentWalkers(
-          "text", [this.suspendedWs]) as FireEventResult;
+        wsErr = this._fireOnCurrentWalkers("text", [this.suspendedWs]);
       }
       this.ignoreNextWs = true;
     }
@@ -388,39 +387,33 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     const ret = this._fireOnCurrentWalkers(name, params);
 
     const errors: ValidationError[] = [];
-    if (ret !== undefined && ret !== false) {
+    if (ret.matched) {
       // The only events that may return Ref in the array are those that
       // start elements.
-      if (name === "enterStartTag" || name === "startTagAndAttributes") {
+      if (ret.refs !== undefined) {
         const newWalkers: InternalWalker<BasePattern>[] = [];
         const boundName = new Name("", params[0], params[1]);
-        for (const item of ret) {
-          if (item instanceof ValidationError) {
-            errors.push(item);
-          }
-          else {
-            const walker = item.element.newWalker(this.nameResolver,
-                                                  boundName);
-            // If we get anything else than false here, the internal logic is
-            // wrong.
-            if (walker.fireEvent(name, params) !== false) {
-              throw new Error("error or failed to match on a new element \
+        for (const item of ret.refs) {
+          const walker = item.element.newWalker(this.nameResolver,
+                                                boundName);
+          // If we get anything else than false here, the internal logic is
+          // wrong.
+          if (!walker.fireEvent(name, params).matched) {
+            throw new Error("error or failed to match on a new element \
 walker: the internal logic is incorrect");
-            }
-            newWalkers.push(walker);
           }
+          newWalkers.push(walker);
         }
 
         if (newWalkers.length !== 0) {
           this.elementWalkerStack.unshift(newWalkers);
         }
       }
-      else {
-        // We cannot have Ref in the array.
-        errors.push(...ret as ValidationError[]);
-      }
     }
-    else if (ret === undefined) {
+    else if (ret.errors !== undefined) {
+      errors.push(...ret.errors);
+    }
+    else {
       switch (name) {
         case "enterStartTag":
         case "startTagAndAttributes":
@@ -443,7 +436,7 @@ walker: the internal logic is incorrect");
               const newWalker =
                 candidates[0].newWalker(this.nameResolver, elName);
               this.elementWalkerStack.unshift([newWalker]);
-              if (newWalker.fireEvent(name, params) !== false) {
+              if (!newWalker.fireEvent(name, params).matched) {
                 throw new Error("internal error: the inferred element " +
                                 "does not accept its initial event");
               }
@@ -508,15 +501,15 @@ ${name}`);
       }
     }
 
-    if (wsErr === undefined) {
+    if (!wsErr.matched) {
       // If we have another error, we don't want to make an issue that text
       // was not matched. Otherwise, we want to alert the user.
-      if (errors.length === 0) {
+      if (wsErr.errors !== undefined) {
+        errors.push(...wsErr.errors);
+      }
+      else if (errors.length === 0) {
         errors.push(new ValidationError("text not allowed here"));
       }
-    }
-    else if (wsErr) {
-      errors.push(...wsErr);
     }
 
     return errors.length !== 0 ? errors : false;
@@ -529,19 +522,20 @@ ${name}`);
     // Checking whether walkers.length === 0 would not be a particularly useful
     // optimization, as we don't let that happen.
 
-    let arr: (ValidationError | RefWalker)[] = [];
+    const ret = new InternalFireEventResult(true);
     const remainingWalkers: IWalker[] = [];
     for (const walker of walkers) {
       const result = walker.fireEvent(name, params);
       // We immediately filter out results that report a match (i.e. false).
-      if (result === false) {
+      if (result.matched) {
         remainingWalkers.push(walker);
+        ret.combine(result);
       }
-      else if (result !== undefined) {
+      else {
         // There's no point in recording errors if we're going to toss them
         // anyway.
         if (remainingWalkers.length === 0) {
-          arr = arr.concat(result);
+          ret.combine(result);
         }
       }
     }
@@ -554,10 +548,16 @@ ${name}`);
 
       // If some of the walkers matched, we ignore the errors from the other
       // walkers.
-      return false;
+      ret.matched = true;
+      ret.errors = undefined;
+
+      return ret;
     }
 
-    return (arr.length !== 0) ? arr : undefined;
+    ret.matched = false;
+    ret.refs = undefined;
+
+    return ret;
   }
 
   canEnd(): boolean {

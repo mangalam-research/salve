@@ -4,7 +4,8 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Event, EventSet, InternalWalker, Pattern } from "./base";
+import { Event, EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 
 /**
  * Pattern for ``<empty/>``.
@@ -57,8 +58,9 @@ class EmptyWalker extends InternalWalker<Empty> {
     return new Set<Event>();
   }
 
-  fireEvent(name: string, params: string[]): false | undefined {
-    return ((name === "text") && !/\S/.test(params[0])) ? false : undefined;
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    return new InternalFireEventResult((name === "text") &&
+                                       !/\S/.test(params[0]));
   }
 }
 

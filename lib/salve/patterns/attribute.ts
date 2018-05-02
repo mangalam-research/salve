@@ -126,11 +126,11 @@ class AttributeWalker extends InternalWalker<Attribute> {
   fireEvent(name: string, params: string[]): InternalFireEventResult {
     // If canEnd is true, we've done everything we could. So we don't
     // want to match again.
+    let ret = new InternalFireEventResult(false);
     if (this.canEnd) {
-      return undefined;
+      return ret;
     }
 
-    let ret: InternalFireEventResult;
     let value: string | undefined;
     if (this.seenName) {
       if (name === "attributeValue") {
@@ -143,7 +143,9 @@ class AttributeWalker extends InternalWalker<Attribute> {
       this.seenName = true;
 
       if (name === "attributeName") {
-        return false;
+        ret.matched = true;
+
+        return ret;
       }
 
       value = params[2];
@@ -153,14 +155,19 @@ class AttributeWalker extends InternalWalker<Attribute> {
       this.canEnd = true;
       this.canEndAttribute = true;
 
-      ret = value !== "" ? this.subwalker.fireEvent("text", [value]) : false;
-
-      if (ret === undefined) {
-        ret = [new AttributeValueError("invalid attribute value", this.name)];
+      if (value !== "") {
+        ret = this.subwalker.fireEvent("text", [value]);
+        if (!ret.matched) {
+          ret.errors =
+            [new AttributeValueError("invalid attribute value", this.name)];
+        }
       }
-      // Attributes end immediately.
-      else if (ret === false) {
-        ret = this.subwalker.end();
+      else {
+        ret.matched = true;
+      }
+
+      if (ret.matched) {
+        return InternalFireEventResult.fromEndResult(this.subwalker.end());
       }
     }
 
