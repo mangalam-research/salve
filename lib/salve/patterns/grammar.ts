@@ -388,9 +388,7 @@ export class GrammarWalker extends BaseWalker<Grammar> {
 
     const errors: ValidationError[] = [];
     if (ret.matched) {
-      // The only events that may return Ref in the array are those that
-      // start elements.
-      if (ret.refs !== undefined) {
+      if (ret.refs !== undefined && ret.refs.length !== 0) {
         const newWalkers: InternalWalker<BasePattern>[] = [];
         const boundName = new Name("", params[0], params[1]);
         for (const item of ret.refs) {
@@ -405,9 +403,7 @@ walker: the internal logic is incorrect");
           newWalkers.push(walker);
         }
 
-        if (newWalkers.length !== 0) {
-          this.elementWalkerStack.unshift(newWalkers);
-        }
+        this.elementWalkerStack.unshift(newWalkers);
       }
     }
     else if (ret.errors !== undefined) {
@@ -531,12 +527,10 @@ ${name}`);
         remainingWalkers.push(walker);
         ret.combine(result);
       }
-      else {
-        // There's no point in recording errors if we're going to toss them
-        // anyway.
-        if (remainingWalkers.length === 0) {
-          ret.combine(result);
-        }
+      // There's no point in recording errors if we're going to toss them
+      // anyway.
+      else if (remainingWalkers.length === 0) {
+        ret.combine(result);
       }
     }
 

@@ -123,7 +123,7 @@ class GroupWalker extends InternalWalker<Group> {
     const walkerB = this.walkerB;
     if (!this.endedA) {
       const retA = walkerA.fireEvent(name, params);
-      if (retA.matched || retA.errors !== undefined) {
+      if (retA.matched) {
         if (evIsAttributeEvent) {
           this.canEndAttribute = walkerA.canEndAttribute &&
             walkerB.canEndAttribute;
@@ -137,7 +137,7 @@ class GroupWalker extends InternalWalker<Group> {
       // We must return right away if walkerA cannot yet end. Only attribute
       // events are allowed to move forward.
       if (!evIsAttributeEvent && !walkerA.canEnd) {
-        return ret;
+        return retA;
       }
     }
 
@@ -150,20 +150,10 @@ class GroupWalker extends InternalWalker<Group> {
 
     // Non-attribute event: if walker b matched the event then we must end
     // walkerA, if we've not already done so.
-    if (!evIsAttributeEvent && (retB.matched || retB.errors !== undefined)) {
-      const endRet = walkerA.end();
+    if (!evIsAttributeEvent && retB.matched) {
       this.endedA = true;
 
-      // Combine the possible errors.
-      if (retB.refs === undefined) {
-        // retB must be false, because retB === undefined has been
-        // eliminated above; toss it.
-        return InternalFireEventResult.fromEndResult(endRet);
-      }
-
-      if (endRet) {
-        return retB.combine(InternalFireEventResult.fromEndResult(endRet));
-      }
+      return retB.combine(InternalFireEventResult.fromEndResult(walkerA.end()));
     }
 
     return retB;

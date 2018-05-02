@@ -208,20 +208,14 @@ export interface Clonable {
 export type FireEventResult = false | undefined | ValidationError[];
 
 export class InternalFireEventResult {
-  errors?: ValidationError[];
-  refs? : RefWalker[];
-
-  constructor(public matched: boolean) {}
+  constructor(public matched: boolean,
+              public errors?: ValidationError[],
+              public refs?: RefWalker[]) {}
 
   static fromEndResult(result: EndResult): InternalFireEventResult {
-    if (result === false) {
-      return new InternalFireEventResult(true);
-    }
-
-    const ret = new InternalFireEventResult(false);
-    ret.errors = result;
-
-    return ret;
+    return (result === false) ?
+      new InternalFireEventResult(true) :
+      new InternalFireEventResult(false, result);
   }
 
   combine(other: InternalFireEventResult): this {

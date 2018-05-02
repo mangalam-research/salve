@@ -145,40 +145,37 @@ class ChoiceWalker extends InternalWalker<Choice> {
     const retB = this.deactivateB ? new InternalFireEventResult(false) :
       this.walkerB.fireEvent(name, params);
 
-    if (retA.matched || retA.errors !== undefined) {
-      if (!retB.matched && retB.errors === undefined) {
+    if (retA.matched) {
+      if (!retB.matched) {
         this.deactivateB = true;
         if (evIsAttributeEvent) {
           this.canEndAttribute = this.walkerA.canEndAttribute;
         }
 
         this.canEnd = this.walkerA.canEnd;
-
-        return retA;
       }
+      else {
+        if (evIsAttributeEvent) {
+          this.canEndAttribute = this.walkerA.canEndAttribute ||
+            this.walkerB.canEndAttribute;
+        }
 
-      if (evIsAttributeEvent) {
-        this.canEndAttribute = this.walkerA.canEndAttribute ||
-          this.walkerB.canEndAttribute;
+        this.canEnd = this.walkerA.canEnd || this.walkerB.canEnd;
       }
-
-      this.canEnd = this.walkerA.canEnd || this.walkerB.canEnd;
 
       return retA.combine(retB);
     }
 
-    if (!retB.matched && retB.errors === undefined) {
-      return ret;
+    if (retB.matched) {
+      this.deactivateA = true;
+      if (evIsAttributeEvent) {
+        this.canEndAttribute = this.walkerB.canEndAttribute;
+      }
+
+      this.canEnd = this.walkerB.canEnd;
     }
 
-    this.deactivateA = true;
-    if (evIsAttributeEvent) {
-      this.canEndAttribute = this.walkerB.canEndAttribute;
-    }
-
-    this.canEnd = this.walkerB.canEnd;
-
-    return retB;
+    return retB.combine(retA);
   }
 
   end(): EndResult {
@@ -358,21 +355,19 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
 
     const retA =
       new InternalFireEventResult(name === "text" && !/\S/.test(params[0]));
-    const retB = this.walkerB.fireEvent(name, params);
 
     if (retA.matched) {
-      return retB.errors === undefined ? retA : retB;
+      return retA;
     }
 
-    if (!retB.matched && retB.errors === undefined) {
-      return ret;
-    }
+    const retB = this.walkerB.fireEvent(name, params);
+    if (retB.matched) {
+      if (evIsAttributeEvent) {
+        this.canEndAttribute = this.walkerB.canEndAttribute;
+      }
 
-    if (evIsAttributeEvent) {
-      this.canEndAttribute = this.walkerB.canEndAttribute;
+      this.canEnd = this.walkerB.canEnd;
     }
-
-    this.canEnd = this.walkerB.canEnd;
 
     return retB;
   }
