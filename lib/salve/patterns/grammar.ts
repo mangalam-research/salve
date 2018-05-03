@@ -359,8 +359,6 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     }
     else if (name === "endTag") {
       if (!this.ignoreNextWs && this.suspendedWs !== undefined) {
-        // Casting is safe here because text events cannot return
-        // elements.
         wsErr = this._fireOnCurrentWalkers("text", [this.suspendedWs]);
       }
       this.ignoreNextWs = true;
