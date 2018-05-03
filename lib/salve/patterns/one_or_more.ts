@@ -8,7 +8,7 @@ import { NameResolver } from "../name_resolver";
 import { union } from "../set";
 import { BasePattern, cloneIfNeeded, CloneMap, EndResult, EventSet,
          InternalFireEventResult, InternalWalker, isAttributeEvent,
-         OneSubpattern } from "./base";
+         OneSubpattern, Pattern} from "./base";
 
 /**
  * A pattern for ``<oneOrMore>``.
@@ -28,6 +28,7 @@ export class  OneOrMore extends OneSubpattern {
  * Walker for [[OneOrMore]]
  */
 class OneOrMoreWalker extends InternalWalker<OneOrMore> {
+  private readonly subPat: Pattern;
   private readonly hasAttrs: boolean;
   private currentIteration: InternalWalker<BasePattern>;
   private nextIteration: InternalWalker<BasePattern> | undefined;
@@ -49,6 +50,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     if ((elOrWalker as OneOrMore).newWalker !== undefined) {
       const el = elOrWalker as OneOrMore;
       const nameResolver = nameResolverOrMemo as NameResolver;
+      this.subPat = el.pat;
       this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
       this.currentIteration = el.pat.newWalker(nameResolver);
@@ -59,6 +61,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     else {
       const walker = elOrWalker as OneOrMoreWalker;
       const memo = nameResolverOrMemo as CloneMap;
+      this.subPat = walker.subPat;
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.currentIteration = walker.currentIteration._clone(memo);
@@ -78,7 +81,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
 
     if (this.currentIteration.canEnd) {
       if (this.nextIteration === undefined) {
-        this.nextIteration = this.el.pat.newWalker(this.nameResolver);
+        this.nextIteration = this.subPat.newWalker(this.nameResolver);
       }
       union(ret, this.nextIteration.possible());
     }
@@ -91,7 +94,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
 
     if (this.currentIteration.canEnd) {
       if (this.nextIteration === undefined) {
-        this.nextIteration = this.el.pat.newWalker(this.nameResolver);
+        this.nextIteration = this.subPat.newWalker(this.nameResolver);
       }
       union(ret, this.nextIteration.possibleAttributes());
     }
@@ -120,7 +123,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
 
     if (currentIteration.canEnd) {
       if (this.nextIteration === undefined) {
-        this.nextIteration = this.el.pat.newWalker(this.nameResolver);
+        this.nextIteration = this.subPat.newWalker(this.nameResolver);
       }
       const nextRet = this.nextIteration.fireEvent(name, params);
       if (nextRet.matched) {
