@@ -594,10 +594,6 @@ interleave intersect (section 7.3): ${name1} and ${name2}`);
       }
     }
 
-    const occurringAttributes = firstAttributes.concat(secondAttributes);
-    const occurringRefs = firstRefs.concat(secondRefs);
-    const occurringTexts = firstTexts + secondTexts;
-
     if (isInterleave) {
       if (firstTexts !== 0 && secondTexts !== 0) {
         throw new SchemaValidationError(
@@ -620,40 +616,24 @@ patterns of an interleave intersect (section 7.4): ${name1} and ${name2}`);
       }
     }
 
-    if (firstCt === null || secondCt === null) {
-      return {
-        contentType: null,
-        occurringAttributes,
-        occurringRefs,
-        occurringTexts,
-      };
-    }
-
     // These tests combine the groupable(firstCt, secondCt) test together with
     // the requirement that we return the content type which is the greatest.
+    let contentType: ContentType | null;
     if (firstCt === ContentType.COMPLEX && secondCt === ContentType.COMPLEX) {
-      return {
-        contentType: ContentType.COMPLEX,
-        occurringAttributes,
-        occurringRefs,
-        occurringTexts,
-      };
+      contentType = ContentType.COMPLEX;
     }
-
-    if (firstCt === ContentType.EMPTY) {
-      return {
-        contentType: secondCt,
-        occurringAttributes,
-        occurringRefs,
-        occurringTexts,
-      };
+    else if (firstCt === ContentType.EMPTY) {
+      contentType = secondCt;
+    }
+    else {
+      contentType = (secondCt === ContentType.EMPTY) ? firstCt : null;
     }
 
     return {
-      contentType: (secondCt === ContentType.EMPTY) ? firstCt : null,
-      occurringAttributes,
-      occurringRefs,
-      occurringTexts,
+      contentType,
+      occurringAttributes: firstAttributes.concat(secondAttributes),
+      occurringRefs: firstRefs.concat(secondRefs),
+      occurringTexts: firstTexts + secondTexts,
     };
   }
 }
