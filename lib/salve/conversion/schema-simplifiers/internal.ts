@@ -99,10 +99,19 @@ class ProhibitedDataExceptPath extends SchemaValidationError {
 
 interface CheckResult {
   contentType: ContentType | null;
-  occurringAttributes: Element[];
-  occurringRefs: Element[];
+
+  occurringAttributes: ReadonlyArray<Element>;
+
+  // We considered making this variable a Set. Multiple ref of the same name are
+  // bound to happen in any schemas beyond trivial ones. However, the cost of
+  // maintaining Set objects negates the benefits that occur when checking
+  // interleave elements.
+  occurringRefs: ReadonlyArray<Element>;
+
   occurringTexts: number;
 }
+
+const EMPTY_ELEMENT_ARRAY: ReadonlyArray<Element> = [];
 
 type Handler = (this: GeneralChecker, el: Element,
                 state: State) => CheckResult;
@@ -185,7 +194,7 @@ class must be a descendant of oneOrMore (section 7.3)");
     return {
       contentType: ContentType.EMPTY,
       occurringAttributes: [el],
-      occurringRefs: [],
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: 0,
     };
   }
@@ -201,8 +210,8 @@ class must be a descendant of oneOrMore (section 7.3)");
 
     return {
       contentType: null,
-      occurringAttributes: [],
-      occurringRefs: [],
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: 0,
     };
   }
@@ -310,8 +319,8 @@ class must be a descendant of oneOrMore (section 7.3)");
 
     return {
       contentType: ContentType.SIMPLE,
-      occurringAttributes: [],
-      occurringRefs: [],
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: 0,
     };
   }
@@ -366,8 +375,8 @@ ${libname}`);
 
     return {
       contentType: ContentType.SIMPLE,
-      occurringAttributes: [],
-      occurringRefs: [],
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: 0,
     };
   }
@@ -433,8 +442,8 @@ ${libname}`);
     // The child of value can only be a text node.
     return {
       contentType: ContentType.SIMPLE,
-      occurringAttributes: [],
-      occurringRefs: [],
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: 0,
     };
   }
@@ -454,8 +463,8 @@ ${libname}`);
 
     return {
       contentType: ContentType.COMPLEX,
-      occurringAttributes: [],
-      occurringRefs: [],
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: 1,
     };
   }
@@ -475,8 +484,8 @@ ${libname}`);
 
     return {
       contentType: ContentType.COMPLEX,
-      occurringAttributes: [],
-          occurringRefs: [el],
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: [el],
       occurringTexts: 0,
     };
   }
@@ -492,8 +501,8 @@ ${libname}`);
 
     return {
       contentType: ContentType.EMPTY,
-      occurringAttributes: [],
-      occurringRefs: [],
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: 0,
     };
   }
@@ -501,8 +510,8 @@ ${libname}`);
   notAllowedHandler(): CheckResult {
     return {
       contentType: null,
-      occurringAttributes: [],
-      occurringRefs: [],
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: 0,
     };
   }
@@ -517,8 +526,8 @@ on string values (section 7.2)`);
 
     return {
       contentType: null,
-      occurringAttributes: [],
-      occurringRefs: [],
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: 0,
     };
   }
@@ -528,8 +537,8 @@ on string values (section 7.2)`);
 
     return {
       contentType: null,
-      occurringAttributes: [],
-          occurringRefs: [],
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: 0,
     };
   }
@@ -541,8 +550,8 @@ on string values (section 7.2)`);
 
     return {
       contentType: null,
-      occurringAttributes: [],
-      occurringRefs: [],
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: 0,
     };
   }
