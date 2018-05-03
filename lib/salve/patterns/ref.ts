@@ -50,6 +50,7 @@ resolved");
 }
 
 export class RefWalker extends InternalWalker<Ref> {
+  protected readonly el: Ref;
   private startName: ConcreteName;
   private startTagEvent: Event;
   canEndAttribute: boolean;
@@ -62,8 +63,9 @@ export class RefWalker extends InternalWalker<Ref> {
   constructor(walker: RefWalker, memo: CloneMap);
   constructor(el: Ref);
   constructor(elOrWalker: RefWalker | Ref, memo?: CloneMap) {
+    super();
     if ((elOrWalker as Ref).newWalker !== undefined) {
-      super(elOrWalker as Ref);
+      this.el = elOrWalker as Ref;
       this.element = elOrWalker.element;
       this.startName = elOrWalker.element.name;
       this.startTagEvent = new Event("enterStartTag", this.startName);
@@ -72,7 +74,7 @@ export class RefWalker extends InternalWalker<Ref> {
     }
     else {
       const walker = elOrWalker as RefWalker;
-      super(walker);
+      this.el = walker.el;
       this.startName = walker.startName;
       this.startTagEvent = walker.startTagEvent;
       this.element = walker.element;

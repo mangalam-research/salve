@@ -41,6 +41,7 @@ export class Choice extends TwoSubpatterns {
  * Walker for [[Choice]].
  */
 class ChoiceWalker extends InternalWalker<Choice> {
+  protected readonly el: Choice;
   private readonly hasAttrs: boolean;
   private readonly walkerA: InternalWalker<BasePattern>;
   private readonly walkerB: InternalWalker<BasePattern>;
@@ -55,10 +56,11 @@ class ChoiceWalker extends InternalWalker<Choice> {
   constructor(elOrWalker: ChoiceWalker | Choice,
               nameResolverOrMemo: NameResolver | CloneMap)
   {
-    super(elOrWalker);
+    super();
     if ((elOrWalker as Choice).newWalker !== undefined) {
       const el = elOrWalker as Choice;
       const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
       this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
       this.deactivateA = false;
@@ -72,6 +74,7 @@ class ChoiceWalker extends InternalWalker<Choice> {
     else {
       const walker = elOrWalker as ChoiceWalker;
       const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.walkerA = walker.walkerA._clone(memo);
@@ -295,6 +298,7 @@ class ChoiceWalker extends InternalWalker<Choice> {
  * Walker for [[Choice]].
  */
 class OptionalChoiceWalker extends InternalWalker<Choice> {
+  protected readonly el: Choice;
   private readonly hasAttrs: boolean;
   private readonly walkerB: InternalWalker<BasePattern>;
   private ended: boolean;
@@ -307,10 +311,11 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
   constructor(elOrWalker: OptionalChoiceWalker | Choice,
               nameResolverOrMemo: NameResolver | CloneMap)
   {
-    super(elOrWalker);
+    super();
     if ((elOrWalker as Choice).newWalker !== undefined) {
       const el = elOrWalker as Choice;
       const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
       this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
       this.ended = false;
@@ -321,6 +326,7 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
     else {
       const walker = elOrWalker as OptionalChoiceWalker;
       const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.walkerB = walker.walkerB._clone(memo);

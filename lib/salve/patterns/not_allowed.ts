@@ -21,6 +21,7 @@ export class NotAllowed extends Pattern {
  * Walker for [[NotAllowed]];
  */
 export class NotAllowedWalker extends InternalWalker<NotAllowed> {
+  protected readonly el: NotAllowed;
   canEnd: boolean;
   canEndAttribute: boolean;
 
@@ -28,7 +29,8 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
    * @param el The pattern for which this walker was created.
    */
   constructor(el: NotAllowed) {
-    super(el);
+    super();
+    this.el = el;
     this.canEnd = true;
     this.canEndAttribute = true;
   }

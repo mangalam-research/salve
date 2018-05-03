@@ -57,6 +57,7 @@ export class Attribute extends Pattern {
  * Walker for [[Attribute]].
  */
 class AttributeWalker extends InternalWalker<Attribute> {
+  protected readonly el: Attribute;
   private seenName: boolean;
   private readonly subwalker: InternalWalker<BasePattern>;
   private readonly nameResolver: NameResolver;
@@ -74,9 +75,10 @@ class AttributeWalker extends InternalWalker<Attribute> {
   constructor(el: Attribute, nameResolver: NameResolver);
   constructor(elOrWalker: AttributeWalker | Attribute,
               nameResolverOrMemo: CloneMap | NameResolver) {
-    super(elOrWalker);
+    super();
     if ((elOrWalker as Attribute).newWalker !== undefined) {
       const el = elOrWalker as Attribute;
+      this.el = el;
       this.nameResolver = nameResolverOrMemo as NameResolver;
       this.subwalker = el.pat.newWalker(this.nameResolver);
       this.name = el.name;
@@ -87,6 +89,7 @@ class AttributeWalker extends InternalWalker<Attribute> {
     else {
       const walker = elOrWalker as AttributeWalker;
       const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.seenName = walker.seenName;
       this.subwalker = walker.subwalker._clone(memo);

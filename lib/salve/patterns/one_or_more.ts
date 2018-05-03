@@ -28,6 +28,7 @@ export class  OneOrMore extends OneSubpattern {
  * Walker for [[OneOrMore]]
  */
 class OneOrMoreWalker extends InternalWalker<OneOrMore> {
+  protected readonly el: OneOrMore;
   private readonly subPat: Pattern;
   private readonly hasAttrs: boolean;
   private currentIteration: InternalWalker<BasePattern>;
@@ -46,10 +47,11 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
   constructor(el: OneOrMore, nameResolver: NameResolver);
   constructor(elOrWalker: OneOrMoreWalker | OneOrMore,
               nameResolverOrMemo: NameResolver | CloneMap) {
-    super(elOrWalker);
+    super();
     if ((elOrWalker as OneOrMore).newWalker !== undefined) {
       const el = elOrWalker as OneOrMore;
       const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
       this.subPat = el.pat;
       this.hasAttrs = el.hasAttrs();
       this.nameResolver = nameResolver;
@@ -61,6 +63,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     else {
       const walker = elOrWalker as OneOrMoreWalker;
       const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
       this.subPat = walker.subPat;
       this.hasAttrs = walker.hasAttrs;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);

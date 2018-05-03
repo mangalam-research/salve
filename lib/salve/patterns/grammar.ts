@@ -219,6 +219,8 @@ class MisplacedElementWalker implements IWalker {
  * Walker for [[Grammar]].
  */
 export class GrammarWalker extends BaseWalker<Grammar> {
+  protected readonly el: Grammar;
+
   private readonly nameResolver: NameResolver;
 
   private _swallowAttributeValue: boolean;
@@ -238,9 +240,10 @@ export class GrammarWalker extends BaseWalker<Grammar> {
   protected constructor(walker: GrammarWalker, memo: CloneMap);
   protected constructor(el: Grammar);
   protected constructor(elOrWalker: GrammarWalker | Grammar, memo?: CloneMap) {
-    super(elOrWalker);
+    super();
     if ((elOrWalker as Grammar).newWalker !== undefined) {
       const grammar = elOrWalker as Grammar;
+      this.el = grammar;
       this.nameResolver = new NameResolver();
       this._swallowAttributeValue = false;
       this.ignoreNextWs = false;
@@ -249,6 +252,7 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     }
     else {
       const walker = elOrWalker as GrammarWalker;
+      this.el = walker.el;
       // tslint:disable-next-line:no-non-null-assertion
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo!);
       this.elementWalkerStack = walker.elementWalkerStack

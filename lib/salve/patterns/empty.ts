@@ -29,11 +29,13 @@ export class Empty extends Pattern {
  * @param resolver Ignored by this walker.
  */
 class EmptyWalker extends InternalWalker<Empty> {
+  protected readonly el: Empty;
   canEnd: boolean;
   canEndAttribute: boolean;
 
   constructor(el: Empty) {
-    super(el);
+    super();
+    this.el = el;
     this.canEnd = true;
     this.canEndAttribute = true;
   }

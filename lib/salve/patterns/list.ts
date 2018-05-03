@@ -44,6 +44,7 @@ export class List extends OneSubpattern {
  *
  */
 class ListWalker extends InternalWalker<List> {
+  protected readonly el: List;
   private subwalker: InternalWalker<BasePattern>;
   private readonly nameResolver: NameResolver;
   canEnd: boolean;
@@ -53,10 +54,11 @@ class ListWalker extends InternalWalker<List> {
   constructor(el: List, nameResolver: NameResolver);
   constructor(elOrWalker: List | ListWalker,
               nameResolverOrMemo: NameResolver | CloneMap) {
-    super(elOrWalker);
+    super();
     if ((elOrWalker as List).newWalker !== undefined) {
       const el = elOrWalker as List;
       const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
       this.nameResolver = nameResolver;
       this.subwalker = el.pat.newWalker(nameResolver);
       this.canEndAttribute = this.canEnd = this.hasEmptyPattern();
@@ -64,6 +66,7 @@ class ListWalker extends InternalWalker<List> {
     else {
       const walker = elOrWalker as ListWalker;
       const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.subwalker = walker.subwalker._clone(memo);
       this.canEnd = walker.canEnd;

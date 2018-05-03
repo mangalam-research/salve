@@ -66,6 +66,7 @@ export class Element extends BasePattern {
 class ElementWalker extends InternalWalker<Element> {
   private static _leaveStartTagEvent: Event = new Event("leaveStartTag");
 
+  protected readonly el: Element;
   private endedStartTag: boolean;
   private walker: InternalWalker<BasePattern>;
   private endTagEvent: Event;
@@ -86,10 +87,11 @@ class ElementWalker extends InternalWalker<Element> {
   constructor(elOrWalker: ElementWalker | Element,
               nameResolverOrMemo: NameResolver | CloneMap,
               boundName?: Name) {
-    super(elOrWalker);
+    super();
     if ((elOrWalker as Element).newWalker !== undefined) {
       const el = elOrWalker as Element;
       const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
       this.nameResolver = nameResolver;
       this.walker = el.pat.newWalker(nameResolver);
       this.endedStartTag = false;
@@ -102,6 +104,7 @@ class ElementWalker extends InternalWalker<Element> {
     else {
       const walker = elOrWalker as ElementWalker;
       const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.endedStartTag = walker.endedStartTag;
       this.walker = walker.walker._clone(memo);

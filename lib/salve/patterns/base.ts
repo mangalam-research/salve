@@ -89,8 +89,11 @@ if (DEBUG) {
   noop(stackTrace);
 
   // tslint:disable:no-var-keyword
+  // @ts-ignore
   var possibleTracer: (oldMethod: Function, name: string, args: any[]) => any;
+  // @ts-ignore
   var fireEventTracer: (oldMethod: Function, name: string, args: any[]) => any;
+  // @ts-ignore
   var plainTracer: (oldMethod: Function, name: string, args: any[]) => any;
   var callDump: (msg: string, name: string, me: any) => void;
   // tslint:enable:no-var-keyword
@@ -575,22 +578,7 @@ export function cloneIfNeeded<C extends Clonable>(obj: C, memo: CloneMap): C {
  * Note that users of this API do not instantiate Walker objects themselves.
  */
 export abstract class BaseWalker<T extends BasePattern> {
-  protected readonly el: T;
-
-  /**
-   * @param elOrWalker The element to which this walker belongs. Or the walker
-   * from which to clone this one.
-   */
-  protected constructor(elOrWalker: T | BaseWalker<T>) {
-    this.el = elOrWalker instanceof BasePattern ? elOrWalker : elOrWalker.el;
-    if (DEBUG) {
-        wrap(this, "_possible", possibleTracer);
-        wrap(this, "fireEvent", fireEventTracer);
-        wrap(this, "end", plainTracer);
-        wrap(this, "_suppressAttributes", plainTracer);
-        wrap(this, "_clone", plainTracer);
-    }
-  }
+  protected abstract readonly el: T;
 
   // These functions return true if there is no problem, or a list of
   // ValidationError objects otherwise.

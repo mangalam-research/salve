@@ -28,6 +28,7 @@ export class Interleave extends TwoSubpatterns {
  * Walker for [[Interleave]].
  */
 class InterleaveWalker extends InternalWalker<Interleave> {
+  protected readonly el: Interleave;
   private ended: boolean;
   private readonly hasAttrs: boolean;
   private readonly walkerA: InternalWalker<BasePattern>;
@@ -47,10 +48,11 @@ class InterleaveWalker extends InternalWalker<Interleave> {
   constructor(el: Interleave, nameResolver: NameResolver);
   constructor(elOrWalker: InterleaveWalker | Interleave,
               nameResolverOrMemo: NameResolver | CloneMap) {
-    super(elOrWalker);
+    super();
     if ((elOrWalker as Interleave).newWalker !== undefined) {
       const el = elOrWalker as Interleave;
       const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
       this.nameResolver = nameResolver;
       this.ended = false;
       this.hasAttrs = el.hasAttrs();
@@ -63,6 +65,7 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     else {
       const walker = elOrWalker as InterleaveWalker;
       const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.ended = walker.ended;
       this.hasAttrs = walker.hasAttrs;

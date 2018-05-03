@@ -69,6 +69,7 @@ export class Data extends Pattern {
  * Walker for [[Data]].
  */
 class DataWalker extends InternalWalker<Data> {
+  protected readonly el: Data;
   private readonly context: { resolver: NameResolver } | undefined;
   private matched: boolean;
   private readonly nameResolver: NameResolver;
@@ -85,10 +86,11 @@ class DataWalker extends InternalWalker<Data> {
   constructor(el: Data, nameResolver: NameResolver);
   constructor(elOrWalker: DataWalker | Data,
               nameResolverOrMemo: NameResolver | CloneMap) {
-    super(elOrWalker);
+    super();
     if ((elOrWalker as Data).newWalker !== undefined) {
       const el = elOrWalker as Data;
       const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
       this.nameResolver = nameResolver;
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
@@ -99,6 +101,7 @@ class DataWalker extends InternalWalker<Data> {
     else {
       const walker = elOrWalker as DataWalker;
       const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.context = walker.context !== undefined ?
         { resolver: this.nameResolver } : undefined;

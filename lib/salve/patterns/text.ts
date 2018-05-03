@@ -29,6 +29,7 @@ export class Text extends Pattern {
  *
  */
 class TextWalker extends InternalWalker<Text> {
+  protected readonly el: Text;
   private static readonly _textEvent: Event = new Event("text", /^.*$/);
   canEnd: boolean;
   canEndAttribute: boolean;
@@ -37,7 +38,8 @@ class TextWalker extends InternalWalker<Text> {
    * @param el The pattern for which this walker was constructed.
    */
   constructor(el: Text) {
-    super(el);
+    super();
+    this.el = el;
     this.canEnd = true;
     this.canEndAttribute = true;
   }

@@ -77,6 +77,7 @@ export class Value extends Pattern {
  * Walker for [[Value]].
  */
 class ValueWalker extends InternalWalker<Value> {
+  protected readonly el: Value;
   private matched: boolean;
   private readonly context: { resolver: NameResolver } | undefined;
   private readonly nameResolver: NameResolver;
@@ -87,10 +88,11 @@ class ValueWalker extends InternalWalker<Value> {
   constructor(el: Value, nameResolver: NameResolver);
   constructor(elOrWalker: Value |  ValueWalker,
               nameResolverOrMemo: CloneMap | NameResolver) {
-    super(elOrWalker);
+    super();
     if ((elOrWalker as Value).newWalker !== undefined) {
       const el = elOrWalker as Value;
       const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
       this.nameResolver = nameResolver;
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
@@ -100,6 +102,7 @@ class ValueWalker extends InternalWalker<Value> {
     else {
       const walker = elOrWalker as ValueWalker;
       const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
       this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.context = walker.context !== undefined ?
         { resolver: this.nameResolver } : undefined;
