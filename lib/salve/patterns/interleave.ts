@@ -190,11 +190,11 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     const retA = this.walkerA.end();
     const retB = this.walkerB.end();
 
-    if (!retA) {
-      return retB;
+    if (retA) {
+      return !retB ? retA : retA.concat(retB);
     }
 
-    return !retB ? retA : retA.concat(retB);
+    return retB;
   }
 
   endAttributes(): EndResult {
@@ -205,11 +205,11 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     const retA = this.walkerA.endAttributes();
     const retB = this.walkerB.endAttributes();
 
-    if (!retA) {
-      return retB;
+    if (retA) {
+      return retB ? retA.concat(retB) : retA;
     }
 
-    return !retB ? retA : retA.concat(retB);
+    return retB;
   }
 }
 

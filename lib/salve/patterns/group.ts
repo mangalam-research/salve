@@ -171,8 +171,8 @@ class GroupWalker extends InternalWalker<Group> {
     }
 
     const retA = this.walkerA.end();
-    // If we get here and the only errors we get are attribute errors,
-    // we must move on to check the second walker too.
+    // If we get here and the only errors we get are attribute errors, we must
+    // move on to check the second walker too.
     if (retA) {
       for (const err of retA) {
         if (!(err instanceof AttributeValueError ||
@@ -196,24 +196,14 @@ class GroupWalker extends InternalWalker<Group> {
       return false;
     }
 
-    if (this.el.patA.hasAttrs()) {
-      let ret = this.walkerA.endAttributes();
+    const endA = this.walkerA.endAttributes();
+    const endB = this.walkerB.endAttributes();
 
-      if (this.el.patB.hasAttrs()) {
-        const endB = this.walkerB.endAttributes();
-        if (endB) {
-          ret = ret ? ret.concat(endB) : endB;
-        }
-      }
-
-      return ret;
+    if (endB) {
+      return endA ? endA.concat(endB) : endB;
     }
 
-    if (this.el.patB.hasAttrs()) {
-      return this.walkerB.endAttributes();
-    }
-
-    return false;
+    return endA;
   }
 }
 
