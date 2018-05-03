@@ -67,20 +67,33 @@ interface State {
   inGroup: boolean;
 }
 
-const prohibitedInStart =
-  new Set(["attribute", "data", "value", "text", "list", "group", "interleave",
-           "oneOrMore", "empty"]);
-
-const prohibitedInList =
-  new Set(["list", "ref", "attribute", "text", "interleave"]);
-
-const prohibitedInDataExcept =
-  new Set(["attribute", "ref", "text", "list", "group", "interleave",
-           "oneOrMore", "empty"]);
-
 class ProhibitedPath extends SchemaValidationError {
   constructor(path: string) {
     super(`prohibited path: ${path}`);
+  }
+}
+
+class ProhibitedAttributePath extends SchemaValidationError {
+  constructor(name: string) {
+    super(`attribute//${name}`);
+  }
+}
+
+class ProhibitedListPath extends SchemaValidationError {
+  constructor(name: string) {
+    super(`list//${name}`);
+  }
+}
+
+class ProhibitedStartPath extends SchemaValidationError {
+  constructor(name: string) {
+    super(`start//${name}`);
+  }
+}
+
+class ProhibitedDataExceptPath extends SchemaValidationError {
+  constructor(name: string) {
+    super(`data/except//${name}`);
   }
 }
 
@@ -90,6 +103,9 @@ interface CheckResult {
   occurringRefs: Element[];
   occurringTexts: number;
 }
+
+type Handler = (this: GeneralChecker, el: Element,
+                state: State) => CheckResult;
 
 /**
  * Perform the final constraint checks, and record some information
@@ -121,313 +137,414 @@ class GeneralChecker {
   private _check(el: Element, state: State): CheckResult {
     const name = el.local;
 
-    if (state.inStart && prohibitedInStart.has(name)) {
-      throw new ProhibitedPath(`start//${name}`);
+    const method = (this as any)[`${name}Handler`] as Handler;
+
+    return method.call(this, el, state);
+  }
+
+  elementHandler(el: Element, state: State): CheckResult {
+    // The first child is the name class, which we do not need to walk.
+    return this._check(el.children[1] as Element, state);
+  }
+
+  attributeHandler(el: Element, state: State): CheckResult {
+    if (state.inOneOrMoreGroup) {
+      throw new ProhibitedPath("oneOrMore//group//attribute");
     }
 
-    if (state.inList && prohibitedInList.has(name)) {
-      throw new ProhibitedPath(`list//${name}`);
+    if (state.inOneOrMoreInterleave) {
+      throw new ProhibitedPath("oneOrMore//interleave//attribute");
     }
 
-    if (state.inDataExcept && prohibitedInDataExcept.has(name)) {
-      throw new ProhibitedPath(`data/except//${name}`);
+    if (state.inAttribute) {
+      throw new ProhibitedAttributePath(el.local);
+    }
+
+    if (state.inList) {
+      throw new ProhibitedListPath(el.local);
+    }
+
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    const nameClass = findMultiNames(el, ["anyName", "nsName"]);
+    if (nameClass.anyName.length + nameClass.nsName.length !== 0  &&
+        !state.inOneOrMore) {
+      throw new SchemaValidationError("an attribute with an infinite name \
+class must be a descendant of oneOrMore (section 7.3)");
+    }
+
+    // The first child is the name class, which we do not need to walk.
+    this._check(el.children[1] as Element, { ...state, inAttribute: true });
+
+    return {
+      contentType: ContentType.EMPTY,
+      occurringAttributes: [el],
+      occurringRefs: [],
+      occurringTexts: 0,
+    };
+  }
+
+  exceptHandler(el: Element, state: State): CheckResult {
+    // parent cannot be undefined here.
+    let newState = state;
+    // tslint:disable-next-line:no-non-null-assertion
+    if (!state.inDataExcept && el.parent!.local === "data") {
+      newState = { ...state, inDataExcept: true };
+    }
+    this._check(el.children[0] as Element, newState);
+
+    return {
+      contentType: null,
+      occurringAttributes: [],
+      occurringRefs: [],
+      occurringTexts: 0,
+    };
+  }
+
+  oneOrMoreHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    const { contentType, occurringAttributes, occurringRefs,
+            occurringTexts } =
+      this._check(el.children[0] as Element, { ...state, inOneOrMore: true });
+
+    // The test would be
+    //
+    // ct !== null && groupable(ct, ct)
+    //
+    // but the only thing not groupable with itself is ContentType.SIMPLE
+    // and if ct === null then forcibly ct !== ContentType.SIMPLE
+    // is true so we can simplify to the following.
+    return {
+      contentType: contentType !== ContentType.SIMPLE ? contentType : null,
+      occurringAttributes,
+      occurringRefs,
+      occurringTexts,
+    };
+  }
+
+  groupHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    return this.groupInterleaveHandler(
+      el.children as Element[],
+      {
+        ...state,
+        inGroup: true,
+        inOneOrMoreGroup: state.inOneOrMore,
+      },
+      false);
+  }
+
+  interleaveHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inList) {
+      throw new ProhibitedListPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    return this.groupInterleaveHandler(
+      el.children as Element[],
+      {
+        ...state, inInterlave: true,
+        inOneOrMoreInterleave: state.inOneOrMore,
+      },
+      true);
+  }
+
+  choiceHandler(el: Element, state: State): CheckResult {
+    const { contentType: firstCt, occurringAttributes: firstAttributes,
+            occurringRefs: firstRefs, occurringTexts: firstTexts } =
+      this._check(el.children[0] as Element, state);
+    const { contentType: secondCt, occurringAttributes: secondAttributes,
+            occurringRefs: secondRefs, occurringTexts: secondTexts } =
+      this._check(el.children[1] as Element, state);
+
+    return {
+      contentType: firstCt !== null && secondCt !== null ?
+        (firstCt > secondCt ? firstCt : secondCt) : null,
+      occurringAttributes: firstAttributes.concat(secondAttributes),
+      occurringRefs: firstRefs.concat(secondRefs),
+      occurringTexts: firstTexts + secondTexts,
+    };
+  }
+
+  listHandler(el: Element, state: State): CheckResult {
+    if (state.inList) {
+      throw new ProhibitedListPath(el.local);
+    }
+
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    this._check(el.children[0] as Element, { ...state, inList: true });
+
+    return {
+      contentType: ContentType.SIMPLE,
+      occurringAttributes: [],
+      occurringRefs: [],
+      occurringTexts: 0,
+    };
+  }
+
+  dataHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
     }
 
     const children = el.children;
-    // By this time, all elements have a specific internal structure, so we use
-    // specialize code to walk the elements instead of using an iteration for
-    // everything.
+    const last = children[children.length - 1] as Element;
+    // We only need to scan the possible except child, which is necessarily
+    // last.
+    const hasExcept = (children.length !== 0 && last.local === "except");
 
-    switch (name) {
-      case "element":
-        // The first child is the name class, which we do not need to walk.
-        return this._check(children[1] as Element, state);
-      case "attribute":
-        if (state.inOneOrMoreGroup) {
-          throw new ProhibitedPath("oneOrMore//group//attribute");
-        }
-
-        if (state.inOneOrMoreInterleave) {
-          throw new ProhibitedPath("oneOrMore//interleave//attribute");
-        }
-
-        if (state.inAttribute) {
-          throw new ProhibitedPath(`attribute//${name}`);
-        }
-
-        const nameClass = findMultiNames(el, ["anyName", "nsName"]);
-        if (nameClass.anyName.length + nameClass.nsName.length !== 0  &&
-            !state.inOneOrMore) {
-          throw new SchemaValidationError("an attribute with an infinite name \
-class must be a descendant of oneOrMore (section 7.3)");
-        }
-
-        // The first child is the name class, which we do not need to walk.
-        this._check(children[1] as Element, { ...state, inAttribute: true });
-
-        return {
-          contentType: ContentType.EMPTY,
-          occurringAttributes: [el],
-          occurringRefs: [],
-          occurringTexts: 0,
-        };
-      case "except": {
-        // parent cannot be undefined here.
-        let newState = state;
-        // tslint:disable-next-line:no-non-null-assertion
-        if (!state.inDataExcept && el.parent!.local === "data") {
-          newState = { ...state, inDataExcept: true };
-        }
-        this._check(children[0] as Element, newState);
-
-        return {
-          contentType: null,
-          occurringAttributes: [],
-          occurringRefs: [],
-          occurringTexts: 0,
-        };
-      }
-      case "oneOrMore": {
-        const { contentType, occurringAttributes, occurringRefs,
-                occurringTexts } =
-          this._check(children[0] as Element, { ...state, inOneOrMore: true });
-
-        // The test would be
-        //
-        // ct !== null && groupable(ct, ct)
-        //
-        // but the only thing not groupable with itself is ContentType.SIMPLE
-        // and if ct === null then forcibly ct !== ContentType.SIMPLE
-        // is true so we can simplify to the following.
-        return {
-          contentType: contentType !== ContentType.SIMPLE ? contentType : null,
-          occurringAttributes,
-          occurringRefs,
-          occurringTexts,
-        };
-      }
-      case "group":
-        return this.groupInterleaveHandler(children as Element[],
-                                      {
-          ...state,
-          inGroup: true,
-          inOneOrMoreGroup: state.inOneOrMore,
-        },
-                                      false);
-      case "interleave":
-        return this.groupInterleaveHandler(children as Element[],
-                                      {
-          ...state, inInterlave: true,
-          inOneOrMoreInterleave: state.inOneOrMore,
-        },
-                                      true);
-      case "choice": {
-        const { contentType: firstCt, occurringAttributes: firstAttributes,
-                occurringRefs: firstRefs, occurringTexts: firstTexts } =
-          this._check(children[0] as Element, state);
-        const { contentType: secondCt, occurringAttributes: secondAttributes,
-                occurringRefs: secondRefs, occurringTexts: secondTexts } =
-          this._check(children[1] as Element, state);
-
-        return {
-          contentType: firstCt !== null && secondCt !== null ?
-            (firstCt > secondCt ? firstCt : secondCt) : null,
-          occurringAttributes: firstAttributes.concat(secondAttributes),
-          occurringRefs: firstRefs.concat(secondRefs),
-          occurringTexts: firstTexts + secondTexts,
-        };
-      }
-      case "list":
-        this._check(children[0] as Element, { ...state, inList: true });
-
-        return {
-          contentType: ContentType.SIMPLE,
-          occurringAttributes: [],
-          occurringRefs: [],
-          occurringTexts: 0,
-        };
-      case "data": {
-        const last = children[children.length - 1] as Element;
-        // We only need to scan the possible except child, which is necessarily
-        // last.
-        const hasExcept = (children.length !== 0 && last.local === "except");
-
-        const typeAttr = el.mustGetAttribute("type");
-        const libname = el.mustGetAttribute("datatypeLibrary");
-        const lib = registry.find(libname);
-        if (lib === undefined) {
-          throw new ValueValidationError(
-            el.path, [new ValueError(`unknown datatype library: ${libname}`)]);
-        }
-
-        const datatype = lib.types[typeAttr];
-        if (datatype === undefined) {
-          throw new ValueValidationError(
-            el.path,
-            [new ValueError(`unknown datatype ${typeAttr} in \
-${(libname === "") ? "default library" : `library ${libname}`}`)]);
-        }
-
-        const params = children.slice(
-          0, hasExcept ? children.length - 1 : undefined).map(
-            (child: Element) => ({
-              name: child.mustGetAttribute("name"),
-              value: child.text,
-            }));
-
-        datatype.parseParams(el.path, params);
-
-        // tslint:disable-next-line: no-http-string
-        if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
-            (typeAttr === "ENTITY" || typeAttr === "ENTITIES")) {
-          this.typeWarnings.push(
-            `WARNING: ${el.path} uses the ${typeAttr} type in library \
-${libname}`);
-        }
-
-        if (hasExcept) {
-          this._check(last, state);
-        }
-
-        return {
-          contentType: ContentType.SIMPLE,
-          occurringAttributes: [],
-          occurringRefs: [],
-          occurringTexts: 0,
-        };
-      }
-      case "value": {
-        let value = el.text;
-        const typeAttr = el.mustGetAttribute("type");
-        const libname = el.mustGetAttribute("datatypeLibrary");
-        let ns = el.mustGetAttribute("ns");
-
-        const lib = registry.find(libname);
-        if (lib === undefined) {
-          throw new ValueValidationError(
-            el.path,
-            [new ValueError(`unknown datatype library: ${libname}`)]);
-        }
-
-        const datatype = lib.types[typeAttr];
-        if (datatype === undefined) {
-          throw new ValueValidationError(
-            el.path,
-            [new ValueError(`unknown datatype ${typeAttr} in \
-${(libname === "") ? "default library" : `library ${libname}`}`)]);
-        }
-
-        if (datatype.needsContext &&
-            // tslint:disable-next-line: no-http-string
-            !(libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
-              (typeAttr === "QName" || typeAttr === "NOTATION"))) {
-          throw new Error("datatype needs context but is not " +
-                          "QName or NOTATION form the XML Schema " +
-                          "library: don't know how to handle");
-        }
-
-        let context: { resolver : NameResolver } | undefined;
-        if (datatype.needsContext) {
-          // Change ns to the namespace we need.
-          ns = fromQNameToURI(value, el);
-          el.setAttribute("ns", ns);
-          value = localName(value);
-          el.empty();
-          el.appendChild(new Text(value));
-
-          const nr = new NameResolver();
-          nr.definePrefix("", ns);
-          context = { resolver: nr };
-        }
-
-        datatype.parseValue(el.path, value, context);
-
-        // tslint:disable-next-line: no-http-string
-        if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
-            (typeAttr === "ENTITY" || typeAttr === "ENTITIES")) {
-          this.typeWarnings.push(
-            `WARNING: ${el.path} uses the ${typeAttr} type in library \
-${libname}`);
-        }
-
-        // The child of value can only be a text node.
-        return {
-          contentType: ContentType.SIMPLE,
-          occurringAttributes: [],
-          occurringRefs: [],
-          occurringTexts: 0,
-        };
-      }
-      case "text":
-        return {
-          contentType: ContentType.COMPLEX,
-          occurringAttributes: [],
-          occurringRefs: [],
-          occurringTexts: 1,
-        };
-      case "ref":
-        if (state.inAttribute) {
-          throw new ProhibitedPath(`attribute//${name}`);
-        }
-
-        return {
-          contentType: ContentType.COMPLEX,
-          occurringAttributes: [],
-          occurringRefs: [el],
-          occurringTexts: 0,
-        };
-      case "empty":
-        return {
-          contentType: ContentType.EMPTY,
-          occurringAttributes: [],
-          occurringRefs: [],
-          occurringTexts: 0,
-        };
-      case "notAllowed":
-        return {
-          contentType: null,
-          occurringAttributes: [],
-          occurringRefs: [],
-          occurringTexts: 0,
-        };
-      case "define": {
-        const { contentType } = this._check(children[0] as Element, state);
-        if (contentType === null) {
-          throw new SchemaValidationError(
-            `definition ${el.mustGetAttribute("name")} violates the constraint \
-on string values (section 7.2)`);
-        }
-
-        return {
-          contentType: null,
-          occurringAttributes: [],
-          occurringRefs: [],
-          occurringTexts: 0,
-        };
-      }
-      case "start":
-        this._check(children[0] as Element, { ...state, inStart: true });
-
-        return {
-          contentType: null,
-          occurringAttributes: [],
-          occurringRefs: [],
-          occurringTexts: 0,
-        };
-      case "grammar":
-        for (const child of children) {
-          this._check(child as Element, state);
-        }
-
-        return {
-          contentType: null,
-          occurringAttributes: [],
-          occurringRefs: [],
-          occurringTexts: 0,
-        };
-      default:
-        throw new Error(`unexpected element name ${name}`);
+    const typeAttr = el.mustGetAttribute("type");
+    const libname = el.mustGetAttribute("datatypeLibrary");
+    const lib = registry.find(libname);
+    if (lib === undefined) {
+      throw new ValueValidationError(
+        el.path, [new ValueError(`unknown datatype library: ${libname}`)]);
     }
+
+    const datatype = lib.types[typeAttr];
+    if (datatype === undefined) {
+      throw new ValueValidationError(
+        el.path,
+        [new ValueError(`unknown datatype ${typeAttr} in \
+${(libname === "") ? "default library" : `library ${libname}`}`)]);
+    }
+
+    const params = children.slice(
+      0, hasExcept ? children.length - 1 : undefined).map(
+        (child: Element) => ({
+          name: child.mustGetAttribute("name"),
+          value: child.text,
+        }));
+
+    datatype.parseParams(el.path, params);
+
+    // tslint:disable-next-line: no-http-string
+    if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+        (typeAttr === "ENTITY" || typeAttr === "ENTITIES")) {
+      this.typeWarnings.push(
+        `WARNING: ${el.path} uses the ${typeAttr} type in library \
+${libname}`);
+    }
+
+    if (hasExcept) {
+      this._check(last, state);
+    }
+
+    return {
+      contentType: ContentType.SIMPLE,
+      occurringAttributes: [],
+      occurringRefs: [],
+      occurringTexts: 0,
+    };
+  }
+
+  valueHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    let value = el.text;
+    const typeAttr = el.mustGetAttribute("type");
+    const libname = el.mustGetAttribute("datatypeLibrary");
+    let ns = el.mustGetAttribute("ns");
+
+    const lib = registry.find(libname);
+    if (lib === undefined) {
+      throw new ValueValidationError(
+        el.path,
+        [new ValueError(`unknown datatype library: ${libname}`)]);
+    }
+
+    const datatype = lib.types[typeAttr];
+    if (datatype === undefined) {
+      throw new ValueValidationError(
+        el.path,
+        [new ValueError(`unknown datatype ${typeAttr} in \
+${(libname === "") ? "default library" : `library ${libname}`}`)]);
+    }
+
+    if (datatype.needsContext &&
+        // tslint:disable-next-line: no-http-string
+        !(libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+          (typeAttr === "QName" || typeAttr === "NOTATION"))) {
+      throw new Error("datatype needs context but is not " +
+                      "QName or NOTATION form the XML Schema " +
+                      "library: don't know how to handle");
+    }
+
+    let context: { resolver : NameResolver } | undefined;
+    if (datatype.needsContext) {
+      // Change ns to the namespace we need.
+      ns = fromQNameToURI(value, el);
+      el.setAttribute("ns", ns);
+      value = localName(value);
+      el.empty();
+      el.appendChild(new Text(value));
+
+      const nr = new NameResolver();
+      nr.definePrefix("", ns);
+      context = { resolver: nr };
+    }
+
+    datatype.parseValue(el.path, value, context);
+
+    // tslint:disable-next-line: no-http-string
+    if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+        (typeAttr === "ENTITY" || typeAttr === "ENTITIES")) {
+      this.typeWarnings.push(
+        `WARNING: ${el.path} uses the ${typeAttr} type in library \
+${libname}`);
+    }
+
+    // The child of value can only be a text node.
+    return {
+      contentType: ContentType.SIMPLE,
+      occurringAttributes: [],
+      occurringRefs: [],
+      occurringTexts: 0,
+    };
+  }
+
+  textHandler(el: Element, state: State): CheckResult {
+    if (state.inList) {
+      throw new ProhibitedListPath(el.local);
+    }
+
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    return {
+      contentType: ContentType.COMPLEX,
+      occurringAttributes: [],
+      occurringRefs: [],
+      occurringTexts: 1,
+    };
+  }
+
+  refHandler(el: Element, state: State): CheckResult {
+    if (state.inList) {
+      throw new ProhibitedListPath(el.local);
+    }
+
+    if (state.inAttribute) {
+      throw new ProhibitedAttributePath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    return {
+      contentType: ContentType.COMPLEX,
+      occurringAttributes: [],
+          occurringRefs: [el],
+      occurringTexts: 0,
+    };
+  }
+
+  emptyHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    return {
+      contentType: ContentType.EMPTY,
+      occurringAttributes: [],
+      occurringRefs: [],
+      occurringTexts: 0,
+    };
+  }
+
+  notAllowedHandler(): CheckResult {
+    return {
+      contentType: null,
+      occurringAttributes: [],
+      occurringRefs: [],
+      occurringTexts: 0,
+    };
+  }
+
+  defineHandler(el: Element, state: State): CheckResult {
+    const { contentType } = this._check(el.children[0] as Element, state);
+    if (contentType === null) {
+      throw new SchemaValidationError(
+        `definition ${el.mustGetAttribute("name")} violates the constraint \
+on string values (section 7.2)`);
+    }
+
+    return {
+      contentType: null,
+      occurringAttributes: [],
+      occurringRefs: [],
+      occurringTexts: 0,
+    };
+  }
+
+  startHandler(el: Element, state: State): CheckResult {
+    this._check(el.children[0] as Element, { ...state, inStart: true });
+
+    return {
+      contentType: null,
+      occurringAttributes: [],
+          occurringRefs: [],
+      occurringTexts: 0,
+    };
+  }
+
+  grammarHandler(el: Element, state: State): CheckResult {
+    for (const child of el.children) {
+      this._check(child as Element, state);
+    }
+
+    return {
+      contentType: null,
+      occurringAttributes: [],
+      occurringRefs: [],
+      occurringTexts: 0,
+    };
   }
 
   private getAttrName(attr: Element): ConcreteName {
