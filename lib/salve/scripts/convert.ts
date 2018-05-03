@@ -145,6 +145,11 @@ Implies ``--simplify-only``.",
   defaultValue: Infinity,
 });
 
+parser.addArgument(["--no-output"], {
+  help: "Skip producing any output. This may be useful for debugging.",
+  action: "storeTrue",
+});
+
 parser.addArgument(["--simplified-input"], {
   help: "The input is as simplified RNG.",
   action: "storeTrue",
@@ -233,7 +238,7 @@ async function prettyPrint(input: string, outputPath: string): Promise<void> {
  */
 async function convert(result: SimplificationResult): Promise<void> {
   const simplified = result.simplified;
-  if (args.simplify_only) {
+  if (args.simplify_only && !args.no_output) {
     return prettyPrint(serialize(simplified), args.output_path);
   }
 
@@ -265,9 +270,11 @@ async function convert(result: SimplificationResult): Promise<void> {
     renameRefsDefines(simplified);
   }
 
-  fs.writeFileSync(args.output_path,
-                   writeTreeToJSON(simplified, args.format_version,
-                                   args.include_paths, args.verbose_format));
+  if (!args.no_output) {
+    fs.writeFileSync(args.output_path,
+                     writeTreeToJSON(simplified, args.format_version,
+                                     args.include_paths, args.verbose_format));
+  }
 
   if (args.timing) {
     console.log(`Conversion delta: ${Date.now() - convStartTime!}`);
