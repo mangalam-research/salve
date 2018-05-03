@@ -9,8 +9,9 @@ import * as sax from "sax";
 
 import { registry, ValueError, ValueValidationError } from "../../datatypes";
 import { readTreeFromJSON } from "../../json-format/read";
-import { AnyName, ConcreteName, Data, Grammar, Name, NameChoice, NsName,
-         Value } from "../../patterns";
+import { NameResolver } from "../../name_resolver";
+import { AnyName, ConcreteName, Grammar, Name, NameChoice,
+         NsName } from "../../patterns";
 import * as relaxng from "../../schemas/relaxng";
 import { BasicParser, Element, Text, Validator } from "../parser";
 import { registerSimplifier, SchemaSimplifierOptions,
@@ -199,7 +200,8 @@ function getAttrName(attr: Element,
 
 // tslint:disable-next-line:max-func-body-length
 function _generalCheck(el: Element,
-                       ret: Record<string, Element[]>, state: State): void {
+                       ret: Record<string, Element[]>,
+                       state: State): void {
   const name = el.local;
 
   // Or'ing is faster than checking if the name is in an array or a set.
@@ -225,191 +227,8 @@ function _generalCheck(el: Element,
 
   const children = el.children;
   switch (name) {
-    case "attribute":
-      if (state.inOneOrMoreGroup) {
-        throw new ProhibitedPath("oneOrMore//group//attribute");
-      }
-
-      if (state.inOneOrMoreInterleave) {
-        throw new ProhibitedPath("oneOrMore//interleave//attribute");
-      }
-
-      const nameClass = findMultiNames(el, ["anyName", "nsName"]);
-      if (nameClass.anyName.length + nameClass.nsName.length !== 0  &&
-         !state.inOneOrMore) {
-        throw new SchemaValidationError("an attribute with an infinite name \
-class must be a descendant of oneOrMore (section 7.3)");
-      }
-      break;
-    case "value": {
-      let value = el.text;
-      const dataType = el.mustGetAttribute("type");
-      const libname = el.mustGetAttribute("datatypeLibrary");
-      let ns = el.mustGetAttribute("ns");
-
-      const lib = registry.find(libname);
-      if (lib === undefined) {
-        throw new ValueValidationError(
-          el.path,
-          [new ValueError(`unknown datatype library: ${libname}`)]);
-      }
-
-      const datatype = lib.types[dataType];
-      if (datatype === undefined) {
-        throw new ValueValidationError(
-          el.path,
-          [new ValueError(`unknown datatype ${dataType} in \
-${(libname === "") ? "default library" : `library ${libname}`}`)]);
-      }
-
-      if (datatype.needsContext &&
-          // tslint:disable-next-line: no-http-string
-          !(libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
-            (dataType === "QName" || dataType === "NOTATION"))) {
-        throw new Error("datatype needs context but is not " +
-                        "QName or NOTATION form the XML Schema " +
-                        "library: don't know how to handle");
-      }
-
-      if (datatype.needsContext) {
-        // Change ns to the namespace we need.
-        ns = fromQNameToURI(value, el);
-        el.setAttribute("ns", ns);
-        value = localName(value);
-        el.empty();
-        el.appendChild(new Text(value));
-      }
-
-      const valuePattern = new Value(el.path, value, dataType, libname, ns);
-
-      // Accessing the value will cause it to be validated.
-      // tslint:disable-next-line:no-unused-expression
-      valuePattern.value;
-
-      // tslint:disable-next-line: no-http-string
-      if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
-          (dataType === "ENTITY" || dataType === "ENTITIES")) {
-        state.typeWarnings.push(
-          `WARNING: ${el.path} uses the ${dataType} type in library \
-${libname}`);
-      }
-      break;
-    }
-    case "data": {
-      // Except is necessarily last.
-      const hasExcept = (children.length !== 0 &&
-                         (children[children.length - 1] as Element) .local ===
-                         "except");
-
-      const dataType = el.mustGetAttribute("type");
-      const libname = el.mustGetAttribute("datatypeLibrary");
-      const lib = registry.find(libname);
-      if (lib === undefined) {
-        throw new ValueValidationError(
-          el.path, [new ValueError(`unknown datatype library: ${libname}`)]);
-      }
-
-      if (lib.types[dataType] === undefined) {
-        throw new ValueValidationError(
-          el.path,
-          [new ValueError(`unknown datatype ${dataType} in \
-${(libname === "") ? "default library" : `library ${libname}`}`)]);
-      }
-
-      const params = children.slice(
-        0, hasExcept ? children.length - 1 : undefined).map(
-          (child: Element) => ({
-            name: child.mustGetAttribute("name"),
-            value: child.text,
-          }));
-
-      const data = new Data(el.path, dataType, libname, params);
-
-      // This causes the parameters to be checked. We do not need to do
-      // anything with the value.
-      // tslint:disable-next-line:no-unused-expression
-      data.params;
-
-      // tslint:disable-next-line: no-http-string
-      if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
-          (dataType === "ENTITY" || dataType === "ENTITIES")) {
-        state.typeWarnings.push(
-          `WARNING: ${el.path} uses the ${dataType} type in library \
-${libname}`);
-      }
-      break;
-    }
-    default:
-  }
-
-  if (children.length > 0) {
-    // This code is crafted to avoid coyping the state object needlessly.
-    let newState = state;
-    switch (name) {
-      case "start":
-        if (!state.inStart) {
-          newState = { ...state, inStart: true };
-        }
-        break;
-      case "attribute":
-        if (!state.inAttribute) {
-          newState = { ...state, inAttribute: true };
-        }
-        break;
-      case "list":
-        if (!state.inList) {
-          newState = { ...state, inList: true };
-        }
-        break;
-      case "except":
-        // parent cannot be undefined here.
-        // tslint:disable-next-line:no-non-null-assertion
-        if (!state.inDataExcept && el.parent!.local === "data") {
-          newState = { ...state, inDataExcept: true };
-        }
-        break;
-      case "oneOrMore":
-        if (!state.inOneOrMore) {
-          newState = { ...state, inOneOrMore: true };
-        }
-        break;
-      case "group":
-        if (!state.inGroup) {
-          newState = { ...state, inGroup: true };
-          if (!state.inOneOrMoreGroup) {
-            newState.inOneOrMoreGroup = state.inOneOrMore;
-          }
-        }
-        break;
-      case "interleave":
-        if (!state.inInterlave) {
-          newState = { ...state, inInterlave: true };
-          if (!state.inOneOrMoreInterleave) {
-            newState.inOneOrMoreInterleave = state.inOneOrMore;
-          }
-        }
-        break;
-      case "define":
-        const element = children[0] as Element;
-        const pattern = element.children[1] as Element;
-        const contentType = computeContentType(pattern);
-        if (contentType === null) {
-          throw new SchemaValidationError(
-            `definition ${el.mustGetAttribute("name")} violates the constraint \
-on string values (section 7.2)`);
-        }
-      default:
-    }
-
-    for (const child of children) {
-      if (!(child instanceof Element)) {
-        continue;
-      }
-
-      _generalCheck(child, ret, newState);
-    }
-
-    if (name === "group" || name === "interleave") {
+    case "group":
+    case "interleave": {
       const attrs1 = findOccurring(children[0] as Element,
                                    ["attribute"]).attribute;
       if (attrs1.length !== 0) {
@@ -429,6 +248,219 @@ interleave intersect (section 7.3): ${name1} and ${name2}`);
           }
         }
       }
+      break;
+    }
+    case "attribute":
+      if (state.inOneOrMoreGroup) {
+        throw new ProhibitedPath("oneOrMore//group//attribute");
+      }
+
+      if (state.inOneOrMoreInterleave) {
+        throw new ProhibitedPath("oneOrMore//interleave//attribute");
+      }
+
+      const nameClass = findMultiNames(el, ["anyName", "nsName"]);
+      if (nameClass.anyName.length + nameClass.nsName.length !== 0  &&
+         !state.inOneOrMore) {
+        throw new SchemaValidationError("an attribute with an infinite name \
+class must be a descendant of oneOrMore (section 7.3)");
+      }
+      break;
+    case "value": {
+      let value = el.text;
+      const typeAttr = el.mustGetAttribute("type");
+      const libname = el.mustGetAttribute("datatypeLibrary");
+      let ns = el.mustGetAttribute("ns");
+
+      const lib = registry.find(libname);
+      if (lib === undefined) {
+        throw new ValueValidationError(
+          el.path,
+          [new ValueError(`unknown datatype library: ${libname}`)]);
+      }
+
+      const datatype = lib.types[typeAttr];
+      if (datatype === undefined) {
+        throw new ValueValidationError(
+          el.path,
+          [new ValueError(`unknown datatype ${typeAttr} in \
+${(libname === "") ? "default library" : `library ${libname}`}`)]);
+      }
+
+      if (datatype.needsContext &&
+          // tslint:disable-next-line: no-http-string
+          !(libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+            (typeAttr === "QName" || typeAttr === "NOTATION"))) {
+        throw new Error("datatype needs context but is not " +
+                        "QName or NOTATION form the XML Schema " +
+                        "library: don't know how to handle");
+      }
+
+      let context: { resolver : NameResolver } | undefined;
+      if (datatype.needsContext) {
+        // Change ns to the namespace we need.
+        ns = fromQNameToURI(value, el);
+        el.setAttribute("ns", ns);
+        value = localName(value);
+        el.empty();
+        el.appendChild(new Text(value));
+
+        const nr = new NameResolver();
+        nr.definePrefix("", ns);
+        context = { resolver: nr };
+      }
+
+      datatype.parseValue(el.path, value, context);
+
+      // tslint:disable-next-line: no-http-string
+      if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+          (typeAttr === "ENTITY" || typeAttr === "ENTITIES")) {
+        state.typeWarnings.push(
+          `WARNING: ${el.path} uses the ${typeAttr} type in library \
+${libname}`);
+      }
+      break;
+    }
+    case "data": {
+      // Except is necessarily last.
+      const typeAttr = el.mustGetAttribute("type");
+      const libname = el.mustGetAttribute("datatypeLibrary");
+      const lib = registry.find(libname);
+      if (lib === undefined) {
+        throw new ValueValidationError(
+          el.path, [new ValueError(`unknown datatype library: ${libname}`)]);
+      }
+
+      const datatype = lib.types[typeAttr];
+      if (datatype === undefined) {
+        throw new ValueValidationError(
+          el.path,
+          [new ValueError(`unknown datatype ${typeAttr} in \
+${(libname === "") ? "default library" : `library ${libname}`}`)]);
+      }
+
+      const hasExcept = (children.length !== 0 &&
+                         (children[children.length - 1] as Element) .local ===
+                         "except");
+
+      const params = children.slice(
+        0, hasExcept ? children.length - 1 : undefined).map(
+          (child: Element) => ({
+            name: child.mustGetAttribute("name"),
+            value: child.text,
+          }));
+
+      datatype.parseParams(el.path, params);
+
+      // tslint:disable-next-line: no-http-string
+      if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+          (typeAttr === "ENTITY" || typeAttr === "ENTITIES")) {
+        state.typeWarnings.push(
+          `WARNING: ${el.path} uses the ${typeAttr} type in library \
+${libname}`);
+      }
+      break;
+    }
+    default:
+  }
+
+  // By this time, all elements have a specific internal structure, so we use
+  // specialize code to walk the elements instead of using an iteration for
+  // everything.
+  if (children.length > 0) {
+    // This code is crafted to avoid coyping the state object needlessly.
+    let newState = state;
+    switch (name) {
+      case "grammar":
+        for (const child of children) {
+          _generalCheck(child as Element, ret, newState);
+        }
+        break;
+      case "element":
+        // The first child is the name class, which we do not need to walk.
+        _generalCheck(children[1] as Element, ret, newState);
+        break;
+      case "attribute":
+        if (!state.inAttribute) {
+          newState = { ...state, inAttribute: true };
+        }
+        // The first child is the name class, which we do not need to walk.
+        _generalCheck(children[1] as Element, ret, newState);
+        break;
+      case "list":
+        if (!state.inList) {
+          newState = { ...state, inList: true };
+        }
+        _generalCheck(children[0] as Element, ret, newState);
+        break;
+      case "except":
+        // parent cannot be undefined here.
+        // tslint:disable-next-line:no-non-null-assertion
+        if (!state.inDataExcept && el.parent!.local === "data") {
+          newState = { ...state, inDataExcept: true };
+        }
+        _generalCheck(children[0] as Element, ret, newState);
+        break;
+      case "oneOrMore":
+        if (!state.inOneOrMore) {
+          newState = { ...state, inOneOrMore: true };
+        }
+        _generalCheck(children[0] as Element, ret, newState);
+        break;
+      case "group":
+        if (!state.inGroup) {
+          newState = { ...state, inGroup: true };
+          if (!state.inOneOrMoreGroup) {
+            newState.inOneOrMoreGroup = state.inOneOrMore;
+          }
+        }
+        _generalCheck(children[0] as Element, ret, newState);
+        _generalCheck(children[1] as Element, ret, newState);
+        break;
+      case "interleave":
+        if (!state.inInterlave) {
+          newState = { ...state, inInterlave: true };
+          if (!state.inOneOrMoreInterleave) {
+            newState.inOneOrMoreInterleave = state.inOneOrMore;
+          }
+        }
+        _generalCheck(children[0] as Element, ret, newState);
+        _generalCheck(children[1] as Element, ret, newState);
+        break;
+      case "choice":
+        _generalCheck(children[0] as Element, ret, newState);
+        _generalCheck(children[1] as Element, ret, newState);
+        break;
+      case "define":
+        const element = children[0] as Element;
+        const pattern = element.children[1] as Element;
+        const contentType = computeContentType(pattern);
+        if (contentType === null) {
+          throw new SchemaValidationError(
+            `definition ${el.mustGetAttribute("name")} violates the constraint \
+on string values (section 7.2)`);
+        }
+        _generalCheck(children[0] as Element, ret, newState);
+        break;
+      case "start":
+        if (!state.inStart) {
+          newState = { ...state, inStart: true };
+        }
+        _generalCheck(children[0] as Element, ret, newState);
+        break;
+      case "data":
+        const last = children[children.length - 1] as Element;
+        // We only need to scan the possible except child, which is necessarily
+        // last.
+        const hasExcept = (children.length !== 0 && last.local === "except");
+        if (hasExcept) {
+          _generalCheck(last, ret, newState);
+        }
+        break;
+      case "value":
+        // The child can only be a text node.
+        break;
+      default:
     }
   }
 }
@@ -496,19 +528,19 @@ function checkInterleaveRestriction(cached: Record<string, Element[]>,
     const p1 = interleave.children[0] as Element;
     const p2 = interleave.children[1] as Element;
     const { ref: refs1, text: texts1 } = findOccurring(p1, ["ref", "text"]);
-
     if (refs1.length === 0 && texts1.length === 0) {
       continue;
     }
 
     const { ref: refs2, text: texts2 } = findOccurring(p2, ["ref", "text"]);
-    if (refs2.length === 0 && texts2.length === 0) {
-      continue;
-    }
 
     if (texts1.length !== 0 && texts2.length !== 0) {
       throw new SchemaValidationError(
         "text present in both patterns of an interleave (section 7.4)");
+    }
+
+    if (refs1.length === 0 || refs2.length === 0) {
+      continue;
     }
 
     const names1 = refs1
