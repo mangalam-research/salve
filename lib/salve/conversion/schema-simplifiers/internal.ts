@@ -67,6 +67,8 @@ interface State {
   inGroup: boolean;
   attrNameCache: Map<Element, ConcreteName>;
   typeWarnings: string[];
+  definesByName: Map<string, Element>;
+  defineNameToElementNames: Map<string, ConcreteName>;
 }
 
 const prohibitedInStart =
@@ -90,14 +92,11 @@ class ProhibitedPath extends SchemaValidationError {
  * Perform the final constraint checks, and record some information
  * for checkInterleaveRestriction.
  */
-function generalCheck(el: Element): { cache: Record<string, Element[]>;
-                                      typeWarnings: string[]; } {
-  const ret = Object.create(null);
-  ret.interleave = [];
-  ret.define = [];
-
+function generalCheck(el: Element): { typeWarnings: string[] } {
+  const defs = el.children.slice(1) as Element[];
+  const definesByName = indexBy(defs, getName);
   const typeWarnings: string[] = [];
-  _generalCheck(el, ret, {
+  _generalCheck(el, {
     inStart: false,
     inAttribute: false,
     inList: false,
@@ -109,9 +108,11 @@ function generalCheck(el: Element): { cache: Record<string, Element[]>;
     inGroup: false,
     attrNameCache: new Map(),
     typeWarnings,
+    definesByName,
+    defineNameToElementNames: new Map(),
   });
 
-  return { cache: ret, typeWarnings };
+  return { typeWarnings };
 }
 
 function getAttrName(attr: Element,
@@ -126,50 +127,121 @@ function getAttrName(attr: Element,
   return pattern;
 }
 
+function getElementNamesForDefine(name: string,
+                                  definesByName: Map<string, Element>,
+                                  defineNameToElementNames:
+                                  Map<string, ConcreteName>): ConcreteName {
+  let pattern = defineNameToElementNames.get(name);
+  if (pattern === undefined) {
+    const def = definesByName.get(name);
+    // tslint:disable-next-line:no-non-null-assertion
+    const element = def!.children[0] as Element;
+    const namePattern = element.children[0] as Element;
+    pattern = makeNamePattern(namePattern);
+    defineNameToElementNames.set(name, pattern);
+  }
+
+  return pattern;
+}
+
+interface CheckResult {
+  contentType: ContentType | null;
+  occurringAttributes: Element[];
+  occurringRefs: Element[];
+  occurringTexts: number;
+}
+
 function groupInterleaveHandler(children: Element[],
-                                ret: Record<string, Element[]>,
-                                newState: State): ContentType | null {
-  const attrs1 = findOccurring(children[0], ["attribute"]).attribute;
-  if (attrs1.length !== 0) {
-    const attrs2 = findOccurring(children[1], ["attribute"]).attribute;
-    if (attrs2.length !== 0) {
-      for (const attr1 of attrs1) {
-        for (const attr2 of attrs2) {
-          const name1 = getAttrName(attr1, newState.attrNameCache);
-          const name2 = getAttrName(attr2, newState.attrNameCache);
-          if (name1.intersects(name2)) {
-            throw new SchemaValidationError(
-              `the name classes of two attributes in the same group or
+                                newState: State,
+                                isInterleave: boolean): CheckResult {
+  const { contentType: firstCt, occurringAttributes: firstAttributes,
+          occurringRefs: firstRefs, occurringTexts: firstTexts} =
+    _generalCheck(children[0], newState);
+  const { contentType: secondCt, occurringAttributes: secondAttributes,
+          occurringRefs: secondRefs, occurringTexts: secondTexts} =
+    _generalCheck(children[1], newState);
+
+  for (const attr1 of firstAttributes) {
+    for (const attr2 of secondAttributes) {
+      const name1 = getAttrName(attr1, newState.attrNameCache);
+      const name2 = getAttrName(attr2, newState.attrNameCache);
+      if (name1.intersects(name2)) {
+        throw new SchemaValidationError(
+          `the name classes of two attributes in the same group or
 interleave intersect (section 7.3): ${name1} and ${name2}`);
-          }
+      }
+    }
+  }
+
+  const occurringAttributes = firstAttributes.concat(secondAttributes);
+  const occurringRefs = firstRefs.concat(secondRefs);
+  const occurringTexts = firstTexts + secondTexts;
+
+  if (isInterleave) {
+    if (firstTexts !== 0 && secondTexts !== 0) {
+      throw new SchemaValidationError(
+        "text present in both patterns of an interleave (section 7.4)");
+    }
+
+    const names1 = firstRefs
+      .map((x) => getElementNamesForDefine(x.mustGetAttribute("name"),
+                                           newState.definesByName,
+                                           newState.defineNameToElementNames));
+
+    const names2 = secondRefs
+      .map((x) => getElementNamesForDefine(x.mustGetAttribute("name"),
+                                           newState.definesByName,
+                                           newState.defineNameToElementNames));
+
+    for (const name1 of names1) {
+      for (const name2 of names2) {
+        if (name1.intersects(name2)) {
+          throw new SchemaValidationError(`name classes of elements in both \
+patterns of an interleave intersect (section 7.4): ${name1} and ${name2}`);
         }
       }
     }
   }
 
-  const firstCt = _generalCheck(children[0], ret, newState);
-  const secondCt = _generalCheck(children[1], ret, newState);
   if (firstCt === null || secondCt === null) {
-    return null;
+    return {
+      contentType: null,
+      occurringAttributes,
+      occurringRefs,
+      occurringTexts,
+    };
   }
 
   // These tests combine the groupable(firstCt, secondCt) test together with
   // the requirement that we return the content type which is the greatest.
   if (firstCt === ContentType.COMPLEX && secondCt === ContentType.COMPLEX) {
-    return ContentType.COMPLEX;
+    return {
+      contentType: ContentType.COMPLEX,
+      occurringAttributes,
+      occurringRefs,
+      occurringTexts,
+    };
   }
 
   if (firstCt === ContentType.EMPTY) {
-    return secondCt;
+    return {
+      contentType: secondCt,
+      occurringAttributes,
+      occurringRefs,
+      occurringTexts,
+    };
   }
 
-  return (secondCt === ContentType.EMPTY) ? firstCt : null;
+  return {
+    contentType: (secondCt === ContentType.EMPTY) ? firstCt : null,
+    occurringAttributes,
+    occurringRefs,
+    occurringTexts,
+  };
 }
 
 // tslint:disable-next-line:max-func-body-length
-function _generalCheck(el: Element,
-                       ret: Record<string, Element[]>,
-                       state: State): ContentType |  null {
+function _generalCheck(el: Element, state: State): CheckResult {
   const name = el.local;
 
   if (state.inStart && prohibitedInStart.has(name)) {
@@ -192,7 +264,7 @@ function _generalCheck(el: Element,
   switch (name) {
     case "element":
       // The first child is the name class, which we do not need to walk.
-      return _generalCheck(children[1] as Element, ret, state);
+      return _generalCheck(children[1] as Element, state);
     case "attribute":
       if (state.inOneOrMoreGroup) {
         throw new ProhibitedPath("oneOrMore//group//attribute");
@@ -214,10 +286,14 @@ class must be a descendant of oneOrMore (section 7.3)");
       }
 
       // The first child is the name class, which we do not need to walk.
-      _generalCheck(children[1] as Element, ret,
-                    { ...state, inAttribute: true });
+      _generalCheck(children[1] as Element, { ...state, inAttribute: true });
 
-      return ContentType.EMPTY;
+      return {
+        contentType: ContentType.EMPTY,
+        occurringAttributes: [el],
+        occurringRefs: [],
+        occurringTexts: 0,
+      };
     case "except": {
       // parent cannot be undefined here.
       let newState = state;
@@ -225,13 +301,19 @@ class must be a descendant of oneOrMore (section 7.3)");
       if (!state.inDataExcept && el.parent!.local === "data") {
         newState = { ...state, inDataExcept: true };
       }
-      _generalCheck(children[0] as Element, ret, newState);
+      _generalCheck(children[0] as Element, newState);
 
-      return null;
+      return {
+        contentType: null,
+        occurringAttributes: [],
+        occurringRefs: [],
+        occurringTexts: 0,
+      };
     }
-    case "oneOrMore":
-      const ct = _generalCheck(children[0] as Element, ret,
-                               { ...state, inOneOrMore: true });
+    case "oneOrMore": {
+      const { contentType, occurringAttributes, occurringRefs,
+              occurringTexts } =
+        _generalCheck(children[0] as Element, { ...state, inOneOrMore: true });
 
       // The test would be
       //
@@ -240,35 +322,53 @@ class must be a descendant of oneOrMore (section 7.3)");
       // but the only thing not groupable with itself is ContentType.SIMPLE
       // and if ct === null then forcibly ct !== ContentType.SIMPLE
       // is true so we can simplify to the following.
-      return ct !== ContentType.SIMPLE ? ct : null;
+      return {
+        contentType: contentType !== ContentType.SIMPLE ? contentType : null,
+        occurringAttributes,
+        occurringRefs,
+        occurringTexts,
+      };
+    }
     case "group":
       return groupInterleaveHandler(children as Element[],
-                                    ret,
                                     {
                                       ...state,
                                       inGroup: true,
                                       inOneOrMoreGroup: state.inOneOrMore,
-                                    });
+                                    },
+                                    false);
     case "interleave":
-      ret.interleave.push(el);
-
       return groupInterleaveHandler(children as Element[],
-                                    ret,
                                     {
                                       ...state, inInterlave: true,
                                       inOneOrMoreInterleave: state.inOneOrMore,
-                                    });
+                                    },
+                                    true);
     case "choice": {
-      const firstCt = _generalCheck(children[0] as Element, ret, state);
-      const secondCt = _generalCheck(children[1] as Element, ret, state);
+      const { contentType: firstCt, occurringAttributes: firstAttributes,
+              occurringRefs: firstRefs, occurringTexts: firstTexts } =
+        _generalCheck(children[0] as Element, state);
+      const { contentType: secondCt, occurringAttributes: secondAttributes,
+              occurringRefs: secondRefs, occurringTexts: secondTexts } =
+        _generalCheck(children[1] as Element, state);
 
-      return firstCt !== null && secondCt !== null ?
-        (firstCt > secondCt ? firstCt : secondCt) : null;
+      return {
+        contentType: firstCt !== null && secondCt !== null ?
+          (firstCt > secondCt ? firstCt : secondCt) : null,
+        occurringAttributes: firstAttributes.concat(secondAttributes),
+        occurringRefs: firstRefs.concat(secondRefs),
+        occurringTexts: firstTexts + secondTexts,
+      };
     }
     case "list":
-      _generalCheck(children[0] as Element, ret, { ...state, inList: true });
+      _generalCheck(children[0] as Element, { ...state, inList: true });
 
-      return ContentType.SIMPLE;
+      return {
+        contentType: ContentType.SIMPLE,
+        occurringAttributes: [],
+        occurringRefs: [],
+        occurringTexts: 0,
+      };
     case "data": {
       const last = children[children.length - 1] as Element;
       // We only need to scan the possible except child, which is necessarily
@@ -309,10 +409,15 @@ ${libname}`);
       }
 
       if (hasExcept) {
-        _generalCheck(last, ret, state);
+        _generalCheck(last, state);
       }
 
-      return ContentType.SIMPLE;
+      return {
+        contentType: ContentType.SIMPLE,
+        occurringAttributes: [],
+        occurringRefs: [],
+        occurringTexts: 0,
+      };
     }
     case "value": {
       let value = el.text;
@@ -369,140 +474,85 @@ ${libname}`);
       }
 
       // The child of value can only be a text node.
-      return ContentType.SIMPLE;
+      return {
+        contentType: ContentType.SIMPLE,
+        occurringAttributes: [],
+        occurringRefs: [],
+        occurringTexts: 0,
+      };
     }
     case "text":
-      return ContentType.COMPLEX;
+      return {
+        contentType: ContentType.COMPLEX,
+        occurringAttributes: [],
+        occurringRefs: [],
+        occurringTexts: 1,
+      };
     case "ref":
       if (state.inAttribute) {
         throw new ProhibitedPath(`attribute//${name}`);
       }
 
-      return ContentType.COMPLEX;
+      return {
+        contentType: ContentType.COMPLEX,
+        occurringAttributes: [],
+        occurringRefs: [el],
+        occurringTexts: 0,
+      };
     case "empty":
-      return ContentType.EMPTY;
+      return {
+        contentType: ContentType.EMPTY,
+        occurringAttributes: [],
+        occurringRefs: [],
+        occurringTexts: 0,
+      };
     case "notAllowed":
-      return null;
-    case "define":
-      const contentType = _generalCheck(children[0] as Element, ret, state);
+      return {
+        contentType: null,
+        occurringAttributes: [],
+        occurringRefs: [],
+        occurringTexts: 0,
+      };
+    case "define": {
+      const { contentType } = _generalCheck(children[0] as Element, state);
       if (contentType === null) {
         throw new SchemaValidationError(
           `definition ${el.mustGetAttribute("name")} violates the constraint \
 on string values (section 7.2)`);
       }
 
-      ret.define.push(el);
-
-      return null;
+      return {
+        contentType: null,
+        occurringAttributes: [],
+        occurringRefs: [],
+        occurringTexts: 0,
+      };
+    }
     case "start":
-      _generalCheck(children[0] as Element, ret, { ...state, inStart: true });
+      _generalCheck(children[0] as Element, { ...state, inStart: true });
 
-      return null;
+      return {
+        contentType: null,
+        occurringAttributes: [],
+        occurringRefs: [],
+        occurringTexts: 0,
+      };
     case "grammar":
       for (const child of children) {
-        _generalCheck(child as Element, ret, state);
+        _generalCheck(child as Element, state);
       }
 
-      return null;
+      return {
+        contentType: null,
+        occurringAttributes: [],
+        occurringRefs: [],
+        occurringTexts: 0,
+      };
     default:
       throw new Error(`unexpected element name ${name}`);
   }
 }
 
-const occuringSet = new Set(["group", "interleave", "choice", "oneOrMore"]);
-
-function findOccurring(el: Element,
-                       names: string[]): Record<string, Element[]> {
-  const ret: Record<string, Element[]> = Object.create(null);
-  for (const name of names) {
-    ret[name] = (el.local === name) ? [el] : [];
-  }
-
-  if (occuringSet.has(el.local)) {
-    _findOccuring(el, names, ret);
-  }
-
-  return ret;
-}
-
-function _findOccuring(el: Element, names: string[],
-                       ret: Record<string, Element[]>): void {
-  for (const child of el.children) {
-    if (!(child instanceof Element)) {
-      continue;
-    }
-
-    const name = child.local;
-    if (names.includes(name)) {
-      ret[name].push(child);
-    }
-
-    if (occuringSet.has(name)) {
-      _findOccuring(child, names, ret);
-    }
-  }
-}
-
-function checkInterleaveRestriction(cached: Record<string, Element[]>,
-                                    root: Element): void {
-  const { interleave: interleaves, define: defs } = cached;
-
-  if (interleaves.length === 0) {
-    return;
-  }
-
-  const definesByName = indexBy(defs, getName);
-  const defineNameToElementNames: Map<string, ConcreteName> = new Map();
-
-  function getElementNamesForDefine(name: string): ConcreteName {
-    let pattern = defineNameToElementNames.get(name);
-    if (pattern === undefined) {
-      const def = definesByName.get(name);
-      // tslint:disable-next-line:no-non-null-assertion
-      const element = def!.children[0] as Element;
-      const namePattern = element.children[0] as Element;
-      pattern = makeNamePattern(namePattern);
-      defineNameToElementNames.set(name, pattern);
-    }
-
-    return pattern;
-  }
-
-  for (const interleave of interleaves) {
-    const p1 = interleave.children[0] as Element;
-    const p2 = interleave.children[1] as Element;
-    const { ref: refs1, text: texts1 } = findOccurring(p1, ["ref", "text"]);
-    if (refs1.length === 0 && texts1.length === 0) {
-      continue;
-    }
-
-    const { ref: refs2, text: texts2 } = findOccurring(p2, ["ref", "text"]);
-
-    if (texts1.length !== 0 && texts2.length !== 0) {
-      throw new SchemaValidationError(
-        "text present in both patterns of an interleave (section 7.4)");
-    }
-
-    if (refs1.length === 0 || refs2.length === 0) {
-      continue;
-    }
-
-    const names1 = refs1
-      .map((x) => getElementNamesForDefine(x.mustGetAttribute("name")));
-
-    const names2 = refs2
-      .map((x) => getElementNamesForDefine(x.mustGetAttribute("name")));
-
-    for (const name1 of names1) {
-      for (const name2 of names2) {
-        if (name1.intersects(name2)) {
-          throw new SchemaValidationError(`name classes of elements in both \
-patterns of an interleave intersect (section 7.4): ${name1} and ${name2}`);
-        }
-      }
-    }
-  }
-}
 let cachedGrammar: Grammar | undefined;
 
 function getGrammar(): Grammar {
@@ -641,7 +691,6 @@ export class InternalSimplifier extends BaseSimplifier {
 
         const check = generalCheck(tree);
         warnings = check.typeWarnings;
-        checkInterleaveRestriction(check.cache, tree);
 
         if (this.options.timing) {
           // tslint:disable-next-line:no-non-null-assertion no-console
