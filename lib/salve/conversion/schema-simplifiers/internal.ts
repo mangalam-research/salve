@@ -330,12 +330,6 @@ class must be a descendant of oneOrMore (section 7.3)");
       throw new ProhibitedStartPath(el.local);
     }
 
-    const children = el.children;
-    const last = children[children.length - 1] as Element;
-    // We only need to scan the possible except child, which is necessarily
-    // last.
-    const hasExcept = (children.length !== 0 && last.local === "except");
-
     const typeAttr = el.mustGetAttribute("type");
     const libname = el.mustGetAttribute("datatypeLibrary");
     const lib = registry.find(libname);
@@ -352,14 +346,28 @@ class must be a descendant of oneOrMore (section 7.3)");
 ${(libname === "") ? "default library" : `library ${libname}`}`)]);
     }
 
-    const params = children.slice(
-      0, hasExcept ? children.length - 1 : undefined).map(
-        (child: Element) => ({
+    const children = el.children;
+    const last = children[children.length - 1] as Element;
+    // We only need to scan the possible except child, which is necessarily
+    // last.
+    const hasExcept = (children.length !== 0 && last.local === "except");
+
+    const limit = hasExcept ? children.length - 1 : children.length;
+    // Running parseParams if we have no params is expensive. And if there are
+    // no params, there's nothing to check so don't run parseParams without
+    // params.
+    if (limit > 0) {
+      const params: { name: string; value: string }[] = [];
+      for (let ix = 0; ix < limit; ++ix) {
+        const child = children[ix] as Element;
+        params.push({
           name: child.mustGetAttribute("name"),
           value: child.text,
-        }));
+        });
+      }
 
-    datatype.parseParams(el.path, params);
+      datatype.parseParams(el.path, params);
+    }
 
     // tslint:disable-next-line: no-http-string
     if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
@@ -386,7 +394,6 @@ ${libname}`);
       throw new ProhibitedStartPath(el.local);
     }
 
-    let value = el.text;
     const typeAttr = el.mustGetAttribute("type");
     const libname = el.mustGetAttribute("datatypeLibrary");
     let ns = el.mustGetAttribute("ns");
@@ -406,15 +413,7 @@ ${libname}`);
 ${(libname === "") ? "default library" : `library ${libname}`}`)]);
     }
 
-    if (datatype.needsContext &&
-        // tslint:disable-next-line: no-http-string
-        !(libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
-          (typeAttr === "QName" || typeAttr === "NOTATION"))) {
-      throw new Error("datatype needs context but is not " +
-                      "QName or NOTATION form the XML Schema " +
-                      "library: don't know how to handle");
-    }
-
+    let value = el.text;
     let context: { resolver : NameResolver } | undefined;
     if (datatype.needsContext) {
       // Change ns to the namespace we need.
