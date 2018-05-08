@@ -21,7 +21,6 @@ const versync = require("versync");
 const { spawn, execFile } = require("child-process-promise");
 const { execFileAndReport, newer } = require("./gulptasks/util");
 
-const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
 
 //
@@ -296,7 +295,7 @@ gulp.task("typedoc", ["tslint"], Promise.coroutine(function *task() {
   yield spawn("./node_modules/.bin/typedoc", tsoptions, { stdio: "inherit" });
 
   yield Promise.all([fs.writeFileAsync(hashPath, currentHash),
-                     touchAsync(stamp)]);
+                     touch(stamp)]);
 }));
 
 gulp.task("readme", () => {

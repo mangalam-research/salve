@@ -1,6 +1,7 @@
 dist: trusty
 language: node_js
 node_js:
+  - "10"
   - "8"
   - "6"
 env:
@@ -10,8 +11,6 @@ env:
   # specific (we could use something else than Travis).)
   - CONTINUOUS_INTEGRATION=1
 before_install:
-  # On Node v4 the version of npm is too old.
-  - if [[ `npm -v` != 3* ]]; then npm i -g npm@3; fi
   - sudo add-apt-repository "deb http://tei.oucs.ox.ac.uk/teideb/binary ./"
   - sudo apt-key adv --keyserver pgp.mit.edu --recv-key FEA4973F86A9A497
   - sudo apt-get update -qq
