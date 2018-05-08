@@ -603,9 +603,9 @@ export abstract class BaseWalker<T extends BasePattern> {
   * cloning operation, then it will be substituted with B instead of creating a
   * new object.
   *
-  * This method is meant only to be used by classes derived from [[Walker]]. It
-  * is public due to a limitation of TypeScript. Don't call it from your own
-  * code. You've been warned.
+  * This method is meant only to be used by classes derived from
+  * [[BaseWalker]]. It is public due to a limitation of TypeScript. Don't call
+  * it from your own code. You've been warned.
   *
   * @protected
   *
