@@ -7,6 +7,7 @@
     "completed-docs":
     [false, "It  may be worth reinstating when we do a rework of the ",
      "documentation"],
-    "radix": false
+    "radix": false,
+    "no-backbone-get-set-outside-model": false
   }
 }
