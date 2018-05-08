@@ -30,7 +30,7 @@ export class Text extends Pattern {
  */
 class TextWalker extends InternalWalker<Text> {
   protected readonly el: Text;
-  private static readonly _textEvent: Event = new Event("text", /^.*$/);
+  private static readonly _textEvent: Event = new Event("text", /^[^]*$/);
   canEnd: boolean;
   canEndAttribute: boolean;
 

@@ -5,35 +5,16 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { EName } from "../ename";
 import { TrivialMap } from "../types";
 import { ParamError, ParameterParsingError, ValueError,
          ValueValidationError } from "./errors";
-import { Context, Datatype, RawParameter, TypeLibrary } from "./library";
+import { Context, Datatype, ParsedParams, ParsedValue, RawParameter,
+         TypeLibrary } from "./library";
 import * as regexp from "./regexp";
 import { xmlNameChar, xmlNameRe, xmlNcname,
          xmlNcnameRe } from "./xmlcharacters";
 
 // tslint:disable: no-reserved-keywords
-
-/**
- * @private
- */
-enum WhitespaceHandling {
-  /**
-   * Preserve the whitespace
-   */
-  PRESERVE = 1,
-  /**
-   * Replace all instances of whitespace by spaces.
-   */
-  REPLACE = 2,
-  /**
-   * Replace all instances of whitespace by spaces, collapse consecutive
-   * spaces, and remove leading and trailing spaces.
-   */
-  COLLAPSE = 3,
-}
 
 /**
  * Check whether a parameter is an integer.
@@ -199,7 +180,7 @@ abstract class Parameter {
    * @returns ``false`` if there is no problem. Otherwise, an error.
    */
   abstract isInvalidValue(value: any, param: any,
-                          type: Base): ValueError | false;
+                          type: Base<{}>): ValueError | false;
 
   /**
    * Combine multiple values from the schema into an internal value. This method
@@ -234,7 +215,7 @@ abstract class NonNegativeIntegerParameter extends NumericParameter {
 class LengthP extends NonNegativeIntegerParameter {
   readonly name: string = "length";
 
-  isInvalidValue(value: any, param: any, type: Base): ValueError | false {
+  isInvalidValue(value: any, param: any, type: Base<{}>): ValueError | false {
     if (type.valueLength(value) === param) {
       return false;
     }
@@ -243,12 +224,12 @@ class LengthP extends NonNegativeIntegerParameter {
   }
 }
 
-const lengthP: LengthP = new LengthP();
+const lengthP = new LengthP();
 
 class MinLengthP extends NonNegativeIntegerParameter {
   readonly name: string = "minLength";
 
-  isInvalidValue(value: any, param: any, type: Base): ValueError | false {
+  isInvalidValue(value: any, param: any, type: Base<{}>): ValueError | false {
     if (type.valueLength(value) >= param) {
       return false;
     }
@@ -258,12 +239,12 @@ class MinLengthP extends NonNegativeIntegerParameter {
   }
 }
 
-const minLengthP: MinLengthP = new MinLengthP();
+const minLengthP = new MinLengthP();
 
 class MaxLengthP extends NonNegativeIntegerParameter {
   readonly name: string = "maxLength";
 
-  isInvalidValue(value: any, param: any, type: Base): ValueError | false {
+  isInvalidValue(value: any, param: any, type: Base<{}>): ValueError | false {
     if (type.valueLength(value) <= param) {
       return false;
     }
@@ -274,7 +255,7 @@ class MaxLengthP extends NonNegativeIntegerParameter {
 
 }
 
-const maxLengthP: MaxLengthP = new MaxLengthP();
+const maxLengthP = new MaxLengthP();
 
 //
 // pattern is special. It converts the param value found in the RNG file into an
@@ -302,7 +283,7 @@ class PatternP extends Parameter {
   readonly repeatable: boolean = true;
 
   convert(value: string): ConvertedPattern {
-    let internal: RegExp = reCache[value];
+    let internal = reCache[value];
     if (internal === undefined) {
       internal = reCache[value] = regexp.parse(value);
     }
@@ -361,7 +342,7 @@ class PatternP extends Parameter {
   }
 }
 
-const patternP: PatternP = new PatternP();
+const patternP = new PatternP();
 
 class TotalDigitsP extends NumericParameter {
   readonly name: string = "totalDigits";
@@ -371,7 +352,7 @@ class TotalDigitsP extends NumericParameter {
   }
 
   isInvalidValue(value: any, param: any): ValueError | false {
-    const str: string = String(Number(value)).replace(/[-+.]/g, "");
+    const str = String(Number(value)).replace(/[-+.]/g, "");
     if (str.length > param) {
       return new ValueError(`value must have at most ${param} digits`);
     }
@@ -380,13 +361,13 @@ class TotalDigitsP extends NumericParameter {
   }
 }
 
-const totalDigitsP: TotalDigitsP = new TotalDigitsP();
+const totalDigitsP = new TotalDigitsP();
 
 class FractionDigitsP extends NonNegativeIntegerParameter {
   readonly name: string = "fractionDigits";
 
   isInvalidValue(value: any, param: any): ValueError | false {
-    const str: string = String(Number(value)).replace(/^.*\./, "");
+    const str = String(Number(value)).replace(/^.*\./, "");
     if (str.length > param) {
       return new ValueError(`value must have at most ${param} fraction digits`);
     }
@@ -396,8 +377,8 @@ class FractionDigitsP extends NonNegativeIntegerParameter {
 }
 
 abstract class NumericTypeDependentParameter extends NumericParameter {
-  isInvalidParam(value: any, name: string, type: Base): ParamError | false {
-    const errors: ValueError[] | false = type.disallows(value);
+  isInvalidParam(value: any, name: string, type: Base<{}>): ParamError | false {
+    const errors = type.disallows(value);
     if (!errors) {
       return false;
     }
@@ -410,7 +391,7 @@ abstract class NumericTypeDependentParameter extends NumericParameter {
   }
 }
 
-const fractionDigitsP: FractionDigitsP = new FractionDigitsP();
+const fractionDigitsP = new FractionDigitsP();
 
 class MaxInclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "maxInclusive";
@@ -425,7 +406,7 @@ class MaxInclusiveP extends NumericTypeDependentParameter {
   }
 }
 
-const maxInclusiveP: MaxInclusiveP = new MaxInclusiveP();
+const maxInclusiveP = new MaxInclusiveP();
 
 class MaxExclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "maxExclusive";
@@ -442,7 +423,7 @@ class MaxExclusiveP extends NumericTypeDependentParameter {
   }
 }
 
-const maxExclusiveP: MaxExclusiveP = new MaxExclusiveP();
+const maxExclusiveP = new MaxExclusiveP();
 
 class MinInclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "minInclusive";
@@ -457,7 +438,7 @@ class MinInclusiveP extends NumericTypeDependentParameter {
   }
 }
 
-const minInclusiveP: MinInclusiveP = new MinInclusiveP();
+const minInclusiveP = new MinInclusiveP();
 
 class MinExclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "minExclusive";
@@ -474,35 +455,20 @@ class MinExclusiveP extends NumericTypeDependentParameter {
   }
 }
 
-const minExclusiveP: MinExclusiveP = new MinExclusiveP();
+const minExclusiveP = new MinExclusiveP();
 
-/**
- * @private
- *
- * @param value The value to process.
- *
- * @param param How to process the whitespaces.
- *
- * @returns The white-space-processed value. That is, the ``value`` parameter
- * once its white-spaces have been processed according to the parameter
- * passed. See the XML Schema Datatype standard for the meaning.
- */
-function whiteSpaceProcessed(value: string, param: WhitespaceHandling): string {
-  let ret = value;
-  switch (param) {
-  case WhitespaceHandling.PRESERVE:
-    break;
-  case WhitespaceHandling.REPLACE:
-    ret = value.replace(/\r\n\t/g, " ");
-    break;
-  case WhitespaceHandling.COLLAPSE:
-    ret = value.replace(/\r\n\t/g, " ").trim().replace(/\s{2,}/g, " ");
-    break;
-  default:
-    throw new Error(`unexpected value: ${param}`);
-  }
+type WhitespaceHandler = (value: string) => string;
 
-  return ret;
+function whitespacePreserve(value: string): string {
+  return value;
+}
+
+function whitespaceCollapse(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function whitespaceReplace(value: string): string {
+  return value.replace(/\s+/g, " ");
 }
 
 type NameToParameterMap = TrivialMap<Parameter>;
@@ -513,7 +479,7 @@ type NameToParameterMap = TrivialMap<Parameter>;
  * @private
  *
  */
-abstract class Base implements Datatype {
+abstract class Base<T> implements Datatype<T> {
   protected static throwMissingLocation(errors: ParamError[]): never {
     // The only time location is undefined is if ``parseParams`` was called
     // without arguments. That's an internal error because we should always be
@@ -528,7 +494,7 @@ abstract class Base implements Datatype {
   /**
    * The default whitespace processing for this type.
    */
-  readonly whiteSpaceDefault: WhitespaceHandling = WhitespaceHandling.COLLAPSE;
+  readonly processWhitespace: WhitespaceHandler = whitespaceCollapse;
 
   /**
    * The error message to give if a value is disallowed.
@@ -546,10 +512,10 @@ abstract class Base implements Datatype {
    * A mapping of parameter names to parameter objects. It is constructed during
    * initialization of the type.
    */
-  get paramNameToObj(): NameToParameterMap {
-    const paramNameToObj: NameToParameterMap | undefined = this._paramNameToObj;
-    const ret: NameToParameterMap = paramNameToObj !== undefined ?
-      paramNameToObj : Object.create(null);
+  protected get paramNameToObj(): NameToParameterMap {
+    const paramNameToObj = this._paramNameToObj;
+    const ret = paramNameToObj !== undefined ? paramNameToObj :
+      Object.create(null);
     if (paramNameToObj === undefined) {
       this._paramNameToObj = ret;
       for (const param of this.validParams) {
@@ -560,22 +526,19 @@ abstract class Base implements Datatype {
     return ret;
   }
 
-  protected _defaultParams: any[] | undefined;
+  protected _defaultParams?: ParsedParams;
 
   /**
    * The default parameters if none are specified.
    */
-  get defaultParams(): any[] {
-    const defaultParams: any[] | undefined = this._defaultParams;
+  protected get defaultParams(): ParsedParams {
+    const defaultParams = this._defaultParams;
 
     if (defaultParams !== undefined) {
       return defaultParams;
     }
 
-    let ret: any[];
-    this._defaultParams = ret = this.parseParams("**INTERNAL**");
-
-    return ret;
+    return this._defaultParams = this.parseParams("**INTERNAL**");
   }
 
   /**
@@ -594,9 +557,8 @@ abstract class Base implements Datatype {
    *
    * @returns An internal representation.
    */
-  convertValue(location: string, value: string, context?: Context): any {
-    return whiteSpaceProcessed(value, this.whiteSpaceDefault);
-  }
+  protected abstract convertValue(location: string, value: string,
+                                  context?: Context): T;
 
   /**
    * Computes the value's length. This may differ from the value's length, as it
@@ -610,8 +572,9 @@ abstract class Base implements Datatype {
     return value.length;
   }
 
-  parseValue(location: string, value: string, context?: Context): any {
-    const errors: ValueError[] | false = this.disallows(value, {}, context);
+  parseValue(location: string, value: string,
+             context?: Context): ParsedValue<T> {
+    const errors = this.disallows(value, undefined, context);
     if (errors) {
       throw new ValueValidationError(location, errors);
     }
@@ -620,17 +583,19 @@ abstract class Base implements Datatype {
   }
 
   // tslint:disable-next-line: max-func-body-length
-  parseParams(location: string, params?: RawParameter[]): any {
+  parseParams(location: string, params?: RawParameter[]): ParsedParams {
     const names: TrivialMap<string[]> = Object.create(null);
     if (params === undefined) {
+      // Yes, if the list of parameters is empty, we return an empty map because
+      // by default there are no default parameters.
       return names;
     }
 
     const errors: ParamError[] = [];
     for (const x of params) {
-      const {name, value}: { name: string; value: string } = x;
+      const { name, value } = x;
 
-      const prop: Parameter | undefined = this.paramNameToObj[name];
+      const prop = this.paramNameToObj[name];
 
       // Do we know this parameter?
       if (prop === undefined) {
@@ -640,8 +605,7 @@ abstract class Base implements Datatype {
       }
 
       // Is the value valid at all?
-      const invalid: ParamError | false =
-        prop.isInvalidParam(value, name, this);
+      const invalid = prop.isInvalidParam(value, name, this);
       if (invalid) {
         errors.push(invalid);
       }
@@ -652,7 +616,7 @@ abstract class Base implements Datatype {
       }
 
       // We gather all the values in a map of name to value.
-      let values: any[] | undefined = names[name];
+      let values = names[name];
       if (values === undefined) {
         values = names[name] = [];
       }
@@ -665,10 +629,10 @@ abstract class Base implements Datatype {
     }
 
     // We just modify the ``names`` object to produce a return value.
-    const ret: TrivialMap<string[]> = names;
+    const ret = names;
     for (const key in ret) { // tslint:disable-line:forin
-      const value: string[] = ret[key];
-      const prop: Parameter = this.paramNameToObj[key];
+      const value = ret[key];
+      const prop = this.paramNameToObj[key];
       if (value.length > 1) {
         ret[key] = prop.combine(value);
       }
@@ -744,47 +708,9 @@ abstract class Base implements Datatype {
     return ret;
   }
 
-  /**
-   * Determines whether the parameters disallow a value.
-   *
-   * @param raw The value from the XML document.
-   *
-   * @param value The internal representation of the value, as returned from
-   * [[convertValue]].
-   *
-   * @param params The parameters, as returned from [[parseParams]].
-   *
-   * @param context The context, if needed.
-   *
-   * @returns ``false`` if there is no error. Otherwise, an array of errors.
-   */
-  disallowedByParams(raw: string, value: any, params?: any,
-                     context?: Context): ValueError[] | false {
-    if (params !== undefined) {
-      const errors: ValueError[] = [];
-      // We use Object.keys because we don't know the precise type of params.
-      for (const name of Object.keys(params)) {
-        const param: Parameter = this.paramNameToObj[name];
-        const err: ValueError | false =
-          param.isInvalidValue(value, params[name], this);
-        if (err) {
-          errors.push(err);
-        }
-      }
-
-      if (errors.length !== 0) {
-        return errors;
-      }
-    }
-
-    return false;
-  }
-
-  equal(value: string, schemaValue: any, context?: Context): boolean {
-    if (schemaValue.value === undefined) {
-      throw Error("it looks like you are trying to use an unparsed value");
-    }
-    let converted: any;
+  equal(value: string, schemaValue: ParsedValue<T>,
+        context?: Context): boolean {
+    let converted: T;
 
     try {
       // We pass an empty string as location because we do not generally keep
@@ -801,32 +727,12 @@ abstract class Base implements Datatype {
       throw ex;
     }
 
-    // In the IEEE 754-1985 standard, which is what XMLSChema 1.0 follows, NaN
-    // is equal to NaN. In JavaScript NaN is equal to nothing, not even itself.
-    // So we need to handle this difference.
-    if (typeof converted === "number" && isNaN(converted)) {
-      return isNaN(schemaValue.value);
-    }
-
     return converted === schemaValue.value;
   }
 
-  disallows(value: string, params?: any,
+  disallows(value: string, params?: ParsedParams,
             context?: Context): ValueError[] | false {
-    if (params instanceof Array) {
-      throw new Error("it looks like you are passing unparsed " +
-                      "parameters to disallows");
-    }
-    else if (params === undefined || Object.keys(params).length === 0) {
-      // If no params were passed, get the default params.
-      // tslint:disable-next-line:no-parameter-reassignment
-      params = this.defaultParams;
-    }
-
-    // This must be done against the raw value because the **lexical** space of
-    // this type must match this.
-    if (whiteSpaceProcessed(value, WhitespaceHandling.COLLAPSE)
-        .match(this.regexp) === null) {
+    if (value.match(this.regexp) === null) {
       return [new ValueError(this.typeErrorMsg)];
     }
 
@@ -846,7 +752,28 @@ abstract class Base implements Datatype {
       throw ex;
     }
 
-    return this.disallowedByParams(value, converted, params, context);
+    if (params === undefined || Object.keys(params).length === 0) {
+      // If no params were passed, get the default params.
+      // tslint:disable-next-line:no-parameter-reassignment
+      params = this.defaultParams;
+    }
+
+    const paramNames = Object.keys(params);
+    if (paramNames.length === 0) {
+      return false;
+    }
+
+    const errors: ValueError[] = [];
+    // We use Object.keys because we don't know the precise type of params.
+    for (const name of paramNames) {
+      const param = this.paramNameToObj[name];
+      const err = param.isInvalidValue(converted, params[name], this);
+      if (err) {
+        errors.push(err);
+      }
+    }
+
+    return (errors.length !== 0) ? errors : false;
   }
 }
 
@@ -854,37 +781,82 @@ abstract class Base implements Datatype {
 // String family
 //
 
+abstract class CommonStringBased extends Base<string> {
+  protected convertValue(location: string, value: string,
+                         context?: Context): string {
+    return this.processWhitespace(value);
+  }
+}
+
 /* tslint:disable:class-name */
-class string_ extends Base {
+class string_ extends CommonStringBased {
   readonly name: string = "string";
   readonly typeErrorMsg: string = "value is not a string";
-  readonly whiteSpaceDefault: WhitespaceHandling = WhitespaceHandling.PRESERVE;
+  readonly processWhitespace: WhitespaceHandler = whitespacePreserve;
   readonly validParams: Parameter[] = [lengthP, minLengthP, maxLengthP,
                                        patternP];
   readonly needsContext: boolean = false;
-  readonly regexp: RegExp = /^.*$/;
+  // [^] means "any character". The dot would exclude line terminators (\r\n,
+  // etc.).
+  readonly regexp: RegExp = /^[^]*$/;
+
+  // This is a specialized version of disallows that avoids bothering with tests
+  // that don't affect the results. string and some of its immediate derivates
+  // are not affected by their regexp, nor do they have default parameters that
+  // affect what values are allowed.
+  disallows(value: string, params?: ParsedParams,
+            context?: Context): ValueError[] | false {
+    if (params === undefined || Object.keys(params).length === 0) {
+      // The default params don't disallow anything.
+      return false;
+    }
+
+    const converted = this.convertValue("", value, context);
+    const errors: ValueError[] = [];
+    // We use Object.keys because we don't know the precise type of params.
+    for (const name of Object.keys(params)) {
+      const param = this.paramNameToObj[name];
+      const err = param.isInvalidValue(converted, params[name], this);
+      if (err) {
+        errors.push(err);
+      }
+    }
+
+    return (errors.length !== 0) ? errors : false;
+  }
 }
 
 class normalizedString extends string_ {
   readonly name: string = "normalizedString";
   readonly typeErrorMsg: string =
     "string contains a tab, carriage return or newline";
-  readonly regexp: RegExp = /^[^\r\n\t]+$/;
+  readonly processWhitespace: WhitespaceHandler = whitespaceReplace;
 }
 
 class token extends normalizedString {
   readonly name: string = "token";
   readonly typeErrorMsg: string = "not a valid token";
-  readonly regexp: RegExp = /^(?:(?! )(?:(?! {3})[^\r\n\t])*[^\r\n\t ])?$/;
+  readonly processWhitespace: WhitespaceHandler = whitespaceCollapse;
 }
 
-class language extends token {
+class tokenInternal extends token {
+  disallows(value: string, params?: ParsedParams,
+            context?: Context): ValueError[] | false {
+    if (value.match(this.regexp) === null) {
+      return [new ValueError(this.typeErrorMsg)];
+    }
+
+    return super.disallows(value, params, context);
+  }
+}
+
+class language extends tokenInternal {
   readonly name: string = "language";
   readonly typeErrorMsg: string = "not a valid language identifier";
-  readonly regexp: RegExp = /^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$/;
+  readonly regexp: RegExp = /^\s*[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*\s*$/;
 }
 
-class Name extends token {
+class Name extends tokenInternal {
   readonly name: string = "Name";
   readonly typeErrorMsg: string = "not a valid Name";
   readonly regexp: RegExp = xmlNameRe;
@@ -896,20 +868,17 @@ class NCName extends Name {
   readonly regexp: RegExp = xmlNcnameRe;
 }
 
-const xmlNmtokenRe: RegExp = new RegExp(`^[${xmlNameChar}]+$`);
-class NMTOKEN extends token {
+class NMTOKEN extends tokenInternal {
   readonly name: string = "NMTOKEN";
   readonly typeErrorMsg: string = "not a valid NMTOKEN";
-  readonly regexp: RegExp = xmlNmtokenRe;
+  readonly regexp: RegExp = new RegExp(`^\\s*[${xmlNameChar}]+\\s*$`);
 }
 
-const xmlNmtokensRe: RegExp =
-  new RegExp(`^[${xmlNameChar}]+(?: [${xmlNameChar}]+)*$`);
 class NMTOKENS extends NMTOKEN {
   readonly name: string = "NMTOKENS";
   readonly typeErrorMsg: string = "not a valid NMTOKENS";
-  readonly regexp: RegExp = xmlNmtokensRe;
-  readonly whiteSpaceDefault: WhitespaceHandling = WhitespaceHandling.COLLAPSE;
+  readonly regexp: RegExp =
+    new RegExp(`^\\s*[${xmlNameChar}]+(?:\\s+[${xmlNameChar}]+)*\\s*$`);
 }
 
 class ID extends NCName {
@@ -922,22 +891,23 @@ class IDREF extends NCName {
   readonly typeErrorMsg: string = "not a valid IDREF";
 }
 
-const IDREFS_RE: RegExp = new RegExp(`^${xmlNcname}(?: ${xmlNcname})*$`);
 class IDREFS extends IDREF {
   readonly name: string = "IDREFS";
   readonly typeErrorMsg: string = "not a valid IDREFS";
-  readonly regexp: RegExp = IDREFS_RE;
-  readonly whiteSpaceDefault: WhitespaceHandling = WhitespaceHandling.COLLAPSE;
+  readonly regexp: RegExp =
+    new RegExp(`^\\s*${xmlNcname}(?:\\s+${xmlNcname})*\\s*$`);
 }
 
-class ENTITY extends string_ {
+class ENTITY extends NCName {
   readonly name: string = "ENTITY";
   readonly typeErrorMsg: string = "not a valid ENTITY";
 }
 
-class ENTITIES extends string_ {
+class ENTITIES extends ENTITY {
   readonly name: string = "ENTITIES";
   readonly typeErrorMsg: string = "not a valid ENTITIES";
+  readonly regexp: RegExp =
+    new RegExp(`^\\s*${xmlNcname}(?:\\s+${xmlNcname})*\\s*$`);
 }
 
 //
@@ -945,11 +915,11 @@ class ENTITIES extends string_ {
 //
 
 const decimalPattern: string = "[-+]?(?!$)\\d*(\\.\\d*)?";
-class decimal extends Base {
+class decimal extends Base<number> {
   readonly name: string = "decimal";
   readonly typeErrorMsg: string = "value not a decimal number";
-  readonly regexp: RegExp = new RegExp(`^${decimalPattern}$`);
-  readonly whiteSpaceDefault: WhitespaceHandling = WhitespaceHandling.COLLAPSE;
+  readonly regexp: RegExp = new RegExp(`^\\s*${decimalPattern}\\s*$`);
+  readonly processWhitespace: WhitespaceHandler = whitespaceCollapse;
   readonly needsContext: boolean = false;
 
   readonly validParams: Parameter[] = [
@@ -958,16 +928,16 @@ class decimal extends Base {
   ];
 
   convertValue(location: string, value: string): number {
-    return Number(super.convertValue(location, value));
+    // We don't need to do white-space processing on the value.
+    return Number(value);
   }
-
 }
 
 const integerPattern: string = "[-+]?\\d+";
 class integer extends decimal {
   readonly name: string = "integer";
   readonly typeErrorMsg: string = "value is not an integer";
-  readonly regexp: RegExp = new RegExp(`^${integerPattern}$`);
+  readonly regexp: RegExp = new RegExp(`^\\s*${integerPattern}\\s*$`);
 
   readonly highestVal: number | undefined;
   readonly lowestVal: number | undefined;
@@ -977,16 +947,16 @@ class integer extends decimal {
     maxInclusiveP,
   ];
 
-  parseParams(location: string, params?: RawParameter[]): any {
+  parseParams(location: string, params?: RawParameter[]): ParsedParams {
     let me: any;
     let mi: any;
-    const ret: any = super.parseParams(location, params);
+    const ret = super.parseParams(location, params);
 
     function fail(message: string): never {
       throw new ParameterParsingError(location, [new ParamError(message)]);
     }
 
-    const highestVal: number | undefined = this.highestVal;
+    const highestVal = this.highestVal;
     if (highestVal !== undefined) {
       /* tslint:disable:no-string-literal */
       if (ret["maxExclusive"] !== undefined) {
@@ -1002,25 +972,26 @@ class integer extends decimal {
         }
       }
       else {
-        ret["maxInclusive"] = this.highestVal;
+        ret["maxInclusive"] = highestVal;
       }
     }
 
-    if (this.lowestVal !== undefined) {
+    const lowestVal = this.lowestVal;
+    if (lowestVal !== undefined) {
       if (ret["minExclusive"] !== undefined) {
         me = ret["minExclusive"];
-        if (me < this.lowestVal) {
+        if (me < lowestVal) {
           fail(`minExclusive cannot be lower than ${this.lowestVal}`);
         }
       }
       else if (ret["minInclusive"] !== undefined) {
         mi = ret["minInclusive"];
-        if (mi < this.lowestVal) {
+        if (mi < lowestVal) {
           fail(`minInclusive cannot be lower than ${this.lowestVal}`);
         }
       }
       else {
-        ret["minInclusive"] = this.lowestVal;
+        ret["minInclusive"] = lowestVal;
       }
     }
     /* tslint:enable:no-string-literal */
@@ -1032,7 +1003,7 @@ class integer extends decimal {
 class nonPositiveInteger extends integer {
   readonly name: string = "nonPositiveInteger";
   readonly typeErrorMsg: string = "value is not a nonPositiveInteger";
-  readonly regexp: RegExp = /^\+?0+|-\d+$/;
+  readonly regexp: RegExp = /^\s*\+?0+|-\d+\s*$/;
   readonly highestVal: number = 0;
   readonly validParams: Parameter[] = [
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
@@ -1043,7 +1014,7 @@ class nonPositiveInteger extends integer {
 class negativeInteger extends nonPositiveInteger {
   readonly name: string = "negativeInteger";
   readonly typeErrorMsg: string = "value is not a negativeInteger";
-  readonly regexp: RegExp = /^-\d+$/;
+  readonly regexp: RegExp = /^\s*-\d+\s*$/;
   readonly highestVal: number = -1;
   readonly validParams: Parameter [] = [
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
@@ -1054,7 +1025,7 @@ class negativeInteger extends nonPositiveInteger {
 class nonNegativeInteger extends integer {
   readonly name: string = "nonNegativeInteger";
   readonly typeErrorMsg: string = "value is not a nonNegativeInteger";
-  readonly regexp: RegExp = /^(\+?\d+|-0)$/;
+  readonly regexp: RegExp = /^\s*(\+?\d+|-0)\s*$/;
   readonly lowestVal: number = 0;
   readonly validParams: Parameter[] = [
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
@@ -1065,7 +1036,7 @@ class nonNegativeInteger extends integer {
 class positiveInteger extends nonNegativeInteger {
   readonly name: string = "positiveInteger";
   readonly typeErrorMsg: string = "value is not a positiveInteger";
-  readonly regexp: RegExp = /^\+?\d+$/;
+  readonly regexp: RegExp = /^\s*\+?\d+\s*$/;
   readonly lowestVal: number = 1;
   readonly validParams: Parameter[] = [
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
@@ -1145,10 +1116,10 @@ class unsignedByte extends unsignedShort {
   ];
 }
 
-class boolean_ extends Base {
+class boolean_ extends Base<boolean> {
   readonly name: string = "boolean";
   readonly typeErrorMsg: string = "not a valid boolean";
-  readonly regexp: RegExp = /^(1|0|true|false)$/;
+  readonly regexp: RegExp = /^\s*(1|0|true|false)\s*$/;
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
   convertValue(_location: string, value: string): boolean {
@@ -1160,15 +1131,15 @@ const B04: string = "[AQgw]";
 const B16: string = "[AEIMQUYcgkosw048]";
 const B64: string  = "[A-Za-z0-9+/]";
 
-const B64S: string  = `(?:${B64} ?)`;
-const B16S: string  = `(?:${B16} ?)`;
-const B04S: string  = `(?:${B04} ?)`;
+const B64S: string  = `(?:${B64}\\s*)`;
+const B16S: string  = `(?:${B16}\\s*)`;
+const B04S: string  = `(?:${B04}\\s*)`;
 
 const base64BinaryRe: RegExp = new RegExp(
-  `^(?:(?:${B64S}{4})*(?:(?:${B64S}{3}${B64})|(?:${B64S}{2}${B16S}=)|(?:` +
-    `${B64S}${B04S}= ?=)))?$`);
+  `^\\s*(?:(?:${B64S}{4})*(?:(?:${B64S}{3}${B64})|(?:${B64S}{2}${B16S}=)|(?:` +
+    `${B64S}${B04S}= ?=)))?\\s*$`);
 
-class base64Binary extends Base {
+class base64Binary extends Base<string> {
   readonly name: string = "base64Binary";
   readonly typeErrorMsg: string = "not a valid base64Binary";
   readonly regexp: RegExp = base64BinaryRe;
@@ -1185,10 +1156,10 @@ class base64Binary extends Base {
   }
 }
 
-class hexBinary extends Base {
+class hexBinary extends Base<string> {
   readonly name: string = "hexBinary";
   readonly typeErrorMsg: string = "not a valid hexBinary";
-  readonly regexp: RegExp = /^(?:[0-9a-fA-F]{2})*$/;
+  readonly regexp: RegExp = /^\s*(?:[0-9a-fA-F]{2})*\s*$/;
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] =
     [lengthP, minLengthP, maxLengthP, patternP];
@@ -1202,10 +1173,11 @@ class hexBinary extends Base {
   }
 }
 
-const doubleRe: RegExp = new RegExp(
-  `^(?:(?:[-+]?INF)|(?:NaN)|(?:${decimalPattern}(?:[Ee]${integerPattern})?))$`);
+const doubleRe = new RegExp(
+  `^\\s*(?:(?:[-+]?INF)|(?:NaN)|(?:${decimalPattern}\
+(?:[Ee]${integerPattern})?))\\s*$`);
 
-class float_ extends Base {
+class float_ extends Base<number> {
   readonly name: string = "float";
   readonly typeErrorMsg: string = "not a valid float";
   readonly regexp: RegExp = doubleRe;
@@ -1214,8 +1186,37 @@ class float_ extends Base {
     patternP, minInclusiveP, minExclusiveP, maxInclusiveP, maxExclusiveP,
   ];
 
-  convertValue(_location: string, value: string, context?: Context): any {
+  convertValue(_location: string, value: string, context?: Context): number {
     return convertToInternalNumber(value);
+  }
+
+  equal(value: string, schemaValue: ParsedValue<number>,
+        context?: Context): boolean {
+    let converted: number;
+
+    try {
+      // We pass an empty string as location because we do not generally keep
+      // track of locations in the XML file being validated. The
+      // ValueValidationError is caught and turned into a boolean below so the
+      // specific location is not important here.
+      converted = this.convertValue("", value, context);
+    }
+    catch (ex) {
+      // An invalid value cannot be equal.
+      if (ex instanceof ValueValidationError) {
+        return false;
+      }
+      throw ex;
+    }
+
+    // In the IEEE 754-1985 standard, which is what XMLSChema 1.0 follows, NaN
+    // is equal to NaN. In JavaScript NaN is equal to nothing, not even itself.
+    // So we need to handle this difference.
+    if (isNaN(converted)) {
+      return isNaN(schemaValue.value);
+    }
+
+    return converted === schemaValue.value;
   }
 }
 
@@ -1224,16 +1225,16 @@ class double_ extends float_ {
   readonly typeErrorMsg: string = "not a valid double";
 }
 
-class QName extends Base {
+class QName extends Base<string> {
   readonly name: string = "QName";
   readonly typeErrorMsg: string = "not a valid QName";
-  readonly regexp: RegExp = new RegExp(`^(?:${xmlNcname}:)?${xmlNcname}$`);
+  readonly regexp: RegExp =
+    new RegExp(`^\\s*(?:${xmlNcname}:)?${xmlNcname}\\s*$`);
   readonly needsContext: boolean = true;
   readonly validParams: Parameter[] =
     [patternP, lengthP, minLengthP, maxLengthP];
   convertValue(location: string, value: string, context: Context): string {
-    const ret: EName | undefined =
-      context.resolver.resolveName(super.convertValue(location, value));
+    const ret = context.resolver.resolveName(this.processWhitespace(value));
     if (ret === undefined) {
       throw new ValueValidationError(location,
         [new ValueError(`cannot resolve the name ${value}`)]);
@@ -1243,16 +1244,16 @@ class QName extends Base {
   }
 }
 
-class NOTATION extends Base {
+class NOTATION extends Base<string> {
   readonly name: string = "NOTATION";
   readonly typeErrorMsg: string = "not a valid NOTATION";
-  readonly regexp: RegExp = new RegExp(`^(?:${xmlNcname}:)?${xmlNcname}$`);
+  readonly regexp: RegExp =
+    new RegExp(`^\\s*(?:${xmlNcname}:)?${xmlNcname}\\s*$`);
   readonly needsContext: boolean = true;
   readonly validParams: Parameter[] =
     [patternP, lengthP, minLengthP, maxLengthP];
   convertValue(location: string, value: string, context: Context): string {
-    const ret: EName | undefined =
-      context.resolver.resolveName(super.convertValue(location, value));
+    const ret = context.resolver.resolveName(this.processWhitespace(value));
     if (ret === undefined) {
       throw new ValueValidationError(location,
         [new ValueError(`cannot resolve the name ${value}`)]);
@@ -1262,12 +1263,12 @@ class NOTATION extends Base {
   }
 }
 
-class duration extends Base {
+class duration extends CommonStringBased {
   readonly name: string = "duration";
   readonly typeErrorMsg: string = "not a valid duration";
   readonly regexp: RegExp =
     // tslint:disable-next-line:max-line-length
-    /^-?P(?!$)(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?!$)(?:\d+H)?(?:\d+M)?(?:\d+(\.\d+)?S)?)?$/;
+    /^\s*-?P(?!$)(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?!$)(?:\d+H)?(?:\d+M)?(?:\d+(\.\d+)?S)?)?\s*$/;
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
 }
@@ -1284,29 +1285,29 @@ function isLeapYear(year: number): boolean {
 }
 
 const dateGroupingRe: RegExp = new RegExp(
-  `^(${yearPattern})-(${monthPattern})-(${domPattern})T(${timePattern})` +
-    `(${tzPattern}?)$`);
+  `^\\s*(${yearPattern})-(${monthPattern})-(${domPattern})T(${timePattern})` +
+    `(${tzPattern}?)\\s*$`);
 
 const maxDoms: (number|undefined)[] =
   [undefined, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 function checkDate(value: string): boolean {
   // The Date.parse method of JavaScript is not reliable.
-  const match: RegExpMatchArray | null = value.match(dateGroupingRe);
+  const match = value.match(dateGroupingRe);
   if (match === null) {
     return false;
   }
 
-  const year: string = match[1];
-  const leap: boolean = isLeapYear(Number(year));
-  const month: number = Number(match[2]);
+  const year = match[1];
+  const leap = isLeapYear(Number(year));
+  const month = Number(match[2]);
   if (month === 0 || month > 12) {
     return false;
   }
 
-  const dom: number = Number(match[3]);
+  const dom = Number(match[3]);
   // We cannot have an undefined value here... so...
   // tslint:disable-next-line:no-non-null-assertion
-  let maxDom: number = maxDoms[month]!;
+  let maxDom = maxDoms[month]!;
   if (month === 2 && !leap) {
     maxDom = 28;
   }
@@ -1314,34 +1315,34 @@ function checkDate(value: string): boolean {
     return false;
   }
 
-  const timeParts: string[] = match[4].split(":");
-  const minutes: number = Number(timeParts[1]);
+  const timeParts = match[4].split(":");
+  const minutes = Number(timeParts[1]);
   if (minutes > 59) {
     return false;
   }
 
-  const seconds: number = Number(timeParts[2]);
+  const seconds = Number(timeParts[2]);
   if (seconds > 59) {
     return false;
   }
 
   // 24 is valid if minutes and seconds are at 0, otherwise 23 is the
   // limit.
-  const hoursLimit: number = (minutes === 0 && seconds === 0) ? 24 : 23;
+  const hoursLimit = (minutes === 0 && seconds === 0) ? 24 : 23;
   if (Number(timeParts[0]) > hoursLimit) {
     return false;
   }
 
   if (match[5] !== undefined && match[5] !== "" && match[5] !== "Z") {
     // We have a TZ
-    const tzParts: string[] = match[5].split(":");
+    const tzParts = match[5].split(":");
     // Slice: skip the sign.
-    const tzHours: number = Number(tzParts[0].slice(1));
+    const tzHours = Number(tzParts[0].slice(1));
     if (tzHours > 14) {
       return false;
     }
 
-    const tzSeconds: number = Number(tzParts[1]);
+    const tzSeconds = Number(tzParts[1]);
     if (tzSeconds > 59) {
       return false;
     }
@@ -1354,16 +1355,16 @@ function checkDate(value: string): boolean {
   return true;
 }
 
-class dateTime extends Base {
+class dateTime extends CommonStringBased {
   readonly name: string = "dateTime";
   readonly typeErrorMsg: string = "not a valid dateTime";
   readonly regexp: RegExp = new RegExp(
-    `^${yearPattern}-${monthPattern}-${domPattern}` +
-    `T${timePattern}${tzPattern}?$`);
+    `^\\s*${yearPattern}-${monthPattern}-${domPattern}` +
+    `T${timePattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: any): ValueError[] | false {
-    const ret: ValueError[] | false  = super.disallows(value, params);
+  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+    const ret = super.disallows(value, params);
     if (ret instanceof Array) {
       return ret;
     }
@@ -1376,14 +1377,14 @@ class dateTime extends Base {
   }
 }
 
-class time extends Base {
+class time extends CommonStringBased {
   readonly name: string = "time";
   readonly typeErrorMsg: string = "not a valid time";
-  readonly regexp: RegExp = new RegExp(`^${timePattern}${tzPattern}?$`);
+  readonly regexp: RegExp = new RegExp(`^\\s*${timePattern}${tzPattern}?\\s*$`);
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
-  disallows(value: string, params?: any): ValueError[] | false {
-    const ret: ValueError[] | false = super.disallows(value, params);
+  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+    const ret = super.disallows(value, params);
     if (ret) {
       return ret;
     }
@@ -1397,15 +1398,15 @@ class time extends Base {
   }
 }
 
-class date extends Base {
+class date extends CommonStringBased {
   readonly name: string = "date";
   readonly typeErrorMsg: string = "not a valid date";
   readonly regexp: RegExp = new RegExp(
-    `^${yearPattern}-${monthPattern}-${domPattern}${tzPattern}?$`);
+    `^\\s*${yearPattern}-${monthPattern}-${domPattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: any): ValueError[] | false {
-    const ret: ValueError[] | false = super.disallows(value, params);
+  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+    const ret = super.disallows(value, params);
     if (ret) {
       return ret;
     }
@@ -1423,15 +1424,15 @@ class date extends Base {
   }
 }
 
-class gYearMonth extends Base {
+class gYearMonth extends CommonStringBased {
   readonly name: string = "gYearMonth";
   readonly typeErrorMsg: string = "not a valid gYearMonth";
   readonly regexp: RegExp = new RegExp(
-    `^${yearPattern}-${monthPattern}${tzPattern}?$`);
+    `^\\s*${yearPattern}-${monthPattern}${tzPattern}?\\s*$`);
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
-  disallows(value: string, params?: any): ValueError[] | false {
-    const ret: ValueError[] | false = super.disallows(value, params);
+  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+    const ret = super.disallows(value, params);
     if (ret) {
       return ret;
     }
@@ -1449,14 +1450,14 @@ class gYearMonth extends Base {
   }
 }
 
-class gYear extends Base {
+class gYear extends CommonStringBased {
   readonly name: string = "gYear";
   readonly typeErrorMsg: string = "not a valid gYear";
-  readonly regexp: RegExp = new RegExp(`^${yearPattern}${tzPattern}?$`);
+  readonly regexp: RegExp = new RegExp(`^\\s*${yearPattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: any): ValueError[] | false {
-    const ret: ValueError [] | false = super.disallows(value, params);
+  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+    const ret = super.disallows(value, params);
     if (ret) {
       return ret;
     }
@@ -1474,15 +1475,15 @@ class gYear extends Base {
   }
 }
 
-class gMonthDay extends Base {
+class gMonthDay extends CommonStringBased {
   readonly name: string = "gMonthDay";
   readonly typeErrorMsg: string = "not a valid gMonthDay";
   readonly regexp: RegExp = new RegExp(
-    `^${monthPattern}-${domPattern}${tzPattern}?$`);
+    `^\\s*${monthPattern}-${domPattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: any): ValueError[] | false {
-    const ret: ValueError [] | false = super.disallows(value, params);
+  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+    const ret = super.disallows(value, params);
     if (ret) {
       return ret;
     }
@@ -1502,14 +1503,14 @@ class gMonthDay extends Base {
   }
 }
 
-class gDay extends Base {
+class gDay extends CommonStringBased {
   readonly name: string = "gDay";
   readonly typeErrorMsg: string = "not a valid gDay";
-  readonly regexp: RegExp = new RegExp(`^${domPattern}${tzPattern}?$`);
+  readonly regexp: RegExp = new RegExp(`^\\s*${domPattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: any): ValueError[] | false {
-    const ret: ValueError [] | false = super.disallows(value, params);
+  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+    const ret = super.disallows(value, params);
     if (ret) {
       return ret;
     }
@@ -1529,14 +1530,15 @@ class gDay extends Base {
   }
 }
 
-class gMonth extends Base {
+class gMonth extends CommonStringBased {
   readonly name: string = "gMonth";
   readonly typeErrorMsg: string = "not a valid gMonth";
-  readonly regexp: RegExp = new RegExp(`^${monthPattern}${tzPattern}?$`);
+  readonly regexp: RegExp =
+    new RegExp(`^\\s*${monthPattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: any): ValueError[] | false {
-    const ret: ValueError [] | false = super.disallows(value, params);
+  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+    const ret = super.disallows(value, params);
     if (ret) {
       return ret;
     }
@@ -1556,11 +1558,20 @@ class gMonth extends Base {
   }
 }
 
+//
+// See
+// https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/datatypes.html#anyURI
+//
+// Though the specification referred above above does not require any syntactic
+// checks, in practice Jing reports errors on malformed URIs. We follow Jing's
+// lead.
+//
+
 // Generated from http://jmrware.com/articles/2009/uri_regexp/URI_regex.html
 // tslint:disable-next-line:max-line-length
-const reJsRfc3986UriReference: RegExp = /^(?:[A-Za-z][A-Za-z0-9+\-.]*:(?:\/\/(?:(?:[A-Za-z0-9\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\.[A-Za-z0-9\-._~!$&'()*+,;=:]+)\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|\/(?:(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\?(?:[A-Za-z0-9\-._~!$&'()*+,;=:@\/?]|%[0-9A-Fa-f]{2})*)?(?:\#(?:[A-Za-z0-9\-._~!$&'()*+,;=:@\/?]|%[0-9A-Fa-f]{2})*)?|(?:\/\/(?:(?:[A-Za-z0-9\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\.[A-Za-z0-9\-._~!$&'()*+,;=:]+)\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|\/(?:(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\-._~!$&'()*+,;=@]|%[0-9A-Fa-f]{2})+(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\?(?:[A-Za-z0-9\-._~!$&'()*+,;=:@\/?]|%[0-9A-Fa-f]{2})*)?(?:\#(?:[A-Za-z0-9\-._~!$&'()*+,;=:@\/?]|%[0-9A-Fa-f]{2})*)?)$/;
+const reJsRfc3986UriReference = /^\s*(?:[A-Za-z][A-Za-z0-9+\-.]*:(?:\/\/(?:(?:[A-Za-z0-9\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\.[A-Za-z0-9\-._~!$&'()*+,;=:]+)\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|\/(?:(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\?(?:[A-Za-z0-9\-._~!$&'()*+,;=:@\/?]|%[0-9A-Fa-f]{2})*)?(?:\#(?:[A-Za-z0-9\-._~!$&'()*+,;=:@\/?]|%[0-9A-Fa-f]{2})*)?|(?:\/\/(?:(?:[A-Za-z0-9\-._~!$&'()*+,;=:]|%[0-9A-Fa-f]{2})*@)?(?:\[(?:(?:(?:(?:[0-9A-Fa-f]{1,4}:){6}|::(?:[0-9A-Fa-f]{1,4}:){5}|(?:[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,1}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){3}|(?:(?:[0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})?::(?:[0-9A-Fa-f]{1,4}:){2}|(?:(?:[0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}:|(?:(?:[0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})?::)(?:[0-9A-Fa-f]{1,4}:[0-9A-Fa-f]{1,4}|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?))|(?:(?:[0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})?::[0-9A-Fa-f]{1,4}|(?:(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})?::)|[Vv][0-9A-Fa-f]+\.[A-Za-z0-9\-._~!$&'()*+,;=:]+)\]|(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)|(?:[A-Za-z0-9\-._~!$&'()*+,;=]|%[0-9A-Fa-f]{2})*)(?::[0-9]*)?(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|\/(?:(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})+(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*)?|(?:[A-Za-z0-9\-._~!$&'()*+,;=@]|%[0-9A-Fa-f]{2})+(?:\/(?:[A-Za-z0-9\-._~!$&'()*+,;=:@]|%[0-9A-Fa-f]{2})*)*|)(?:\?(?:[A-Za-z0-9\-._~!$&'()*+,;=:@\/?]|%[0-9A-Fa-f]{2})*)?(?:\#(?:[A-Za-z0-9\-._~!$&'()*+,;=:@\/?]|%[0-9A-Fa-f]{2})*)?)\s*$/;
 
-class anyURI extends Base {
+class anyURI extends CommonStringBased {
   readonly name: string = "anyURI";
   readonly typeErrorMsg: string = "not a valid anyURI";
   readonly regexp: RegExp = reJsRfc3986UriReference;
@@ -1623,7 +1634,7 @@ const library: TypeLibrary = {
 };
 
 for (const type of types) {
-  const instance: Base = new type();
+  const instance = new type();
   library.types[instance.name] = instance;
 }
 

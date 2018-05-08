@@ -45,6 +45,11 @@ here unless they include a fix to a specific issue reported on github.
     ``attributeNameAndValue`` and ``startTagAndAttributes`` which allow passing
     a smaller number of events to salve.
 
+  - Fix: the regular expressions for the XML Schema datatypes were too
+    strict. For instance if an attribute was declared as being a decimal, salve
+    would have rejected ``attr=" 123 "``. It would have required ``attr="123"``
+    but the former is perfectly valid. The regular expressions have been fixed.
+
   - Fix: the internal simplifier applied the constraints from section 7.3 and
     7.4 were too strictly.
 

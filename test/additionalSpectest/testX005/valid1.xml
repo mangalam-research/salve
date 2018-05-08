@@ -1,0 +1,301 @@
+<top>
+  <string></string>
+  <string> </string>
+  <string>
+
+	abc
+
+  </string>
+  <token></token>
+  <token>
+
+	abc   def
+
+  </token>
+  <xsString></xsString>
+  <xsString>
+
+	abc
+
+  </xsString>
+  <xsNormalizedString></xsNormalizedString>
+  <xsNormalizedString>
+
+	abc
+
+  </xsNormalizedString>
+  <xsToken></xsToken>
+  <xsToken>
+
+	abc
+
+  </xsToken>
+  <xsLanguage>en</xsLanguage>
+  <xsLanguage>en-US</xsLanguage>
+  <xsLanguage>
+
+	en
+
+  </xsLanguage>
+  <xsLanguage>
+
+	en-US
+
+  </xsLanguage>
+  <xsName>foo:bar</xsName>
+  <xsName>foo-bar</xsName>
+  <xsName>
+
+	foo:bar
+
+  </xsName>
+  <xsName>
+
+	foo:bar
+
+  </xsName>
+  <attrs xsName="foo:bar"/>
+  <attrs xsName="foo-bar"/>
+  <attrs xsName="
+
+	foo:bar
+
+  "/>
+  <attrs xsName="
+
+	foo:bar
+
+  "/>
+  <xsNCName>foo</xsNCName>
+  <xsNCName>foo-bar</xsNCName>
+  <xsNCName>
+
+	foo
+
+  </xsNCName>
+  <xsNCName>
+
+	foo-bar
+
+  </xsNCName>
+  <xsNMTOKEN>foo</xsNMTOKEN>
+  <xsNMTOKEN>foo-bar</xsNMTOKEN>
+  <xsNMTOKEN>
+
+	foo
+
+  </xsNMTOKEN>
+  <xsNMTOKEN>
+
+	foo-bar
+
+  </xsNMTOKEN>
+  <xsNMTOKENS>foo</xsNMTOKENS>
+  <xsNMTOKENS>foo-bar</xsNMTOKENS>
+  <xsNMTOKENS>
+
+	foo	bar
+
+  </xsNMTOKENS>
+  <xsNMTOKENS>
+
+	foo-bar	foo-fnord
+
+  </xsNMTOKENS>
+  <attrs xsID="foo"/>
+  <attrs xsID="foo-bar"/>
+  <attrs xsID="
+
+	foo2
+
+  "/>
+  <attrs xsID="
+
+	foo-bar2
+
+  "/>
+  <attrs xsIDREF="foo"/>
+  <attrs xsIDREF="foo-bar"/>
+  <attrs xsIDREF="
+
+	foo2
+
+  "/>
+  <attrs xsIDREF="
+
+	foo-bar2
+
+  "/>
+  <attrs xsIDREFS="foo"/>
+  <attrs xsIDREFS="foo  foo-bar"/>
+  <attrs xsIDREFS="
+
+	foo2
+
+  "/>
+  <attrs xsIDREFS="
+
+	foo	   foo-bar2
+
+foo2
+  "/>
+  <!--
+      We cannot yet do a cross-system check on ENTITY and ENTITIES.
+
+A validator that fully supports them will require that the entities be declared
+in the prologue, but salve does not provide the parsing support necessary for
+such declarations. (It does not merely ignore the declarations, which would be
+fine: it chokes on the declarations.)
+
+  -->
+  <xsDecimal>1</xsDecimal>
+  <xsDecimal>+1.1</xsDecimal>
+  <xsDecimal>-1.1</xsDecimal>
+  <xsDecimal>  1  </xsDecimal>
+  <xsDecimal>
+
+		1.1
+
+  </xsDecimal>
+  <attrs xsDecimal="1"/>
+  <attrs xsDecimal="+1.1"/>
+  <attrs xsDecimal="-1.1"/>
+  <attrs xsDecimal="  1  "/>
+  <attrs xsDecimal="
+
+		1.1
+
+  "/>
+  <xsInteger>1</xsInteger>
+  <xsInteger>+1</xsInteger>
+  <xsInteger>-1</xsInteger>
+  <xsInteger>  1  </xsInteger>
+  <xsInteger>
+
+		+1
+
+  </xsInteger>
+  <xsNonPositiveInteger>0</xsNonPositiveInteger>
+  <xsNonPositiveInteger>-1</xsNonPositiveInteger>
+  <xsNonPositiveInteger>
+
+		-1
+
+  </xsNonPositiveInteger>
+  <xsNegativeInteger>-1</xsNegativeInteger>
+  <xsNegativeInteger>
+
+		-1
+
+  </xsNegativeInteger>
+  <xsNonNegativeInteger>1</xsNonNegativeInteger>
+  <xsNonNegativeInteger>+1</xsNonNegativeInteger>
+  <xsNonNegativeInteger>0</xsNonNegativeInteger>
+  <xsNonNegativeInteger>  1  </xsNonNegativeInteger>
+  <xsNonNegativeInteger>
+
+		+1
+
+  </xsNonNegativeInteger>
+  <xsPositiveInteger>1</xsPositiveInteger>
+  <xsPositiveInteger>+1</xsPositiveInteger>
+  <xsPositiveInteger>  1  </xsPositiveInteger>
+  <xsPositiveInteger>
+
+		+1
+
+  </xsPositiveInteger>
+  <!-- We omit tests for long, short, etc here for now as they just move
+       the lowestVal and highestVal limits. They are still covered in
+       datatypes.js -->
+  <xsBoolean>1</xsBoolean>
+  <xsBoolean>0</xsBoolean>
+  <xsBoolean>true</xsBoolean>
+  <xsBoolean>false</xsBoolean>
+  <xsBoolean>
+
+	1
+
+  </xsBoolean>
+  <xsBoolean>
+
+	0
+
+  </xsBoolean>
+  <xsBoolean>
+
+	true
+
+  </xsBoolean>
+  <xsBoolean>
+
+	false
+
+  </xsBoolean>
+  <xsBase64Binary>ZZZZ</xsBase64Binary>
+  <xsBase64Binary>ZZ    ZZ</xsBase64Binary>
+  <xsBase64Binary>ZZZZZ  ZY=</xsBase64Binary>
+  <xsBase64Binary>ZZZZZ  ZY=  </xsBase64Binary>
+  <xsBase64Binary>
+
+    ZZZZZ
+
+  ZY=  </xsBase64Binary>
+  <xsHexBinary>FFFF</xsHexBinary>
+  <xsHexBinary>FF    </xsHexBinary>
+  <xsHexBinary>
+
+    FFFF
+
+  </xsHexBinary>
+  <xsFloat>INF</xsFloat>
+  <xsFloat>-INF</xsFloat>
+  <xsFloat>NaN</xsFloat>
+  <xsFloat>+1.2345E+1</xsFloat>
+  <xsFloat>-1.2345E+1</xsFloat>
+  <xsFloat>-1.2345e-1</xsFloat>
+  <xsFloat>-1.2345</xsFloat>
+  <xsFloat>
+
+	+1.2345E+1
+
+  </xsFloat>
+  <xsDouble>INF</xsDouble>
+  <xsDouble>-INF</xsDouble>
+  <xsDouble>NaN</xsDouble>
+  <xsDouble>+1.2345E+1</xsDouble>
+  <xsDouble>-1.2345E+1</xsDouble>
+  <xsDouble>-1.2345e-1</xsDouble>
+  <xsDouble>-1.2345</xsDouble>
+  <xsDouble>
+
+	+1.2345E+1
+
+  </xsDouble>
+  <xsQName>blah</xsQName>
+  <xsQName xmlns:q="q">q:blah</xsQName>
+  <xsQName>
+
+    blah
+
+  </xsQName>
+  <xsQName xmlns:q="q">
+
+    q:blah
+
+  </xsQName>
+  <xsNOTATION>blah</xsNOTATION>
+  <xsNOTATION xmlns:q="q">q:blah</xsNOTATION>
+  <xsNOTATION>
+
+    blah
+
+  </xsNOTATION>
+  <xsNOTATION xmlns:q="q">
+
+    q:blah
+
+  </xsNOTATION>
+  <xsAnyURI>moo</xsAnyURI>
+  <xsAnyURI></xsAnyURI>
+</top>

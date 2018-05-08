@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<element name="top" xmlns="http://relaxng.org/ns/structure/1.0">
+  <zeroOrMore>
+    <choice>
+      <element name="attrs">
+        <optional>
+          <attribute name="xsName">
+            <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="Name"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="xsID">
+            <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="ID"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="xsIDREF">
+            <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="IDREF"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="xsIDREFS">
+            <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="IDREFS"/>
+          </attribute>
+        </optional>
+        <optional>
+          <attribute name="xsDecimal">
+            <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="decimal"/>
+          </attribute>
+        </optional>
+      </element>
+      <element name="string">
+        <data datatypeLibrary="" type="string"/>
+      </element>
+      <element name="token">
+        <data datatypeLibrary="" type="token"/>
+      </element>
+      <element name="xsString">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="string"/>
+      </element>
+      <element name="xsNormalizedString">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="normalizedString"/>
+      </element>
+      <element name="xsToken">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="token"/>
+      </element>
+      <element name="xsLanguage">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="language"/>
+      </element>
+      <element name="xsName">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="Name"/>
+      </element>
+      <element name="xsNCName">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="NCName"/>
+      </element>
+      <element name="xsNMTOKEN">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="NMTOKEN"/>
+      </element>
+      <element name="xsNMTOKENS">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="NMTOKENS"/>
+      </element>
+      <!-- Jing does not allow ID, IDREF(S) as element contents so we cannot compare.
+           xmllint and salve allow it. Use <attr> to compare validations.
+      <element name="xsID">...</element>
+      <element name="xsIDREF">...</element>
+      <element name="xsIDREFS">...</element>
+      -->
+      <!-- We do not test these yet, due to salve's own limitations:
+      <element name="xsENTITY">... </element>
+      <element name="xsENTITIES">... </element>
+      -->
+      <element name="xsDecimal">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="decimal"/>
+      </element>
+      <element name="xsInteger">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="integer"/>
+      </element>
+      <element name="xsNonPositiveInteger">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="nonPositiveInteger"/>
+      </element>
+      <element name="xsNegativeInteger">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="negativeInteger"/>
+      </element>
+      <element name="xsNonNegativeInteger">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="nonNegativeInteger"/>
+      </element>
+      <element name="xsPositiveInteger">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="positiveInteger"/>
+      </element>
+      <element name="xsBoolean">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="boolean"/>
+      </element>
+      <element name="xsBase64Binary">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="base64Binary"/>
+      </element>
+      <element name="xsHexBinary">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="hexBinary"/>
+      </element>
+      <element name="xsFloat">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="float"/>
+      </element>
+      <element name="xsDouble">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="double"/>
+      </element>
+      <element name="xsQName">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="QName"/>
+      </element>
+      <element name="xsNOTATION">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="NOTATION"/>
+      </element>
+      <element name="xsAnyURI">
+        <data datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" type="anyURI"/>
+      </element>
+    </choice>
+  </zeroOrMore>
+</element>

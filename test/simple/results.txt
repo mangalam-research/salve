@@ -16,7 +16,7 @@ invoking fireEvent with Event: attributeName, , style
 fireEvent returned false
 possible events
 attributeValue:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: attributeValue, toto
 fireEvent returned false
@@ -63,7 +63,7 @@ possible events
 endTag:
     {"ns":"","name":"title"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: text, ab
 fireEvent returned false
@@ -71,7 +71,7 @@ possible events
 endTag:
     {"ns":"","name":"title"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: endTag, , title
 fireEvent returned false
@@ -116,7 +116,7 @@ enterStartTag:
     {"ns":"","name":"int"}
     {"ns":"","name":"mix"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: text,
 abc
@@ -130,7 +130,7 @@ enterStartTag:
     {"ns":"","name":"int"}
     {"ns":"","name":"mix"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -150,7 +150,7 @@ endTag:
 enterStartTag:
     {"ns":"","name":"em"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: text, def
 fireEvent returned false
@@ -160,7 +160,7 @@ endTag:
 enterStartTag:
     {"ns":"","name":"em"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -176,7 +176,7 @@ invoking fireEvent with Event: attributeName, , test
 fireEvent returned false
 possible events
 attributeValue:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: attributeValue,
 fireEvent returned false
@@ -191,7 +191,7 @@ endTag:
 enterStartTag:
     {"ns":"","name":"em"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: endTag, , em
 fireEvent returned false
@@ -201,7 +201,7 @@ endTag:
 enterStartTag:
     {"ns":"","name":"em"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -217,7 +217,7 @@ enterStartTag:
     {"ns":"","name":"int"}
     {"ns":"","name":"mix"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -233,7 +233,7 @@ enterStartTag:
     {"ns":"","name":"int"}
     {"ns":"","name":"mix"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -388,7 +388,7 @@ enterStartTag:
     {"ns":"","name":"baz"}
     {"ns":"","name":"foo"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: text, a
 fireEvent returned false
@@ -399,7 +399,7 @@ enterStartTag:
     {"ns":"","name":"baz"}
     {"ns":"","name":"foo"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -424,7 +424,7 @@ enterStartTag:
     {"ns":"","name":"baz"}
     {"ns":"","name":"foo"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -438,7 +438,7 @@ enterStartTag:
     {"ns":"","name":"baz"}
     {"ns":"","name":"foo"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -490,7 +490,7 @@ enterStartTag:
     {"ns":"","name":"baz"}
     {"ns":"","name":"foo"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -504,7 +504,7 @@ enterStartTag:
     {"ns":"","name":"baz"}
     {"ns":"","name":"foo"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -529,7 +529,7 @@ enterStartTag:
     {"ns":"","name":"baz"}
     {"ns":"","name":"foo"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -543,7 +543,7 @@ enterStartTag:
     {"ns":"","name":"baz"}
     {"ns":"","name":"foo"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: endTag, , mix
 fireEvent returned false

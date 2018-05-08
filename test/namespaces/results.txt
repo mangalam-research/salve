@@ -237,7 +237,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, title
 fireEvent returned false
@@ -428,7 +428,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
@@ -600,7 +600,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, p
 fireEvent returned false
@@ -915,7 +915,7 @@ invoking fireEvent with Event: attributeName, uri:test2, style
 fireEvent returned false
 possible events
 attributeValue:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: attributeValue, attribute in namespace
 fireEvent returned false
@@ -1001,7 +1001,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -1017,7 +1017,7 @@ possible events
 endTag:
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: endTag, uri:test2, emph
 fireEvent returned false
@@ -1084,7 +1084,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1105,7 +1105,7 @@ endTag:
 enterStartTag:
     {"ns":"uri:test1","name":"test1unique"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: endTag, uri:test1, emph
 fireEvent returned false
@@ -1172,7 +1172,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1409,7 +1409,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -1436,7 +1436,7 @@ invoking fireEvent with Event: attributeName, uri:test2, test2
 fireEvent returned false
 possible events
 attributeValue:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: attributeValue, q
 fireEvent returned false
@@ -1520,7 +1520,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: endTag, http://www.tei-c.org/ns/1.0, emph
 fireEvent returned false
@@ -1587,7 +1587,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1827,7 +1827,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -1845,7 +1845,7 @@ endTag:
 enterStartTag:
     {"ns":"uri:test1","name":"test1unique"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -1861,7 +1861,7 @@ possible events
 endTag:
     {"ns":"uri:test1","name":"test1unique"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: endTag, uri:test1, test1unique
 fireEvent returned false
@@ -1937,7 +1937,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
@@ -1958,7 +1958,7 @@ endTag:
 enterStartTag:
     {"ns":"uri:test1","name":"test1unique"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: enterContext
 fireEvent returned false
@@ -1974,7 +1974,7 @@ possible events
 endTag:
     {"ns":"uri:test1","name":"test1unique"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: endTag, uri:test1, test1unique
 fireEvent returned false
@@ -2050,7 +2050,7 @@ enterStartTag:
     {"ns":"uri:test1","name":"emph"}
     {"ns":"uri:test2","name":"emph"}
 text:
-    /^.*$/
+    /^[^]*$/
 
 invoking fireEvent with Event: leaveContext
 fireEvent returned false
