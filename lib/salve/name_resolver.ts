@@ -35,13 +35,13 @@ class Context {
   /**
    * A mapping from namespace prefix to namespace uri.
    */
-  readonly forward: {[ns: string]: string} = Object.create(null);
+  readonly forward: Map<string, string> = new Map();
 
   /**
    * A mapping from namespace uri to namespace prefixes. It is "prefixes" in the
    * plural because multiple prefixes may exist for the same uri.
    */
-  readonly backwards: {[uri: string]: string[]} = Object.create(null);
+  readonly backwards: Map<string, string[]> = new Map();
 }
 
 /**
@@ -73,10 +73,10 @@ export class NameResolver {
       // http://www.w3.org/TR/REC-xml-names/#ns-decl
       // Skip definePrefix for these initial values.
       /* tslint:disable no-string-literal */
-      this._contextStack[0].forward["xml"] = XML1_NAMESPACE;
-      this._contextStack[0].backwards[XML1_NAMESPACE] = ["xml"];
-      this._contextStack[0].forward["xmlns"] = XMLNS_NAMESPACE;
-      this._contextStack[0].backwards[XMLNS_NAMESPACE] = ["xmlns"];
+      this._contextStack[0].forward.set("xml", XML1_NAMESPACE);
+      this._contextStack[0].backwards.set(XML1_NAMESPACE, ["xml"]);
+      this._contextStack[0].forward.set("xmlns", XMLNS_NAMESPACE);
+      this._contextStack[0].backwards.set(XMLNS_NAMESPACE, ["xmlns"]);
       /* tslint:enable no-string-literal */
     }
   }
@@ -126,11 +126,12 @@ export class NameResolver {
       throw new Error("trying to define 'xml' to an incorrect URI");
     }
 
-    this._contextStack[0].forward[prefix] = uri;
+    this._contextStack[0].forward.set(prefix, uri);
 
-    let prefixes: string[] = this._contextStack[0].backwards[uri];
+    let prefixes = this._contextStack[0].backwards.get(uri);
     if (prefixes === undefined) {
-      prefixes = this._contextStack[0].backwards[uri] = [];
+      prefixes = [];
+      this._contextStack[0].backwards.set(uri, prefixes);
     }
 
     // This ensure that the default namespace is given priority when
@@ -210,8 +211,8 @@ export class NameResolver {
     for (let cIx: number = 0;
          (uri === undefined) && (cIx < this._contextStack.length);
          ++cIx) {
-      const ctx: Context = this._contextStack[cIx];
-      uri = ctx.forward[parts[0]];
+      const ctx = this._contextStack[cIx];
+      uri = ctx.forward.get(parts[0]);
     }
 
     if (uri === undefined) {
@@ -254,7 +255,7 @@ export class NameResolver {
     for (let cIx: number = 0; (prefixes === undefined) &&
          (cIx < this._contextStack.length); ++cIx) {
       const ctx: Context = this._contextStack[cIx];
-      prefixes = ctx.backwards[uri];
+      prefixes = ctx.backwards.get(uri);
     }
 
     if (prefixes === undefined) {
@@ -281,7 +282,7 @@ export class NameResolver {
     for (let cIx: number = 0; (prefixes === undefined) &&
          (cIx < this._contextStack.length); ++cIx) {
       const ctx: Context = this._contextStack[cIx];
-      prefixes = ctx.backwards[uri];
+      prefixes = ctx.backwards.get(uri);
     }
 
     if (prefixes === undefined) {
