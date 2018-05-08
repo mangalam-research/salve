@@ -41,6 +41,11 @@ here unless they include a fix to a specific issue reported on github.
     seeing *attributes* by opposition to just ending.) At any rate, that
     parameter has been removed.
 
+  - Breaking change: we had to upgrade from jison to jison-gho to handle some
+    issues. (The jison project has been effectively abandoned and jison-gho is
+    its de facto successor.) One side-effect of the upgrade is that IE10 is no
+    longer supported.
+
   - New feature: introduce a pair of "compact" events named
     ``attributeNameAndValue`` and ``startTagAndAttributes`` which allow passing
     a smaller number of events to salve.

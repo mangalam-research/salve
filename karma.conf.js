@@ -56,13 +56,6 @@ module.exports = function configure(config) {
         os: "Windows",
         os_version: "10",
       },
-      IE10: {
-        base: "BrowserStack",
-        browser: "IE",
-        browser_version: "10",
-        os: "Windows",
-        os_version: "8",
-      },
       Edge: {
         base: "BrowserStack",
         browser: "Edge",
