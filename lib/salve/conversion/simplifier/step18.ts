@@ -14,7 +14,7 @@ function groupHandler(el: Element, firstEmpty: boolean,
                       secondEmpty: boolean): void {
   if (firstEmpty && secondEmpty) {
     // A group (or interleave) with two empty elements is replaced with empty.
-    el.replaceWith(Element.makeElement("empty", true));
+    el.replaceWith(Element.makeElement("empty"));
   }
   else {
     // A group (or interleave) with only one empty element is replaced with
@@ -37,7 +37,7 @@ const handlers: Record<string, Handler> = {
       }
       else {
         // A choice with two empty elements is replaced with empty.
-        el.replaceWith(Element.makeElement("empty", true));
+        el.replaceWith(Element.makeElement("empty"));
       }
     }
   },
@@ -47,21 +47,15 @@ const handlers: Record<string, Handler> = {
     // A oneOrMore with an empty element is replaced with empty. (This won't
     // be called if there are no empty elements in the oneOrMore so we don't
     // test here.)
-    el.replaceWith(Element.makeElement("empty", true));
+    el.replaceWith(Element.makeElement("empty"));
   },
 };
 
 function walk(el: Element): void {
-  if (el.children.length === 0) {
-    return;
-  }
-
-  for (const child of el.elements) {
-    if (skip.has(child.local)) {
-      continue;
+  for (const child of el.children) {
+    if (child instanceof Element && !skip.has(child.local)) {
+      walk(child);
     }
-
-    walk(child);
   }
 
   const handler = handlers[el.local];

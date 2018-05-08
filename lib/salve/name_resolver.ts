@@ -17,31 +17,29 @@ import { EName } from "./ename";
  * spec](http://www.w3.org/TR/REC-xml-names/#ns-decl).
  */
 // tslint:disable-next-line: no-http-string
-export const XML1_NAMESPACE: string = "http://www.w3.org/XML/1998/namespace";
+export const XML1_NAMESPACE = "http://www.w3.org/XML/1998/namespace";
 
 /**
  * The namespace URI for the "xmlns" prefix. This is part of the [XML
  * spec](http://www.w3.org/TR/REC-xml-names/#ns-decl).
  */
 // tslint:disable-next-line: no-http-string
-export const XMLNS_NAMESPACE: string = "http://www.w3.org/2000/xmlns/";
+export const XMLNS_NAMESPACE = "http://www.w3.org/2000/xmlns/";
 
 /**
  * A resolution context.
- *
- * @private
  */
-class Context {
+interface Context {
   /**
    * A mapping from namespace prefix to namespace uri.
    */
-  readonly forward: {[ns: string]: string} = Object.create(null);
+  readonly forward: Map<string, string>;
 
   /**
    * A mapping from namespace uri to namespace prefixes. It is "prefixes" in the
    * plural because multiple prefixes may exist for the same uri.
    */
-  readonly backwards: {[uri: string]: string[]} = Object.create(null);
+  readonly backwards: Map<string, string[]>;
 }
 
 /**
@@ -65,19 +63,16 @@ export class NameResolver {
       this._contextStack = other._contextStack.slice();
     }
     else {
-      this._contextStack = [];
-      // Create a default context.
-      this.enterContext();
-
       // Both namespaces defined at:
       // http://www.w3.org/TR/REC-xml-names/#ns-decl
       // Skip definePrefix for these initial values.
-      /* tslint:disable no-string-literal */
-      this._contextStack[0].forward["xml"] = XML1_NAMESPACE;
-      this._contextStack[0].backwards[XML1_NAMESPACE] = ["xml"];
-      this._contextStack[0].forward["xmlns"] = XMLNS_NAMESPACE;
-      this._contextStack[0].backwards[XMLNS_NAMESPACE] = ["xmlns"];
-      /* tslint:enable no-string-literal */
+      this._contextStack = [{
+        forward: new Map([["xml", XML1_NAMESPACE],
+                          ["xmlns", XMLNS_NAMESPACE]]),
+        backwards: new Map([[XML1_NAMESPACE, ["xml"]],
+                            [XMLNS_NAMESPACE, ["xmlns"]]]),
+      }];
+
     }
   }
 
@@ -126,11 +121,13 @@ export class NameResolver {
       throw new Error("trying to define 'xml' to an incorrect URI");
     }
 
-    this._contextStack[0].forward[prefix] = uri;
+    const top = this._contextStack[0];
+    top.forward.set(prefix, uri);
 
-    let prefixes: string[] = this._contextStack[0].backwards[uri];
+    let prefixes = top.backwards.get(uri);
     if (prefixes === undefined) {
-      prefixes = this._contextStack[0].backwards[uri] = [];
+      prefixes = [];
+      top.backwards.set(uri, prefixes);
     }
 
     // This ensure that the default namespace is given priority when
@@ -154,7 +151,10 @@ export class NameResolver {
    * created. There is no need to create it and it is not possible to leave it.
    */
   enterContext(): void {
-    this._contextStack.unshift(new Context());
+    this._contextStack.unshift({
+      forward: new Map(),
+      backwards: new Map(),
+    });
   }
 
   /**
@@ -190,35 +190,37 @@ export class NameResolver {
    * resolved.
    */
   resolveName(name: string, attribute: boolean = false): EName | undefined {
-    let parts: string[] = name.split(":");
+    const parts = name.split(":");
 
-    if (parts.length === 1) { // If there is no prefix
-      if (attribute) { // Attribute in undefined namespace
-        return new EName("", name);
+    let prefix: string;
+    let local: string;
+    switch (parts.length) {
+      case 2:
+        [prefix, local] = parts;
+        break;
+      case 1:
+        if (attribute) { // Attribute in undefined namespace
+          return new EName("", name);
+        }
+
+        // We are searching for the default namespace currently in effect.
+        prefix = "";
+        local = name;
+        break;
+      default:
+        throw new Error("invalid name passed to resolveName");
+    }
+
+    // Search through the contexts.
+    for (const context of this._contextStack) {
+      const uri = context.forward.get(prefix);
+      if (uri !== undefined) {
+        return new EName(uri, local);
       }
-
-      // We are searching for the default namespace currently in effect.
-      parts = ["", name];
     }
 
-    if (parts.length > 2) {
-      throw new Error("invalid name passed to resolveName");
-    }
-
-    // Search through the contexts
-    let uri: string | undefined;
-    for (let cIx: number = 0;
-         (uri === undefined) && (cIx < this._contextStack.length);
-         ++cIx) {
-      const ctx: Context = this._contextStack[cIx];
-      uri = ctx.forward[parts[0]];
-    }
-
-    if (uri === undefined) {
-      return (parts[0] === "") ? new EName("", parts[1]) : undefined;
-    }
-
-    return new EName(uri, parts[1]);
+    // If we get here uri is necessarily undefined.
+    return (prefix === "") ? new EName("", local) : undefined;
   }
 
   /**
@@ -249,19 +251,18 @@ export class NameResolver {
       return name;
     }
 
-    // Search through the contexts
+    // Search through the contexts.
     let prefixes: string[] | undefined;
-    for (let cIx: number = 0; (prefixes === undefined) &&
+    for (let cIx = 0; (prefixes === undefined) &&
          (cIx < this._contextStack.length); ++cIx) {
-      const ctx: Context = this._contextStack[cIx];
-      prefixes = ctx.backwards[uri];
+      prefixes = this._contextStack[cIx].backwards.get(uri);
     }
 
     if (prefixes === undefined) {
       return undefined;
     }
 
-    const pre: string = prefixes[0];
+    const pre = prefixes[0];
 
     return (pre !== "") ? `${pre}:${name}` : name;
   }
@@ -278,10 +279,9 @@ export class NameResolver {
    */
   prefixFromURI(uri: string): string | undefined {
     let prefixes: string[] | undefined;
-    for (let cIx: number = 0; (prefixes === undefined) &&
+    for (let cIx = 0; (prefixes === undefined) &&
          (cIx < this._contextStack.length); ++cIx) {
-      const ctx: Context = this._contextStack[cIx];
-      prefixes = ctx.backwards[uri];
+      prefixes = this._contextStack[cIx].backwards.get(uri);
     }
 
     if (prefixes === undefined) {

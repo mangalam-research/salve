@@ -1603,58 +1603,22 @@ describe("datatypes", () => {
     });
 
     testString("string", lib, (type) => {
-      it("allows anything", () => assert.isFalse(type.disallows("foo")));
+      it("allows anything",
+         () => assert.isFalse(type.disallows("  foo\tq\r\n    blah ")));
     });
 
+    // The language of the XML Schema specification is deceptive. It talks about
+    // disallowing tabs, carriage returns, etc. However, whitespace
+    // normalization occurs before the string is validated, and since the value
+    // is COLLAPSE, those restrictions go out the window.
     testString("normalizedString", lib, (type) => {
-      it("allows simple text", () => assert.isFalse(type.disallows("foo")));
-
-      it("disallows tabs", () => {
-        const ret = type.disallows("foo\tbar");
-        assert.equal(ret.length, 1);
-        assert.equal(ret[0].toString(),
-                     "string contains a tab, carriage return or newline");
-      });
-
-      it("disallows newlines", () => {
-        const ret = type.disallows("foo\nbar");
-        assert.equal(ret.length, 1);
-        assert.equal(ret[0].toString(),
-                     "string contains a tab, carriage return or newline");
-      });
-
-      it("disallows carriage returns", () => {
-        const ret = type.disallows("foo\rbar");
-        assert.equal(ret.length, 1);
-        assert.equal(ret[0].toString(),
-                     "string contains a tab, carriage return or newline");
-      });
+      it("allows anything",
+         () => assert.isFalse(type.disallows("  foo\tq\r\n    blah ")));
     });
 
     testString("token", lib, (type) => {
-      it("allows simple text", () => {
-        assert.isFalse(type.disallows("foo"));
-      });
-
-      it("allows tabs", () => {
-        assert.isFalse(type.disallows("en\t"));
-      });
-
-      it("disallows newlines", () => {
-        const ret = type.disallows("foo\nbar");
-        assert.equal(ret.length, 1);
-        assert.equal(ret[0].toString(), "not a valid token");
-      });
-
-      it("disallows carriage returns", () => {
-        const ret = type.disallows("foo\rbar");
-        assert.equal(ret.length, 1);
-        assert.equal(ret[0].toString(), "not a valid token");
-      });
-
-      it("allows spaces", () => {
-        assert.isFalse(type.disallows("foo  bar"));
-      });
+      it("allows anything",
+         () => assert.isFalse(type.disallows("  foo\tq\r\n    blah ")));
     });
 
     testString("language", lib, (type) => {

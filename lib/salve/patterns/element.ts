@@ -4,21 +4,20 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { AttributeNameError, AttributeValueError, ElementNameError,
-         ValidationError } from "../errors";
-import { HashMap } from "../hashstructs";
+import { ElementNameError } from "../errors";
 import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
-import { TrivialMap } from "../types";
-import { BasePattern, ElementI, EndResult, Event, EventSet, FireEventResult,
-         isHashMap, isNameResolver, OneSubpattern, Pattern,
-         Walker } from "./base";
+import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, Pattern } from "./base";
+import { Define } from "./define";
 import { NotAllowed } from "./not_allowed";
+import { Ref } from "./ref";
 
 /**
  * A pattern for elements.
  */
-export class Element extends OneSubpattern implements ElementI {
+export class Element extends BasePattern {
+  private readonly notAllowed: boolean;
   /**
    * @param xmlPath This is a string which uniquely identifies the
    * element from the simplified RNG tree. Used in debugging.
@@ -28,37 +27,35 @@ export class Element extends OneSubpattern implements ElementI {
    * @param pat The pattern contained by this one.
    */
   constructor(xmlPath: string, readonly name: ConcreteName,
-              pat: Pattern) {
-    super(xmlPath, pat);
+              readonly pat: Pattern) {
+    super(xmlPath);
+    this.notAllowed = this.pat instanceof NotAllowed;
   }
 
-  _prepare(namespaces: TrivialMap<number>): void {
-    this.name._recordNamespaces(namespaces);
-    this.pat._prepare(namespaces);
+  newWalker(resolver: NameResolver,
+            boundName: Name): InternalWalker<BasePattern> {
+    return this.notAllowed ?
+      this.pat.newWalker(resolver) :
+      // tslint:disable-next-line:no-use-before-declare
+      new ElementWalker(this, resolver, boundName);
   }
 
-  // addWalker(Element, ElementWalker); Nope... see below..
-  newWalker(resolver: NameResolver): Walker<BasePattern> {
-    if (this.pat instanceof NotAllowed) {
-      return this.pat.newWalker(resolver);
-    }
-
-    // tslint:disable-next-line:no-use-before-declare
-    return ElementWalker.makeWalker(this, resolver);
-  }
-
-  _hasAttrs(): boolean {
+  hasAttrs(): boolean {
     return false;
   }
 
-  _gatherElementDefinitions(memo: TrivialMap<ElementI[]>): void {
-    const key: string = this.name.toString();
-    if (memo[key] === undefined) {
-      memo[key] = [this];
-    }
-    else {
-      memo[key].push(this);
-    }
+  hasEmptyPattern(): boolean {
+    // The question is whether an element allows empty content **in the context
+    // in which it appears**, not empty content inside it. So the answer is
+    // always negative.
+    return false;
+  }
+
+  _prepare(definitions: Map<string, Define>,
+           namespaces: Set<string>): Ref[] | undefined {
+    this.name._recordNamespaces(namespaces, true);
+
+    return this.pat._prepare(definitions, namespaces);
   }
 }
 
@@ -66,17 +63,17 @@ export class Element extends OneSubpattern implements ElementI {
  *
  * Walker for [[Element]].
  */
-class ElementWalker extends Walker<Element> {
+class ElementWalker extends InternalWalker<Element> {
   private static _leaveStartTagEvent: Event = new Event("leaveStartTag");
 
-  private seenName: boolean;
+  protected readonly el: Element;
   private endedStartTag: boolean;
-  private closed: boolean;
-  private walker: Walker<BasePattern> | undefined;
-  private startTagEvent: Event;
-  private endTagEvent: Event | undefined;
-  private boundName: Name | undefined;
+  private walker: InternalWalker<BasePattern>;
+  private endTagEvent: Event;
+  private boundName: Name;
   private readonly nameResolver: NameResolver;
+  canEndAttribute: boolean;
+  canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was
@@ -85,230 +82,160 @@ class ElementWalker extends Walker<Element> {
    * @param nameResolver The name resolver that
    * can be used to convert namespace prefixes to namespaces.
    */
-  protected constructor(walker: ElementWalker, memo: HashMap);
-  protected constructor(el: Element, nameResolver: NameResolver);
-  protected constructor(elOrWalker: ElementWalker | Element,
-                        nameResolverOrMemo: NameResolver | HashMap) {
-    if (elOrWalker instanceof ElementWalker) {
-      const walker: ElementWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo);
-      super(walker, memo);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.seenName = walker.seenName;
-      this.endedStartTag = walker.endedStartTag;
-      this.closed = walker.closed;
-      this.walker = walker.walker !== undefined ? walker.walker._clone(memo) :
-        undefined;
-
-      // No cloning needed since these are immutable.
-      this.startTagEvent = walker.startTagEvent;
-      this.endTagEvent = walker.endTagEvent;
-      this.boundName = walker.boundName;
+  constructor(walker: ElementWalker, memo: CloneMap);
+  constructor(el: Element, nameResolver: NameResolver, boundName: Name);
+  constructor(elOrWalker: ElementWalker | Element,
+              nameResolverOrMemo: NameResolver | CloneMap,
+              boundName?: Name) {
+    super();
+    if ((elOrWalker as Element).newWalker !== undefined) {
+      const el = elOrWalker as Element;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
+      this.nameResolver = nameResolver;
+      this.walker = el.pat.newWalker(nameResolver);
+      this.endedStartTag = false;
+      // tslint:disable-next-line:no-non-null-assertion
+      this.boundName = boundName!;
+      this.endTagEvent = new Event("endTag", this.boundName);
+      this.canEndAttribute = true;
+      this.canEnd = false;
     }
     else {
-      const el: Element = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo);
-      super(el);
-      this.nameResolver = nameResolver;
-      this.seenName = false;
-      this.endedStartTag = false;
-      this.closed = false;
-      this.startTagEvent = new Event("enterStartTag", el.name);
+      const walker = elOrWalker as ElementWalker;
+      const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
+      this.endedStartTag = walker.endedStartTag;
+      this.walker = walker.walker._clone(memo);
+
+      // No cloning needed since these are immutable.
+      this.endTagEvent = walker.endTagEvent;
+      this.boundName = walker.boundName;
+      this.canEndAttribute = walker.canEndAttribute;
+      this.canEnd = walker.canEnd;
     }
   }
 
-  static makeWalker(el: Element, nameResolver: NameResolver): ElementWalker {
-    return new ElementWalker(el, nameResolver);
+  _clone(memo: CloneMap): this {
+    return new ElementWalker(this, memo) as this;
   }
 
-  _possible(): EventSet {
-    if (!this.seenName) {
-      return new EventSet(this.startTagEvent);
-    }
-    else if (!this.endedStartTag) {
-      // If we have seen the name, then there is necessarily a walker.
-      // tslint:disable-next-line:no-non-null-assertion
-      const walker = this.walker!;
+  possible(): EventSet {
+    // Contrarily to all other implementations, which must only return
+    // non-attribute events. This implementation actually returns all types of
+    // possible events. Representing this distinction through TS type
+    // declarations would be cumbersome. The exception works because of the way
+    // Relax NG constrains the structure of a simplified schema. The only
+    // possible caller for this method is ``GrammarWalker``, which also aims to
+    // return all possible events.
 
-      const all: EventSet = walker._possible();
-      let ret: EventSet = new EventSet();
-      // We use valueEvs to record whether an attributeValue is a
-      // possibility. If so, we must only return these possibilities and no
-      // other.
-      const valueEvs: EventSet = new EventSet();
-      all.forEach((poss: Event) => {
-        if (poss.params[0] === "attributeValue") {
-          valueEvs.add(poss);
-        }
-        else if (poss.isAttributeEvent()) {
-          ret.add(poss);
-        }
-      });
+    if (!this.endedStartTag) {
+      const walker = this.walker;
 
-      if (valueEvs.size() !== 0) {
-        ret = valueEvs;
-      }
-      else if (walker.canEnd(true)) {
+      const ret = walker.possibleAttributes();
+
+      if (walker.canEndAttribute) {
         ret.add(ElementWalker._leaveStartTagEvent);
       }
 
       return ret;
     }
-    else if (!this.closed) {
-      // If we have seen the name, then there is necessarily a walker.
-      // tslint:disable-next-line:no-non-null-assertion
-      const walker = this.walker!;
-
-      const posses: EventSet = new EventSet(walker._possible());
-      if (walker.canEnd()) {
+    else if (!this.canEnd) {
+      const walker = this.walker;
+      const posses = walker.possible();
+      if (walker.canEnd) {
         posses.add(this.endTagEvent);
       }
 
       return posses;
     }
 
-    return new EventSet();
+    return new Set<Event>();
   }
 
-  // _possible always returns new sets
-  possible(): EventSet {
-    return this._possible();
+  possibleAttributes(): EventSet {
+    throw new Error("calling possibleAttributes on ElementWalker is invalid");
   }
 
-  fireEvent(ev: Event): FireEventResult {
-    if (!this.endedStartTag) {
-      if (!this.seenName) {
-        if (ev.params[0] === "enterStartTag" &&
-            this.el.name.match(ev.params[1] as string,
-                               ev.params[2] as string)) {
-          this.walker = this.el.pat.newWalker(this.nameResolver);
-          this.seenName = true;
-          this.boundName = new Name("", ev.params[1] as string,
-                                    ev.params[2] as string);
-          this.endTagEvent = new Event("endTag", this.boundName);
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    // This is not a useful optimization. canEnd becomes true once we see
+    // the end tag, which means that this walker will be popped of
+    // GrammarWalker's stack and won't be called again.
+    //
+    // if (this.canEnd) {
+    //   return undefined;
+    // }
 
-          return false;
-        }
+    const walker = this.walker;
+    if (this.endedStartTag) {
+      if (name === "endTag") {
+        // We cannot get here if canEnd is already true. So this will
+        // necessarily leave it false or set it to true but it won't set a true
+        // canEnd back to false.
+        this.canEnd = this.boundName.match(params[0], params[1]);
+
+        return InternalFireEventResult.fromEndResult(walker.end());
       }
-      else if (ev.params[0] === "leaveStartTag") {
+
+      return walker.fireEvent(name, params);
+    }
+
+    switch (name) {
+      case "enterStartTag":
+        if (!this.boundName.match(params[0], params[1])) {
+          throw new Error("event starting the element had an incorrect name");
+        }
+
+        return new InternalFireEventResult(true);
+      case "startTagAndAttributes":
+        if (!this.boundName.match(params[0], params[1])) {
+          throw new Error("event starting the element had an incorrect name");
+        }
+
+        // We need to handle all attributes and leave the start tag.
+        for (let ix = 2; ix < params.length; ix += 3) {
+          const attrRet = walker.fireEvent("attributeNameAndValue",
+                                           params.slice(ix, ix + 3));
+          if (!attrRet.matched) {
+            return attrRet;
+          }
+        }
+
+        /* fall through */
+      case "leaveStartTag":
         this.endedStartTag = true;
 
-        // If we have seen the name, then there is necessarily a walker.
-        // tslint:disable-next-line:no-non-null-assertion
-        const walker = this.walker!;
-
-        const errs: EndResult = walker.end(true);
-        const ret: ValidationError[] = [];
-        if (errs) {
-          for (const err of errs) {
-            if (err instanceof AttributeValueError ||
-                err instanceof AttributeNameError) {
-              ret.push(err);
-            }
-
-            if (err instanceof AttributeNameError) {
-              // We generate an internal event designed to neutralize the
-              // attributes that errored.
-              walker.fireEvent(new Event(["neutralizeAttribute", err.name]));
-            }
-          }
-        }
-
-        // And suppress the attributes.
-        walker._suppressAttributes();
-
-        return ret.length !== 0 ? ret : false;
-      }
-
-      return this.walker !== undefined ? this.walker.fireEvent(ev) : undefined;
-    }
-    else if (!this.closed) {
-      // If we have ended the start tag, then there is necessarily a walker.
-      // tslint:disable-next-line:no-non-null-assertion
-      const walker = this.walker!;
-
-      let ret: FireEventResult = walker.fireEvent(ev);
-      if (ret === undefined) {
-        // Our subwalker did not handle the event, so we must do it here.
-        if (ev.params[0] === "endTag") {
-          // boundName is necessarily defined by the time we get here.
-          // tslint:disable-next-line:no-non-null-assertion
-          if (this.boundName!.match(ev.params[1] as string,
-                                    ev.params[2] as string)) {
-            this.closed = true;
-
-            const errs: EndResult = walker.end();
-            ret = [];
-
-            // Strip out the attributes errors as we've already reported
-            // them.
-            if (errs) {
-              for (const err of errs) {
-                if (!(err instanceof AttributeValueError ||
-                      err instanceof AttributeNameError)) {
-                  ret.push(err);
-                }
-              }
-            }
-
-            return ret.length !== 0 ? ret : false;
-          }
-        }
-        else if (ev.params[0] === "leaveStartTag") {
-          return [new ValidationError(
-            "unexpected leaveStartTag event; it is likely that " +
-              "fireEvent is incorrectly called")];
-        }
-      }
-
-      return ret;
+        return this.el.pat.hasAttrs() ?
+          InternalFireEventResult.fromEndResult(walker.endAttributes()) :
+          new InternalFireEventResult(true);
+      default:
     }
 
-    return undefined;
+    return walker.fireEvent(name, params);
   }
 
-  _suppressAttributes(): void {
-    // _suppressAttributes does not cross element boundary
-    return;
-  }
-
-  canEnd(attribute: boolean = false): boolean {
-    if (attribute) {
-      return true;
-    }
-
-    return this.closed;
-  }
-
-  end(attribute: boolean = false): EndResult {
-    if (attribute) {
+  end(): EndResult {
+    if (this.canEnd) {
       return false;
     }
 
-    let ret: ValidationError[] = [];
-    if (!this.seenName) {
-      ret.push(new ElementNameError("tag required", this.el.name));
-    }
-    else if (!this.endedStartTag || !this.closed) {
-      if (this.walker !== undefined) {
-        const errs: EndResult = this.walker.end();
-        if (errs) {
-          ret = errs;
-        }
-      }
-      ret.push(this.endedStartTag ?
-               new ElementNameError("tag not closed", this.el.name) :
-               new ElementNameError("start tag not terminated", this.el.name));
-    }
+    const walkerRet = this.walker.end();
+    const ret = walkerRet ? walkerRet : [];
 
-    if (ret.length > 0) {
-      return ret;
-    }
+    ret.push(new ElementNameError(this.endedStartTag ?
+                                 "tag not closed" :
+                                 "start tag not terminated",
+                                  this.boundName));
 
-    return false;
+    return ret;
+  }
+
+  endAttributes(): EndResult {
+    throw new Error("calling endAttributes on ElementWalker is illegal");
   }
 }
 
-//  LocalWords:  RNG's MPL RNG addWalker ElementWalker leaveStartTag valueEvs
+//  LocalWords:  RNG's MPL RNG ElementWalker leaveStartTag valueEvs
 //  LocalWords:  enterStartTag attributeValue endTag errored subwalker
 //  LocalWords:  neutralizeAttribute boundName fireEvent suppressAttributes

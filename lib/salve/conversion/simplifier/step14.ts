@@ -43,7 +43,8 @@ function combine(els: Element[]): void {
           `more than one ${makeName(el)} without @combine`);
       }
       undefinedCombine = true;
-    } else {
+    }
+    else {
       if (combineAs === undefined) {
         combineAs = combineAttr;
       }
@@ -59,21 +60,21 @@ function combine(els: Element[]): void {
   }
 
   let wrapper = Element.makeElement(combineAs);
-  wrapper.insertAt(0, els[0].children.slice());
-  wrapper.append(els[1].children.slice());
+  wrapper.grabChildren(els[0]);
+  wrapper.grabChildren(els[1]);
   els[1].remove();
 
   if (els.length > 2) {
     for (const el of els.slice(2)) {
       const newWrapper = Element.makeElement(combineAs);
-      newWrapper.append(wrapper);
-      newWrapper.append(el.children.slice());
+      newWrapper.appendChild(wrapper);
+      newWrapper.grabChildren(el);
       el.remove();
       wrapper = newWrapper;
     }
   }
 
-  els[0].append(wrapper);
+  els[0].appendChild(wrapper);
   els[0].removeAttribute("combine");
 }
 
@@ -103,8 +104,8 @@ export function step14(el: Element): Element {
     const defs = findChildrenByLocalName(grammar, "define");
     const grouped = groupBy(defs, getName);
 
-    for (const name of Object.keys(grouped)) {
-      combine(grouped[name]);
+    for (const group of grouped.values()) {
+      combine(group);
     }
   }
 

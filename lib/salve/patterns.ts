@@ -6,9 +6,9 @@
  */
 export { EName } from "./ename";
 export { Attribute } from "./patterns/attribute";
-export { Define, Ref } from "./patterns/base";
 export { Choice } from "./patterns/choice";
 export { Data } from "./patterns/data";
+export { Define } from "./patterns/define";
 export { Element } from "./patterns/element";
 export { Empty } from "./patterns/empty";
 export { Group } from "./patterns/group";
@@ -19,11 +19,12 @@ export { OneOrMore } from "./patterns/one_or_more";
 export { Param } from "./patterns/param";
 export { Text } from "./patterns/text";
 export { Value } from "./patterns/value";
+export { Ref } from "./patterns/ref";
 
 export { ConcreteName, Name, NameChoice, NsName,
          AnyName } from "./name_patterns";
 
-export { eventsToTreeString, Event, EventSet, BasePattern, Pattern, Walker,
+export { eventsToTreeString, Event, EventSet, BasePattern, Pattern,
          FireEventResult, EndResult } from "./patterns/base";
 export { Grammar, GrammarWalker, RefError } from "./patterns/grammar";
 

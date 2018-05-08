@@ -12,47 +12,23 @@ import { removeUnreferencedDefs } from "./util";
 const skip = new Set(["name", "anyName", "nsName", "param", "empty",
                       "text", "value", "notAllowed", "ref"]);
 
-function attributeHandler(el: Element): void {
-  // An attribute (or list, group, interleave, oneOrMore) with at least one
-  // notAllowed is replaced with notAllowed.
-  el.replaceWith(Element.makeElement("notAllowed", true));
-}
-const handlers = {
-  choice(el: Element, firstNA: boolean, secondNA: boolean): void {
-    if (firstNA && secondNA) {
-      // A choice with two notAllowed is replaced with notAllowed.
-      el.replaceWith(Element.makeElement("notAllowed", true));
-    }
-    else {
-      // A choice with exactly one notAllowed is replaced with the other child
-      // of the choice.
-      el.replaceWith(el.children[firstNA ? 1 : 0] as Element);
-    }
-  },
-  attribute: attributeHandler,
-  list: attributeHandler,
-  group: attributeHandler,
-  interleave: attributeHandler,
-  oneOrMore: attributeHandler,
-  except(el: Element): void {
-    // An except with notAllowed is removed.
-    el.remove();
-  },
-};
-
-function walk(el: Element): void {
+function walk(el: Element, refs: Set<string>): void {
   const local = el.local;
 
   // Since we walk the children first, all the transformations that pertain to
   // the children are applied before we deal with the parent, and there should
   // not be any need to process the tree multiple times.
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     // Skip those elements that cannot contain notAllowed.
     if (skip.has(child.local)) {
       continue;
     }
 
-    walk(child);
+    walk(child, refs);
   }
 
   // Elements may be removed in the above loop.
@@ -60,37 +36,58 @@ function walk(el: Element): void {
     return;
   }
 
-  const handler = (handlers as any)[local];
-
-  if (!handler) {
-    return;
-  }
-
   const firstNA = (el.children[0] as Element).local === "notAllowed";
   const second = el.children[1] as Element;
   const secondNA = second !== undefined && second.local === "notAllowed";
 
-  if (!(firstNA || secondNA)) {
+  if (firstNA || secondNA) {
+    // tslint:disable-next-line:no-non-null-assertion
+    const parent = el.parent!;
+    // We used to have a map from which we'd get a handler to call but that
+    // method is not faster than this switch.
+    switch (local) {
+      case "choice":
+        if (firstNA && secondNA) {
+          // A choice with two notAllowed is replaced with notAllowed.
+          parent.replaceChildWith(el, Element.makeElement("notAllowed"));
+        }
+        else {
+          // A choice with exactly one notAllowed is replaced with the other
+          // child of the choice.
+          parent.replaceChildWith(el, el.children[firstNA ? 1 : 0] as Element);
+        }
+        break;
+      case "group":
+      case "oneOrMore":
+      case "interleave":
+      case "attribute":
+      case "list":
+        // An attribute (or list, group, interleave, oneOrMore) with at least
+        // one notAllowed is replaced with notAllowed.
+        parent.replaceChildWith(el, Element.makeElement("notAllowed"));
+        break;
+      case "except":
+        // An except with notAllowed is removed.
+        el.remove();
+        break;
+      default:
+    }
+  }
+
+  if (el.parent === undefined) {
+    // We've been removed.
     return;
   }
 
-  handler(el, firstNA, secondNA);
-}
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
 
-function recordReferences(el: Element, refs: Set<string>): void {
-  if (el.local === "ref") {
-    refs.add(el.mustGetAttribute("name"));
-
-    return; // A ref does not have children.
-  }
-
-  // Skip those elements that cannot contain refs.
-  if (skip.has(el.local)) {
-    return;
-  }
-
-  for (const child of el.elements) {
-    recordReferences(child, refs);
+    const childLocal = child.local;
+    if (childLocal === "ref") {
+      refs.add(child.mustGetAttribute("name"));
+    }
   }
 }
 
@@ -120,10 +117,9 @@ function recordReferences(el: Element, refs: Set<string>): void {
  * @returns The new root of the tree.
  */
 export function step17(tree: Element): Element {
-  walk(tree);
-
   const refs = new Set();
-  recordReferences(tree, refs);
+  walk(tree, refs);
+
   removeUnreferencedDefs(tree, refs);
 
   return tree;

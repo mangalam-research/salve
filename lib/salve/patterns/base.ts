@@ -6,11 +6,12 @@
  */
 
 import { ValidationError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
-import { TrivialMap } from "../types";
 import * as util from "../util";
+import { Define } from "./define";
+import { Element } from "./element";
+import { Ref, RefWalker } from "./ref";
 
 // XML validation against a schema could work without any lookahead if it were
 // not for namespaces. However, namespace support means that the interpretation
@@ -61,6 +62,11 @@ import * as util from "../util";
 // parsing code must *restart* validation *from* the location of the original
 // enterStartTag event.
 
+// A note on performance and the presence of the debug code here. We did a
+// profiling test with the debug code entirely removed. It made no
+// difference. Though TypeScript does not eliminate the code when DEBUG is
+// false, its impact on real-world test runs is undetectable. (Note that
+// uglification strips it from the minified code.)
 const DEBUG: boolean = false;
 
 // This is here to shut the compiler up about unused variables.
@@ -83,8 +89,11 @@ if (DEBUG) {
   noop(stackTrace);
 
   // tslint:disable:no-var-keyword
+  // @ts-ignore
   var possibleTracer: (oldMethod: Function, name: string, args: any[]) => any;
+  // @ts-ignore
   var fireEventTracer: (oldMethod: Function, name: string, args: any[]) => any;
+  // @ts-ignore
   var plainTracer: (oldMethod: Function, name: string, args: any[]) => any;
   var callDump: (msg: string, name: string, me: any) => void;
   // tslint:enable:no-var-keyword
@@ -193,63 +202,45 @@ if (DEBUG) {
   /* tslint:enable */
 }
 
-/**
- * Sets up a ``newWalker`` method in a prototype.
- *
- * @private
- * @param elCls The class that will get the new method.
- * @param walkerCls The Walker class to instantiate.
- */
-/* tslint:disable: no-invalid-this */
-export function addWalker<T>(elCls: any, walkerCls: any): void {
-  // `resolver` is a NameResolver.
-  // tslint:disable-next-line:only-arrow-functions
-  elCls.prototype.newWalker = function newWalker(this: any,
-                                                 resolver: NameResolver): T {
-    return new walkerCls(this, resolver) as T;
-  };
-}
-/* tslint:enable */
-
-// function EventSet() {
-//     var args = Array.prototype.slice.call(arguments);
-//     args.unshift(function (x) { return x.hash() });
-//     HashSet.apply(this, args);
-// }
-// inherit(EventSet, HashSet);
-
-// The naive Set implementation turns out to be faster than the HashSet
-// implementation for how we are using it.
-
-import { NaiveSet as EventSet } from "../set";
-export { NaiveSet as EventSet } from "../set";
-
-interface Hashable {
-  hash(): any;
-}
+export type EventSet = Set<Event>;
 
 export interface Clonable {
   clone(): this;
 }
 
-/**
- * Calls the ``hash()`` method on the object passed to it.
- *
- * @private
- * @param o An object that implements ``hash()``.
- * @returns The return value of ``hash()``.
- */
-function hashHelper(o: Hashable): any {
-  return o.hash();
-}
-
 export type FireEventResult = false | undefined | ValidationError[];
-export type EndResult = false | ValidationError[];
 
-export interface ElementI {
-  readonly name: ConcreteName;
-  newWalker(resolver: NameResolver): Walker<BasePattern>;
+export class InternalFireEventResult {
+  constructor(public matched: boolean,
+              public errors?: ValidationError[],
+              public refs?: RefWalker[]) {}
+
+  static fromEndResult(result: EndResult): InternalFireEventResult {
+    return (result === false) ?
+      new InternalFireEventResult(true) :
+      new InternalFireEventResult(false, result);
+  }
+
+  combine(other: InternalFireEventResult): this {
+    if (this.errors === undefined) {
+      this.errors = other.errors;
+    }
+    else if (other.errors !== undefined) {
+      this.errors = this.errors.concat(other.errors);
+    }
+
+    if (this.refs === undefined) {
+      this.refs = other.refs;
+    }
+    else if (other.refs !== undefined) {
+      this.refs = this.refs.concat(other.refs);
+    }
+
+    return this;
+  }
 }
+
+export type EndResult = false | ValidationError[];
 
 /**
  * These patterns form a JavaScript representation of the simplified RNG
@@ -258,13 +249,6 @@ export interface ElementI {
  * no subpatterns.)
  */
 export class BasePattern {
-  /**
-   * The next id to associate to the next Pattern object to be created. This is
-   * used so that [[hash]] can return unique values.
-   */
-  private static __id: number = 0; // tslint:disable-line:variable-name
-
-  readonly id: string;
   readonly xmlPath: string;
 
   /**
@@ -272,38 +256,7 @@ export class BasePattern {
    * the simplified RNG tree. Used in debugging.
    */
   constructor(xmlPath: string) {
-    this.id = `P${this.__newID()}`;
     this.xmlPath = xmlPath;
-  }
-
-  /**
-   * This method is mainly used to be able to use these objects in a
-   * [["hashstructs".HashSet]] or a [["hashstructs".HashMap]].
-   *
-   * Returns a hash guaranteed to be unique to this object. There are some
-   * limitations. First, if this module is instantiated twice, the objects
-   * created by the two instances cannot mix without violating the uniqueness
-   * guarantee. Second, the hash is a monotonically increasing counter, so when
-   * it reaches beyond the maximum integer that the JavaScript vm can handle,
-   * things go kaboom. Third, this hash is meant to work within salve only.
-   *
-   * @returns A hash unique to this object.
-   */
-  hash(): string {
-    return this.id;
-  }
-
-  /**
-   * Resolve references to definitions.
-   *
-   * @param definitions The definitions that exist in this grammar.
-   *
-   * @returns The references that cannot be resolved, or ``undefined`` if no
-   * references cannot be resolved. The caller is free to modify the value
-   * returned as needed.
-   */
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    return undefined;
   }
 
   /**
@@ -311,17 +264,29 @@ export class BasePattern {
    * ``_prepare`` recursively calls children but does not traverse ref-define
    * boundaries to avoid infinite regress...
    *
-   * This function now performs two tasks: a) it prepares the attributes
-   * (Definition and Element objects maintain a pattern which contains only
-   * attribute patterns, and nothing else), b) it gathers all the namespaces
-   * seen in the schema.
+   * This function now performs these tasks:
+   *
+   * - it precomputes the values returned by ``hasAttr``,
+   *
+   * - it precomputes the values returned by ``hasEmptyPattern``,
+   *
+   * - it gathers all the namespaces seen in the schema.
+   *
+   * - it resolves the references.
+   *
+   * @param definitions The definitions present in the schema.
    *
    * @param namespaces An object whose keys are the namespaces seen in
    * the schema. This method populates the object.
    *
+   * @returns The references that cannot be resolved, or ``undefined`` if no
+   * references cannot be resolved. The caller is free to modify the value
+   * returned as needed.
+   *
    */
-  _prepare(namespaces: TrivialMap<number>): void {
-    // nothing here
+  _prepare(definitions: Map<string, Define>,
+           namespaces: Set<string>): Ref[] | undefined {
+    return undefined;
   }
 
   /**
@@ -333,31 +298,17 @@ export class BasePattern {
    *
    * @returns True if the pattern is or has attributes. False if not.
    */
-  _hasAttrs(): boolean {
+  hasAttrs(): boolean {
     return false;
   }
 
   /**
-   * Populates a memo with a mapping of (element name, [list of patterns]).  In
-   * a Relax NG schema, the same element name may appear in multiple contexts,
-   * with multiple contents. For instance an element named "name" could require
-   * the sequence of elements "firstName", "lastName" in a certain context and
-   * text in a different context. This method allows determining whether this
-   * happens or not within a pattern.
-   *
-   * @param memo The memo in which to store the information.
+   * This method determines whether a pattern has the ``empty``
+   * pattern. Generally, this means that either this pattern is the ``empty``
+   * pattern or has ``empty`` as a child.
    */
-  _gatherElementDefinitions(memo: TrivialMap<ElementI[]>): void {
-    // By default we have no children.
-  }
-
-  /**
-   * Gets a new Pattern id.
-   *
-   * @returns The new id.
-   */
-  private __newID(): number {
-    return BasePattern.__id++;
+  hasEmptyPattern(): boolean {
+    return false;
   }
 }
 
@@ -374,7 +325,13 @@ export abstract class Pattern extends BasePattern {
    *
    * @returns A walker.
    */
-  newWalker(resolver: NameResolver): Walker<BasePattern> {
+  newWalker(resolver: NameResolver): InternalWalker<BasePattern> {
+    // Rather than make it abstract, we provide a default implementation for
+    // this method, which throws an exception if called. We could probably
+    // reorganize the code to do without but a) we would not gain much b) it
+    // would complicate the type hierarchy. The cost is not worth the
+    // benefits. There are two patterns that land on this default implementation
+    // and neither can have newWalker called on them anyway.
     throw new Error("derived classes must override this");
   }
 }
@@ -382,25 +339,34 @@ export abstract class Pattern extends BasePattern {
 /**
  * Pattern objects of this class have exactly one child pattern.
  */
-export abstract class OneSubpattern extends Pattern {
-  constructor(xmlPath: string, readonly pat: Pattern) {
+export abstract class OneSubpattern<T extends (Pattern | Element) = Pattern>
+  extends Pattern {
+  protected _cachedHasAttrs?: boolean;
+  protected _cachedHasEmptyPattern?: boolean;
+
+  constructor(xmlPath: string, readonly pat: T) {
     super(xmlPath);
   }
 
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    return this.pat._resolve(definitions);
+  protected abstract _computeHasEmptyPattern(): boolean;
+
+  _prepare(definitions: Map<string, Define>,
+           namespaces: Set<string>): Ref[] | undefined {
+    const ret = this.pat._prepare(definitions, namespaces);
+    this._cachedHasAttrs = this.pat.hasAttrs();
+    this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
+
+    return ret;
   }
 
-  _prepare(namespaces: TrivialMap<number>): void {
-    this.pat._prepare(namespaces);
+  hasAttrs(): boolean {
+    // tslint:disable-next-line:no-non-null-assertion
+    return this._cachedHasAttrs!;
   }
 
-  _hasAttrs(): boolean {
-    return this.pat._hasAttrs();
-  }
-
-  _gatherElementDefinitions(memo: TrivialMap<ElementI[]>): void {
-    this.pat._gatherElementDefinitions(memo);
+  hasEmptyPattern(): boolean {
+    // tslint:disable-next-line:no-non-null-assertion
+    return this._cachedHasEmptyPattern!;
   }
 }
 
@@ -408,37 +374,38 @@ export abstract class OneSubpattern extends Pattern {
  * Pattern objects of this class have exactly two child patterns.
  *
  */
-export class TwoSubpatterns extends Pattern {
+export abstract class TwoSubpatterns extends Pattern {
+  protected _cachedHasAttrs?: boolean;
+  protected _cachedHasEmptyPattern?: boolean;
+
   constructor(xmlPath: string, readonly patA: Pattern, readonly patB: Pattern) {
     super(xmlPath);
   }
 
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    const a: Ref[] | undefined = this.patA._resolve(definitions);
-    const b: Ref[] | undefined = this.patB._resolve(definitions);
-    if (a !== undefined && b !== undefined) {
-      return a.concat(b);
+  protected abstract _computeHasEmptyPattern(): boolean;
+
+  _prepare(definitions: Map<string, Define>,
+           namespaces: Set<string>): Ref[] | undefined {
+    const aRefs = this.patA._prepare(definitions, namespaces);
+    const bRefs = this.patB._prepare(definitions, namespaces);
+    this._cachedHasAttrs = this.patA.hasAttrs() || this.patB.hasAttrs();
+    this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
+
+    if (aRefs !== undefined) {
+      return bRefs === undefined ? aRefs : aRefs.concat(bRefs);
     }
 
-    if (a !== undefined) {
-      return a;
-    }
-
-    return b;
+    return bRefs;
   }
 
-  _prepare(namespaces: TrivialMap<number>): void {
-    this.patA._prepare(namespaces);
-    this.patB._prepare(namespaces);
+  hasAttrs(): boolean {
+    // tslint:disable-next-line:no-non-null-assertion
+    return this._cachedHasAttrs!;
   }
 
-  _hasAttrs(): boolean {
-    return this.patA._hasAttrs() || this.patB._hasAttrs();
-  }
-
-  _gatherElementDefinitions(memo: TrivialMap<ElementI[]>): void {
-    this.patA._gatherElementDefinitions(memo);
-    this.patB._gatherElementDefinitions(memo);
+  hasEmptyPattern(): boolean {
+    // tslint:disable-next-line:no-non-null-assertion
+    return this._cachedHasEmptyPattern!;
   }
 }
 
@@ -446,34 +413,18 @@ export class TwoSubpatterns extends Pattern {
  * This class models events occurring during parsing. Upon encountering the
  * start of a start tag, an "enterStartTag" event is generated, etc. Event
  * objects are held to be immutable. No precautions have been made to enforce
- * this. Users of these objects simply must not modify them. Moreover, there is
- * one and only one of each event created.
+ * this. Users of these objects simply must not modify them.
  *
  * An event is made of a list of event parameters, with the first one being the
  * type of the event and the rest of the list varying depending on this type.
- *
  */
 export class Event {
-  /**
-   * The cache of Event objects. So that we create one and only one Event object
-   * per run.
-   */
-  // tslint:disable-next-line:variable-name
-  private static __cache: {[key: string]: Event} = Object.create(null);
-
-  /**
-   * The next id to associate to the next Event object to be created. This is
-   * used so that [[Event.hash]] can return unique values.
-   */
-  // tslint:disable-next-line:variable-name
-  private static __id: number = 0;
-
-  readonly id: string;
   readonly params: (string|ConcreteName)[];
-  // This field is never read but we still want it present on the object so that
-  // we can use it for diagnosis.
-  // @ts-ignore
-  private readonly key: string;
+
+  /**
+   * Is this Event an attribute event?
+   */
+  readonly isAttributeEvent: boolean;
 
   /**
    * @param args... The event parameters may be passed directly in the call
@@ -485,49 +436,10 @@ export class Event {
     const params: (string|ConcreteName)[] =
       (args.length === 1 && args[0] instanceof Array) ? args[0] : args;
 
-    const key: string = params.join();
-
-    // Ensure we have only one of each event created.
-    const cached: Event | undefined = Event.__cache[key];
-    if (cached !== undefined) {
-      return cached;
-    }
-
-    this.id = `E${this.__newID()}`;
     this.params = params;
-    this.key = key;
-
-    Event.__cache[key] = this;
-
-    return this;
-  }
-
-  /**
-   * This method is mainly used to be able to use these objects in a
-   * [["hashstructs".HashSet]] or a [["hashstructs".HashMap]].
-   *
-   * Returns a hash guaranteed to be unique to this object. There are some
-   * limitations. First, if this module is instantiated twice, the objects
-   * created by the two instances cannot mix without violating the uniqueness
-   * guarantee. Second, the hash is a monotonically increasing counter, so when
-   * it reaches beyond the maximum integer that the JavaScript vm can handle,
-   * things go kaboom. Third, this hash is meant to work within salve only.
-   *
-   * @returns A hash unique to this object.
-   */
-  hash(): string {
-    return this.id;
-  }
-
-  /**
-   * Is this Event an attribute event?
-   *
-   * @returns ``true`` if the event is an attribute event, ``false``
-   * otherwise.
-   */
-  isAttributeEvent(): boolean {
-    return (this.params[0] === "attributeName" ||
-            this.params[0] === "attributeValue");
+    this.isAttributeEvent = (this.params[0] === "attributeName" ||
+                             this.params[0] === "attributeValue" ||
+                             this.params[0] === "attributeNameAndValue");
   }
 
   /**
@@ -536,20 +448,17 @@ export class Event {
   toString(): string {
     return `Event: ${this.params.join(", ")}`;
   }
-
-  /**
-   * Gets a new Event id.
-   *
-   * @returns The new id.
-   */
-  private __newID(): number {
-    return Event.__id++;
-  }
-
 }
 
+export function isAttributeEvent(name: string): boolean {
+  return (name === "attributeName" || name === "attributeValue" ||
+          name === "attributeNameAndValue");
+}
+
+interface NodeMap extends Map<string, false | NodeMap> {}
+
 /**
- * Utility function used mainly in testing to transform a [["set".NaiveSet]] of
+ * Utility function used mainly in testing to transform a set of
  * events into a string containing a tree structure.  The principle is to
  * combine events of a same type together and among events of a same type
  * combine those which are in the same namespace. So for instance if there is a
@@ -575,74 +484,84 @@ export class Event {
  * @returns A string which contains the tree described above.
  */
 export function eventsToTreeString(evs: Event[] | EventSet): string {
-  function hashF(x: any): any {
-    return x;
-  }
+  const eventArray = (evs instanceof Set) ? Array.from(evs) : evs;
 
-  const eventArray = (evs instanceof EventSet) ? evs.toArray() : evs;
+  const hash: NodeMap = new Map();
+  eventArray.forEach((ev) => {
+    const params = ev.params;
 
-  const hash: HashMap = new HashMap(hashF);
-  eventArray.forEach((ev: Event) => {
-    const params: (string|ConcreteName)[] = ev.params;
-
-    let node: HashMap = hash;
-    for (let i: number = 0; i < params.length; ++i) {
-      if (i === params.length - 1) {
-        // Our HashSet/Map cannot deal with undefined values. So we mark
-        // leaf elements with the value false.
-        node.add(params[i], false);
+    let node = hash;
+    const last = params.length - 1;
+    for (let i = 0; i < params.length; ++i) {
+      const key = params[i].toString();
+      if (i === last) {
+        node.set(key, false);
       }
       else {
-        let nextNode: HashMap | undefined = node.has(params[i]);
+        let nextNode = node.get(key) as NodeMap | undefined;
         if (nextNode === undefined) {
-          nextNode = new HashMap(hashF);
-          node.add(params[i], nextNode);
+          nextNode = new Map();
+          node.set(key, nextNode);
         }
         node = nextNode;
       }
     }
   });
 
-  // We don't set dumpTree to const because the compiler has a fit when dumpTree
-  // is accessed recursively.
-  // tslint:disable-next-line:prefer-const
-  let dumpTree: (hash: HashMap) => string =
-    // tslint:disable-next-line:only-arrow-functions
-    (function makeDumpTree(): (hash: HashMap) => string {
-      let dumpTreeBuf: string = "";
-      const dumpTreeIndent: string = "    ";
+  function dumpTree(toDump: NodeMap, indent: string): string {
+    let ret = "";
+    const keys = Array.from(toDump.keys());
+    keys.sort();
+    for (const key of keys) {
+      // tslint:disable-next-line:no-non-null-assertion
+      const sub = toDump.get(key)!;
+      if (sub !== false) {
+        ret += `${indent}${key}:\n`;
+        ret += dumpTree(sub, `${indent}    `);
+      }
+      else {
+        ret += `${indent}${key}\n`;
+      }
+    }
 
-      // tslint:disable-next-line:no-shadowed-variable
-      return (hash: HashMap): string => {
-        let ret: string = "";
-        const keys: any[] = hash.keys();
-        keys.sort();
-        for (const key of keys) {
-          const sub: any | undefined = hash.has(key);
-          if (sub !== false) {
-            ret += `${dumpTreeBuf}${key}:\n`;
-            dumpTreeBuf += dumpTreeIndent;
-            ret += dumpTree(hash.has(key));
-            dumpTreeBuf = dumpTreeBuf.slice(dumpTreeIndent.length);
-          }
-          else {
-            ret += `${dumpTreeBuf}${key}\n`;
-          }
-        }
+    return ret;
+  }
 
-        return ret;
-      };
-    }());
-
-  return dumpTree(hash);
+  return dumpTree(hash, "");
   /* tslint:enable */
 }
 
+export type CloneMap = Map<any, any>;
+
 /**
- * Special event to which only the [["patterns/empty".EmptyWalker]] responds
- * positively. This object is meant to be used internally by salve.
+ * Helper method for cloning. This method should be called to clone objects that
+ * do not participate in the ``clone``, protocol. This typically means instance
+ * properties that are not ``Walker`` objects and not immutable.
+ *
+ * This method will call a ``clone`` method on ``obj``, when it determines
+ * that cloning must happen.
+ *
+ * @param obj The object to clone.
+ *
+ * @param memo A mapping of old object to copy object. As a tree of patterns
+ * is being cloned, this memo is populated. So if A is cloned to B then a
+ * mapping from A to B is stored in the memo. If A is seen again in the same
+ * cloning operation, then it will be substituted with B instead of creating a
+ * new object. This should be the same object as the one passed to the
+ * constructor.
+ *
+ * @returns A clone of ``obj``.
  */
-export const emptyEvent: Event = new Event("<empty>");
+export function cloneIfNeeded<C extends Clonable>(obj: C, memo: CloneMap): C {
+  let other = memo.get(obj);
+  if (other !== undefined) {
+    return other as C;
+  }
+  other = obj.clone();
+  memo.set(obj, other);
+
+  return other;
+}
 
 /**
  * Roughly speaking each [[Pattern]] object has a corresponding ``Walker`` class
@@ -658,124 +577,11 @@ export const emptyEvent: Event = new Event("<empty>");
  *
  * Note that users of this API do not instantiate Walker objects themselves.
  */
-export abstract class Walker<T extends BasePattern> {
-
-  /**
-   * The next id to associate to the next Walker object to be created. This is
-   * used so that [[hash]] can return unique values.
-   */
-  private static __id: number = 0; // tslint:disable-line:variable-name
-
-  readonly id: string = `W${this.__newID()}`;
-
-  protected readonly el: T;
-
-  protected possibleCached: EventSet | undefined;
-
-  protected suppressedAttributes: boolean = false;
-
-  /**
-   * @param el The element to which this walker belongs.
-   */
-  protected constructor(other: Walker<T>, memo: HashMap);
-  protected constructor(el: T);
-  protected constructor(elOrWalker: T | Walker<T>) {
-    if (elOrWalker instanceof Walker) {
-      this.el = elOrWalker.el;
-      this.possibleCached = elOrWalker.possibleCached;
-      this.suppressedAttributes = elOrWalker.suppressedAttributes;
-    }
-    else {
-      this.el = elOrWalker;
-    }
-    if (DEBUG) {
-        wrap(this, "_possible", possibleTracer);
-        wrap(this, "fireEvent", fireEventTracer);
-        wrap(this, "end", plainTracer);
-        wrap(this, "_suppressAttributes", plainTracer);
-        wrap(this, "_clone", plainTracer);
-    }
-  }
-
-  /**
-   * This method is mainly used to be able to use these objects in a
-   * [["hashstructs".HashSet]] or a [["hashstructs".HashMap]].
-   *
-   * Returns a hash guaranteed to be unique to this object. There are some
-   * limitations. First, if this module is instantiated twice, the objects
-   * created by the two instances cannot mix without violating the uniqueness
-   * guarantee. Second, the hash is a monotonically increasing counter, so when
-   * it reaches beyond the maximum integer that the JavaScript vm can handle,
-   * things go kaboom. Third, this hash is meant to work within salve only.
-   *
-   * @returns A hash unique to this object.
-   */
-  hash(): string {
-    return this.id;
-  }
-
-  /**
-   * Fetch the set of possible events at the current stage of parsing.
-   *
-   * @returns The set of events that can be fired without resulting in an error.
-   */
-  possible(): EventSet {
-    return new EventSet(this._possible());
-  }
-
-  /**
-   * Helper method for possible(). The possible() method is designed to be safe,
-   * in that the value it returns is not shared, so the caller may change it
-   * without breaking anything. However, this method returns a value that may
-   * not be modified by the caller. It is used internally among the classes of
-   * this file to save copying time.
-   *
-   * @returns The set of events that can be fired without resulting in an error.
-   */
-  abstract _possible(): EventSet;
+export abstract class BaseWalker<T extends BasePattern> {
+  protected abstract readonly el: T;
 
   // These functions return true if there is no problem, or a list of
   // ValidationError objects otherwise.
-
-  /**
-   * Passes an event to the walker for handling. The Walker will determine
-   * whether it or one of its children can handle the event.
-   *
-   * @param ev The event to handle.
-   *
-   * @returns The value ``false`` if there was no error. The value ``undefined``
-   * if no walker matches the pattern. Otherwise, an array of
-   * [[ValidationError]] objects.
-   */
-  abstract fireEvent(ev: Event): FireEventResult;
-
-  /**
-   * Can this Walker validly end after the previous event fired?
-   *
-   * @param attribute ``true`` if calling this method while processing
-   * attributes, ``false`` otherwise.
-   *
-   * @return ``true`` if the walker can validly end here.  ``false`` otherwise.
-   */
-  canEnd(attribute: boolean = false): boolean {
-    return true;
-  }
-
-  /**
-   * Obtain the errors that would occur if the walker were to end here. Note the
-   * conditional phrasing. It **must** be idempotent. Therefore it **must not**
-   * change the state of the walker. The internal code of salve will sometimes
-   * call end more than once on the same walker.
-   *
-   * @param attribute ``true`` if calling this method while processing
-   * attributes, ``false`` otherwise.
-   *
-   * @returns ``false`` if the walker ended without error. Otherwise, the
-   * errors.
-   */
-  end(attribute: boolean = false): EndResult {
-    return false;
-  }
 
   /**
    * Deep copy the Walker.
@@ -783,7 +589,7 @@ export abstract class Walker<T extends BasePattern> {
    * @returns A deep copy of the Walker.
    */
   clone(): this {
-    return this._clone(new HashMap(hashHelper));
+    return this._clone(new Map<any, any>());
   }
 
  /**
@@ -797,215 +603,88 @@ export abstract class Walker<T extends BasePattern> {
   * cloning operation, then it will be substituted with B instead of creating a
   * new object.
   *
-  * This method is meant only to be used by classes derived from [[Walker]]. It
-  * is public due to a limitation of TypeScript. Don't call it from your own
-  * code. You've been warned.
+  * This method is meant only to be used by classes derived from
+  * [[BaseWalker]]. It is public due to a limitation of TypeScript. Don't call
+  * it from your own code. You've been warned.
   *
   * @protected
   *
   * @returns The clone.
   */
-  _clone(memo: HashMap): this {
-    return new (this.constructor as any)(this, memo);
-  }
+  abstract _clone(memo: CloneMap): this;
 
-  /**
-   * Helper function used to prevent Walker objects from reporting attribute
-   * events as possible. In RelaxNG it is normal to mix attributes and elements
-   * in patterns. However, XML validation segregates attributes and
-   * elements. Once a start tag has been processed, attributes are not possible
-   * until a new start tag begins. For instance, if a Walker is processing
-   * ``<foo a="1">``, as soon as the greater than symbol is encountered,
-   * attribute events are no longer possible. This function informs the Walker
-   * of this fact.
-   *
-   */
-  _suppressAttributes(): void {
-    this.suppressedAttributes = true;
-  }
-
-  /**
-   * Helper method for cloning. This method should be called to clone objects
-   * that do not participate in the ``clone``, protocol. This typically means
-   * instance properties that are not ``Walker`` objects and not immutable.
-   *
-   * This method will call a ``clone`` method on ``obj``, when it determines
-   * that cloning must happen.
-   *
-   * @param obj The object to clone.
-   *
-   * @param memo A mapping of old object to copy object. As a tree of patterns
-   * is being cloned, this memo is populated. So if A is cloned to B then a
-   * mapping from A to B is stored in the memo. If A is seen again in the same
-   * cloning operation, then it will be substituted with B instead of creating a
-   * new object. This should be the same object as the one passed to the
-   * constructor.
-   *
-   * @returns A clone of ``obj``.
-   */
-  protected _cloneIfNeeded<C extends Clonable>(obj: C, memo: HashMap): C {
-    let other: C = memo.has(obj);
-    if (other !== undefined) {
-      return other;
-    }
-    other = obj.clone();
-    memo.add(obj, other);
-
-    return other;
-  }
-
-  /**
-   * Gets a new Walker id.
-   *
-   * @returns The new id.
-   */
-  private __newID(): number {
-    return Walker.__id++;
-  }
-}
-
-export function isHashMap(value: any, msg: string = ""): HashMap {
-  if (value instanceof HashMap) {
-    return value;
-  }
-
-  throw new Error(`did not get a HashMap ${msg}`);
-}
-
-export function isNameResolver(value: any, msg: string = ""): NameResolver {
-  if (value instanceof NameResolver) {
-    return value;
-  }
-
-  throw new Error(`did not get a HashMap ${msg}`);
-}
-
-/**
- * Walkers that have only one subwalker.
- */
-export abstract class SingleSubwalker<T extends Pattern> extends Walker<T> {
-  protected subwalker: Walker<BasePattern>;
-
-  _possible(): EventSet {
-    return this.subwalker.possible();
-  }
-
-  fireEvent(ev: Event): FireEventResult {
-    return this.subwalker.fireEvent(ev);
-  }
-
-  _suppressAttributes(): void {
-    if (!this.suppressedAttributes) {
-      this.suppressedAttributes = true;
-      this.subwalker._suppressAttributes();
-    }
-  }
-
-  canEnd(attribute: boolean = false): boolean {
-    return this.subwalker.canEnd(attribute);
-  }
-
-  end(attribute: boolean = false): EndResult {
-    return this.subwalker.end(attribute);
+  hasEmptyPattern(): boolean {
+    return this.el.hasEmptyPattern();
   }
 }
 
 /**
- * A pattern for RNG references.
+ * This is the class of all walkers that are used internally to Salve.
  */
-export class Ref extends Pattern {
-  private resolvesTo?: Define;
+export abstract class InternalWalker<T extends BasePattern>
+  extends BaseWalker<T> {
   /**
+   * Passes an event to the walker for handling. The Walker will determine
+   * whether it or one of its children can handle the event.
    *
-   * @param xmlPath This is a string which uniquely identifies the
-   * element from the simplified RNG tree. Used in debugging.
+   * @param name The event name.
    *
-   * @param name The reference name.
+   * @param params The event parameters.
+   *
+   * @returns The value ``false`` if there was no error. The value ``undefined``
+   * if no walker matches the pattern. Otherwise, an array of
+   * [[ValidationError]] objects.
    */
-  constructor(xmlPath: string, readonly name: string) {
-    super(xmlPath);
+  abstract fireEvent(name: string, params: string[]): InternalFireEventResult;
+
+  /**
+   * Flag indicating whether the walker can end.
+   */
+  abstract canEnd: boolean;
+
+  /**
+   * Flag indicating whether the walker can end, in a context where
+   * we are processing attributes.
+   */
+  abstract canEndAttribute: boolean;
+
+  /**
+   * @returns The set of non-attribute event that can be fired without resulting
+   * in an error. ``ElementWalker`` exceptionally returns all possible events,
+   * including attribute events.
+   */
+  abstract possible(): EventSet;
+
+  /**
+   * @returns The set of attribute events that can be fired without resulting in
+   * an error. This method may not be called on ``ElementWalker``.
+   */
+  abstract possibleAttributes(): EventSet;
+
+  /**
+   * End the walker.
+   *
+   * @returns ``false`` if the walker ended without error. Otherwise, the
+   * errors.
+   */
+  end(): EndResult {
+    return false;
   }
 
-  _prepare(): void {
-    // We do not cross ref/define boundaries to avoid infinite loops.
-    return;
-  }
-
-  _resolve(definitions: TrivialMap<Define>): Ref[] | undefined {
-    this.resolvesTo = definitions[this.name];
-    if (this.resolvesTo === undefined) {
-      return [this];
-    }
-
-    return undefined;
-  }
-
-  // addWalker(Ref, RefWalker); No, see below
-  // This completely skips the creation of RefWalker and DefineWalker. This
-  // returns the walker for whatever it is that the Define element this
-  // refers to ultimately contains.
-  newWalker(resolver: NameResolver): Walker<BasePattern> {
-    // _resolve must have been called before any walker can be created.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.resolvesTo!.pat.newWalker(resolver);
+  /**
+   * End the processing of attributes.
+   *
+   * @returns ``false`` if the walker ended without error. Otherwise, the
+   * errors.
+   */
+  endAttributes(): EndResult {
+    return false;
   }
 }
-
-/**
- * A pattern for ``<define>``.
- */
-export class Define extends OneSubpattern {
-  /**
-   * @param xmlPath This is a string which uniquely identifies the
-   * element from the simplified RNG tree. Used in debugging.
-   *
-   * @param name The name of the definition.
-   *
-   * @param pat The pattern contained by this one.
-   */
-
-  constructor(xmlPath: string, readonly name: string, pat: Pattern) {
-    super(xmlPath, pat);
-  }
-}
-
-/**
- * Walker for [[Define]].
- */
-class DefineWalker extends SingleSubwalker<Define> {
-  private readonly nameResolver: NameResolver;
-  /**
-   * @param el The pattern for which this walker was created.
-   *
-   * @param nameResolver The name resolver that can be used to convert namespace
-   * prefixes to namespaces.
-   */
-  protected constructor(walker: DefineWalker, memo: HashMap);
-  protected constructor(el: Define, nameResolver: NameResolver);
-  protected constructor(elOrWalker: DefineWalker | Define,
-                        nameResolverOrMemo: NameResolver | HashMap) {
-    if (elOrWalker instanceof DefineWalker) {
-      const walker: DefineWalker = elOrWalker;
-      const memo: HashMap =  isHashMap(nameResolverOrMemo);
-      super(walker, memo);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.subwalker = walker.subwalker._clone(memo);
-    }
-    else {
-      const el: Define = elOrWalker;
-      const nameResolver: NameResolver =  isNameResolver(nameResolverOrMemo);
-      super(el);
-      this.nameResolver = nameResolver;
-      this.subwalker = el.pat.newWalker(this.nameResolver);
-    }
-  }
-}
-
-addWalker(Define, DefineWalker);
 
 //  LocalWords:  RNG MPL lookahead xmlns uri CodeMirror tokenizer enterStartTag
 //  LocalWords:  EOF attributeName el xmlPath buf nameOrPath util ret EventSet
 //  LocalWords:  NameResolver args unshift HashSet subpatterns newID NG vm pre
 //  LocalWords:  firstName lastName attributeValue leaveStartTag dumpTree const
 //  LocalWords:  dumpTreeBuf subwalker fireEvent suppressAttributes HashMap
-//  LocalWords:  ValidationError addWalker RefWalker DefineWalker
+//  LocalWords:  ValidationError RefWalker DefineWalker

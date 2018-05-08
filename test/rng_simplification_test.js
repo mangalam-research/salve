@@ -10,8 +10,6 @@ const { expect } = require("chai");
 const conversion = require("../build/dist/lib/salve/conversion");
 const simplifier =
       require("../build/dist/lib/salve/conversion/simplifier");
-const step1 =
-      require("../build/dist/lib/salve/conversion/simplifier/step1");
 const sax = require("sax");
 
 const dataDir = path.join(__dirname, "rng_simplification_data");
@@ -139,6 +137,7 @@ describe("rng simplification", () => {
       xslt: {
         "resolve_include_with_start.rng": true,
         "resolve_include_with_define.rng": true,
+        "spaces.rng": true,
       },
     },
   };
@@ -155,18 +154,25 @@ describe("rng simplification", () => {
       const stepDir = path.join(dataDir, shortName);
       const files = fs.readdirSync(stepDir);
       files.forEach((file) => {
-        if (file.match(/_out\.rng$/) || !file.match(/\.rng$/)) {
+        if (file.match(/_out(?:_xsl)?\.rng$/) || !file.match(/\.rng$/)) {
           return;
         }
 
         const base = path.basename(file, path.extname(file));
         const testName = base.replace(/_/g, " ");
         const inpath = path.join(stepDir, file);
+        const commonExpectedPath = path.join(stepDir, `${base}_out.rng`);
+        // Some tests need to have a specific file different from the one
+        // used for the TS code.
+        const xslSpecificExpectedPath =
+              path.join(stepDir, `${base}_out_xsl.rng`);
+        const xslExpectedPath = fs.existsSync(xslSpecificExpectedPath) ?
+              xslSpecificExpectedPath : commonExpectedPath;
+
         if (!skip[name] || !skip[name].xslt[file]) {
           it(`${testName} (xslt)`,
              () => transformXSL(xslNumbers, inpath).then((output) => {
-               let expected =
-                   fs.readFileSync(path.join(stepDir, `${base}_out.rng`));
+               let expected = fs.readFileSync(xslExpectedPath);
                expected = expected.toString().replace(/@CURDIR@/g, dataDir);
                expect(output).to.equal(expected);
              }))
@@ -176,7 +182,7 @@ describe("rng simplification", () => {
 
         it(`${testName} (TS)`, () =>
           transformJS(shortName, inpath).then((actual) => {
-            let expected = fs.readFileSync(path.join(stepDir, `${base}_out.rng`));
+            let expected = fs.readFileSync(commonExpectedPath);
             expected = expected.toString().replace(/@CURDIR@/g, dataDir);
             if (number === 1) {
               // We do this so that we can use the same files for the XSL test
@@ -203,65 +209,9 @@ describe("rng simplification", () => {
     });
   }
 
-  describe("findBase", () => {
-    function findElementByAttr(tree, elName, attrName, attrValue) {
-      if (tree.local === elName) {
-        const attr = tree.getAttribute(attrName);
-        if (attr === attrValue) {
-          return tree;
-        }
-      }
-
-      for (const child of tree.elements) {
-        const found = findElementByAttr(child, elName, attrName, attrValue);
-        if (found) {
-          return found;
-        }
-      }
-
-      return null;
-    }
-
-    const findBaseDir = path.join(__dirname,
-                                  "rng_simplification_data", "findBase");
-    const { findBase } = step1;
-    it("simple", () => {
-      const inpath = path.join(findBaseDir, "simple.rng");
-      const tree = parseJS(inpath);
-      const sub1 = `file://${path.join(findBaseDir, "sub1/")}`;
-      const inpathURL = new URL(`file://${inpath}`);
-      expect(findBase(tree, inpathURL).toString()).to.equal(sub1);
-
-      const group1 = findElementByAttr(tree, "group", "xml:base", "sub2");
-      const sub2 = `file://${path.join(findBaseDir, "sub1", "sub2")}`;
-      expect(findBase(group1, inpathURL).toString()).to.equal(sub2);
-
-      const group2 = findElementByAttr(tree, "group", "xml:base", "sub3/y");
-      const sub3 = `file://${path.join(findBaseDir, "sub1", "sub3/y")}`;
-      expect(findBase(group2, inpathURL).toString()).to.equal(sub3);
-    });
-
-    it("absolute", () => {
-      const inpath = path.join(findBaseDir, "absolute.rng");
-      const tree = parseJS(inpath);
-      const inpathURL = new URL(`file://${inpath}`);
-      expect(findBase(tree, inpathURL).toString())
-        .to.equal("file:///blah/blah");
-
-      const group1 = findElementByAttr(tree, "group", "xml:base", "sub2");
-      const sub2 = "/blah/sub2";
-      expect(findBase(group1, inpathURL).toString())
-        .to.equal(`file://${sub2}`);
-
-      const group2 = findElementByAttr(tree, "group", "xml:base", "sub3/y");
-      const sub3 = path.join(path.dirname(sub2), "sub3/y");
-      expect(findBase(group2, inpathURL).toString())
-        .to.equal(`file://${sub3}`);
-    });
-  });
-
+  // We don't include 2 and 3 in step 1 when testing XSL so that we can
+  // have isolated testing of step 1.
   makeStepTest(1);
-  makeStepTest(3);
   makeStepTest(4, [4, 5]);
   makeStepTest(6, [6, 7, 8]);
   makeStepTest(9);

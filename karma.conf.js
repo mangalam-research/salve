@@ -18,7 +18,7 @@ module.exports = function configure(config) {
       "node_modules/core-js/client/core.js",
       "node_modules/url-polyfill/url-polyfill.js",
       "node_modules/whatwg-fetch/fetch.js",
-      "build/dist/salve.js",
+      "build/dist/salve.min.js",
       "browser-test/**/*.js",
       { pattern: "build/dist/**/*.map", included: false },
       { pattern: "lib/salve/schemas/relaxng.rng", included: false },
@@ -55,13 +55,6 @@ module.exports = function configure(config) {
         browser_version: "11",
         os: "Windows",
         os_version: "10",
-      },
-      IE10: {
-        base: "BrowserStack",
-        browser: "IE",
-        browser_version: "10",
-        os: "Windows",
-        os_version: "8",
       },
       Edge: {
         base: "BrowserStack",

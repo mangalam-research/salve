@@ -2,6 +2,69 @@ Only major changes are reported here. Releases that only bump the patch part of
 the version number (i.e. the number after the 2nd dot) are generally not listed
 here unless they include a fix to a specific issue reported on github.
 
+* 7.0.0:
+
+  - This version is a major reworking of the internals of salve with an aim
+    to optimize and simplify the code.
+
+  - Breaking change: ``Event`` object no longer participate in the ad-hoc
+    hashability protocol that this library uses.
+
+  - Breaking change: salve no longer guarantees the uniqueness of
+    events. Removing this feature made a significant difference in overall
+    performance. This entails that the methods that return sets of possible
+    events may return the "same" event more than once. For instance, if "text"
+    is allowed in multiple contexts, then the an event for "text" may show up
+    more than once in the set returned.
+
+  - Breaking change: ``EventSet`` are now implemented using ``Set`` so they only
+    have the methods defined by set.
+
+  - Breaking change: fireEvent no longer takes ``Event`` objects.
+
+  - Breaking change: enterContext/leaveContext/definePrefix are now methods
+    rather than events.
+
+  - Breaking change: The ``Walker`` class is no longer exported. The only walker
+    ever visible to client code is ``GrammarWalker`` and this is the class that
+    should be used in variable declarations rather than ``Walker``.
+
+  - Breaking change: this is probably not going to be an issue generally because
+    there usually no need for *client code* to create ``NameChoice`` objects but
+    the constructor has changed and now takes two individual pattern parameters
+    for the choices instead of a two-element array.
+
+  - Breaking change: this is probably also not going to be an issue either
+    generally because calling ``canEnd`` and ``end`` with the ``attribute``
+    parameter true on ``GrammarWalker`` made no damn sense in the first
+    place. (It makes no sense to inquire whether a ``GrammarWalker`` can end
+    seeing *attributes* by opposition to just ending.) At any rate, that
+    parameter has been removed.
+
+  - Breaking change: we had to upgrade from jison to jison-gho to handle some
+    issues. (The jison project has been effectively abandoned and jison-gho is
+    its de facto successor.) One side-effect of the upgrade is that IE10 is no
+    longer supported.
+
+  - New feature: introduce a pair of "compact" events named
+    ``attributeNameAndValue`` and ``startTagAndAttributes`` which allow passing
+    a smaller number of events to salve.
+
+  - Fix: the regular expressions for the XML Schema datatypes were too
+    strict. For instance if an attribute was declared as being a decimal, salve
+    would have rejected ``attr=" 123 "``. It would have required ``attr="123"``
+    but the former is perfectly valid. The regular expressions have been fixed.
+
+  - Fix: the internal simplifier applied the constraints from section 7.3 and
+    7.4 were too strictly.
+
+  - Fix: ``bin/parse.js`` you can actually pass a RNG file to it, as suggested
+    by the documentation.
+
+  - HashMap had clearly be marked as private for a long time and so you should
+    not have depended on it for your own code. It has now been removed, and the
+    internals that depended on it have been rewritten to no longer depend on it.
+
 * 6.0.0:
 
   - New feature: salve now has its own native logic for validating and

@@ -6,10 +6,9 @@
  */
 import { Datatype, registry } from "../datatypes";
 import { ValidationError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, EndResult, Event, EventSet, isHashMap, isNameResolver,
-         Pattern, Walker } from "./base";
+import { cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, Pattern } from "./base";
 
 /**
  * Value pattern.
@@ -63,86 +62,90 @@ export class Value extends Pattern {
 
     return ret;
   }
+
+  hasEmptyPattern(): boolean {
+    return this.rawValue === "";
+  }
+
+  newWalker(nameResolver: NameResolver): InternalWalker<Value> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new ValueWalker(this, nameResolver);
+  }
 }
 
 /**
  * Walker for [[Value]].
  */
-class ValueWalker extends Walker<Value> {
+class ValueWalker extends InternalWalker<Value> {
+  protected readonly el: Value;
   private matched: boolean;
   private readonly context: { resolver: NameResolver } | undefined;
   private readonly nameResolver: NameResolver;
+  canEnd: boolean;
+  canEndAttribute: boolean;
 
-  protected constructor(other: ValueWalker, memo: HashMap);
-  protected constructor(el: Value, nameResolver: NameResolver);
-  protected constructor(elOrWalker: Value |  ValueWalker,
-                        nameResolverOrMemo: HashMap | NameResolver) {
-    if (elOrWalker instanceof ValueWalker) {
-      const walker: ValueWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo, "as 2nd argument");
-      super(walker, memo);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.context = walker.context !== undefined ?
-        { resolver: this.nameResolver } : undefined;
-      this.matched = walker.matched;
-    }
-    else {
-      const el: Value = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo,
-                                                        "as 2nd argument");
-      super(el);
+  constructor(other: ValueWalker, memo: CloneMap);
+  constructor(el: Value, nameResolver: NameResolver);
+  constructor(elOrWalker: Value |  ValueWalker,
+              nameResolverOrMemo: CloneMap | NameResolver) {
+    super();
+    if ((elOrWalker as Value).newWalker !== undefined) {
+      const el = elOrWalker as Value;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
       this.nameResolver = nameResolver;
-      this.possibleCached = new EventSet(new Event("text", el.rawValue));
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
       this.matched = false;
+      this.canEndAttribute = this.canEnd = el.hasEmptyPattern();
+    }
+    else {
+      const walker = elOrWalker as ValueWalker;
+      const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
+      this.context = walker.context !== undefined ?
+        { resolver: this.nameResolver } : undefined;
+      this.matched = walker.matched;
+      this.canEnd = walker.canEnd;
+      this.canEndAttribute = walker.canEndAttribute;
     }
   }
 
-  _possible(): EventSet {
-    // possibleCached is necessarily defined because of the constructor's
-    // logic.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.possibleCached!;
+  _clone(memo: CloneMap): this {
+    return new ValueWalker(this, memo) as this;
   }
 
-  fireEvent(ev: Event): false | undefined {
-    if (this.matched) {
-      return undefined;
-    }
+  possible(): EventSet {
+    return new Set(this.matched ? undefined :
+                   [new Event("text", this.el.rawValue)]);
+  }
 
-    if (ev.params[0] !== "text") {
-      return undefined;
-    }
+  possibleAttributes(): EventSet {
+    return new Set<Event>();
+  }
 
-    if (!this.el.datatype.equal(ev.params[1] as string, this.el.value,
-                                this.context)) {
-      return undefined;
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    if (this.matched || name !== "text" ||
+       !this.el.datatype.equal(params[0], this.el.value, this.context)) {
+      return new InternalFireEventResult(false);
     }
 
     this.matched = true;
-    this.possibleCached = new EventSet();
+    this.canEndAttribute = this.canEnd = true;
 
-    return false;
+    return new InternalFireEventResult(true);
   }
 
-  canEnd(attribute: boolean = false): boolean {
-    return this.matched || this.el.rawValue === "";
+  end(): EndResult {
+    return this.canEnd ? false :
+      [new ValidationError(`value required: ${this.el.rawValue}`)];
   }
 
-  end(attribute: boolean = false): EndResult {
-    if (this.canEnd(attribute)) {
-      return false;
-    }
-
-    return [new ValidationError(`value required: ${this.el.rawValue}`)];
-  }
-
-  _suppressAttributes(): void {
-    // No child attributes.
+  endAttributes(): EndResult {
+    return this.canEndAttribute ? false :
+      [new ValidationError(`value required: ${this.el.rawValue}`)];
   }
 }
-
-addWalker(Value, ValueWalker);
 
 //  LocalWords:  RNG's MPL RNG nd possibleCached

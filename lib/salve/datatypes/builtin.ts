@@ -6,7 +6,8 @@
  */
 import { ParamError, ParameterParsingError, ValueError,
          ValueValidationError } from "./errors";
-import { Datatype, RawParameter, TypeLibrary } from "./library";
+import { Datatype, ParsedParams, ParsedValue, RawParameter,
+         TypeLibrary } from "./library";
 
 /**
  * Strips leading and trailing space. Normalize all internal spaces to a single
@@ -19,7 +20,7 @@ import { Datatype, RawParameter, TypeLibrary } from "./library";
  * @returns The normalized value.
  */
 function normalizeSpace(value: string): string {
-  return value.trim().replace(/\s{2,}/g, " ");
+  return value.replace(/\s+/g, " ").trim();
 }
 
 //
@@ -28,43 +29,41 @@ function normalizeSpace(value: string): string {
 //
 // See https://github.com/Microsoft/TypeScript/issues/4670
 //
-abstract class Base implements Datatype {
+abstract class Base implements Datatype<string> {
   abstract readonly name: string;
   abstract readonly needsContext: boolean;
   abstract readonly regexp: RegExp;
 
-  parseParams(location: string, params?: RawParameter[]): void {
+  parseParams(location: string, params?: RawParameter[]): ParsedParams {
     if (params !== undefined && params.length > 0) {
       throw new ParameterParsingError(
         location,
         [new ParamError("this type does not accept parameters")]);
     }
+
+    return Object.create(null);
   }
 
-  parseValue(location: string, value: string): any {
-    const errors: ValueError[] | false = this.disallows(value);
-    if (errors instanceof Array && errors.length !== 0) {
+  parseValue(location: string, value: string): ParsedValue<string> {
+    const errors = this.disallows(value);
+    if (errors && errors.length !== 0) {
       throw new ValueValidationError(location, errors);
     }
 
     return { value };
   }
 
-  abstract equal(value: string, schemaValue: any): boolean;
+  abstract equal(value: string, schemaValue: ParsedValue<string>): boolean;
 
   abstract disallows(value: string): ValueError[] | false;
 }
 
 class StringT extends Base {
   readonly name: "string";
-  readonly regexp: RegExp = /.*/;
+  readonly regexp: RegExp = /^[^]*$/;
   readonly needsContext: boolean = false;
 
-  equal(value: string, schemaValue: any): boolean {
-    if (schemaValue.value === undefined) {
-      throw Error("it looks like you are trying to use an unparsed value");
-    }
-
+  equal(value: string, schemaValue: ParsedValue<string>): boolean {
     return value === schemaValue.value;
   }
 
@@ -73,18 +72,14 @@ class StringT extends Base {
   }
 }
 
-const stringT: StringT = new StringT();
+const stringT = new StringT();
 
 class Token extends Base {
   readonly name: string = "token";
   readonly needsContext: boolean = false;
-  readonly regexp: RegExp = /.*/;
+  readonly regexp: RegExp = /^[^]*$/;
 
-  equal(value: string, schemaValue: any): boolean {
-    if (schemaValue.value === undefined) {
-      throw Error("it looks like you are trying to use an unparsed value");
-    }
-
+  equal(value: string, schemaValue: ParsedValue<string>): boolean {
     return normalizeSpace(value) === normalizeSpace(schemaValue.value);
   }
 
@@ -94,7 +89,7 @@ class Token extends Base {
   }
 }
 
-const token: Token = new Token();
+const token = new Token();
 
 /**
  * The builtin datatype library.

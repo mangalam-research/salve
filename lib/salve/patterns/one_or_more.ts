@@ -4,25 +4,38 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, BasePattern, EndResult, Event, EventSet,
-         FireEventResult, isHashMap, isNameResolver, OneSubpattern,
-         Walker } from "./base";
+import { union } from "../set";
+import { BasePattern, cloneIfNeeded, CloneMap, EndResult, EventSet,
+         InternalFireEventResult, InternalWalker, isAttributeEvent,
+         OneSubpattern, Pattern} from "./base";
 
 /**
  * A pattern for ``<oneOrMore>``.
  */
-export class  OneOrMore extends OneSubpattern {}
+export class  OneOrMore extends OneSubpattern {
+  _computeHasEmptyPattern(): boolean {
+    return this.pat.hasEmptyPattern();
+  }
+
+  newWalker(nameResolver: NameResolver): InternalWalker<OneOrMore> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new OneOrMoreWalker(this, nameResolver);
+  }
+}
 
 /**
  * Walker for [[OneOrMore]]
  */
-class OneOrMoreWalker extends Walker<OneOrMore> {
-  private seenOnce: boolean;
-  private currentIteration: Walker<BasePattern> | undefined;
-  private nextIteration: Walker<BasePattern> | undefined;
+class OneOrMoreWalker extends InternalWalker<OneOrMore> {
+  protected readonly el: OneOrMore;
+  private readonly subPat: Pattern;
+  private readonly hasAttrs: boolean;
+  private currentIteration: InternalWalker<BasePattern>;
+  private nextIteration: InternalWalker<BasePattern> | undefined;
   private readonly nameResolver: NameResolver;
+  canEndAttribute: boolean;
+  canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was created.
@@ -30,174 +43,121 @@ class OneOrMoreWalker extends Walker<OneOrMore> {
    * @param resolver The name resolver that can be used to convert namespace
    * prefixes to namespaces.
    */
-  protected constructor(walker: OneOrMoreWalker, memo: HashMap);
-  protected constructor(el: OneOrMore, nameResolver: NameResolver);
-  protected constructor(elOrWalker: OneOrMoreWalker | OneOrMore,
-                        nameResolverOrMemo: NameResolver | HashMap) {
-    if (elOrWalker instanceof OneOrMoreWalker) {
-      const walker: OneOrMoreWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo);
-      super(walker, memo);
-      this.seenOnce = walker.seenOnce;
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.currentIteration = walker.currentIteration !== undefined ?
-        walker.currentIteration._clone(memo) : undefined;
-      this.nextIteration = walker.nextIteration !== undefined ?
-        walker.nextIteration._clone(memo) : undefined;
+  constructor(walker: OneOrMoreWalker, memo: CloneMap);
+  constructor(el: OneOrMore, nameResolver: NameResolver);
+  constructor(elOrWalker: OneOrMoreWalker | OneOrMore,
+              nameResolverOrMemo: NameResolver | CloneMap) {
+    super();
+    if ((elOrWalker as OneOrMore).newWalker !== undefined) {
+      const el = elOrWalker as OneOrMore;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
+      this.subPat = el.pat;
+      this.hasAttrs = el.hasAttrs();
+      this.nameResolver = nameResolver;
+      this.currentIteration = el.pat.newWalker(nameResolver);
+      this.canEndAttribute = !this.hasAttrs ||
+        this.currentIteration.canEndAttribute;
+      this.canEnd = this.currentIteration.canEnd;
     }
     else {
-      const el: OneOrMore = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo);
-      super(el);
-      this.nameResolver = nameResolver;
-      this.seenOnce = false;
+      const walker = elOrWalker as OneOrMoreWalker;
+      const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
+      this.subPat = walker.subPat;
+      this.hasAttrs = walker.hasAttrs;
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
+      this.currentIteration = walker.currentIteration._clone(memo);
+      this.nextIteration = walker.nextIteration !== undefined ?
+        walker.nextIteration._clone(memo) : undefined;
+      this.canEndAttribute = walker.canEndAttribute;
+      this.canEnd = walker.canEnd;
     }
   }
 
-  _possible(): EventSet {
-    if (this.possibleCached !== undefined) {
-      return this.possibleCached;
-    }
-
-    this._instantiateCurrentIteration();
-    // currentIteration is necessarily defined here due to the previous call.
-    // tslint:disable-next-line:no-non-null-assertion
-    this.possibleCached = this.currentIteration!._possible();
-
-    // tslint:disable-next-line:no-non-null-assertion
-    if (this.currentIteration!.canEnd()) {
-      this.possibleCached = new EventSet(this.possibleCached);
-
-      this._instantiateNextIteration();
-      // nextIteration is necessarily defined here due to the previous call.
-      // tslint:disable-next-line:no-non-null-assertion
-      const nextPossible: EventSet = this.nextIteration!._possible();
-
-      this.possibleCached.union(nextPossible);
-    }
-
-    return this.possibleCached;
+  _clone(memo: CloneMap): this {
+    return new OneOrMoreWalker(this, memo) as this;
   }
 
-  fireEvent(ev: Event): FireEventResult {
-    this.possibleCached = undefined;
+  possible(): EventSet {
+    const ret = this.currentIteration.possible();
 
-    this._instantiateCurrentIteration();
-
-    // currentIteration is necessarily defined here due to the previous call.
-    // tslint:disable-next-line:no-non-null-assertion
-    const currentIteration = this.currentIteration!;
-
-    let ret: FireEventResult = currentIteration.fireEvent(ev);
-    if (ret === false) {
-      this.seenOnce = true;
+    if (this.currentIteration.canEnd) {
+      if (this.nextIteration === undefined) {
+        this.nextIteration = this.subPat.newWalker(this.nameResolver);
+      }
+      union(ret, this.nextIteration.possible());
     }
 
-    if (ret !== undefined) {
+    return ret;
+  }
+
+  possibleAttributes(): EventSet {
+    const ret = this.currentIteration.possibleAttributes();
+
+    if (this.currentIteration.canEnd) {
+      if (this.nextIteration === undefined) {
+        this.nextIteration = this.subPat.newWalker(this.nameResolver);
+      }
+      union(ret, this.nextIteration.possibleAttributes());
+    }
+
+    return ret;
+  }
+
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    let ret = new InternalFireEventResult(false);
+    const evIsAttributeEvent = isAttributeEvent(name);
+    if (evIsAttributeEvent && !this.hasAttrs) {
       return ret;
     }
 
-    if (this.seenOnce && currentIteration.canEnd()) {
-      ret = currentIteration.end();
-      if (ret) {
-        throw new Error(
-          "internal error; canEnd() returns true but end() fails");
-      }
+    const currentIteration = this.currentIteration;
 
-      this._instantiateNextIteration();
-      // nextIteration is necessarily defined here due to the previous call.
-      // tslint:disable-next-line:no-non-null-assertion
-      const nextRet: FireEventResult = this.nextIteration!.fireEvent(ev);
-      if (nextRet === false) {
+    ret = currentIteration.fireEvent(name, params);
+    if (ret.matched) {
+      if (evIsAttributeEvent) {
+        this.canEndAttribute = currentIteration.canEndAttribute;
+      }
+      this.canEnd = currentIteration.canEnd;
+
+      return ret;
+    }
+
+    if (currentIteration.canEnd) {
+      if (this.nextIteration === undefined) {
+        this.nextIteration = this.subPat.newWalker(this.nameResolver);
+      }
+      const nextRet = this.nextIteration.fireEvent(name, params);
+      if (nextRet.matched) {
+        if (currentIteration.end()) {
+          throw new Error(
+            "internal error; canEnd returns true but end() fails");
+        }
+
         this.currentIteration = this.nextIteration;
         this.nextIteration = undefined;
+        if (evIsAttributeEvent) {
+          this.canEndAttribute = this.currentIteration.canEndAttribute;
+        }
+
+        this.canEnd = this.currentIteration.canEnd;
       }
 
       return nextRet;
     }
 
-    return undefined;
+    return ret;
   }
 
-  _suppressAttributes(): void {
-    // A oneOrMore element can happen if we have the pattern ``(attribute * {
-    // text })+`` for instance. Once converted to the simplified RNG, it
-    // becomes:
-    //
-    // ``<oneOrMore><attribute><anyName/><rng:text/></attribute></oneOrMore>``
-    //
-    // An attribute in ``oneOrMore`` cannot happen when ``anyName`` is not used
-    // because an attribute of any given name cannot be repeated.
-    //
-    this._instantiateCurrentIteration();
-    if (!this.suppressedAttributes) {
-      this.suppressedAttributes = true;
-      this.possibleCached = undefined; // No longer valid.
-      // currentIteration is necessarily defined here...
-      // tslint:disable-next-line:no-non-null-assertion
-      this.currentIteration!._suppressAttributes();
-
-      if (this.nextIteration !== undefined) {
-        this.nextIteration._suppressAttributes();
-      }
-    }
+  end(): EndResult {
+    return this.canEnd ? false : this.currentIteration.end();
   }
 
-  canEnd(attribute: boolean = false): boolean {
-    if (attribute) {
-      if (!this.el.pat._hasAttrs()) {
-        return true;
-      }
-
-      this._instantiateCurrentIteration();
-
-      // currentIteration is necessarily defined here due to the previous call.
-      // tslint:disable-next-line:no-non-null-assertion
-      return this.currentIteration!.canEnd(true);
-    }
-
-    // currentIteration is necessarily defined here.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.seenOnce && this.currentIteration!.canEnd();
-  }
-
-  end(attribute: boolean = false): EndResult {
-    if (this.canEnd(attribute)) {
-      return false;
-    }
-
-    // Undefined currentIteration can happen in rare cases.
-    this._instantiateCurrentIteration();
-
-    // currentIteration is necessarily defined here due to the previous call.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.currentIteration!.end(attribute);
-  }
-
-  private _instantiateCurrentIteration(): void {
-    if (this.currentIteration === undefined) {
-      this.currentIteration = this.el.pat.newWalker(this.nameResolver);
-    }
-  }
-
-  private _instantiateNextIteration(): void {
-    if (this.nextIteration === undefined) {
-      this.nextIteration = this.el.pat.newWalker(this.nameResolver);
-
-      // Whereas _suppressAttributes calls _instantiateCurrentIteration() so
-      // that currentIteration is always existing and its _suppressAttributes()
-      // method is called before _suppressAttributes() returns, the same is not
-      // true of nextIteration. So if we create it **after**
-      // _suppressAttributes() was called we need to call _suppressAttributes()
-      // on it.
-      if (this.suppressedAttributes) {
-        this.nextIteration._suppressAttributes();
-      }
-    }
+  endAttributes(): EndResult {
+    return this.canEndAttribute ? false : this.currentIteration.endAttributes();
   }
 }
-
-addWalker(OneOrMore, OneOrMoreWalker);
 
 //  LocalWords:  RNG's MPL currentIteration nextIteration canEnd oneOrMore rng
 //  LocalWords:  anyName suppressAttributes instantiateCurrentIteration

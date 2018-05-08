@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<group xml:base="er_sub1/" xmlns="http://relaxng.org/ns/structure/1.0">
+  <group>
+    <group xml:base="sub2">
+      <group>
+        <group xml:base="sub3/y">
+          <element datatypeLibrary="" name="withBase" xml:base="file:@CURDIR@/step1/er_sub1/">
+  <element datatypeLibrary="" name="throughBase" xml:base="file:@CURDIR@/step1/er_sub1/throughBase">
+  <empty/>
+</element>
+</element>
+        </group>
+      </group>
+    </group>
+  </group>
+</group>

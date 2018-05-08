@@ -4,15 +4,16 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-/**
- * @private
- */
-export type NamespaceMemo = {[key: string]: number};
+function escapeString(str: string): string {
+  return str.replace(/(["\\])/g, "\\$1");
+}
 
 /**
  * Base class for all name patterns.
  */
 export abstract class Base {
+  private _asString?: string;
+
   /**
    * @param path The XML path of the element that corresponds to this
    * object in the Relax NG schema from which this object was constructed.
@@ -35,9 +36,7 @@ export abstract class Base {
    *
    * @param other The other pattern to check.
    */
-  intersects(other: ConcreteName): boolean {
-    return this.intersection(other) !== 0;
-  }
+  abstract intersects(other: ConcreteName): boolean;
 
   /**
    * Computes the intersection of two patterns.
@@ -91,19 +90,22 @@ export abstract class Base {
    * @returns The list of namespaces.
    */
   getNamespaces(): string[] {
-    const namespaces: NamespaceMemo = Object.create(null);
-    this._recordNamespaces(namespaces);
+    const namespaces: Set<string> = new Set();
+    this._recordNamespaces(namespaces, true);
 
-    return Object.keys(namespaces);
+    return Array.from(namespaces);
   }
 
   /**
    * This is public due to limitations in how TypeScript works. You should never
-   * call this function.
+   * call this function directly.
    *
-   * @protected
+   * @param namespaces A map in which to record namespaces.
+   *
+   * @param recordEmpty Whether to record an empty namespace in the map.
    */
-  abstract _recordNamespaces(_namespaces: NamespaceMemo): void;
+  abstract _recordNamespaces(namespaces: Set<string>,
+                             recordEmpty: boolean): void;
 
   /**
    * Represent the name pattern as a plain object. The object returned contains
@@ -140,8 +142,16 @@ export abstract class Base {
    * @returns The stringified instance.
    */
   toString(): string {
-    return JSON.stringify(this);
+    // Profiling showed that caching the string representation helps
+    // performance.
+    if (this._asString === undefined) {
+      this._asString = this.asString();
+    }
+
+    return this._asString;
   }
+
+  protected abstract asString(): string;
 }
 
 export type ConcreteName = Name | NameChoice | NsName | AnyName;
@@ -165,7 +175,14 @@ export class Name extends Base {
   }
 
   match(ns: string, name: string): boolean {
-    return this.ns === ns && this.name === name;
+    return this.name === name && this.ns === ns;
+  }
+
+  intersects(other: ConcreteName): boolean {
+    return other instanceof Name ?
+      this.match(other.ns, other.name) :
+      // Delegate to the other classes.
+      other.intersects(this);
   }
 
   intersection(other: ConcreteName | 0): ConcreteName | 0 {
@@ -192,6 +209,12 @@ export class Name extends Base {
     };
   }
 
+  asString(): string {
+    // We don't need to escape this.name because names cannot contain
+    // things that need escaping.
+    return `{"ns":"${escapeString(this.ns)}","name":"${this.name}"}`;
+  }
+
   simple(): boolean {
     return true;
   }
@@ -200,8 +223,12 @@ export class Name extends Base {
     return [this];
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo): void {
-    namespaces[this.ns] = 1;
+  _recordNamespaces(namespaces: Set<string>, recordEmpty: boolean): void {
+    if (this.ns === "" && !recordEmpty) {
+      return;
+    }
+
+    namespaces.add(this.ns);
   }
 }
 
@@ -211,18 +238,16 @@ export class Name extends Base {
  */
 export class NameChoice extends Base {
 
-  readonly a: ConcreteName;
-  readonly b: ConcreteName;
-
   /**
    * @param path See parent class.
    *
-   * @param pats An array of length 2 which
-   * contains the two choices allowed by this object.
+   * @param a The first choice.
+   *
+   * @param b The second choice.
    */
-  constructor(path: string, pats: ConcreteName[]) {
+  constructor(path: string, readonly a: ConcreteName,
+              readonly b: ConcreteName) {
     super(path);
-    [this.a, this.b] = pats;
   }
 
   /**
@@ -241,9 +266,9 @@ export class NameChoice extends Base {
     let ret: ConcreteName;
     if (names.length > 1) {
       // More than one name left. Convert them to a tree.
-      let top = new NameChoice("", [names[0], names[1]]);
+      let top = new NameChoice("", names[0], names[1]);
       for (let ix = 2; ix < names.length; ix++) {
-        top = new NameChoice("", [top, names[ix]]);
+        top = new NameChoice("", top, names[ix]);
       }
 
       ret = top;
@@ -260,6 +285,10 @@ export class NameChoice extends Base {
     return this.a.match(ns, name) || this.b.match(ns, name);
   }
 
+  intersects(other: ConcreteName): boolean {
+    return this.a.intersects(other) || this.b.intersects(other);
+  }
+
   intersection(other: ConcreteName | 0): ConcreteName | 0 {
     if (other === 0) {
       return 0;
@@ -269,7 +298,7 @@ export class NameChoice extends Base {
     const b = this.b.intersection(other);
 
     if (a !== 0 && b !== 0) {
-      return new NameChoice("", [a, b]);
+      return new NameChoice("", a, b);
     }
 
     if (a !== 0) {
@@ -295,7 +324,7 @@ export class NameChoice extends Base {
     const newB = b instanceof NameChoice ? b.applyRecursively(fn) : fn(b);
 
     if (newA !== 0 && newB !== 0) {
-      return new NameChoice(this.path, [newA, newB]);
+      return new NameChoice(this.path, newA, newB);
     }
 
     if (newA !== 0) {
@@ -320,6 +349,10 @@ export class NameChoice extends Base {
     };
   }
 
+  asString(): string {
+    return `{"a":${this.a.toString()},"b":${this.b.toString()}}`;
+  }
+
   simple(): boolean {
     return this.a.simple() && this.b.simple();
   }
@@ -339,9 +372,9 @@ export class NameChoice extends Base {
     return aArr.concat(bArr);
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo): void {
-    this.a._recordNamespaces(namespaces);
-    this.b._recordNamespaces(namespaces);
+  _recordNamespaces(namespaces: Set<string>, recordEmpty: boolean): void {
+    this.a._recordNamespaces(namespaces, recordEmpty);
+    this.b._recordNamespaces(namespaces, recordEmpty);
   }
 }
 
@@ -367,6 +400,17 @@ export class NsName extends Base {
   match(ns: string, name: string): boolean {
     return this.ns === ns && !(this.except !== undefined &&
                                this.except.match(ns, name));
+  }
+
+  intersects(other: ConcreteName): boolean {
+    if (other instanceof Name) {
+      return this.ns === other.ns &&
+        (this.except === undefined || !other.intersects(this.except));
+    }
+
+    return other instanceof NsName ? this.ns === other.ns :
+      // Delegate the logic to the other classes.
+      other.intersects(this);
   }
 
   intersection(other: ConcreteName | 0): ConcreteName | 0 {
@@ -462,7 +506,7 @@ export class NsName extends Base {
       return new NsName(this.path, this.ns,
                         (this.except === undefined) ?
                         other :
-                        new NameChoice(this.path, [this.except, other]));
+                        new NameChoice(this.path, this.except, other));
     }
 
     if (other.except === undefined) {
@@ -509,6 +553,13 @@ export class NsName extends Base {
     return ret;
   }
 
+  asString(): string {
+    const except = this.except === undefined ? "" :
+      `,"except":${this.except.toString()}`;
+
+    return `{"ns":"${escapeString(this.ns)}"${except}}`;
+  }
+
   simple(): boolean {
     return false;
   }
@@ -517,10 +568,13 @@ export class NsName extends Base {
     return null;
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo): void {
-    namespaces[this.ns] = 1;
+  _recordNamespaces(namespaces: Set<string>, recordEmpty: boolean): void {
+    if (this.ns !== "" || recordEmpty) {
+      namespaces.add(this.ns);
+    }
+
     if (this.except !== undefined) {
-      namespaces["::except"] = 1;
+      namespaces.add("::except");
     }
   }
 }
@@ -541,6 +595,34 @@ export class AnyName extends Base {
 
   match(ns: string, name: string): boolean {
     return (this.except === undefined) || !this.except.match(ns, name);
+  }
+
+  intersects(other: ConcreteName): boolean {
+    if (this.except === undefined || other instanceof AnyName) {
+      return true;
+    }
+
+    if (other instanceof Name) {
+      return !this.except.intersects(other);
+    }
+
+    if (other instanceof NsName) {
+      // Reminder: the except can only be one of three things: Name, NsName or
+      // NameChoice so negation can only be 0, Name, NsName or NameChoice.
+      const negation = this.except.intersection(other);
+      if (negation === 0) {
+        return true;
+      }
+
+      if (negation instanceof Name || negation instanceof NsName ||
+          negation instanceof NameChoice) {
+        return other.subtract(negation) !== 0;
+      }
+
+      throw new Error("negation should be 0, Name, NsName or NameChoice");
+    }
+
+    throw new Error("cannot compute intersection!");
   }
 
   intersection(other: ConcreteName | 0): ConcreteName | 0 {
@@ -576,7 +658,7 @@ export class AnyName extends Base {
       if (other.except !== undefined && this.except !== undefined) {
         return new AnyName(this.path,
                            new NameChoice(this.path,
-                                          [this.except, other.except]));
+                                          this.except, other.except));
       }
 
       return (other.except !== undefined) ? other : this;
@@ -600,6 +682,13 @@ export class AnyName extends Base {
     return ret;
   }
 
+  asString(): string {
+    const except = this.except === undefined ? "" :
+      `,"except":${this.except.toString()}`;
+
+    return `{"pattern":"AnyName"${except}}`;
+  }
+
   simple(): boolean {
     return false;
   }
@@ -608,10 +697,10 @@ export class AnyName extends Base {
     return null;
   }
 
-  _recordNamespaces(namespaces: NamespaceMemo): void {
-    namespaces["*"] = 1;
+  _recordNamespaces(namespaces: Set<string>, _recordEmpty: boolean): void {
+    namespaces.add("*");
     if (this.except !== undefined) {
-      namespaces["::except"] = 1;
+      namespaces.add("::except");
     }
   }
 }

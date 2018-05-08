@@ -95,8 +95,8 @@ function _serialize(mixed: boolean,
                     options: NormalizedSerializationOptions): string {
   let buf = "";
 
-  buf += `${curIndent}<${el.name}`;
-  const attrs = el.getAttributes();
+  buf += `${curIndent}<${el.local}`;
+  const attrs = el.getRawAttributes();
   const names = Object.keys(attrs);
   names.sort();
   for (const name of names) {
@@ -131,7 +131,7 @@ function _serialize(mixed: boolean,
       buf += curIndent;
     }
 
-    buf += `</${el.name}>`;
+    buf += `</${el.local}>`;
   }
 
   if (options.prettyPrint && !mixed) {

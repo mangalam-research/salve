@@ -37,8 +37,8 @@ function walk(el: Element, parentNs: string | null): void {
           }
         }
 
-        nameEl.append(new Text(name));
-        el.prepend(nameEl);
+        nameEl.appendChild(new Text(name));
+        el.prependChild(nameEl);
       }
       break;
     case "name":
@@ -63,8 +63,7 @@ function walk(el: Element, parentNs: string | null): void {
           }
           el.setAttribute("ns", ns);
           resolvedNs = true;
-          el.removeChildAt(0);
-          el.append(new Text(parts[1]));
+          el.replaceChildAt(0, new Text(parts[1]));
           break;
         }
         default:
@@ -92,7 +91,11 @@ function walk(el: Element, parentNs: string | null): void {
     }
   }
 
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     walk(child, currentNs !== undefined ? currentNs : parentNs);
   }
 }

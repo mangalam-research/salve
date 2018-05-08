@@ -201,36 +201,59 @@ The parser is responsible for calling ``fireEvent()`` on the walker returned by
 the tree created from the RNG. (See above.) The events currently supported by
 ``fireEvent()`` are defined below:
 
-``Event("enterStartTag", uri, local-name)``
+``"enterStartTag", [uri, local-name]``
   Emitted when encountering the beginning of a start tag (the string "<tag",
   where "tag" is the applicable tag name) or the equivalent. The qualified
   name should be resolved to its uri and local-name components.
 
-``Event("leaveStartTag")``
+``"leaveStartTag", []``
   Emitted when encountering the end of a start tag (the string ">") or
   equivalent.
 
-``Event("endTag", uri, local-name)``
+``"endTag", [uri, local-name]``
   Emitted when encountering an end tag.
 
-``Event("attributeName", uri, local-name)``
+``"attributeName", [uri, local-name]``
   Emitted when encountering an attribute name.
 
-``Event("attributeValue", value)``
+``"attributeValue", [value]``
   Emitted when encountering an attribute value
 
-``Event("text", value)``
-  Emitted when encountering text. This event must be fired for
-  all instances of text, **including white space.**
+``"text", [value]``
+  Emitted when encountering text. This event must be fired for all instances
+  of text, **including white space.** Moreover, salve requires that you fire
+  one ``text`` event per consecutive sequence of text. For instance, if you
+  have the text ``foo bar`` you may not fire one event for ``foo `` and
+  another for ``bar``. Or if you have a sequence of lines, you may not fire one
+  event per line. You have to concatenate the lines and fire a single ``text``
+  event.
 
-``Event("enterContext")``
-  Emitted when entering a new namespace context.
+  Do not generate ``text`` events with an empty string as the
+  value. (Conversely, a valid document **must** have an ``attributeValue`` for
+  all attributes, even those that have empty text as a value.)
 
-``Event("leaveContext")``
-  Emitted when leaving a namespace context.
+Salve support a couple of compact events that serve to pass as one event data
+that would normally be passed as multiple events:
 
-``Event("definePrefix", prefix, uri)``
-  Emitted when defining a namespace prefix.
+``"attributeNameAndValue", [uri, local-name, value]``
+  Combines the ``attributeName`` and ``attributeValue`` events into one event.
+
+``"startTagAndAttributes", [uri, local-name, [attribute-data...]]``
+  Combines the ``enterStartTag``, ``attributeNameAndValue`` and
+  ``leaveStartTag`` events. The ``attribute-data`` part of the event must be a
+  sequence of ``uri, local-name, value`` as would be passed to with
+  ``attributeNameAndValue``.
+
+  For instance if an element named ``foo`` has the attribute ``a`` with the
+  value ``valA``, the event would be: ``"startTagAndAttributes", "", foo,
+  "", "a", "valA"``.
+
+.. note:: The compact events do not allow salve to be very precise with
+          reporting errors. It is recommended to use them only when optimizing
+          for speed, at the expense of precision.
+
+.. note:: When reporting possible events, salve *never* returns compact events
+          in the list.
 
 The reason for the set of events supported is that salve is designed to handle
 **not only** XML modeled as a DOM tree but also XML parsed as a text string
@@ -245,26 +268,25 @@ then what the parser has seen by the time it gets to the end of the buffer is an
 will not see a ``leaveStartTag`` event until the user enters the greater-than
 symbol ending the start tag.
 
-You must issue an ``enterContext`` event each time you encounter a start tag
-that defines namespaces and issue ``leaveContext`` when you encounter its
-corresponding end tag. You must also issue ``definePrefix`` for each prefix
+You must call ``enterContext()`` each time you encounter a start tag that
+defines namespaces and call ``leaveContext()`` when you encounter its
+corresponding end tag. You must alsocall ``definePrefix(...)`` for each prefix
 defined by the element. Example::
 
     <p xmlns="q" xmlns:foo="foons">...
 
-would require issuing::
+would require calling::
 
-    Event("enterContext")
-    Event("definePrefix", "", "q")
-    Event("definePrefix", "foo", "foons")
+    enterContext()
+    definePrefix("", "q")
+    definePrefix("foo", "foons")
 
-Presumably, after firing the events above, your code would call
-``resolveName("p")`` on your walker to determine what namespace ``p`` is in,
-which would yield the result ``"q"``. And then it would fire the
-``enterStartTag`` event with ``q`` as the namespace and ``p`` as the local name
-of the tag::
+Presumably, after the above, your code would call ``resolveName("p")`` on your
+walker to determine what namespace ``p`` is in, which would yield the result
+``"q"``. And then it would fire the ``enterStartTag`` event with ``q`` as the
+namespace and ``p`` as the local name of the tag::
 
-    Event("enterStartTag", "q", "p")
+    "enterStartTag", ["q", "p"]
 
 Note the order of the events. The new context must start before salve sees the
 ``enterStartTag`` event because the way namespaces work, a start tag can declare
@@ -275,8 +297,8 @@ default namespace in effect **before** it started, which could be other than
 ``q``. Similarly, ``leaveContext`` must be issued after the corresponding
 ``endTag`` event.
 
-For the lazy: it is possible to issue ``enterContext`` for each start tag and
-``leaveContext`` for each end tag irrespective of whether or not the start tag
+For the lazy: it is possible to call ``enterContext()`` for each start tag and
+``leaveContext()`` for each end tag irrespective of whether or not the start tag
 declares new namespaces. The test suite does it this way.  Note, however, that
 performance will be affected somewhat because name resolution will have to
 potentially search a deeper stack of contexts than would be strictly necessary.
@@ -440,7 +462,7 @@ event to ``fireEvent()``, the same events take two string parameters after the
 event name: a namespace URL and a local name. To spell it out, they are of this
 form::
 
-    Event(event_name, uri, local-name)
+    event_name, [uri, local-name]
 
 where ``event_name`` is the string which is the name of the event to fire,
 ``uri`` is the namespace URI and ``local-name`` is the local name of the element
@@ -574,9 +596,12 @@ track of every single feature that old browsers like IE11 don't support.
 * Old ``Set`` and ``Map`` implementations like those in IE11 are either broken
   or incomplete.
 
-On old browsers, we recomment using ``core-js`` to take care of many of these in
+On old browsers, we recommend using ``core-js`` to take care of many of these in
 one fell swoop. You'll have to provide polyfills for ``fetch`` and ``URL`` from
 other sources.
+
+Note that we do not support old browsers. Notably, salve won't run on any
+version of IE earlier than IE11.
 
 Build System
 ============

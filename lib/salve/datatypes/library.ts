@@ -7,6 +7,7 @@
  */
 
 import { NameResolver } from "../name_resolver";
+import { TrivialMap } from "../types";
 import { ValueError } from "./errors";
 
 /**
@@ -26,7 +27,7 @@ export type RawParameter = {
 /**
  * A context as defined by the Relax NG specification, minus the base URI.  (Why
  * no base URI? Because none of the types implemented by salve require it. So
- * there is no point in keeping track of it.
+ * there is no point in keeping track of it.)
  */
 export interface Context {
   /**
@@ -35,10 +36,16 @@ export interface Context {
   resolver: NameResolver;
 }
 
+export interface ParsedValue<T> {
+  value: T;
+}
+
+export type ParsedParams = TrivialMap<string[]|number>;
+
 /**
  * A schema data type.
  */
-export interface Datatype {
+export interface Datatype<T = {}> {
   /**
    * The name of this type.
    */
@@ -54,6 +61,10 @@ export interface Datatype {
    * value. This regular expression is such that if it does *not* match a value,
    * then the value is invalid. If it does match the value, then [[disallows]]
    * must be called to determine whether the value is actually allowed or not.
+   *
+   * Note that this regular expression must take into account the whitespace
+   * processing required by the datatype, because this processing occurs before
+   * determining whether a value is part of the lexical space of a type.
    */
   readonly regexp: RegExp;
 
@@ -72,7 +83,7 @@ export interface Datatype {
    * @throws {"datatypes".ParameterParsingError} If the parameters are
    * erroneous.
    */
-  parseParams(location: string, params?: RawParameter[]): any;
+  parseParams(location: string, params?: RawParameter[]): ParsedParams;
 
   /**
    * Parses a value. Checks that the value is allowed by the type and converts
@@ -91,7 +102,8 @@ export interface Datatype {
    * @throws {"datatypes".ValueValidationError} If the value is
    * erroneous.
    */
-  parseValue(location: string, value: string, context?: Context): any;
+  parseValue(location: string, value: string,
+             context?: Context): ParsedValue<T>;
 
   /**
    * Checks whether two strings are equal according to the type.
@@ -104,7 +116,8 @@ export interface Datatype {
    *
    * @returns ``true`` if equal, ``false`` if not.
    */
-  equal(value: string, schemaValue: any, context?: Context): boolean;
+  equal(value: string, schemaValue: ParsedValue<T>,
+        context?: Context): boolean;
 
   /**
    * Checks whether the type disallows a certain string.
@@ -113,12 +126,16 @@ export interface Datatype {
    *
    * @param params The type parameters. These must be **parsed** already.
    *
-   * @param context The context in the document, if needed.
+   * @param context The context in the document, if needed. **Note**: this
+   * method must accept being called without a context *even if it normally
+   * requires a context* when the a ``value`` is set to the empty string. This
+   * allows determining ahead of XML validation whether an empty string is
+   * allowed.
    *
    * @returns ``false`` if not disallowed. Otherwise, the errors caused by the
    * value.
    */
-  disallows(value: string, params?: any,
+  disallows(value: string, params?: ParsedParams,
             context?: Context): ValueError[] | false;
 }
 

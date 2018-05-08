@@ -9,7 +9,9 @@ module.exports = {
     modules: [source, "node_modules"],
   },
   entry: {
-    salve: "lib/salve/validate.js",
+    // With the move to Webpack 4 we essentially produce only a production
+    // bundle, which is what we load in Karma.
+    // salve: "lib/salve/validate.js",
     "salve.min": "lib/salve/validate.js",
   },
   //
@@ -42,9 +44,5 @@ module.exports = {
     new webpack.IgnorePlugin(/\/resource-loaders\/node$/),
     new webpack.IgnorePlugin(/\.\/xsl$/, /schema-simplifiers$/),
     new webpack.IgnorePlugin(/\.\/(?:jing|xmllint)$/, /schema-validators$/),
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
-      include: /\.min\.js$/,
-    }),
   ],
 };

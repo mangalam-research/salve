@@ -9,17 +9,6 @@ import { Element } from "../parser";
 // tslint:disable-next-line:no-http-string
 export const RELAXNG_URI = "http://relaxng.org/ns/structure/1.0";
 
-export function findFirstChildByLocalName(el: Element,
-                                          name: string): Element | null {
-  for (const child of el.elements) {
-    if (child.local === name) {
-      return child;
-    }
-  }
-
-  return null;
-}
-
 export function findChildrenByLocalName(el: Element,
                                         name: string): Element[] {
   return el
@@ -30,16 +19,26 @@ export function findChildrenByLocalName(el: Element,
 
 export function findDescendantsByLocalName(el: Element,
                                            name: string): Element[] {
-  let ret: Element[] = [];
-  for (const child of el.elements) {
+  const ret: Element[] = [];
+  _findDescendantsByLocalName(el, name, ret);
+
+  return ret;
+}
+
+export function _findDescendantsByLocalName(el: Element,
+                                            name: string,
+                                            ret: Element[]): void {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     if (child.local === name) {
       ret.push(child);
     }
 
-    ret = ret.concat(findDescendantsByLocalName(child, name));
+    _findDescendantsByLocalName(child, name, ret);
   }
-
-  return ret;
 }
 
 export function findMultiDescendantsByLocalName(el: Element,
@@ -59,7 +58,11 @@ function _findMultiDescendantsByLocalName(el: Element,
                                           names: string[],
                                           ret: Record<string, Element[]>):
 void {
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     const name = child.local;
     if (names.includes(name)) {
       ret[name].push(child);
@@ -110,10 +113,10 @@ export function findMultiNames(el: Element,
  * @return The indexed elements.
  */
 export function indexBy<T>(arr: T[],
-                           makeKey: (x: T) => string): Record<string, T> {
-  const ret = Object.create(null);
+                           makeKey: (x: T) => string): Map<string, T> {
+  const ret = new Map<string, T>();
   for (const x of arr) {
-    ret[makeKey(x)] = x;
+    ret.set(makeKey(x), x);
   }
 
   return ret;
@@ -127,30 +130,23 @@ export function indexBy<T>(arr: T[],
  *
  * @param arr The array to index.
  *
- * @param makeKey A function that takes an array element and makes a key or
- * multiple keys by which this element will be indexed. If the function returns
- * multiple keys then the element is indexed by all the keys produced.
+ * @param makeKey A function that takes an array element and makes a key by
+ * which this element will be indexed.
  *
  * @return The grouped elements.
  */
 export function groupBy<T>(arr: T[],
-                           makeKey: (x: T) => (string | string[])):
-Record<string, T[]> {
-  const ret: Record<string, T[]> = Object.create(null);
+                           makeKey: (x: T) => string): Map<string, T[]> {
+  const ret = new Map<string, T[]>();
   for (const x of arr) {
-    let keys = makeKey(x);
-
-    if (!(keys instanceof Array)) {
-      keys = [keys];
+    const key = makeKey(x);
+    let list = ret.get(key);
+    if (list === undefined) {
+      list = [];
+      ret.set(key, list);
     }
 
-    for (const key of keys) {
-      let list = ret[key];
-      if (list === undefined) {
-        list = ret[key] = [];
-      }
-      list.push(x);
-    }
+    list.push(x);
   }
 
   return ret;
@@ -165,28 +161,18 @@ export function getName(el: Element): string {
   return el.mustGetAttribute("name");
 }
 
-export function getAncestorsByLocalNames(el: Element,
-                                         names: string[]): Element[] {
-  const ancestors = [];
-  let parent = el.parent;
-  while (parent !== undefined) {
-    if (names.includes(parent.local)) {
-      ancestors.push(parent);
-    }
-    parent = parent.parent;
-  }
-
-  return ancestors;
-}
-
 /**
  * Removes unreferenced ``define`` elements from a grammar.
  *
  * **Important**: this is a very ad-hoc function, not meant for general
  * consumption. For one thing, this function works only if called with ``el``
  * pointing to a top-level ``grammar`` element **after** all ``grammar``
- * elements have been reduced to a single ``grammar`` and all ``define``
- * elements moved to that single ``grammar``.
+ * elements have been reduced to a single ``grammar``, all ``define`` elements
+ * moved to that single ``grammar``, and ``grammar`` contains ``start`` as the
+ * first element, and the rest of the children are all ``define`` elements.
+ *
+ * This function does no check these constraints!!! You must call it from a
+ * stage where these constraints hold.
  *
  * This function does not guard against misuse. It must be called from steps
  * that execute after the above assumption holds.
@@ -197,13 +183,14 @@ export function getAncestorsByLocalNames(el: Element,
  * was a reference to the name, and the ``define`` is kept. Otherwise, the
  * ``define`` is removed.
  */
-export function removeUnreferencedDefs(el: Element,
-                                       seen: Set<string>): void {
-  const keep = el.children
-    .filter((child) =>
-            !(child instanceof Element) ||
-            child.local !== "define" ||
-            seen.has(child.mustGetAttribute("name")));
-  el.empty();
-  el.append(keep);
+export function removeUnreferencedDefs(el: Element, seen: Set<string>): void {
+  const children = el.children as Element[];
+  for (let ix = 1; ix < children.length; ++ix) {
+    if (seen.has(children[ix].mustGetAttribute("name"))) {
+      continue;
+    }
+
+    el.removeChildAt(ix);
+    --ix;
+  }
 }

@@ -21,7 +21,6 @@ const versync = require("versync");
 const { spawn, execFile } = require("child-process-promise");
 const { execFileAndReport, newer } = require("./gulptasks/util");
 
-const touchAsync = Promise.promisify(touch);
 const fs = Promise.promisifyAll(fs_);
 
 //
@@ -199,15 +198,12 @@ gulp.task("convert-schema", ["tsc", "copy-src"], () =>
                              "build/dist/lib/salve/schemas/relaxng.json"]));
 
 function webpack(config) {
-  const args = ["--color"];
+  const args = ["--mode", "production", "--progress", "--color"];
   if (config) {
     args.push("--config", config);
   }
 
-  return execFile("./node_modules/.bin/webpack", args)
-    .then((result) => {
-      log(result.stdout);
-    });
+  return spawn("./node_modules/.bin/webpack", args, { stdio: "inherit" });
 }
 
 gulp.task("webpack", ["tsc", "copy", "jison", "convert-schema"],
@@ -296,7 +292,7 @@ gulp.task("typedoc", ["tslint"], Promise.coroutine(function *task() {
   yield spawn("./node_modules/.bin/typedoc", tsoptions, { stdio: "inherit" });
 
   yield Promise.all([fs.writeFileAsync(hashPath, currentHash),
-                     touchAsync(stamp)]);
+                     touch(stamp)]);
 }));
 
 gulp.task("readme", () => {

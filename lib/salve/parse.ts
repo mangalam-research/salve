@@ -7,10 +7,11 @@
 "use strict";
 // tslint:disable-next-line:no-require-imports import-name
 import fileURL = require("file-url");
+import * as fs from "fs";
+import * as path from "path";
 import * as sax from "sax";
 
-import { convertRNGToPattern, Event, Grammar,
-         readTreeFromJSON } from "./validate";
+import { convertRNGToPattern, Grammar, readTreeFromJSON } from "./validate";
 
 // tslint:disable no-console
 
@@ -34,11 +35,13 @@ Promise<Grammar> {
     return rngSource;
   }
 
+  const rngSourceContent = fs.readFileSync(path.resolve(rngSource),
+                                           "utf8").toString();
   // We try loading the tree as a JSON file. It may not work if the file is not
   // actually JSON.
   let obj: {} | undefined;
   try {
-    obj = JSON.parse(rngSource);
+    obj = JSON.parse(rngSourceContent);
   }
   // tslint:disable-next-line:no-empty
   catch {}
@@ -80,14 +83,13 @@ export async function parse(rngSource: string | Grammar,
 
   let error = false;
 
-  function fireEvent(...args: any[]): void {
-    const ev = new Event(args);
-    const ret = walker.fireEvent(ev);
+  function fireEvent(name: string, args: any[]): void {
+    const ret = walker.fireEvent(name, args);
     if (ret instanceof Array) {
       error = true;
       if (!mute) {
         for (const err of ret) {
-          console.log(`on event ${ev}`);
+          console.log(`on event ${name}, ${args.join(", ")}`);
           console.log(err.toString());
         }
       }
@@ -98,8 +100,10 @@ export async function parse(rngSource: string | Grammar,
   let textBuf = "";
 
   function flushTextBuf(): void {
-    fireEvent("text", textBuf);
-    textBuf = "";
+    if (textBuf !== "") {
+      fireEvent("text", [textBuf]);
+      textBuf = "";
+    }
   }
 
   parser.onopentag = (node: sax.QualifiedTag) => {
@@ -122,16 +126,16 @@ export async function parse(rngSource: string | Grammar,
       }
     }
     if (nsDefinitions.length !== 0) {
-      fireEvent("enterContext");
+      walker.enterContext();
       for (const definition of nsDefinitions) {
-        fireEvent("definePrefix", ...definition);
+        walker.definePrefix(definition[0], definition[1]);
       }
     }
-    fireEvent("enterStartTag", node.uri, node.local);
+    fireEvent("enterStartTag", [node.uri, node.local]);
     for (const event of attributeEvents) {
-      fireEvent(...event);
+      fireEvent(event[0], event.slice(1));
     }
-    fireEvent("leaveStartTag");
+    fireEvent("leaveStartTag", []);
     tagStack.unshift({
       uri: node.uri,
       local: node.local,
@@ -149,9 +153,9 @@ export async function parse(rngSource: string | Grammar,
     if (tagInfo === undefined) {
       throw new Error("stack underflow");
     }
-    fireEvent("endTag", tagInfo.uri, tagInfo.local);
+    fireEvent("endTag", [tagInfo.uri, tagInfo.local]);
     if (tagInfo.hasContext) {
-      fireEvent("leaveContext");
+      walker.leaveContext();
     }
   };
 

@@ -7,18 +7,20 @@
  */
 import * as sax from "sax";
 
+import { registry, ValueError, ValueValidationError } from "../../datatypes";
 import { readTreeFromJSON } from "../../json-format/read";
+import { NameResolver } from "../../name_resolver";
 import { AnyName, ConcreteName, Grammar, Name, NameChoice,
          NsName } from "../../patterns";
 import * as relaxng from "../../schemas/relaxng";
-import { BasicParser, Element, Validator } from "../parser";
+import { BasicParser, Element, Text, Validator } from "../parser";
 import { registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { SchemaValidationError } from "../schema-validation";
 import * as simplifier from "../simplifier";
-import { findDescendantsByLocalName, findMultiDescendantsByLocalName,
-         findMultiNames, getName, indexBy } from "../simplifier/util";
+import { findMultiNames, getName, indexBy } from "../simplifier/util";
 import { BaseSimplifier } from "./base";
+import { fromQNameToURI, localName } from "./common";
 
 function makeNamePattern(el: Element): ConcreteName {
   const first = el.children[0] as Element;
@@ -27,8 +29,8 @@ function makeNamePattern(el: Element): ConcreteName {
     case "name":
       return new Name("", el.mustGetAttribute("ns"), el.text);
     case "choice":
-      return new NameChoice("", [makeNamePattern(first),
-                                 makeNamePattern(second)]);
+      return new NameChoice("", makeNamePattern(first),
+                            makeNamePattern(second));
     case "anyName": {
       return new AnyName("",
                          first !== undefined ? makeNamePattern(first) :
@@ -47,128 +49,10 @@ function makeNamePattern(el: Element): ConcreteName {
   }
 }
 
-function checkStep10Constraints(el: Element): void {
-  switch (el.local) {
-    case "except":
-      // parent cannot be undefined at this point.
-      // tslint:disable-next-line:no-non-null-assertion
-      switch (el.parent!.local) {
-        case "anyName":
-          if (findDescendantsByLocalName(el, "anyName").length !== 0) {
-            throw new SchemaValidationError(
-              "an except in anyName has an anyName descendant");
-          }
-          break;
-        case "nsName": {
-          const { anyName: anyNames, nsName: nsNames } =
-            findMultiDescendantsByLocalName(el, ["anyName", "nsName"]);
-          if (anyNames.length !== 0) {
-            throw new SchemaValidationError(
-              "an except in nsName has an anyName descendant");
-          }
-
-          if (nsNames.length !== 0) {
-            throw new SchemaValidationError(
-              "an except in nsName has an nsName descendant");
-          }
-          break;
-        }
-        default:
-      }
-      break;
-    case "attribute":
-      for (const attrName of findMultiNames(el, ["name"]).name) {
-        switch (attrName.getAttribute("ns")) {
-          case "":
-            if (attrName.text === "xmlns") {
-              throw new SchemaValidationError(
-                "found attribute with name xmlns outside all namespaces");
-            }
-            break;
-            // tslint:disable-next-line:no-http-string
-          case "http://www.w3.org/2000/xmlns":
-            throw new SchemaValidationError(
-              "found attribute in namespace http://www.w3.org/2000/xmlns");
-          default:
-        }
-      }
-
-      break;
-    default:
-  }
-
-  for (const child of el.elements) {
-    checkStep10Constraints(child);
-  }
-
-  // We do not do the checks on ``data`` and ``value`` here. They are done
-  // later. The upshot is that fragments of the schema that may be removed in
-  // later steps are not checked here.
-}
-
-enum ContentType {
+const enum ContentType {
   EMPTY,
   COMPLEX,
   SIMPLE,
-}
-
-function groupable(a: ContentType, b: ContentType): boolean {
-  return a === ContentType.EMPTY || b === ContentType.EMPTY ||
-    (a === ContentType.COMPLEX && b === ContentType.COMPLEX);
-}
-
-function computeContentType(pattern: Element): ContentType | null {
-  const name = pattern.local;
-  switch (name) {
-    case "value":
-    case "data":
-    case "list":
-      return ContentType.SIMPLE;
-    case "text":
-    case "ref":
-      return ContentType.COMPLEX;
-    case "empty":
-    case "attribute":
-      return ContentType.EMPTY;
-    case "interleave":
-    case "group": {
-      const firstCt = computeContentType(pattern.children[0] as Element);
-
-      if (firstCt === null) {
-        return null;
-      }
-
-      const secondCt = computeContentType(pattern.children[1] as Element);
-
-      return secondCt !== null && groupable(firstCt, secondCt) ?
-        (firstCt > secondCt ? firstCt : secondCt) : null;
-    }
-    case "oneOrMore":
-      const ct = computeContentType(pattern.children[0] as Element);
-
-      // The test would be
-      //
-      // ct !== null && groupable(ct, ct)
-      //
-      // but the only thing not groupable with itself is ContentType.SIMPLE and
-      // if ct === null then forcibly ct !== ContentType.SIMPLE is true so we
-      // can simplify to the following.
-      return ct !== ContentType.SIMPLE ? ct : null;
-    case "choice": {
-      const firstCt = computeContentType(pattern.children[0] as Element);
-
-      if (firstCt === null) {
-        return null;
-      }
-
-      const secondCt = computeContentType(pattern.children[1] as Element);
-
-      return secondCt !== null ?
-        (firstCt > secondCt ? firstCt : secondCt) : null;
-    }
-    default:
-      throw new Error(`unexpected element: ${name}`);
-  }
 }
 
 interface State {
@@ -181,20 +65,7 @@ interface State {
   inOneOrMoreInterleave: boolean;
   inInterlave: boolean;
   inGroup: boolean;
-  attributes: Map<Element, ConcreteName>;
-  textInInterleaveCount: number;
 }
-
-// Sets for these did not appear to provide performance benefits.
-const prohibitedInStart =
-  ["attribute", "data", "value", "text", "list", "group", "interleave",
-   "oneOrMore", "empty"];
-
-const prohibitedInList = ["list", "ref", "attribute", "text", "interleave"];
-
-const prohibitedInDataExcept =
-  ["attribute", "ref", "text", "list", "group", "interleave", "oneOrMore",
-   "empty"];
 
 class ProhibitedPath extends SchemaValidationError {
   constructor(path: string) {
@@ -202,281 +73,579 @@ class ProhibitedPath extends SchemaValidationError {
   }
 }
 
+class ProhibitedAttributePath extends SchemaValidationError {
+  constructor(name: string) {
+    super(`attribute//${name}`);
+  }
+}
+
+class ProhibitedListPath extends SchemaValidationError {
+  constructor(name: string) {
+    super(`list//${name}`);
+  }
+}
+
+class ProhibitedStartPath extends SchemaValidationError {
+  constructor(name: string) {
+    super(`start//${name}`);
+  }
+}
+
+class ProhibitedDataExceptPath extends SchemaValidationError {
+  constructor(name: string) {
+    super(`data/except//${name}`);
+  }
+}
+
+interface CheckResult {
+  contentType: ContentType | null;
+
+  occurringAttributes: ReadonlyArray<Element>;
+
+  // We considered making this variable a Set. Multiple ref of the same name are
+  // bound to happen in any schemas beyond trivial ones. However, the cost of
+  // maintaining Set objects negates the benefits that occur when checking
+  // interleave elements.
+  occurringRefs: ReadonlyArray<Element>;
+
+  occurringTexts: number;
+}
+
+const EMPTY_ELEMENT_ARRAY: ReadonlyArray<Element> = [];
+
+type Handler = (this: GeneralChecker, el: Element,
+                state: State) => CheckResult;
+
 /**
  * Perform the final constraint checks, and record some information
  * for checkInterleaveRestriction.
  */
-function generalCheck(el: Element): Record<string, Element[]> {
-  const ret = Object.create(null);
-  ret.interleave = [];
-  ret.define = [];
+class GeneralChecker {
+  private readonly attrNameCache: Map<Element, ConcreteName> = new Map();
+  private definesByName!: Map<string, Element>;
+  private readonly defineNameToElementNames: Map<string, ConcreteName> =
+    new Map();
+  readonly typeWarnings: string[] = [];
 
-  _generalCheck(el, ret, {
-    inStart: false,
-    inAttribute: false,
-    inList: false,
-    inDataExcept: false,
-    inOneOrMore: false,
-    inOneOrMoreGroup: false,
-    inOneOrMoreInterleave: false,
-    inInterlave: false,
-    inGroup: false,
-    attributes: new Map(),
-    textInInterleaveCount: 0,
-  });
-
-  return ret;
-}
-
-// tslint:disable-next-line:max-func-body-length
-function _generalCheck(el: Element,
-                       ret: Record<string, Element[]>, state: State): void {
-  const name = el.local;
-
-  // Or'ing is faster than checking if the name is in an array or a set.
-  if (name === "interleave" ||
-      name === "define") {
-    ret[name].push(el);
+  check(el: Element): void {
+    this.definesByName = indexBy(el.children.slice(1) as Element[], getName);
+    this._check(el, {
+      inStart: false,
+      inAttribute: false,
+      inList: false,
+      inDataExcept: false,
+      inOneOrMore: false,
+      inOneOrMoreGroup: false,
+      inOneOrMoreInterleave: false,
+      inInterlave: false,
+      inGroup: false,
+    });
   }
 
-  if (state.inStart && prohibitedInStart.includes(name)) {
-      throw new ProhibitedPath(`start//${name}`);
+  // tslint:disable-next-line:max-func-body-length
+  private _check(el: Element, state: State): CheckResult {
+    const name = el.local;
+
+    const method = (this as any)[`${name}Handler`] as Handler;
+
+    return method.call(this, el, state);
   }
 
-  if (state.inAttribute && (name === "attribute" || name === "ref")) {
-    throw new ProhibitedPath(`attribute//${name}`);
+  elementHandler(el: Element, state: State): CheckResult {
+    // The first child is the name class, which we do not need to walk.
+    return this._check(el.children[1] as Element, state);
   }
 
-  if (state.inList && prohibitedInList.includes(name)) {
-    throw new ProhibitedPath(`list//${name}`);
-  }
+  attributeHandler(el: Element, state: State): CheckResult {
+    if (state.inOneOrMoreGroup) {
+      throw new ProhibitedPath("oneOrMore//group//attribute");
+    }
 
-  if (state.inDataExcept && prohibitedInDataExcept.includes(name)) {
-    throw new ProhibitedPath(`data/except//${name}`);
-  }
+    if (state.inOneOrMoreInterleave) {
+      throw new ProhibitedPath("oneOrMore//interleave//attribute");
+    }
 
-  switch (name) {
-    case "attribute":
-      if (state.inOneOrMoreGroup) {
-        throw new ProhibitedPath("oneOrMore//group//attribute");
-      }
+    if (state.inAttribute) {
+      throw new ProhibitedAttributePath(el.local);
+    }
 
-      if (state.inOneOrMoreInterleave) {
-        throw new ProhibitedPath("oneOrMore//interleave//attribute");
-      }
+    if (state.inList) {
+      throw new ProhibitedListPath(el.local);
+    }
 
-      const nameClass = findMultiNames(el, ["anyName", "nsName"]);
-      if (state.inGroup || state.inInterlave) {
-        const namePattern = makeNamePattern(el.children[0] as Element);
-        state.attributes.set(el, namePattern);
-      }
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
 
-      if (nameClass.anyName.length + nameClass.nsName.length !== 0  &&
-         !state.inOneOrMore) {
-        throw new SchemaValidationError("an attribute with an infinite name \
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    const nameClass = findMultiNames(el, ["anyName", "nsName"]);
+    if (nameClass.anyName.length + nameClass.nsName.length !== 0  &&
+        !state.inOneOrMore) {
+      throw new SchemaValidationError("an attribute with an infinite name \
 class must be a descendant of oneOrMore (section 7.3)");
-      }
-      break;
-    case "text":
-      // Text in an attribute does not count.
-      if (!state.inAttribute) {
-        state.textInInterleaveCount++;
-      }
-      break;
-    default:
+    }
+
+    // The first child is the name class, which we do not need to walk.
+    this._check(el.children[1] as Element, { ...state, inAttribute: true });
+
+    return {
+      contentType: ContentType.EMPTY,
+      occurringAttributes: [el],
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
+      occurringTexts: 0,
+    };
   }
 
-  if (el.children.length > 0) {
-    // This code is crafted to avoid coyping the state object needlessly.
+  exceptHandler(el: Element, state: State): CheckResult {
+    // parent cannot be undefined here.
     let newState = state;
-    switch (name) {
-      case "start":
-        if (!state.inStart) {
-          newState = { ...state, inStart: true };
-        }
-        break;
-      case "attribute":
-        if (!state.inAttribute) {
-          newState = { ...state, inAttribute: true };
-        }
-        break;
-      case "list":
-        if (!state.inList) {
-          newState = { ...state, inList: true };
-        }
-        break;
-      case "except":
-        // parent cannot be undefined here.
-        // tslint:disable-next-line:no-non-null-assertion
-        if (!state.inDataExcept && el.parent!.local === "data") {
-          newState = { ...state, inDataExcept: true };
-        }
-        break;
-      case "oneOrMore":
-        if (!state.inOneOrMore) {
-          newState = { ...state, inOneOrMore: true };
-        }
-        break;
-      case "group":
-        if (!state.inGroup) {
-          newState = { ...state, inGroup: true };
-          if (!state.inOneOrMoreGroup) {
-            newState.inOneOrMoreGroup = state.inOneOrMore;
-          }
-        }
-        break;
-      case "interleave":
-        if (!state.inInterlave) {
-          newState = { ...state, inInterlave: true };
-          if (!state.inOneOrMoreInterleave) {
-            newState.inOneOrMoreInterleave = state.inOneOrMore;
-          }
-        }
-        break;
-      case "define":
-        const element = el.children[0] as Element;
-        const pattern = element.children[1] as Element;
-        const contentType = computeContentType(pattern);
-        if (contentType === null) {
-          throw new SchemaValidationError(
-            `definition ${el.mustGetAttribute("name")} violates the constraint \
+    // tslint:disable-next-line:no-non-null-assertion
+    if (!state.inDataExcept && el.parent!.local === "data") {
+      newState = { ...state, inDataExcept: true };
+    }
+    this._check(el.children[0] as Element, newState);
+
+    return {
+      contentType: null,
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
+      occurringTexts: 0,
+    };
+  }
+
+  oneOrMoreHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    const { contentType, occurringAttributes, occurringRefs,
+            occurringTexts } =
+      this._check(el.children[0] as Element, { ...state, inOneOrMore: true });
+
+    // The test would be
+    //
+    // ct !== null && groupable(ct, ct)
+    //
+    // but the only thing not groupable with itself is ContentType.SIMPLE
+    // and if ct === null then forcibly ct !== ContentType.SIMPLE
+    // is true so we can simplify to the following.
+    return {
+      contentType: contentType !== ContentType.SIMPLE ? contentType : null,
+      occurringAttributes,
+      occurringRefs,
+      occurringTexts,
+    };
+  }
+
+  groupHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    return this.groupInterleaveHandler(
+      el.children as Element[],
+      {
+        ...state,
+        inGroup: true,
+        inOneOrMoreGroup: state.inOneOrMore,
+      },
+      false);
+  }
+
+  interleaveHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inList) {
+      throw new ProhibitedListPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    return this.groupInterleaveHandler(
+      el.children as Element[],
+      {
+        ...state, inInterlave: true,
+        inOneOrMoreInterleave: state.inOneOrMore,
+      },
+      true);
+  }
+
+  choiceHandler(el: Element, state: State): CheckResult {
+    const { contentType: firstCt, occurringAttributes: firstAttributes,
+            occurringRefs: firstRefs, occurringTexts: firstTexts } =
+      this._check(el.children[0] as Element, state);
+    const { contentType: secondCt, occurringAttributes: secondAttributes,
+            occurringRefs: secondRefs, occurringTexts: secondTexts } =
+      this._check(el.children[1] as Element, state);
+
+    return {
+      contentType: firstCt !== null && secondCt !== null ?
+        (firstCt > secondCt ? firstCt : secondCt) : null,
+      occurringAttributes: firstAttributes.concat(secondAttributes),
+      occurringRefs: firstRefs.concat(secondRefs),
+      occurringTexts: firstTexts + secondTexts,
+    };
+  }
+
+  listHandler(el: Element, state: State): CheckResult {
+    if (state.inList) {
+      throw new ProhibitedListPath(el.local);
+    }
+
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    this._check(el.children[0] as Element, { ...state, inList: true });
+
+    return {
+      contentType: ContentType.SIMPLE,
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
+      occurringTexts: 0,
+    };
+  }
+
+  dataHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    const typeAttr = el.mustGetAttribute("type");
+    const libname = el.mustGetAttribute("datatypeLibrary");
+    const lib = registry.find(libname);
+    if (lib === undefined) {
+      throw new ValueValidationError(
+        el.path, [new ValueError(`unknown datatype library: ${libname}`)]);
+    }
+
+    const datatype = lib.types[typeAttr];
+    if (datatype === undefined) {
+      throw new ValueValidationError(
+        el.path,
+        [new ValueError(`unknown datatype ${typeAttr} in \
+${(libname === "") ? "default library" : `library ${libname}`}`)]);
+    }
+
+    const children = el.children;
+    const last = children[children.length - 1] as Element;
+    // We only need to scan the possible except child, which is necessarily
+    // last.
+    const hasExcept = (children.length !== 0 && last.local === "except");
+
+    const limit = hasExcept ? children.length - 1 : children.length;
+    // Running parseParams if we have no params is expensive. And if there are
+    // no params, there's nothing to check so don't run parseParams without
+    // params.
+    if (limit > 0) {
+      const params: { name: string; value: string }[] = [];
+      for (let ix = 0; ix < limit; ++ix) {
+        const child = children[ix] as Element;
+        params.push({
+          name: child.mustGetAttribute("name"),
+          value: child.text,
+        });
+      }
+
+      datatype.parseParams(el.path, params);
+    }
+
+    // tslint:disable-next-line: no-http-string
+    if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+        (typeAttr === "ENTITY" || typeAttr === "ENTITIES")) {
+      this.typeWarnings.push(
+        `WARNING: ${el.path} uses the ${typeAttr} type in library \
+${libname}`);
+    }
+
+    if (hasExcept) {
+      this._check(last, state);
+    }
+
+    return {
+      contentType: ContentType.SIMPLE,
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
+      occurringTexts: 0,
+    };
+  }
+
+  valueHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    const typeAttr = el.mustGetAttribute("type");
+    const libname = el.mustGetAttribute("datatypeLibrary");
+    let ns = el.mustGetAttribute("ns");
+
+    const lib = registry.find(libname);
+    if (lib === undefined) {
+      throw new ValueValidationError(
+        el.path,
+        [new ValueError(`unknown datatype library: ${libname}`)]);
+    }
+
+    const datatype = lib.types[typeAttr];
+    if (datatype === undefined) {
+      throw new ValueValidationError(
+        el.path,
+        [new ValueError(`unknown datatype ${typeAttr} in \
+${(libname === "") ? "default library" : `library ${libname}`}`)]);
+    }
+
+    let value = el.text;
+    let context: { resolver : NameResolver } | undefined;
+    if (datatype.needsContext) {
+      // Change ns to the namespace we need.
+      ns = fromQNameToURI(value, el);
+      el.setAttribute("ns", ns);
+      value = localName(value);
+      el.empty();
+      el.appendChild(new Text(value));
+
+      const nr = new NameResolver();
+      nr.definePrefix("", ns);
+      context = { resolver: nr };
+    }
+
+    datatype.parseValue(el.path, value, context);
+
+    // tslint:disable-next-line: no-http-string
+    if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
+        (typeAttr === "ENTITY" || typeAttr === "ENTITIES")) {
+      this.typeWarnings.push(
+        `WARNING: ${el.path} uses the ${typeAttr} type in library \
+${libname}`);
+    }
+
+    // The child of value can only be a text node.
+    return {
+      contentType: ContentType.SIMPLE,
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
+      occurringTexts: 0,
+    };
+  }
+
+  textHandler(el: Element, state: State): CheckResult {
+    if (state.inList) {
+      throw new ProhibitedListPath(el.local);
+    }
+
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    return {
+      contentType: ContentType.COMPLEX,
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
+      occurringTexts: 1,
+    };
+  }
+
+  refHandler(el: Element, state: State): CheckResult {
+    if (state.inList) {
+      throw new ProhibitedListPath(el.local);
+    }
+
+    if (state.inAttribute) {
+      throw new ProhibitedAttributePath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    return {
+      contentType: ContentType.COMPLEX,
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: [el],
+      occurringTexts: 0,
+    };
+  }
+
+  emptyHandler(el: Element, state: State): CheckResult {
+    if (state.inStart) {
+      throw new ProhibitedStartPath(el.local);
+    }
+
+    if (state.inDataExcept) {
+      throw new ProhibitedDataExceptPath(el.local);
+    }
+
+    return {
+      contentType: ContentType.EMPTY,
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
+      occurringTexts: 0,
+    };
+  }
+
+  notAllowedHandler(): CheckResult {
+    return {
+      contentType: null,
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
+      occurringTexts: 0,
+    };
+  }
+
+  defineHandler(el: Element, state: State): CheckResult {
+    const { contentType } = this._check(el.children[0] as Element, state);
+    if (contentType === null) {
+      throw new SchemaValidationError(
+        `definition ${el.mustGetAttribute("name")} violates the constraint \
 on string values (section 7.2)`);
-        }
-      default:
     }
 
-    for (const child of el.elements) {
-      _generalCheck(child, ret, newState);
-    }
-
-    if (name === "group" || name === "interleave") {
-      if (newState.attributes.size > 1) {
-        const names = Array.from(newState.attributes.values());
-        for (let nameIx1 = 0; nameIx1 < names.length - 1; ++nameIx1) {
-          const name1 = names[nameIx1];
-          for (let nameIx2 = nameIx1 + 1; nameIx2 < names.length; ++nameIx2) {
-            const name2 = names[nameIx2];
-            if (name1.intersects(name2)) {
-              throw new SchemaValidationError(
-                `the name classes of two attributes in the same group or
-interleave intersect (section 7.3): ${name1} and ${name2}`);
-            }
-          }
-        }
-      }
-
-      if (name === "interleave" && newState.textInInterleaveCount > 1) {
-        throw new SchemaValidationError(
-          "text present in both patterns of an interleave (section 7.4)");
-      }
-    }
-
-    if (state.inGroup || state.inInterlave) {
-      if (state.attributes.size === 0) {
-        state.attributes = newState.attributes;
-      }
-      else {
-        for (const [attr, names] of newState.attributes) {
-          state.attributes.set(attr, names);
-        }
-      }
-
-      if (state.inInterlave) {
-        state.textInInterleaveCount += newState.textInInterleaveCount;
-      }
-    }
-    else {
-      state.attributes.clear();
-    }
-
-    if (!state.inInterlave) {
-      state.textInInterleaveCount = 0;
-    }
-  }
-}
-
-function findOccurring(el: Element, names: string[]):
-Record<string, Element[]> {
-  const ret: Record<string, Element[]> = Object.create(null);
-  for (const name of names) {
-    ret[name] = (el.local === name) ? [el] : [];
+    return {
+      contentType: null,
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
+      occurringTexts: 0,
+    };
   }
 
-  _findOccuring(el, names, ret);
+  startHandler(el: Element, state: State): CheckResult {
+    this._check(el.children[0] as Element, { ...state, inStart: true });
 
-  return ret;
-}
-
-const occuringSet = new Set(["group", "interleave", "choice", "oneOrMore"]);
-
-function _findOccuring(el: Element, names: string[],
-                       ret: Record<string, Element[]>): void {
-  for (const child of el.elements) {
-    const name = child.local;
-    if (names.includes(name)) {
-      ret[name].push(child);
-    }
-
-    if (occuringSet.has(name)) {
-      _findOccuring(child, names, ret);
-    }
-  }
-}
-
-function checkInterleaveRestriction(cached: Record<string, Element[]>,
-                                    root: Element): void {
-  const { interleave: interleaves, define: defs } = cached;
-
-  if (interleaves.length === 0) {
-    return;
+    return {
+      contentType: null,
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
+      occurringTexts: 0,
+    };
   }
 
-  const definesByName = indexBy(defs, getName);
-  const defineNameToElementNames: Map<string, ConcreteName> = new Map();
+  grammarHandler(el: Element, state: State): CheckResult {
+    for (const child of el.children) {
+      this._check(child as Element, state);
+    }
 
-  function getElementNamesForDefine(name: string): ConcreteName {
-    let pattern = defineNameToElementNames.get(name);
+    return {
+      contentType: null,
+      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringRefs: EMPTY_ELEMENT_ARRAY,
+      occurringTexts: 0,
+    };
+  }
+
+  private getAttrName(attr: Element): ConcreteName {
+    let pattern = this.attrNameCache.get(attr);
     if (pattern === undefined) {
-      const def = definesByName[name];
-      const element = def.children[0] as Element;
-      const namePattern = element.children[0] as Element;
+      const namePattern = attr.children[0] as Element;
       pattern = makeNamePattern(namePattern);
-      defineNameToElementNames.set(name, pattern);
+      this.attrNameCache.set(attr, pattern);
     }
 
     return pattern;
   }
 
-  for (const interleave of interleaves) {
-    const p1 = interleave.children[0] as Element;
-    const p2 = interleave.children[1] as Element;
-    const { ref: refs1 } = findOccurring(p1, ["ref"]);
-
-    if (refs1.length === 0) {
-      continue;
+  private getElementNamesForDefine(name: string): ConcreteName {
+    let pattern = this.defineNameToElementNames.get(name);
+    if (pattern === undefined) {
+      const def = this.definesByName.get(name);
+      // tslint:disable-next-line:no-non-null-assertion
+      const element = def!.children[0] as Element;
+      const namePattern = element.children[0] as Element;
+      pattern = makeNamePattern(namePattern);
+      this.defineNameToElementNames.set(name, pattern);
     }
 
-    const { ref: refs2 } = findOccurring(p2, ["ref"]);
-    if (refs2.length === 0) {
-      continue;
-    }
+    return pattern;
+  }
 
-    const names1 = refs1
-      .map((x) => getElementNamesForDefine(x.mustGetAttribute("name")));
+  private groupInterleaveHandler(children: Element[],
+                                 newState: State,
+                                 isInterleave: boolean): CheckResult {
+    const { contentType: firstCt, occurringAttributes: firstAttributes,
+            occurringRefs: firstRefs, occurringTexts: firstTexts} =
+      this._check(children[0], newState);
+    const { contentType: secondCt, occurringAttributes: secondAttributes,
+            occurringRefs: secondRefs, occurringTexts: secondTexts} =
+      this._check(children[1], newState);
 
-    const names2 = refs2
-      .map((x) => getElementNamesForDefine(x.mustGetAttribute("name")));
-
-    for (const name1 of names1) {
-      for (const name2 of names2) {
+    for (const attr1 of firstAttributes) {
+      for (const attr2 of secondAttributes) {
+        const name1 = this.getAttrName(attr1);
+        const name2 = this.getAttrName(attr2);
         if (name1.intersects(name2)) {
-          throw new SchemaValidationError(`name classes of elements in both \
-patterns of an interleave intersect (section 7.4): ${name1} and ${name2}`);
+          throw new SchemaValidationError(
+            `the name classes of two attributes in the same group or
+interleave intersect (section 7.3): ${name1} and ${name2}`);
         }
       }
     }
+
+    if (isInterleave) {
+      if (firstTexts !== 0 && secondTexts !== 0) {
+        throw new SchemaValidationError(
+          "text present in both patterns of an interleave (section 7.4)");
+      }
+
+      const names1 = firstRefs
+        .map((x) => this.getElementNamesForDefine(x.mustGetAttribute("name")));
+
+      const names2 = secondRefs
+        .map((x) => this.getElementNamesForDefine(x.mustGetAttribute("name")));
+
+      for (const name1 of names1) {
+        for (const name2 of names2) {
+          if (name1.intersects(name2)) {
+            throw new SchemaValidationError(`name classes of elements in both \
+patterns of an interleave intersect (section 7.4): ${name1} and ${name2}`);
+          }
+        }
+      }
+    }
+
+    // These tests combine the groupable(firstCt, secondCt) test together with
+    // the requirement that we return the content type which is the greatest.
+    let contentType: ContentType | null;
+    if (firstCt === ContentType.COMPLEX && secondCt === ContentType.COMPLEX) {
+      contentType = ContentType.COMPLEX;
+    }
+    else if (firstCt === ContentType.EMPTY) {
+      contentType = secondCt;
+    }
+    else {
+      contentType = (secondCt === ContentType.EMPTY) ? firstCt : null;
+    }
+
+    return {
+      contentType,
+      occurringAttributes: firstAttributes.concat(secondAttributes),
+      occurringRefs: firstRefs.concat(secondRefs),
+      occurringTexts: firstTexts + secondTexts,
+    };
   }
 }
+
 let cachedGrammar: Grammar | undefined;
 
 function getGrammar(): Grammar {
@@ -509,7 +678,9 @@ export class InternalSimplifier extends BaseSimplifier {
       validator = new Validator(getGrammar());
     }
 
-    const parser = new BasicParser(sax.parser(true, { xmlns: true }),
+    const parser = new BasicParser(sax.parser(true,
+                                              { xmlns: true,
+                                                strictEntities: true } as any),
                                    validator);
     parser.saxParser.write(schema);
 
@@ -554,16 +725,12 @@ export class InternalSimplifier extends BaseSimplifier {
     }
 
     let warnings: string[] = [];
-    let tree = await this.parse(schemaPath);
+    let tree!: Element;
 
     if (this.options.simplifyTo >= 1) {
       this.stepStart(1);
+      tree = await this.parse(schemaPath);
       tree = await simplifier.step1(schemaPath, tree, this.parse.bind(this));
-    }
-
-    if (this.options.simplifyTo >= 3) {
-      this.stepStart(3);
-      tree = simplifier.step3(tree);
     }
 
     if (this.options.simplifyTo >= 4) {
@@ -583,13 +750,7 @@ export class InternalSimplifier extends BaseSimplifier {
 
     if (this.options.simplifyTo >= 10) {
       this.stepStart(10);
-      tree = simplifier.step10(tree);
-
-      // This has to happen after step 13 has been applied, which is included in
-      // step 10.
-      if (this.options.validate) {
-        checkStep10Constraints(tree);
-      }
+      tree = simplifier.step10(tree, this.options.validate);
     }
 
     if (this.options.simplifyTo >= 14) {
@@ -621,9 +782,9 @@ export class InternalSimplifier extends BaseSimplifier {
           checkStart = Date.now();
         }
 
-        const cachedQueries = generalCheck(tree);
-        checkInterleaveRestriction(cachedQueries, tree);
-        warnings = this.processDatatypes(tree);
+        const checker = new GeneralChecker();
+        checker.check(tree);
+        warnings = checker.typeWarnings;
 
         if (this.options.timing) {
           // tslint:disable-next-line:no-non-null-assertion no-console

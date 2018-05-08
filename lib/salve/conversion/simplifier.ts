@@ -5,8 +5,6 @@
  * using. The step numbers are equivalent to those in the XSLT pipeline with the
  * following exceptions:
  *
- * - ``step0`` does not exist as a separate step in the XSLT pipline.
- *
  * - Some steps are combined. The driving principles are:
  *
  *  + Steps are not combined if a later step is entirely dependent on the work
@@ -31,8 +29,7 @@
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
 export { step1 } from "./simplifier/step1";
-// Step 2 is covered by step 1.
-export { step3 } from "./simplifier/step3";
+// Step 2-3 are covered by step 1.
 export { step4 } from "./simplifier/step4";
 // Step 5 is covered by step 4.
 export { step6 } from "./simplifier/step6";

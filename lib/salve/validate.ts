@@ -6,10 +6,10 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-export const version: string = "6.0.0";
+export const version: string = "7.0.0";
 
 export { eventsToTreeString, Event, EventSet, Grammar, GrammarWalker,
-         BasePattern, RefError, Walker, FireEventResult,
+         BasePattern, RefError, FireEventResult,
          EndResult } from "./patterns";
 
 export { ConversionResult, convertRNGToPattern } from "./conversion";
@@ -26,12 +26,5 @@ export { NameResolver } from "./name_resolver";
 
 export { Base as BaseName, ConcreteName, Name, NameChoice, NsName,
          AnyName } from "./name_patterns";
-
-/**
- * Do not use this. This is here only for historical reasons and may be yanked
- * at any time.
- * @private
- */
-export { HashMap } from "./hashstructs";
 
 //  LocalWords:  rng Mangalam Dubeau MPL RNG constructTree validator

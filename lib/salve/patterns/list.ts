@@ -5,107 +5,133 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { ValidationError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, emptyEvent, EndResult, Event, FireEventResult, isHashMap,
-         isNameResolver, OneSubpattern, SingleSubwalker } from "./base";
+import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, OneSubpattern } from "./base";
+import { Define } from "./define";
+import { Ref } from "./ref";
 
 /**
  * List pattern.
  */
-export class List extends OneSubpattern {}
+export class List extends OneSubpattern {
+  _computeHasEmptyPattern(): boolean {
+    return this.pat.hasEmptyPattern();
+  }
+
+  // We override these because lists cannot contain attributes so there's
+  // no point in caching _hasAttrs's result.
+  _prepare(definitions: Map<string, Define>,
+           namespaces: Set<string>): Ref[] | undefined {
+    const ret = this.pat._prepare(definitions, namespaces);
+    this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
+
+    return ret;
+  }
+
+  hasAttrs(): boolean {
+    return false;
+  }
+
+  newWalker(nameResolver: NameResolver): InternalWalker<List> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new ListWalker(this, nameResolver);
+  }
+}
 
 /**
  * Walker for [[List]].
  *
  */
-class ListWalker extends SingleSubwalker<List> {
-  private seenTokens: boolean;
-  private matched: boolean;
+class ListWalker extends InternalWalker<List> {
+  protected readonly el: List;
+  private subwalker: InternalWalker<BasePattern>;
   private readonly nameResolver: NameResolver;
+  canEnd: boolean;
+  canEndAttribute: boolean;
 
-  protected constructor(other: ListWalker, memo: HashMap);
-  protected constructor(el: List, nameResolver: NameResolver);
-  protected constructor(elOrWalker: List | ListWalker,
-                        nameResolverOrMemo: NameResolver | HashMap) {
-    if (elOrWalker instanceof ListWalker) {
-      const walker: ListWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo, "as 2nd argument");
-      super(walker, memo);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.subwalker = walker.subwalker._clone(memo);
-      this.seenTokens = walker.seenTokens;
-      this.matched = walker.matched;
+  constructor(other: ListWalker, memo: CloneMap);
+  constructor(el: List, nameResolver: NameResolver);
+  constructor(elOrWalker: List | ListWalker,
+              nameResolverOrMemo: NameResolver | CloneMap) {
+    super();
+    if ((elOrWalker as List).newWalker !== undefined) {
+      const el = elOrWalker as List;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
+      this.nameResolver = nameResolver;
+      this.subwalker = el.pat.newWalker(nameResolver);
+      this.canEndAttribute = this.canEnd = this.hasEmptyPattern();
     }
     else {
-      const el: List = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo,
-                                                        "as 2nd argument");
-      super(el);
-      this.nameResolver = nameResolver;
-      this.subwalker = el.pat.newWalker(this.nameResolver);
-      this.seenTokens = false;
-      this.matched = false;
+      const walker = elOrWalker as ListWalker;
+      const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
+      this.subwalker = walker.subwalker._clone(memo);
+      this.canEnd = walker.canEnd;
+      this.canEndAttribute = walker.canEndAttribute;
     }
   }
 
-  fireEvent(ev: Event): FireEventResult {
-    // Only these two types can match.
-    if (ev.params[0] !== "text") {
-      return undefined;
+  _clone(memo: CloneMap): this {
+    return new ListWalker(this, memo) as this;
+  }
+
+  possible(): EventSet {
+    return this.subwalker.possible();
+  }
+
+  possibleAttributes(): EventSet {
+    return new Set<Event>();
+  }
+
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    let ret = new InternalFireEventResult(false);
+    // Only this can match.
+    if (name !== "text") {
+      return ret;
     }
 
-    const trimmed: string = (ev.params[1] as string).trim();
+    const trimmed = params[0].trim();
 
     // The list walker cannot send empty strings to its children because it
     // validates a list of **tokens**.
     if (trimmed === "") {
-      return false;
+      ret.matched = true;
+
+      return ret;
     }
 
-    this.seenTokens = true;
-
-    const tokens: string[] = trimmed.split(/\s+/);
+    const tokens = trimmed.split(/\s+/);
 
     for (const token of tokens) {
-      const ret: FireEventResult =
-        this.subwalker.fireEvent(new Event(ev.params[0], token));
-      if (ret !== false) {
+      ret = this.subwalker.fireEvent("text", [token]);
+      if (!ret.matched) {
+        this.canEndAttribute = this.canEnd = false;
+
         return ret;
       }
     }
 
-    this.matched = true;
+    this.canEndAttribute = this.canEnd = this.subwalker.canEnd;
 
-    return false;
+    return ret;
   }
 
-  _suppressAttributes(): void {
-    // Lists cannot contain attributes.
-  }
-
-  canEnd(attribute: boolean = false): boolean {
-    if (!this.seenTokens) {
-      return (this.subwalker.fireEvent(emptyEvent) === false);
-    }
-
-    return this.subwalker.canEnd(attribute);
-  }
-
-  end(attribute: boolean = false): EndResult {
-    const ret: EndResult = this.subwalker.end(attribute);
-    if (ret !== false) {
-      return ret;
-    }
-
-    if (this.canEnd(attribute)) {
+  end(): EndResult {
+    if (this.canEnd) {
       return false;
     }
 
-    return [new ValidationError("unfulfilled list")];
+    const ret = this.subwalker.end();
+
+    return ret !== false ? ret : [new ValidationError("unfulfilled list")];
+  }
+
+  endAttributes(): EndResult {
+    return false;
   }
 }
-
-addWalker(List, ListWalker);
 
 //  LocalWords:  RNG's MPL nd

@@ -16,7 +16,6 @@ export class InternalValidator implements SchemaValidator {
     const simplifier = new InternalSimplifier({
       ...this.options,
       validate: true,
-      simplifyTo: Infinity,
     });
 
     return simplifier.simplify(schemaPath);

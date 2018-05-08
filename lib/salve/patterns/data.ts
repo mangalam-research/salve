@@ -6,16 +6,15 @@
  */
 import { Datatype, RawParameter, registry } from "../datatypes";
 import { ValidationError } from "../errors";
-import { HashMap } from "../hashstructs";
 import { NameResolver } from "../name_resolver";
-import { addWalker, BasePattern, EndResult, Event, EventSet, FireEventResult,
-         isHashMap, isNameResolver, Pattern, Walker } from "./base";
+import { cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
+         InternalFireEventResult, InternalWalker, Pattern } from "./base";
 /**
  * Data pattern.
  */
 export class Data extends Pattern {
   readonly datatype: Datatype;
-  readonly rngParams: RawParameter[];
+  readonly rngParams?: RawParameter[];
   private _params: any;
 
   /**
@@ -40,7 +39,7 @@ export class Data extends Pattern {
     if (this.datatype === undefined) {
       throw new Error(`unknown type: ${type}`);
     }
-    this.rngParams = params !== undefined ? params : [];
+    this.rngParams = params;
   }
 
   get params(): any {
@@ -54,15 +53,28 @@ export class Data extends Pattern {
 
     return ret;
   }
+
+  allowsEmptyContent(): boolean {
+    return !(this.except !== undefined && this.except.hasEmptyPattern()) &&
+      !this.datatype.disallows("", this.params);
+  }
+
+  newWalker(nameResolver: NameResolver): InternalWalker<Data> {
+    // tslint:disable-next-line:no-use-before-declare
+    return new DataWalker(this, nameResolver);
+  }
 }
 
 /**
  * Walker for [[Data]].
  */
-class DataWalker extends Walker<Data> {
+class DataWalker extends InternalWalker<Data> {
+  protected readonly el: Data;
   private readonly context: { resolver: NameResolver } | undefined;
   private matched: boolean;
   private readonly nameResolver: NameResolver;
+  canEndAttribute: boolean;
+  canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was created.
@@ -70,66 +82,65 @@ class DataWalker extends Walker<Data> {
    * @param resolver The name resolver that can be used to convert namespace
    * prefixes to namespaces.
    */
-  protected constructor(other: DataWalker, memo: HashMap);
-  protected constructor(el: Data, nameResolver: NameResolver);
-  protected constructor(elOrWalker: DataWalker | Data,
-                        nameResolverOrMemo: NameResolver | HashMap) {
-    if (elOrWalker instanceof DataWalker) {
-      const walker: DataWalker = elOrWalker;
-      const memo: HashMap = isHashMap(nameResolverOrMemo);
-      super(walker, memo);
-      this.nameResolver = this._cloneIfNeeded(walker.nameResolver, memo);
-      this.context = walker.context !== undefined ?
-        { resolver: this.nameResolver } : undefined;
-      this.matched = walker.matched;
-    }
-    else {
-      const el: Data = elOrWalker;
-      const nameResolver: NameResolver = isNameResolver(nameResolverOrMemo,
-                                                        "as 2nd argument");
-      super(el);
-
+  constructor(other: DataWalker, memo: CloneMap);
+  constructor(el: Data, nameResolver: NameResolver);
+  constructor(elOrWalker: DataWalker | Data,
+              nameResolverOrMemo: NameResolver | CloneMap) {
+    super();
+    if ((elOrWalker as Data).newWalker !== undefined) {
+      const el = elOrWalker as Data;
+      const nameResolver = nameResolverOrMemo as NameResolver;
+      this.el = el;
       this.nameResolver = nameResolver;
-      // We completely ignore the possible exception when producing the
-      // possibilities. There is no clean way to specify such an exception.
-      this.possibleCached = new EventSet(new Event("text",
-                                                   this.el.datatype.regexp));
       this.context = el.datatype.needsContext ?
         { resolver: this.nameResolver } : undefined;
       this.matched = false;
+      this.canEnd = this.el.allowsEmptyContent();
+      this.canEndAttribute = this.canEnd;
+    }
+    else {
+      const walker = elOrWalker as DataWalker;
+      const memo = nameResolverOrMemo as CloneMap;
+      this.el = walker.el;
+      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
+      this.context = walker.context !== undefined ?
+        { resolver: this.nameResolver } : undefined;
+      this.matched = walker.matched;
+      this.canEnd = walker.canEnd;
+      this.canEndAttribute = walker.canEndAttribute;
     }
   }
 
-  _possible(): EventSet {
-    // possibleCached is necessarily defined because of the constructor's
-    // logic.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.possibleCached!;
+  _clone(memo: CloneMap): this {
+    return new DataWalker(this, memo) as this;
   }
 
-  fireEvent(ev: Event): false | undefined {
-    if (this.matched) {
-      return undefined;
-    }
+  possible(): EventSet {
+    // We completely ignore the possible exception when producing the
+    // possibilities. There is no clean way to specify such an exception.
+    return new Set(this.matched ? undefined :
+                   [new Event("text", this.el.datatype.regexp)]);
+  }
 
-    if (ev.params[0] !== "text") {
-      return undefined;
-    }
+  possibleAttributes(): EventSet {
+    return new Set();
+  }
 
-    if (this.el.datatype.disallows(ev.params[1] as string, this.el.params,
-                                   this.context)) {
-      return undefined;
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    const ret = new InternalFireEventResult(false);
+    if (this.matched || name !== "text" ||
+        this.el.datatype.disallows(params[0], this.el.params, this.context)) {
+      return ret;
     }
 
     if (this.el.except !== undefined) {
-      const walker: Walker<BasePattern> =
-        this.el.except.newWalker(this.nameResolver);
-      const exceptRet: FireEventResult = walker.fireEvent(ev);
+      const walker = this.el.except.newWalker(this.nameResolver);
+      const exceptRet = walker.fireEvent(name, params);
 
       // False, so the except does match the text, and so this pattern does
       // not match it.
-      if (exceptRet === false) {
-        return undefined;
+      if (exceptRet.matched) {
+        return ret;
       }
 
       // Otherwise, it is undefined, in which case it means the except does
@@ -138,48 +149,27 @@ class DataWalker extends Walker<Data> {
       // such errors here.
     }
 
-    this.matched = true;
-    this.possibleCached = new EventSet();
-
-    return false;
-  }
-
-  canEnd(attribute: boolean = false): boolean {
     // If we matched, we are done. salve does not allow text that appears in
     // an XML element to be passed as two "text" events. So there is nothing
     // to come that could falsify the match. (If a client *does* pass
     // multiple text events one after the other, it is using salve
     // incorrectly.)
-    if (this.matched) {
-      return true;
-    }
+    this.matched = true;
+    this.canEnd = true;
+    this.canEndAttribute = true;
 
-    // We have not matched anything. Therefore we have to check whether we
-    // allow the empty string.
-    if (this.el.except !== undefined) {
-      const walker: Walker<BasePattern> =
-        this.el.except.newWalker(this.nameResolver);
-      if (walker.canEnd()) { // Matches the empty string
-        return false;
-      }
-    }
+    ret.matched = true;
 
-    return !this.el.datatype.disallows("", this.el.params, this.context);
+    return ret;
   }
 
-  end(attribute: boolean = false): EndResult {
-    if (this.canEnd(attribute)) {
-      return false;
-    }
-
-    return [new ValidationError("value required")];
+  end(): EndResult {
+    return this.canEnd ? false : [new ValidationError("value required")];
   }
 
-  _suppressAttributes(): void {
-    // No child attributes.
+  endAttributes(): EndResult {
+    return false;
   }
 }
-
-addWalker(Data, DataWalker);
 
 //  LocalWords:  RNG's MPL RNG nd possibleCached

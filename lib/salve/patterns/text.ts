@@ -4,49 +4,79 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { HashMap } from "../hashstructs";
-import { addWalker, Event, EventSet, isHashMap, Pattern, Walker } from "./base";
-import { NotAllowedWalker } from "./not_allowed";
+import { Event, EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 
 /**
  * Pattern for ``<text/>``.
  */
-export class Text extends Pattern {}
+export class Text extends Pattern {
+  hasEmptyPattern(): boolean {
+    // A text node may always be a zero-length node, which mean that we
+    // effectively allow the container to be empty.
+    return true;
+  }
+
+  newWalker(): InternalWalker<Text> {
+    // tslint:disable-next-line:no-use-before-declare
+    return singleton;
+  }
+}
 
 /**
  *
  * Walker for [[Text]]
  *
  */
-class TextWalker extends Walker<Text> {
-  private static readonly _textEvent: Event = new Event("text", /^.*$/);
+class TextWalker extends InternalWalker<Text> {
+  protected readonly el: Text;
+  private static readonly _textEvent: Event = new Event("text", /^[^]*$/);
+  canEnd: boolean;
+  canEndAttribute: boolean;
 
   /**
    * @param el The pattern for which this walker was constructed.
    */
-  protected constructor(walker: NotAllowedWalker, memo: HashMap);
-  protected constructor(el: Text);
-  protected constructor(elOrWalker: NotAllowedWalker | Text, memo?: HashMap) {
-    if (elOrWalker instanceof NotAllowedWalker) {
-      super(elOrWalker, isHashMap(memo));
-    }
-    else {
-      super(elOrWalker);
-      this.possibleCached = new EventSet(TextWalker._textEvent);
-    }
+  constructor(el: Text) {
+    super();
+    this.el = el;
+    this.canEnd = true;
+    this.canEndAttribute = true;
   }
 
-  _possible(): EventSet {
-    // possibleCached is necessarily defined because of the constructor's
-    // logic.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.possibleCached!;
+  // Since TextWalker is a singleton, the cloning operation just
+  // returns the original walker.
+  clone(): this {
+    return this;
   }
 
-  fireEvent(ev: Event): false | undefined {
-    return (ev.params[0] === "text") ? false : undefined;
+  // Since TextWalker is a singleton, the cloning operation just
+  // returns the original walker.
+  _clone(): this {
+    return this;
+  }
+
+  possible(): EventSet {
+    return new Set([TextWalker._textEvent]);
+  }
+
+  possibleAttributes(): EventSet {
+    return new Set<Event>();
+  }
+
+  fireEvent(name: string): InternalFireEventResult {
+    return new InternalFireEventResult(name === "text");
+  }
+
+  end(): false {
+    return false;
+  }
+
+  endAttributes(): false {
+    return false;
   }
 }
-addWalker(Text, TextWalker);
+
+const singleton = new TextWalker(new Text("FAKE ELEMENT"));
 
 //  LocalWords:  RNG's MPL possibleCached

@@ -33,21 +33,21 @@ function gatherGrammars(el: Element, state: State): void {
   const top = stack[0];
   let shift = false;
   switch (local) {
-    case "grammar":
-      shift = true;
-      const thisGrammar = new GrammarNode(state.latestId++, el);
-      stack.unshift(thisGrammar);
-      if (top !== undefined) {
-        top.childGrammars.push(thisGrammar);
-      }
+    case "ref":
+      top.refs.push(el);
+      top.refNames.add(el.mustGetAttribute("name"));
       break;
     case "define":
       top.defines.push(el);
       top.defineNames.add(el.mustGetAttribute("name"));
       break;
-    case "ref":
-      top.refs.push(el);
-      top.refNames.add(el.mustGetAttribute("name"));
+    case "grammar":
+      shift = true;
+      const thisGrammar = new GrammarNode(++state.latestId, el);
+      stack.unshift(thisGrammar);
+      if (top !== undefined) {
+        top.childGrammars.push(thisGrammar);
+      }
       break;
     case "parentRef":
       top.parentRefs.push(el);
@@ -55,7 +55,7 @@ function gatherGrammars(el: Element, state: State): void {
       break;
     default:
       if (state.root === null) {
-        stack.unshift(new GrammarNode(state.latestId++, el));
+        stack.unshift(new GrammarNode(++state.latestId, el));
         shift = true;
       }
   }
@@ -65,7 +65,11 @@ function gatherGrammars(el: Element, state: State): void {
     state.root = stack[0];
   }
 
-  for (const child of el.elements) {
+  for (const child of el.children) {
+    if (!(child instanceof Element)) {
+      continue;
+    }
+
     gatherGrammars(child, state);
   }
 
@@ -74,7 +78,8 @@ function gatherGrammars(el: Element, state: State): void {
   }
 }
 
-function transformGrammars(root: GrammarNode,
+function transformGrammars(multiple: boolean,
+                           root: GrammarNode,
                            parent: GrammarNode | null,
                            grammar: GrammarNode): void {
   for (const name of grammar.refNames) {
@@ -99,33 +104,33 @@ function transformGrammars(root: GrammarNode,
     grammar.defines.concat(grammar.refs,
                            ...grammar.childGrammars.map((x) => x.parentRefs));
 
+  const suffix = `-gr-${grammar.id}`;
   // Make all names unique globally.
   for (const el of toRename) {
-    el.setAttribute("name",
-                    `${el.mustGetAttribute("name")}-gr-${grammar.id}`);
+    el.setAttribute("name", el.mustGetAttribute("name") + suffix);
   }
 
   // Move the ``define`` elements to the root grammar. We do this on the root
   // grammar too so that the ``define`` elements are moved after ``start``.
-  root.grammar.append(grammar.defines);
+  root.grammar.appendChildren(grammar.defines);
 
   for (const child of grammar.childGrammars) {
-    transformGrammars(root, grammar, child);
+    transformGrammars(multiple, root, grammar, child);
   }
 
   // Rename all parentRef elements to ref elements.
   for (const parentRef of grammar.parentRefs) {
-    parentRef.name = parentRef.local = "ref";
+    parentRef.local = "ref";
+  }
+
+  const start = grammar.grammar.children[0] as Element;
+  if (start.local !== "start") {
+    throw new Error("there should be a single start element in the grammar!");
   }
 
   if (grammar !== root) {
     // Remove the remaining ``grammar`` and ``start`` elements.
-    const start = grammar.grammar.elements.next().value;
-    if (start.local !== "start") {
-      throw new Error("there should be a single start element in the grammar!");
-    }
-    const pattern = start.elements.next().value;
-    grammar.grammar.replaceWith(pattern);
+    grammar.grammar.replaceWith(start.children[0] as Element);
   }
 
 }
@@ -139,7 +144,7 @@ function transformGrammars(root: GrammarNode,
  *   plus 1. Then we add to ``define/@name`` the string ``-gr-{id}`` where
  *   ``{id}`` is the grammar's id of the grammar to which the ``define``
  *   belongs. NOTE: this pattern was selected to avoid a clash with step 16,
- *   which creates new ``define`` element.
+ *   which creates new ``define`` elements.
  *
  * - Rename each ``ref`` and ``parentRef`` to preserve the references the
  *   establish to ``define`` elements.
@@ -163,23 +168,49 @@ export function step15(el: Element): Element {
   if (el.local !== "grammar") {
     root = Element.makeElement("grammar");
     const start = Element.makeElement("start");
-    root.append(start);
-    start.append(el);
+    root.appendChild(start);
+    start.appendChild(el);
 
     root.setXMLNS(RELAXNG_URI);
     el.removeAttribute("xmlns");
   }
 
   const state: State = {
-    latestId: 1,
+    latestId: 0,
     root: null,
     stack: [],
   };
 
   gatherGrammars(root, state);
 
+  const multiple = state.latestId !== 1;
+
   // tslint:disable-next-line:no-non-null-assertion
-  transformGrammars(state.root!, null, state.root!);
+  const grammar = state.root!;
+  if (multiple) {
+    transformGrammars(multiple, grammar, null, grammar);
+  }
+  else {
+    // If we have only a single grammar, we can reduce the work to this.
+    for (const name of grammar.refNames) {
+      if (!grammar.defineNames.has(name)) {
+        throw new SchemaValidationError(`dangling ref: ${name}`);
+      }
+    }
+
+    if (grammar.parentRefNames.size !== 0) {
+      throw new SchemaValidationError("top-level grammar contains parentRef!");
+    }
+
+    // Move the ``define`` elements to the root grammar. We do this on the root
+    // grammar too so that the ``define`` elements are moved after ``start``.
+    grammar.grammar.appendChildren(grammar.defines);
+
+    const start = grammar.grammar.children[0] as Element;
+    if (start.local !== "start") {
+      throw new Error("there should be a single start element in the grammar!");
+    }
+  }
 
   return root;
 }

@@ -4,14 +4,22 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { HashMap } from "../hashstructs";
-import { addWalker, emptyEvent, Event, EventSet, isHashMap, Pattern,
-         Walker } from "./base";
+import { Event, EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 
 /**
  * Pattern for ``<empty/>``.
  */
-export class Empty extends Pattern {}
+export class Empty extends Pattern {
+  hasEmptyPattern(): boolean {
+    return true;
+  }
+
+  newWalker(): InternalWalker<Empty> {
+    // tslint:disable-next-line:no-use-before-declare
+    return singleton;
+  }
+}
 
 /**
  * Walker for [[Empty]].
@@ -20,43 +28,44 @@ export class Empty extends Pattern {}
  *
  * @param resolver Ignored by this walker.
  */
-export class EmptyWalker extends Walker<Empty> {
-  protected constructor(other: EmptyWalker, memo: HashMap);
-  protected constructor(el: Empty);
-  protected constructor(elOrWalker: Empty | EmptyWalker, memo?: HashMap) {
-    if (elOrWalker instanceof EmptyWalker) {
-      super(elOrWalker, isHashMap(memo));
-    }
-    else {
-      super(elOrWalker);
-      this.possibleCached = new EventSet();
-    }
+class EmptyWalker extends InternalWalker<Empty> {
+  protected readonly el: Empty;
+  canEnd: boolean;
+  canEndAttribute: boolean;
+
+  constructor(el: Empty) {
+    super();
+    this.el = el;
+    this.canEnd = true;
+    this.canEndAttribute = true;
+  }
+
+  // Since the Empty walker is a singleton, the cloning operation just
+  // returns the original walker.
+  clone(): this {
+    return this;
+  }
+
+  // Since the Empty walker is a singleton, the cloning operation just
+  // returns the original walker.
+  _clone(): this {
+    return this;
   }
 
   possible(): EventSet {
-    // Save some time by avoiding calling _possible. We always want to return a
-    // new object here.
-    return new EventSet();
+    return new Set<Event>();
   }
 
-  _possible(): EventSet {
-    // possibleCached is necessarily defined because of the constructor's
-    // logic.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.possibleCached!;
+  possibleAttributes(): EventSet {
+    return new Set<Event>();
   }
 
-  fireEvent(ev: Event): false | undefined {
-    if ((ev === emptyEvent) ||
-        ((ev.params[0] === "text") &&
-         ((ev.params[1] as string).trim() === ""))) {
-      return false;
-    }
-
-    return undefined;
+  fireEvent(name: string, params: string[]): InternalFireEventResult {
+    return new InternalFireEventResult((name === "text") &&
+                                       !/\S/.test(params[0]));
   }
 }
 
-addWalker(Empty, EmptyWalker);
+const singleton = new EmptyWalker(new Empty("FAKE ELEMENT"));
 
 //  LocalWords:  RNG's MPL possibleCached

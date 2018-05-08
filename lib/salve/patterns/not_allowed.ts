@@ -4,51 +4,62 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { HashMap } from "../hashstructs";
-import { addWalker, Event, EventSet, isHashMap, Pattern, Walker } from "./base";
+import { Event, EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 
 /**
  * Pattern for ``<notAllowed/>``.
  */
-export class NotAllowed extends Pattern {}
+export class NotAllowed extends Pattern {
+  newWalker(): NotAllowedWalker {
+    // tslint:disable-next-line:no-use-before-declare
+    return singleton;
+  }
+}
 
 /**
  * Walker for [[NotAllowed]];
  */
-export class NotAllowedWalker extends Walker<NotAllowed> {
+export class NotAllowedWalker extends InternalWalker<NotAllowed> {
+  protected readonly el: NotAllowed;
+  canEnd: boolean;
+  canEndAttribute: boolean;
+
   /**
    * @param el The pattern for which this walker was created.
    */
-  protected constructor(walker: NotAllowedWalker, memo: HashMap);
-  protected constructor(el: NotAllowed);
-  protected constructor(elOrWalker: NotAllowedWalker | NotAllowed,
-                        memo?: HashMap) {
-    if (elOrWalker instanceof NotAllowedWalker) {
-      super(elOrWalker, isHashMap(memo));
-    }
-    else {
-      super(elOrWalker);
-      this.possibleCached = new EventSet();
-    }
+  constructor(el: NotAllowed) {
+    super();
+    this.el = el;
+    this.canEnd = true;
+    this.canEndAttribute = true;
+  }
+
+  // Since NotAllowedWalker is a singleton, the cloning operation just
+  // returns the original walker.
+  clone(): this {
+    return this;
+  }
+
+  // Since NotAllowedWalker is a singleton, the cloning operation just
+  // returns the original walker.
+  _clone(): this {
+    return this;
   }
 
   possible(): EventSet {
-    // Save some time by avoiding calling _possible
-    return new EventSet();
+    return new Set<Event>();
   }
 
-  _possible(): EventSet {
-    // possibleCached is necessarily defined because of the constructor's
-    // logic.
-    // tslint:disable-next-line:no-non-null-assertion
-    return this.possibleCached!;
+  possibleAttributes(): EventSet {
+    return new Set<Event>();
   }
 
-  fireEvent(ev: Event): undefined {
-    return undefined; // we never match!
+  fireEvent(): InternalFireEventResult {
+    return new InternalFireEventResult(false); // we never match!
   }
 }
 
-addWalker(NotAllowed, NotAllowedWalker);
+const singleton = new NotAllowedWalker(new NotAllowed("FAKE ELEMENT"));
 
 //  LocalWords:  RNG's MPL possibleCached
