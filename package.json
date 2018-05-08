@@ -44,7 +44,7 @@
     "sax": "^1.2.4",
     "temp": "~0.8.0",
     "tslib": "^1.9.0",
-    "xregexp": "^3.0.0"
+    "xregexp": "^4.1.1"
   },
   "devDependencies": {
     "@types/argparse": "^1.0.30",
