@@ -18,7 +18,7 @@ module.exports = function configure(config) {
       "node_modules/core-js/client/core.js",
       "node_modules/url-polyfill/url-polyfill.js",
       "node_modules/whatwg-fetch/fetch.js",
-      "build/dist/salve.js",
+      "build/dist/salve.min.js",
       "browser-test/**/*.js",
       { pattern: "build/dist/**/*.map", included: false },
       { pattern: "lib/salve/schemas/relaxng.rng", included: false },

@@ -198,15 +198,12 @@ gulp.task("convert-schema", ["tsc", "copy-src"], () =>
                              "build/dist/lib/salve/schemas/relaxng.json"]));
 
 function webpack(config) {
-  const args = ["--color"];
+  const args = ["--mode", "production", "--progress", "--color"];
   if (config) {
     args.push("--config", config);
   }
 
-  return execFile("./node_modules/.bin/webpack", args)
-    .then((result) => {
-      log(result.stdout);
-    });
+  return spawn("./node_modules/.bin/webpack", args, { stdio: "inherit" });
 }
 
 gulp.task("webpack", ["tsc", "copy", "jison", "convert-schema"],
