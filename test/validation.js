@@ -529,6 +529,23 @@ describe("GrammarWalker.fireEvent", () => {
       ]);
     });
 
+    it("value attribute", () => {
+      // Read the RNG tree.
+      const source = fileAsString("test/value_attribute/simplified-rng.js");
+
+      const tree = salve.readTreeFromJSON(source);
+      const walker = tree.newWalker();
+      let ret = walker.fireEvent("enterStartTag", ["", "top"]);
+      assert.isFalse(ret);
+      ret = walker.fireEvent("attributeName", ["", "x"]);
+      assert.isFalse(ret);
+
+      ret = walker.fireEvent("attributeValue", [""]);
+      assert.deepEqual(ret.map(x => x.toString()), [
+        "one value required from the following: a, b, c",
+      ]);
+    });
+
     it("errors after attributes: report errors", () => {
       // This test was added to check for a problem with the internal state of
       // salve.

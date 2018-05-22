@@ -2,6 +2,13 @@ Only major changes are reported here. Releases that only bump the patch part of
 the version number (i.e. the number after the 2nd dot) are generally not listed
 here unless they include a fix to a specific issue reported on github.
 
+* 7.0.1:
+
+  - Fix: regression introduced in 7.0.0 that could sometimes cause spurious
+    validation errors when validating attributes.
+
+  - Enhancement: better error messages when dealing with choice errors.
+
 * 7.0.0:
 
   - This version is a major reworking of the internals of salve with an aim

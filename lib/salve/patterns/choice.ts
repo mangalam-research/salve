@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { ChoiceError } from "../errors";
+import { ChoiceError, ValidationError } from "../errors";
 import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
@@ -203,40 +203,9 @@ class ChoiceWalker extends InternalWalker<Choice> {
 
     // If we are here both walkers exist and returned an error. We combine the
     // errors no matter which walker may have been deactivated.
-    const namesA: namePatterns.Base[] = [];
-    let notAChoiceError = false;
-    this.walkerA.possible().forEach((ev: Event) => {
-      if (ev.params[0] === "enterStartTag") {
-        namesA.push(ev.params[1] as namePatterns.Base);
-      }
-      else {
-        notAChoiceError = true;
-      }
-    });
+    const combined = this.combineChoices();
 
-    // The as boolean casts are necessary due to a flaw in the type inference
-    // done by TS. Without the cast, TS thinks notAChoiceError is necessarily
-    // false here and tslint issues a warning.
-    if (!(notAChoiceError as boolean)) {
-      const namesB: namePatterns.Base[] = [];
-      this.walkerB.possible().forEach((ev: Event) => {
-        if (ev.params[0] === "enterStartTag") {
-          namesB.push(ev.params[1] as namePatterns.Base);
-        }
-        else {
-          notAChoiceError = true;
-        }
-      });
-
-      if (!(notAChoiceError as boolean)) {
-        return [new ChoiceError(namesA, namesB)];
-      }
-    }
-
-    // If we get here, we were not able to raise a ChoiceError, possibly
-    // because there was not enough information to decide among the two
-    // walkers. Return whatever error comes first.
-    return retA;
+    return combined.length !== 0 ? combined : retA;
   }
 
   endAttributes(): EndResult {
@@ -257,40 +226,57 @@ class ChoiceWalker extends InternalWalker<Choice> {
 
     // If we are here both walkers exist and returned an error. We combine the
     // errors no matter which walker may have been deactivated.
+    const combined = this.combineChoices();
+
+    return combined.length !== 0 ? combined : retA;
+  }
+
+  private combineChoices(): ValidationError[] {
     const namesA: namePatterns.Base[] = [];
+    const values: string[] = [];
     let notAChoiceError = false;
-    this.walkerA.possible().forEach((ev: Event) => {
-      if (ev.params[0] === "enterStartTag") {
+    for (const ev of this.walkerA.possible()) {
+      const name = ev.params[0];
+      if (name === "enterStartTag" || name === "attributeName") {
         namesA.push(ev.params[1] as namePatterns.Base);
+      }
+      else if (name === "attributeValue" || name === "text") {
+        values.push(ev.params[1] as string);
       }
       else {
         notAChoiceError = true;
-      }
-    });
-
-    // The as boolean casts are necessary due to a flaw in the type inference
-    // done by TS. Without the cast, TS thinks notAChoiceError is necessarily
-    // false here and tslint issues a warning.
-    if (!(notAChoiceError as boolean)) {
-      const namesB: namePatterns.Base[] = [];
-      this.walkerB.possible().forEach((ev: Event) => {
-        if (ev.params[0] === "enterStartTag") {
-          namesB.push(ev.params[1] as namePatterns.Base);
-        }
-        else {
-          notAChoiceError = true;
-        }
-      });
-
-      if (!(notAChoiceError as boolean)) {
-        return [new ChoiceError(namesA, namesB)];
+        break;
       }
     }
 
-    // If we get here, we were not able to raise a ChoiceError, possibly
-    // because there was not enough information to decide among the two
-    // walkers. Return whatever error comes first.
-    return retA;
+    if (!notAChoiceError) {
+      const namesB: namePatterns.Base[] = [];
+      for (const ev of this.walkerB.possible()) {
+        const name = ev.params[0];
+        if (name === "enterStartTag" || name === "attributeName") {
+          namesB.push(ev.params[1] as namePatterns.Base);
+        }
+        else if (name === "attributeValue" || name === "text") {
+          values.push(ev.params[1] as string);
+        }
+        else {
+          notAChoiceError = true;
+          break;
+        }
+      }
+
+      if (!notAChoiceError) {
+        return [
+          values.length !== 0 ?
+            new ValidationError(
+              `one value required from the following: ${values.join(", ")}`) :
+            new ChoiceError(namesA, namesB),
+        ];
+      }
+    }
+
+    // We cannot make a good combination.
+    return [];
   }
 }
 

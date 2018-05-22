@@ -126,7 +126,7 @@ class GroupWalker extends InternalWalker<Group> {
     const walkerB = this.walkerB;
     if (!this.endedA) {
       const retA = walkerA.fireEvent(name, params);
-      if (retA.matched) {
+      if (retA.matched || retA.errors !== undefined) {
         if (evIsAttributeEvent) {
           this.canEndAttribute = walkerA.canEndAttribute &&
             walkerB.canEndAttribute;

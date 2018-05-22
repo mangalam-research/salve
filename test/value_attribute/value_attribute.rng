@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar ns="" xmlns="http://relaxng.org/ns/structure/1.0">
+  <start>
+    <element name="top">
+      <optional>
+        <attribute name="x">
+          <choice>
+            <value>a</value>
+            <value>b</value>
+            <value>c</value>
+          </choice>
+        </attribute>
+      </optional>
+      <optional>
+        <attribute name="b"/>
+      </optional>
+      <empty/>
+    </element>
+  </start>
+</grammar>
