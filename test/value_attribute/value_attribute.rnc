@@ -1,0 +1,8 @@
+default namespace = ""
+namespace rng = "http://relaxng.org/ns/structure/1.0"
+
+start = element top {
+    attribute x { "a" | "b" | "c" }?,
+    attribute b { text }?,
+    empty
+}
