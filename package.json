@@ -1,7 +1,7 @@
 {
   "name": "salve",
   "description": "Salve is a Javascript library which implements a validator able to validate an XML document on the basis of a subset of RelaxNG.",
-  "version": "7.0.1",
+  "version": "7.0.2",
   "versionedSources": "lib/salve/validate.ts",
   "keywords": [
     "RelaxNG",
@@ -23,16 +23,7 @@
     "url": "https://github.com/mangalam-research/salve.git"
   },
   "bugs": "https://github.com/mangalam-research/salve/issues",
-  "licenses": [
-    {
-      "type": "MPL",
-      "url": "https://www.mozilla.org/MPL/2.0/"
-    },
-    {
-      "type": "CeCILL",
-      "url": "http://www.cecill.info"
-    }
-  ],
+  "license": "MPL-2.0",
   "engines": {
     "node": ">=6 <9",
     "npm": ">=4"
