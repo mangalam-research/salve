@@ -23,16 +23,7 @@
     "url": "https://github.com/mangalam-research/salve.git"
   },
   "bugs": "https://github.com/mangalam-research/salve/issues",
-  "licenses": [
-    {
-      "type": "MPL",
-      "url": "https://www.mozilla.org/MPL/2.0/"
-    },
-    {
-      "type": "CeCILL",
-      "url": "http://www.cecill.info"
-    }
-  ],
+  "license": "MPL-2.0",
   "engines": {
     "node": ">=6 <9",
     "npm": ">=4"
