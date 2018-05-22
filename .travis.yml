@@ -1,24 +1,25 @@
 dist: trusty
 language: node_js
 node_js:
-  - "10"
-  - "8"
-  - "6"
+- '10'
+- '8'
+- '6'
 env:
-  # We set our own flag to tell our test code that it is running in a continuous
-  # integration environment. (Travis sets CI and TRAVIS but the former is too
-  # liable to collision (some other tool may use CI) and the latter is too
-  # specific (we could use something else than Travis).)
+  matrix:
   - CONTINUOUS_INTEGRATION=1
+  global:
+    secure: gBIzQfN+ExBh+OXLEbDqqdQQZqhks6tdOTzYgW/UcH+NBxNR4eGLVKxJMGaZ5wB02awY1uTsZkweXIIAeHZ8y4JVQ+5Kcf6BSkkmYCNs9WGGun7d2IvhG2Oeez6hGdqzFKBGmWTpg/8oa2ZKBB+AEbjDxIYOX3MMf4t7WGJjPVc=
 before_install:
-  - sudo add-apt-repository "deb http://tei.oucs.ox.ac.uk/teideb/binary ./"
-  - sudo apt-key add test/tei.key
-  - sudo apt-get update -qq
-  - sudo apt-get install -y xsltproc jing saxon
+- sudo add-apt-repository "deb http://tei.oucs.ox.ac.uk/teideb/binary ./"
+- sudo apt-key add test/tei.key
+- sudo apt-get update -qq
+- sudo apt-get install -y xsltproc jing saxon
+# We need at least npm 5
+- '[[ $(npm -v) =~ ^[5-9].*$ ]] || npm install -g npm@latest'
+- npm install -g greenkeeper-lockfile@1
 script: gulp test
+before_script: greenkeeper-lockfile-update
+after_script: greenkeeper-lockfile-upload
 branches:
   except:
-    # A change to master has an identical corresponding change on develop
-    # so if develop is tested (and it is), then it is redundant to *also*
-    # test master. Let's be nice and minimize our use of Travis' resources.
-    - master
+  - master
