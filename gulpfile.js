@@ -87,26 +87,31 @@ parser.addArgument(["--browsers"], {
 
 const options = parser.parseArgs(process.argv.slice(2));
 
-gulp.task("lint", ["tslint", "eslint"]);
+function tsc(tsconfigPath, dest) {
+  return execFileAndReport("./node_modules/.bin/tsc", ["-p", tsconfigPath,
+                                                       "--outDir", dest]);
+}
+
+gulp.task("tsc", () => tsc("tsconfig.json", "build/dist/lib"));
 
 gulp.task("eslint",
           // The TypeScript code must have been compiled, otherwise we get
           // reference errors.
-          ["tsc"],
-          () =>
-          gulp.src([
-            "*.js",
-            "bin/**/*.js",
-            "lib/**/*.js",
-            "gulptasks/**/*.js",
-            "test/**/*.js",
-            "!test/salve-convert/**/*.js",
-            "misc/**/*.js",
-            "!test/**/simplified-rng*.js",
-          ])
-          .pipe(eslint())
-          .pipe(eslint.format())
-          .pipe(eslint.failAfterError()));
+          gulp.series("tsc",
+                      () =>
+                      gulp.src([
+                        "*.js",
+                        "bin/**/*.js",
+                        "lib/**/*.js",
+                        "gulptasks/**/*.js",
+                        "test/**/*.js",
+                        "!test/salve-convert/**/*.js",
+                        "misc/**/*.js",
+                        "!test/**/simplified-rng*.js",
+                      ])
+                      .pipe(eslint())
+                      .pipe(eslint.format())
+                      .pipe(eslint.failAfterError())));
 
 function dumpBufferedContent(obj) {
   const stdout = obj.stdout.toString().trim();
@@ -132,6 +137,8 @@ function runTslint(tsconfig, tslintConfig) {
 }
 
 gulp.task("tslint", () => runTslint("tsconfig.json", "tslint.json"));
+
+gulp.task("lint", gulp.parallel("tslint", "eslint"));
 
 gulp.task("copy-src", () => {
   const dest = "build/dist/";
@@ -178,24 +185,20 @@ gulp.task("jison", () => {
     .pipe(gulp.dest(dest));
 });
 
-gulp.task("default", ["webpack"]);
+gulp.task("copy", gulp.series(gulp.parallel("copy-src", "copy-readme"),
+                              () => fs.writeFileAsync("build/dist/.npmignore",
+                                                      "bin/parse.js")));
 
-gulp.task("copy", ["copy-src", "copy-readme"],
-          () => fs.writeFileAsync("build/dist/.npmignore", "bin/parse.js"));
-
-function tsc(tsconfigPath, dest) {
-  return execFileAndReport("./node_modules/.bin/tsc", ["-p", tsconfigPath,
-                                                       "--outDir", dest]);
-}
-
-gulp.task("tsc", () => tsc("tsconfig.json", "build/dist/lib"));
-
-gulp.task("convert-schema", ["tsc", "copy-src"], () =>
-          // We use the previous version of salve to convert the validation
-          // schema.
-          execFileAndReport("./node_modules/.bin/salve-convert",
-                            ["lib/salve/schemas/relaxng.rng",
-                             "build/dist/lib/salve/schemas/relaxng.json"]));
+gulp.task("convert-schema",
+          gulp.series(
+            gulp.parallel("tsc", "copy-src"),
+            () =>
+              // We use the previous version of salve to convert the validation
+              // schema.
+              execFileAndReport(
+                "./node_modules/.bin/salve-convert",
+                ["lib/salve/schemas/relaxng.rng",
+                 "build/dist/lib/salve/schemas/relaxng.json"])));
 
 function webpack(config) {
   const args = ["--mode", "production", "--progress", "--color"];
@@ -206,8 +209,11 @@ function webpack(config) {
   return spawn("./node_modules/.bin/webpack", args, { stdio: "inherit" });
 }
 
-gulp.task("webpack", ["tsc", "copy", "jison", "convert-schema"],
-          () => webpack());
+gulp.task("webpack",
+          gulp.series(gulp.parallel("tsc", "copy", "jison", "convert-schema"),
+                      () => webpack()));
+
+gulp.task("default", gulp.task("webpack"));
 
 function runKarma(localOptions) {
   // We cannot let it be set to ``null`` or ``undefined``.
@@ -217,83 +223,90 @@ function runKarma(localOptions) {
   return spawn("./node_modules/.bin/karma", localOptions, { stdio: "inherit" });
 }
 
-gulp.task("karma", ["webpack"],
-          () => runKarma(["start", "--single-run"]));
+gulp.task("karma", gulp.series("webpack",
+                               () => runKarma(["start", "--single-run"])));
 
 let packname;
 
-gulp.task("pack", ["default"],
-          () => execFile("npm", ["pack"], { cwd: "build/dist" })
-          .then((result) => {
-            const { stdout } = result;
-            packname = stdout.trim();
-            return fs.renameAsync(`build/dist/${packname}`,
-                                  `build/${packname}`);
-          }));
+gulp.task("pack", gulp.series(
+  "default",
+  () => execFile("npm", ["pack"], { cwd: "build/dist" })
+    .then((result) => {
+      const { stdout } = result;
+      packname = stdout.trim();
+      return fs.renameAsync(`build/dist/${packname}`, `build/${packname}`);
+    })));
 
-gulp.task("install_test", ["pack"], Promise.coroutine(function *install() {
-  const testDir = "build/install_dir";
-  yield del(testDir);
-  yield fs.mkdirAsync(testDir);
-  yield fs.mkdirAsync(path.join(testDir, "node_modules"));
-  yield execFile("npm", ["install", `../${packname}`, "sax", "@types/sax"],
-                 { cwd: testDir });
-  let module = yield fs.readFileAsync("lib/salve/parse.ts");
-  module = module.toString();
-  module = module.replace("./validate", "salve");
-  yield fs.writeFileAsync(path.join(testDir, "parse.ts"), module);
-  yield execFileAndReport("../../node_modules/.bin/tsc",
-                          ["--lib", "es2015,dom",
-                           "parse.ts"],
-                          { cwd: testDir });
-  yield del(testDir);
-}));
+gulp.task("install_test", gulp.series(
+  "pack",
+  Promise.coroutine(function *install() {
+    const testDir = "build/install_dir";
+    yield del(testDir);
+    yield fs.mkdirAsync(testDir);
+    yield fs.mkdirAsync(path.join(testDir, "node_modules"));
+    yield execFile("npm", ["install", `../${packname}`, "sax", "@types/sax"],
+          { cwd: testDir });
+    let module = yield fs.readFileAsync("lib/salve/parse.ts");
+    module = module.toString();
+    module = module.replace("./validate", "salve");
+    yield fs.writeFileAsync(path.join(testDir, "parse.ts"), module);
+    yield execFileAndReport("../../node_modules/.bin/tsc",
+                            ["--lib", "es2015,dom",
+                             "parse.ts"],
+                            { cwd: testDir });
+    yield del(testDir);
+  })));
 
-gulp.task("publish", ["install_test"],
-          () => execFile("npm", ["publish", packname], { cwd: "build" }));
+gulp.task("publish", gulp.series("install_test",
+                                 () => execFile("npm", ["publish", packname],
+                                                { cwd: "build" })));
 
 // This task also needs to check the hash of the latest commit because typedoc
 // generates links to source based on the latest commit in effect when it is
 // run. So if a commit happened between the time the doc was generated last, and
 // now, we need to regenerate the docs.
-gulp.task("typedoc", ["tslint"], Promise.coroutine(function *task() {
-  const sources = ["lib/**/*.ts"];
-  const stamp = "build/api.stamp";
-  const hashPath = "./build/typedoc.hash.txt";
+gulp.task("typedoc",
+          gulp.series(
+            "tslint",
+            Promise.coroutine(function *task() {
+              const sources = ["lib/**/*.ts"];
+              const stamp = "build/api.stamp";
+              const hashPath = "./build/typedoc.hash.txt";
 
-  const prelim = yield Promise.all(
-    [fs.readFileAsync(hashPath)
-     .then(hash => hash.toString())
-     .catch(() => undefined),
-     execFile("git", ["rev-parse", "--short", "HEAD"])
-     .then(result => result.stdout),
-    ]);
+              const prelim = yield Promise.all(
+                [fs.readFileAsync(hashPath).then(hash => hash.toString())
+                 .catch(() => undefined),
+                 execFile("git", ["rev-parse", "--short", "HEAD"])
+                 .then(result => result.stdout),
+                ]);
 
-  const savedHash = prelim[0];
-  const currentHash = prelim[1][0];
+              const savedHash = prelim[0];
+              const currentHash = prelim[1][0];
 
-  if ((currentHash === savedHash) && !(yield newer(sources, stamp))) {
-    log("No change, skipping typedoc.");
-    return;
-  }
+              if ((currentHash === savedHash) &&
+                  !(yield newer(sources, stamp))) {
+                log("No change, skipping typedoc.");
+                return;
+              }
 
-  const { version } = JSON.parse(fs.readFileSync("package.json"));
-  const tsoptions = [
-    "--out", `./build/api/salve/${version}`,
-    "--name", "salve",
-    "--tsconfig", "./tsconfig.json",
-    "--listInvalidSymbolLinks",
-  ];
+              const { version } = JSON.parse(fs.readFileSync("package.json"));
+              const tsoptions = [
+                "--out", `./build/api/salve/${version}`,
+                "--name", "salve",
+                "--tsconfig", "./tsconfig.json",
+                "--listInvalidSymbolLinks",
+              ];
 
-  if (!options.doc_private) {
-    tsoptions.push("--excludePrivate");
-  }
+              if (!options.doc_private) {
+                tsoptions.push("--excludePrivate");
+              }
 
-  yield spawn("./node_modules/.bin/typedoc", tsoptions, { stdio: "inherit" });
+              yield spawn("./node_modules/.bin/typedoc", tsoptions,
+                          { stdio: "inherit" });
 
-  yield Promise.all([fs.writeFileAsync(hashPath, currentHash),
-                     touch(stamp)]);
-}));
+              yield Promise.all([fs.writeFileAsync(hashPath, currentHash),
+                                 touch(stamp)]);
+            })));
 
 gulp.task("readme", () => {
   // The following code works fine only with one source and one
@@ -309,14 +322,14 @@ gulp.task("readme", () => {
                                        () => callback())));
 });
 
-gulp.task("doc", ["typedoc", "readme"]);
+gulp.task("doc", gulp.parallel("typedoc", "readme"));
 
-gulp.task("gh-pages-build", ["typedoc"], () => {
+gulp.task("gh-pages-build", gulp.series("typedoc", () => {
   const dest = "gh-pages-build";
   return gulp.src("**/*", { cwd: "build/api/" })
     .pipe(gulpNewer(dest))
     .pipe(gulp.dest(dest));
-});
+}));
 
 gulp.task("versync", () => versync.run({
   verify: true,
@@ -335,12 +348,15 @@ gulp.task("versync", () => versync.run({
 //               grep: options.mocha_grep
 //           })));
 
-gulp.task("mocha", ["default"],
-          () => spawn(
-            "./node_modules/.bin/mocha",
-            options.mocha_grep ? ["--grep", options.mocha_grep] : [],
-            { stdio: "inherit" }));
+gulp.task("mocha",
+          gulp.series("default",
+                      () => spawn(
+                        "./node_modules/.bin/mocha",
+                        options.mocha_grep ? ["--grep", options.mocha_grep] :
+                          [],
+                        { stdio: "inherit" })));
 
-gulp.task("test", ["default", "lint", "versync", "mocha", "karma"]);
+gulp.task("test", gulp.parallel("default", "lint", "versync", "mocha",
+                                "karma"));
 
 gulp.task("clean", () => del(["build", "gh-pages-build"]));
