@@ -776,3 +776,8 @@ the Humanities.
 ..  LocalWords:  github jison NaN baz emph lodash xregexp XRegExp ns
 ..  LocalWords:  init positiveInteger NCName NameChoice superName
 ..  LocalWords:  EName
+
+
+.. image:: https://badges.greenkeeper.io/mangalam-research/salve.svg
+   :alt: Greenkeeper badge
+   :target: https://greenkeeper.io/
