@@ -17,6 +17,7 @@
     "Bennett Buchanan <buchanan.3rd@gmail.com>"
   ],
   "main": "lib/salve/validate.js",
+  "browser": "./salve.min.js",
   "types": "lib/salve/validate.d.ts",
   "repository": {
     "type": "git",
