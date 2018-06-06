@@ -8,6 +8,7 @@ env:
   matrix:
   - CONTINUOUS_INTEGRATION=1
   global:
+    # For Greenkeeper.
     secure: gBIzQfN+ExBh+OXLEbDqqdQQZqhks6tdOTzYgW/UcH+NBxNR4eGLVKxJMGaZ5wB02awY1uTsZkweXIIAeHZ8y4JVQ+5Kcf6BSkkmYCNs9WGGun7d2IvhG2Oeez6hGdqzFKBGmWTpg/8oa2ZKBB+AEbjDxIYOX3MMf4t7WGJjPVc=
 before_install:
 - sudo add-apt-repository "deb http://tei.oucs.ox.ac.uk/teideb/binary ./"
