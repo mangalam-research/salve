@@ -1,5 +1,9 @@
 .. image:: https://travis-ci.org/mangalam-research/salve.png
 
+.. image:: https://badges.greenkeeper.io/mangalam-research/salve.svg
+   :alt: Greenkeeper badge
+   :target: https://greenkeeper.io/
+
 .. note:: Github currently does not implement all reStructuredText directives,
           so some links in this readme may not work correctly when viewed there.
 
