@@ -77,7 +77,7 @@
     "typedoc": "^0.11.1",
     "typescript": "^2.7.2",
     "url-polyfill": "^1.0.11",
-    "versync": "^3.1.0",
+    "versync": "^4.0.0",
     "webpack": "^4.8.1",
     "webpack-cli": "^3.0.2",
     "whatwg-fetch": "^2.0.3"
