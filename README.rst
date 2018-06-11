@@ -27,11 +27,10 @@ subset of Relax NG (RNG). It is developed as part of the Buddhist Translators
 Workbench. It can be seen in action in `wed
 <https://github.com/mangalam-research/wed>`_.
 
-Salve is currently used to validate schemas generated from the `TEI standard
-<http://www.tei-c.org/>`_, schemas derived from this standard, and custom
-schemas. We've also validated files that use the DocBook v5.0 schema. We want to
-support as much Relax NG as reasonably possible, but it currently has the
-following limitations:
+Salve is used for validating XML with custom Relax NG schemas. We've also
+validated files that use the `TEI standard <http://www.tei-c.org/>`_ and the
+DocBook v5.0 schema. We want to support as much Relax NG as reasonably possible,
+but salve currently has the following limitations:
 
 * XML Schema types ``ENTITY`` and ``ENTITIES`` are treated as a ``string``.
 
@@ -44,17 +43,6 @@ following limitations:
   limitation of validators. We tested with ``jing`` and ``xmllint --relaxng``
   and found they do not raise errors if, for instance, a validation that expects
   a float is given a value that cannot be represented with a float.)
-
-* Text meant to be contiguous must be passed to salve in one event. In
-  particular, comments and processing instructions are invisible to
-  salve. (There are no events for them.) Take for instance, this XML:
-
-      ab&lt;!-- blah -->cd
-
-  In a DOM interpretation, you'd have two text nodes separated by a comment
-  node. For the purpose of Relax NG validation, this is a single string "abcd"
-  and should be passed to salve as "abcd" and not as the two strings "ab" and
-  "cd".
 
 If someone wishes to use salve but needs support for any of the features that
 are missing, they may ask for the feature to be added. Submit an issue on GitHub
@@ -665,10 +653,9 @@ Deploying
 When you install salve through `npm`, you get a package that contains:
 
 * a hierarchy of CommonJS modules in `lib`,
-* a UMD build as `salve.js`,
 * a minified UMD build as `salve.min.js`.
 
-The UMD builds can be loaded in a CommonJS environment, in a AMD environment or
+The UMD build can be loaded in a CommonJS environment, in a AMD environment or
 as "plain scripts" in a browser. If you use the latter, then salve will be
 accessible as the `salve` global.
 
