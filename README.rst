@@ -1,8 +1,13 @@
-.. image:: https://travis-ci.org/mangalam-research/salve.png
-
+.. image:: https://badge.fury.io/js/salve.svg
+   :target: https://badge.fury.io/js/salve
+.. image:: https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg
+   :target: https://opensource.org/licenses/MPL-2.0
+.. image:: https://travis-ci.org/mangalam-research/salve.svg?branch=master
+   :target: https://travis-ci.org/mangalam-research/salve
 .. image:: https://badges.greenkeeper.io/mangalam-research/salve.svg
    :alt: Greenkeeper badge
    :target: https://greenkeeper.io/
+
 
 .. note:: Github currently does not implement all reStructuredText directives,
           so some links in this readme may not work correctly when viewed there.
