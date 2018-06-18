@@ -7,7 +7,6 @@
  */
 import { Element } from "./parser";
 import { ResourceLoader } from "./resource-loader";
-import { autoload } from "./schema-simplifiers/autoload";
 
 export interface SchemaSimplifierOptions {
   /** True if the simplification should run verbosely. */
@@ -87,5 +86,3 @@ SchemaSimplifier {
 
   return new ctor(options);
 }
-
-autoload();

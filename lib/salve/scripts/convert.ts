@@ -9,6 +9,7 @@ import { spawn } from "child_process";
 import * as fs from "fs";
 import * as nodeFetch from "node-fetch";
 import * as path from "path";
+import requireDir from "require-dir";
 import * as sax from "sax";
 import * as temp from "temp";
 import { URL } from "url";
@@ -36,6 +37,9 @@ temp.track();
 
 const prog = path.basename(process.argv[1]);
 const stderr = process.stderr;
+
+requireDir("../conversion/schema-simplifiers");
+requireDir("../conversion/schema-validators");
 
 //
 // Safety harness
