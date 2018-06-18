@@ -87,60 +87,43 @@ parser.addArgument(["--browsers"], {
 
 const options = parser.parseArgs(process.argv.slice(2));
 
-function tsc(tsconfigPath, dest) {
+function runTsc(tsconfigPath, dest) {
   return execFileAndReport("./node_modules/.bin/tsc", ["-p", tsconfigPath,
                                                        "--outDir", dest]);
 }
 
-gulp.task("tsc", () => tsc("tsconfig.json", "build/dist/lib"));
-
-gulp.task("eslint",
-          // The TypeScript code must have been compiled, otherwise we get
-          // reference errors.
-          gulp.series("tsc",
-                      () =>
-                      gulp.src([
-                        "*.js",
-                        "bin/**/*.js",
-                        "lib/**/*.js",
-                        "gulptasks/**/*.js",
-                        "test/**/*.js",
-                        "!test/salve-convert/**/*.js",
-                        "misc/**/*.js",
-                        "!test/**/simplified-rng*.js",
-                      ])
-                      .pipe(eslint())
-                      .pipe(eslint.format())
-                      .pipe(eslint.failAfterError())));
-
-function dumpBufferedContent(obj) {
-  const stdout = obj.stdout.toString().trim();
-  if (stdout !== "") {
-    log(`\n${stdout}`);
-  }
-
-  const stderr = obj.stderr.toString().trim();
-  if (stderr !== "") {
-    log(`\n${stderr}`);
-  }
-}
-
 function runTslint(tsconfig, tslintConfig) {
-  return spawn(
+  return execFileAndReport(
     "./node_modules/.bin/tslint",
     ["--format", "verbose", "--project", tsconfig, "-c", tslintConfig],
-    { capture: ["stdout", "stderr"] }).then(dumpBufferedContent)
-    .catch((err) => {
-      dumpBufferedContent(err);
-      throw err;
-    });
+    { capture: ["stdout", "stderr"] });
 }
 
-gulp.task("tslint", () => runTslint("tsconfig.json", "tslint.json"));
+function tsc() {
+  return runTsc("tsconfig.json", "build/dist/lib");
+}
 
-gulp.task("lint", gulp.parallel("tslint", "eslint"));
+function runEslint() {
+  return gulp.src([
+    "*.js",
+    "bin/**/*.js",
+    "lib/**/*.js",
+    "gulptasks/**/*.js",
+    "test/**/*.js",
+    "!test/salve-convert/**/*.js",
+    "misc/**/*.js",
+    "!test/**/simplified-rng*.js",
+  ])
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError());
+}
 
-gulp.task("copy-src", () => {
+function tslint() {
+  return runTslint("tsconfig.json", "tslint.json");
+}
+
+function copySrc() {
   const dest = "build/dist/";
   return gulp.src([
     "package.json",
@@ -150,9 +133,9 @@ gulp.task("copy-src", () => {
   ], { base: "." })
     .pipe(gulpNewer(dest))
     .pipe(gulp.dest(dest));
-});
+}
 
-gulp.task("copy-readme", () => {
+function copyReadme() {
   const dest = "build/dist/";
   return gulp.src("NPM_README.md")
     .pipe(rename("README.md"))
@@ -161,7 +144,40 @@ gulp.task("copy-readme", () => {
   // the correct file in the filesystem.
     .pipe(gulpNewer(dest))
     .pipe(gulp.dest(dest));
-});
+}
+
+function webpack(config) {
+  const args = ["--mode", "production", "--progress", "--color"];
+  if (config) {
+    args.push("--config", config);
+  }
+
+  return spawn("./node_modules/.bin/webpack", args, { stdio: "inherit" });
+}
+
+function runKarma(localOptions) {
+  // We cannot let it be set to ``null`` or ``undefined``.
+  if (options.browsers) {
+    localOptions = localOptions.concat("--browsers", options.browsers);
+  }
+  return spawn("./node_modules/.bin/karma", localOptions, { stdio: "inherit" });
+}
+
+function karma() {
+  return runKarma(["start", "--single-run"]);
+}
+
+function mocha() {
+  return spawn(
+    "./node_modules/.bin/mocha",
+    options.mocha_grep ? ["--grep", options.mocha_grep] :
+      [],
+    { stdio: "inherit" });
+}
+
+// === gulp tasks ===
+
+gulp.task("lint", gulp.parallel(tslint, runEslint));
 
 gulp.task("jison", () => {
   const dest = "build/dist/lib/salve/datatypes";
@@ -185,46 +201,27 @@ gulp.task("jison", () => {
     .pipe(gulp.dest(dest));
 });
 
-gulp.task("copy", gulp.series(gulp.parallel("copy-src", "copy-readme"),
+gulp.task("copy", gulp.series(gulp.parallel(copySrc, copyReadme),
                               () => fs.writeFileAsync("build/dist/.npmignore",
                                                       "bin/parse.js")));
-
 gulp.task("convert-schema",
-          gulp.series(
-            gulp.parallel("tsc", "copy-src"),
-            () =>
-              // We use the previous version of salve to convert the validation
-              // schema.
-              execFileAndReport(
-                "./node_modules/.bin/salve-convert",
-                ["lib/salve/schemas/relaxng.rng",
-                 "build/dist/lib/salve/schemas/relaxng.json"])));
+          () =>
+          // We have to create the directory before converting.
+          execFileAndReport("mkdir", ["-p", "build/dist/lib/salve/schemas/"])
+          .then(() =>
+                // We use the previous version of salve to convert the
+                // validation schema.
+                execFileAndReport(
+                  "./node_modules/.bin/salve-convert",
+                  ["lib/salve/schemas/relaxng.rng",
+                   "build/dist/lib/salve/schemas/relaxng.json"])));
 
-function webpack(config) {
-  const args = ["--mode", "production", "--progress", "--color"];
-  if (config) {
-    args.push("--config", config);
-  }
 
-  return spawn("./node_modules/.bin/webpack", args, { stdio: "inherit" });
-}
+gulp.task("default", gulp.series(gulp.parallel(tsc, "copy", "jison",
+                                               "convert-schema"),
+                                 () => webpack()));
 
-gulp.task("webpack",
-          gulp.series(gulp.parallel("tsc", "copy", "jison", "convert-schema"),
-                      () => webpack()));
-
-gulp.task("default", gulp.task("webpack"));
-
-function runKarma(localOptions) {
-  // We cannot let it be set to ``null`` or ``undefined``.
-  if (options.browsers) {
-    localOptions = localOptions.concat("--browsers", options.browsers);
-  }
-  return spawn("./node_modules/.bin/karma", localOptions, { stdio: "inherit" });
-}
-
-gulp.task("karma", gulp.series("webpack",
-                               () => runKarma(["start", "--single-run"])));
+gulp.task("karma", gulp.series("default", karma));
 
 let packname;
 
@@ -267,7 +264,7 @@ gulp.task("publish", gulp.series("install_test",
 // now, we need to regenerate the docs.
 gulp.task("typedoc",
           gulp.series(
-            "tslint",
+            tslint,
             Promise.coroutine(function *task() {
               const sources = ["lib/**/*.ts"];
               const stamp = "build/api.stamp";
@@ -332,31 +329,12 @@ gulp.task("gh-pages-build", gulp.series("typedoc", () => {
 }));
 
 gulp.task("versync", () => versync.run({
-  verify: true,
   onMessage: log,
 }));
 
-//
-// Ideally we'd be using gulp-mocha but there are issues with running
-// Mocha as part of the same process which runs gulp. So we don't.
-//
-// import mocha from "gulp-mocha";
-//
-// gulp.task("mocha", () => gulp.src("test/*.js", { read: false })
-//           .pipe(mocha({
-//               reporter: "dot",
-//               grep: options.mocha_grep
-//           })));
+gulp.task("mocha", gulp.series("default", mocha));
 
-gulp.task("mocha",
-          gulp.series("default",
-                      () => spawn(
-                        "./node_modules/.bin/mocha",
-                        options.mocha_grep ? ["--grep", options.mocha_grep] :
-                          [],
-                        { stdio: "inherit" })));
-
-gulp.task("test", gulp.parallel("default", "lint", "versync", "mocha",
-                                "karma"));
+gulp.task("test",
+          gulp.series("default", gulp.parallel("versync", mocha, karma)));
 
 gulp.task("clean", () => del(["build", "gh-pages-build"]));
