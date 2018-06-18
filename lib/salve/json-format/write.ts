@@ -1,5 +1,6 @@
 /**
- * This module contains classes for walking a parsed tree.
+ * This module contains classes for writing salve's internal schema format.
+ *
  * @author Louis-Dominique Dubeau
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages

@@ -1,6 +1,5 @@
 /**
- * This module contains data and utilities to work with the schema format that
- * salve uses natively.
+ * This module contains utilities for reading salve's internal schema format.
  *
  * @author Louis-Dominique Dubeau
  * @license MPL 2.0
