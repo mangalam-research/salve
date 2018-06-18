@@ -5,8 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 "use strict";
-// tslint:disable-next-line:no-require-imports import-name
-import fileURL = require("file-url");
+import fileUrl from "file-url";
 import * as fs from "fs";
 import * as path from "path";
 import * as sax from "sax";
@@ -51,7 +50,7 @@ Promise<Grammar> {
   }
 
   // Treat it as a Relax NG schema.
-  return (await convertRNGToPattern(new URL(fileURL(rngSource)))).pattern;
+  return (await convertRNGToPattern(new URL(fileUrl(rngSource)))).pattern;
 }
 
 /**

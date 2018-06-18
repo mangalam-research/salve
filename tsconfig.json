@@ -2,6 +2,9 @@
   "compilerOptions": {
     "rootDir": "lib",
     "module": "commonjs",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "noEmitOnError": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,

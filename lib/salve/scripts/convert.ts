@@ -14,8 +14,7 @@ import * as temp from "temp";
 import { URL } from "url";
 import * as util from "util";
 
-// tslint:disable-next-line:no-require-imports import-name
-import fileURL = require("file-url");
+import fileUrl from "file-url";
 
 (global as any).fetch = nodeFetch;
 (global as any).URL = URL;
@@ -314,7 +313,7 @@ async function start(): Promise<void> {
   });
 
   const { simplified, warnings } =
-    await validator.validate(new URL(fileURL(args.input_path)));
+    await validator.validate(new URL(fileUrl(args.input_path)));
 
   if (args.timing) {
     console.log(`Validation delta: ${Date.now() - startTime!}`);
@@ -337,7 +336,7 @@ async function start(): Promise<void> {
     validate: false,
   });
 
-  return simplifier.simplify(new URL(fileURL(args.input_path))).then(convert);
+  return simplifier.simplify(new URL(fileUrl(args.input_path))).then(convert);
 }
 
 // tslint:disable-next-line:no-floating-promises
