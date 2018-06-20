@@ -155,9 +155,6 @@ else {
 }
 
 
-var xmlNameChar = xmlcharacters.xmlNameChar;
-var xmlLetter = xmlcharacters.xmlLetter;
-
 // Maintain a group state.
 var groupState = [];
 var needsXRegExpRe = /\\p/i;
@@ -169,12 +166,15 @@ function unshiftGroupState(negative) {
   });
 }
 
+var xmlNameChar = xmlcharacters.xmlNameChar;
+var xmlLetter = xmlcharacters.xmlLetter;
+
 var multiCharEscapesInGroup = {
     "\\s": " \\t\\n\\r",
     "\\S": "^ \\t\\n\\r",
-    "\\i": "" + xmlLetter + "_:",
+    "\\i": xmlLetter + "_:",
     "\\I": "^" + xmlLetter + "_:",
-    "\\c": "" + xmlNameChar,
+    "\\c": xmlNameChar,
     "\\C": "^" + xmlNameChar,
     "\\d": "\\p{Nd}",
     "\\D": "^\\p{Nd}",
@@ -184,9 +184,6 @@ var multiCharEscapesInGroup = {
 
 var multiCharEscapes = [];
 for(var i in multiCharEscapesInGroup) {
-  if (!multiCharEscapesInGroup.hasOwnProperty(i)) {
-    continue;
-  }
   multiCharEscapes[i] = "[" + multiCharEscapesInGroup[i] + "]";
 }
 
@@ -228,7 +225,7 @@ input
 
 regexp
     : branch
-    | branch '|' regexp -> $1.concat($2, $3)
+    | branch '|' regexp -> $1 + $2 + $3
     ;
 
 branch
@@ -245,13 +242,13 @@ quantifier
     : '?'
     | '*'
     | '+'
-    | '{' quantity '}' -> $1.concat($2, $3)
+    | '{' quantity '}' -> $1 + $2 + $3
     ;
 
 quantity
     : NUMBER
-    | NUMBER ',' NUMBER -> $1.concat(',', $3)
-    | NUMBER ',' -> $1.concat($2)
+    | NUMBER ',' NUMBER -> $1 + ',' + $3
+    | NUMBER ',' -> $1 + $2
     ;
 
 atom
@@ -267,32 +264,30 @@ charClass
 charClassExpr
     : charClassExprStart charGroup ']'
     {
+      var orig = $1 + $2 + $3;
       var state = groupState.shift();
       var capturedMultiChar = state.capturedMultiChar;
 
       var subtraction = state.subtraction ?
-            ("(?!" +  state.subtraction + ")") : "";
+          ("(?!" +  state.subtraction + ")") : "";
       if (capturedMultiChar.length !== 0) {
-        var out = ["(?:", subtraction];
+        var out = "";
         if (state.negative) {
-          out.push("(?=[");
+          out += "(?=[";
           for (var i = 0; i < capturedMultiChar.length; ++i) {
-            out.push(multiCharEscapesInGroup[capturedMultiChar[i]].slice(1));
+            out += multiCharEscapesInGroup[capturedMultiChar[i]].slice(1);
           }
-          out.push("])");
+          out += "])";
         }
         else {
           for (var i = 0; i < capturedMultiChar.length; ++i) {
-            out.push("[", multiCharEscapesInGroup[capturedMultiChar[i]], "]|");
+            out += "[" + multiCharEscapesInGroup[capturedMultiChar[i]] + "]|";
           }
         }
-        out.push($1, $2, $3, ")");
-        $$ = out.join("");
+        $$ = "(?:" + subtraction + out + orig + ")";
       }
       else {
-        $$ = (subtraction !== "") ?
-          "(?:" + subtraction + $1.concat($2, $3) + ")":
-          $1.concat($2, $3);
+        $$ = (subtraction !== "") ? "(?:" + subtraction + orig + ")": orig;
       }
     }
     ;
@@ -340,7 +335,7 @@ charRange
     ;
 
 seRange
-    : charOrEsc '-' charOrEsc -> $1.concat($2, $3)
+    : charOrEsc '-' charOrEsc -> $1 + $2 + $3
     | charOrEsc
     ;
 
@@ -353,7 +348,7 @@ charClassEsc
     | MULTICHARESC
     {
       if (groupState.length) {
-        var repl = multiCharEscapesInGroup[$1]
+        var repl = multiCharEscapesInGroup[$1];
         if (repl.charAt(0) === "^") {
           groupState[0].capturedMultiChar.push($1);
           $$ = "";
@@ -363,7 +358,7 @@ charClassEsc
         }
       }
       else {
-        $$ = multiCharEscapes[$1]
+        $$ = multiCharEscapes[$1];
       }
     }
     | CATESC
