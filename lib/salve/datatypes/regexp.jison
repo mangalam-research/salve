@@ -1,5 +1,13 @@
-%{var xmlcharacters = require("./xmlcharacters");
-var XRegExp = require("xregexp");
+%{
+var xmlcharacters = require("./xmlcharacters");
+var XRegExp = require("xregexp/lib/xregexp");
+var base = require("xregexp/lib/addons/unicode-base");
+var blocks = require("xregexp/lib/addons/unicode-blocks");
+var categories = require("xregexp/lib/addons/unicode-categories");
+
+base(XRegExp);
+blocks(XRegExp);
+categories(XRegExp);
 %}
 //
 // Terminology:
