@@ -47,18 +47,9 @@ interface Context {
  * resolver maintains mappings from namespace prefix to namespace URI.
  */
 export class NameResolver {
-  /**
-   * The next id to associate to the next NameResolver object to be created.
-   * This is used so that [[NameResolver.hash]] can return unique values.
-   */
-  private static __id: number = 0; // tslint:disable-line: variable-name
-
-  readonly id: string;
-
   private readonly _contextStack: Context[];
 
   constructor(other?: NameResolver) {
-    this.id = `N${this.__newID()}`;
     if (other !== undefined) {
       this._contextStack = other._contextStack.slice();
     }
@@ -74,23 +65,6 @@ export class NameResolver {
       }];
 
     }
-  }
-
-  /**
-   * This method is mainly used to be able to use [[NameResolver]] objects in a
-   * collection.
-   *
-   * Returns a hash guaranteed to be unique to this object. There are some
-   * limitations. First, if this module is instantiated twice, the objects
-   * created by the two instances cannot mix without violating the uniqueness
-   * guarantee. Second, the hash is a monotonically increasing counter, so when
-   * it reaches beyond the maximum integer that the JavaScript vm can handle,
-   * things go kaboom.
-   *
-   * @returns A number unique to this object.
-   */
-  hash(): string {
-    return this.id;
   }
 
   /**
@@ -289,15 +263,6 @@ export class NameResolver {
     }
 
     return prefixes[0];
-  }
-
-  /**
-   * Gets a new Pattern id.
-   *
-   * @returns The new id.
-   */
-  private __newID(): number {
-    return NameResolver.__id++;
   }
 }
 
