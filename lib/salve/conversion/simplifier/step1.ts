@@ -75,23 +75,27 @@ class Step1 {
     const local = el.local;
     // We don't normalize text nodes in param or value.
     if (!(local === "param" || local === "value")) {
+      const newChildren = [];
       const children = el.children;
-      for (let i = 0; i < children.length; ++i) {
-        const child = children[i];
+      for (const child of children) {
         if (child instanceof Element) {
+          newChildren.push(child);
           continue;
         }
 
-        const clean = child.text.trim();
-        if (clean === "") {
-          el.removeChildAt(i);
-          // Move back so that we don't skip an element...
-          i--;
-        }
-        else if (local === "name") {
-          child.replaceWith(new Text(clean));
+        const orig = child.text;
+        const clean = orig.trim();
+        if (clean !== "") {
+          // name gets the trimmed value
+          if (local === "name" && orig !== clean) {
+            newChildren.push(new Text(clean));
+          }
+          else {
+            newChildren.push(child);
+          }
         }
       }
+      el.replaceContent(newChildren);
     }
 
     for (const child of el.children) {
