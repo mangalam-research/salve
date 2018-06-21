@@ -6,8 +6,8 @@
  */
 import { Element, Text } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
-import { findMultiDescendantsByLocalName, getName, groupBy, indexBy,
-         RELAXNG_URI } from "./util";
+import { findMultiDescendantsByLocalName, getName, groupBy,
+         indexBy } from "./util";
 
 export type Parser = (filePath: URL) => Promise<Element>;
 
@@ -55,20 +55,13 @@ class Step1 {
     for (const name of Object.keys(attrs)) {
       const attr = attrs[name];
       const { uri, prefix } = attr;
-      if (uri === RELAXNG_URI) {
-        // We move all RNG nodes into the default namespace.
-        attr.prefix = "";
-        attr.name = attr.local;
-      }
-      else if (name !== "xmlns" && uri !== "" && prefix !== "xmlns") {
+      if (name !== "xmlns" && uri !== "" && prefix !== "xmlns") {
         delete attrs[name];
       }
-    }
-
-    for (const attrName of ["name", "type", "combine"]) {
-      const attr = el.getAttribute(attrName);
-      if (attr !== undefined) {
-        el.setAttribute(attrName, attr.trim());
+      else if (name === "name" ||
+               name === "type" ||
+               name === "combine") {
+        attr.value = attr.value.trim();
       }
     }
 
