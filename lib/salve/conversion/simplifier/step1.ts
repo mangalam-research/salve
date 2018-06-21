@@ -103,16 +103,9 @@ class Step1 {
 
     if (handler !== undefined) {
       const replacement = await handler.call(this, currentBase, seenURLs, el);
-      if (replacement !== null) {
-        if (el === currentRoot) {
-          // We have a new root.
-          currentRoot = replacement;
-        }
-
-        // We have to walk the replacement too. (And yes, this could change
-        // the root.)
-        currentRoot = await this.walk(currentBase, seenURLs, currentRoot,
-                                      replacement);
+      if (replacement !== null && el === currentRoot) {
+        // We have a new root.
+        currentRoot = replacement;
       }
     }
 
