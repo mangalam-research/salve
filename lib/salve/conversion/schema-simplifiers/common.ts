@@ -35,23 +35,25 @@ export function localName(value: string): string {
 }
 
 export function fromQNameToURI(value: string, el: Element): string {
-  const attribute: boolean = inAttribute(el);
-  let parts: string[] = value.split(":");
+  const colon = value.indexOf(":");
 
-  if (parts.length === 1) { // If there is no prefix
-    if (attribute) { // Attribute in undefined namespace
+  let prefix: string;
+  if (colon === -1) { // If there is no prefix
+    if (inAttribute(el)) { // Attribute in undefined namespace
       return "";
     }
 
     // We are searching for the default namespace currently in effect.
-    parts = ["", value];
+    prefix = "";
+  }
+  else {
+    prefix = value.substr(0, colon);
+    if (value.lastIndexOf(":") !== colon) {
+      throw new Error("invalid name");
+    }
   }
 
-  if (parts.length > 2) {
-    throw new Error("invalid name");
-  }
-
-  if (parts[0] === "") {
+  if (prefix === "") {
     // Yes, we return the empty string even if that what @ns is set to:
     // there is no default namespace when @ns is set to ''.
     return el.mustGetAttribute("ns");
@@ -72,9 +74,9 @@ export function fromQNameToURI(value: string, el: Element): string {
   // both). However... in any case the information is available through the
   // namespace information stored on the nodes. So...)
   //
-  const uri: string | undefined = el.resolve(parts[0]);
+  const uri = el.resolve(prefix);
   if (uri === undefined) {
-    throw new Error(`cannot resolve prefix: ${parts[0]}`);
+    throw new Error(`cannot resolve prefix: ${prefix}`);
   }
 
   return uri;
