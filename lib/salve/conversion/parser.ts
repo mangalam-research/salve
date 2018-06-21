@@ -195,6 +195,11 @@ export class Element extends Node {
     return this.children.map((x) => x.text).join("");
   }
 
+  /**
+   * A path describing the location of the element in the XML. Note that this is
+   * meant to be used **only** after the simplification is complete. The value
+   * is computed once and for all as soon as it is accessed.
+   */
   get path(): string {
     if (this._path === undefined) {
       this._path = this.makePath();
@@ -212,12 +217,13 @@ export class Element extends Node {
       // tslint:disable-next-line:no-string-literal
       ret += `[@name='${name}']`;
     }
-    else {
-      for (const child of this.children) {
-        if (child instanceof Element && child.local === "name") {
-          ret += `[@name='${child.text}']`;
-          break;
-        }
+    // Name classes are only valid on elements and attributes. So don't go
+    // searching for it on other elements.
+    else if (this.local === "element" || this.local === "attribute") {
+      // By the time path is used, the name class is the first child.
+      const first = this.children[0];
+      if (first instanceof Element && first.local === "name") {
+        ret += `[@name='${first.text}']`;
       }
     }
 
