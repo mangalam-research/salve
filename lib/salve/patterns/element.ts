@@ -220,15 +220,13 @@ class ElementWalker extends InternalWalker<Element> {
       return false;
     }
 
+    const err = new ElementNameError(this.endedStartTag ?
+                                     "tag not closed" :
+                                     "start tag not terminated",
+                                     this.boundName);
     const walkerRet = this.walker.end();
-    const ret = walkerRet ? walkerRet : [];
 
-    ret.push(new ElementNameError(this.endedStartTag ?
-                                 "tag not closed" :
-                                 "start tag not terminated",
-                                  this.boundName));
-
-    return ret;
+    return walkerRet ? walkerRet.concat(err) : [err];
   }
 
   endAttributes(): EndResult {
