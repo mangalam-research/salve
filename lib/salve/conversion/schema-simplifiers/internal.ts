@@ -680,9 +680,11 @@ export class InternalSimplifier extends BaseSimplifier {
 
     const parser = new BasicParser(sax.parser(true,
                                               { xmlns: true,
-                                                strictEntities: true } as any),
+                                                strictEntities: true,
+                                                position: false } as any),
                                    validator);
     parser.saxParser.write(schema);
+    parser.saxParser.close();
 
     if (validator !== undefined) {
       if (validator.errors.length !== 0) {
