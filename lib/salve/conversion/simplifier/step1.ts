@@ -39,8 +39,6 @@ class Step1 {
              el: Element): Promise<Element> {
     let currentRoot = root;
     const baseAttr = el.getAttribute("xml:base");
-    const currentBase = baseAttr === undefined ? parentBase :
-      resolveURL(parentBase, baseAttr);
 
     // The XML parser we use immediately drops all *elements* which are not in
     // the RELAXNG_URI namespace so we don't have to remove them here.
@@ -91,6 +89,8 @@ class Step1 {
       el.replaceContent(newChildren);
     }
 
+    const currentBase = baseAttr === undefined ? parentBase :
+      resolveURL(parentBase, baseAttr);
     for (const child of el.children) {
       if (!(child instanceof Element)) {
         continue;
