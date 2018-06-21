@@ -57,7 +57,7 @@ export class RefError extends Error {
  * these objects.
  */
 export class Grammar extends BasePattern {
-  private definitions: Map<string, Define> = new Map();
+  private readonly definitions: Map<string, Define>;
   private _elementDefinitions: TrivialMap<Element[]>;
   private _namespaces: Set<string> = new Set();
   /**
@@ -75,11 +75,14 @@ export class Grammar extends BasePattern {
   constructor(public xmlPath: string, public start: Pattern,
               definitions?: Define[]) {
     super(xmlPath);
+
+    const mapInit: [string, Define][] = [];
     if (definitions !== undefined) {
       for (const def of definitions) {
-        this.add(def);
+        mapInit.push([def.name, def]);
       }
     }
+    this.definitions = new Map(mapInit);
 
     const missing = this._prepare(this.definitions, this._namespaces);
     if (missing !== undefined) {
