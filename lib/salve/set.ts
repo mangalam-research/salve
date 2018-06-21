@@ -1,5 +1,5 @@
 /**
- * Naive set implementation.
+ * Set utilities.
  *
  * @author Louis-Dominique Dubeau
  * @license MPL 2.0
