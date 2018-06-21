@@ -195,9 +195,6 @@ export class NameResolver {
     let prefix: string;
     let local: string;
     switch (parts.length) {
-      case 2:
-        [prefix, local] = parts;
-        break;
       case 1:
         if (attribute) { // Attribute in undefined namespace
           return new EName("", name);
@@ -206,6 +203,9 @@ export class NameResolver {
         // We are searching for the default namespace currently in effect.
         prefix = "";
         local = name;
+        break;
+      case 2:
+        [prefix, local] = parts;
         break;
       default:
         throw new Error("invalid name passed to resolveName");
