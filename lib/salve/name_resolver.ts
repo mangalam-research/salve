@@ -164,25 +164,25 @@ export class NameResolver {
    * resolved.
    */
   resolveName(name: string, attribute: boolean = false): EName | undefined {
-    const parts = name.split(":");
+    const colon = name.indexOf(":");
 
     let prefix: string;
     let local: string;
-    switch (parts.length) {
-      case 1:
-        if (attribute) { // Attribute in undefined namespace
-          return new EName("", name);
-        }
+    if (colon === -1) {
+      if (attribute) { // Attribute in undefined namespace
+        return new EName("", name);
+      }
 
-        // We are searching for the default namespace currently in effect.
-        prefix = "";
-        local = name;
-        break;
-      case 2:
-        [prefix, local] = parts;
-        break;
-      default:
+      // We are searching for the default namespace currently in effect.
+      prefix = "";
+      local = name;
+    }
+    else {
+      prefix = name.substr(0, colon);
+      local = name.substr(colon + 1);
+      if (local.indexOf(":") !== -1) {
         throw new Error("invalid name passed to resolveName");
+      }
     }
 
     // Search through the contexts.
