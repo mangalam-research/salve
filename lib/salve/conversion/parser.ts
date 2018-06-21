@@ -115,7 +115,6 @@ export class Element extends Node {
     this.local = local;
     this.uri = uri;
     // Namespace declarations are immutable.
-    // Cast to cheat and read it from the Element being cloned.
     this.ns = ns;
     this.attributes = attributes;
 
