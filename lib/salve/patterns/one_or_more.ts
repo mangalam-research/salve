@@ -6,9 +6,8 @@
  */
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { BasePattern, cloneIfNeeded, CloneMap, EndResult, EventSet,
-         InternalFireEventResult, InternalWalker, isAttributeEvent,
-         OneSubpattern, Pattern} from "./base";
+import { BasePattern, EndResult, EventSet, InternalFireEventResult,
+         InternalWalker, isAttributeEvent, OneSubpattern, Pattern} from "./base";
 
 /**
  * A pattern for ``<oneOrMore>``.
@@ -18,9 +17,9 @@ export class  OneOrMore extends OneSubpattern {
     return this.pat.hasEmptyPattern();
   }
 
-  newWalker(nameResolver: NameResolver): InternalWalker<OneOrMore> {
+  newWalker(): InternalWalker<OneOrMore> {
     // tslint:disable-next-line:no-use-before-declare
-    return new OneOrMoreWalker(this, nameResolver);
+    return new OneOrMoreWalker(this);
   }
 }
 
@@ -33,50 +32,41 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
   private readonly hasAttrs: boolean;
   private currentIteration: InternalWalker<BasePattern>;
   private nextIteration: InternalWalker<BasePattern> | undefined;
-  private readonly nameResolver: NameResolver;
   canEndAttribute: boolean;
   canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was created.
-   *
-   * @param resolver The name resolver that can be used to convert namespace
-   * prefixes to namespaces.
    */
-  constructor(walker: OneOrMoreWalker, memo: CloneMap);
-  constructor(el: OneOrMore, nameResolver: NameResolver);
-  constructor(elOrWalker: OneOrMoreWalker | OneOrMore,
-              nameResolverOrMemo: NameResolver | CloneMap) {
+  constructor(walker: OneOrMoreWalker);
+  constructor(el: OneOrMore);
+  constructor(elOrWalker: OneOrMoreWalker | OneOrMore) {
     super();
     if ((elOrWalker as OneOrMore).newWalker !== undefined) {
       const el = elOrWalker as OneOrMore;
-      const nameResolver = nameResolverOrMemo as NameResolver;
       this.el = el;
       this.subPat = el.pat;
       this.hasAttrs = el.hasAttrs();
-      this.nameResolver = nameResolver;
-      this.currentIteration = el.pat.newWalker(nameResolver);
+      this.currentIteration = el.pat.newWalker();
       this.canEndAttribute = !this.hasAttrs ||
         this.currentIteration.canEndAttribute;
       this.canEnd = this.currentIteration.canEnd;
     }
     else {
       const walker = elOrWalker as OneOrMoreWalker;
-      const memo = nameResolverOrMemo as CloneMap;
       this.el = walker.el;
       this.subPat = walker.subPat;
       this.hasAttrs = walker.hasAttrs;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
-      this.currentIteration = walker.currentIteration._clone(memo);
+      this.currentIteration = walker.currentIteration._clone();
       this.nextIteration = walker.nextIteration !== undefined ?
-        walker.nextIteration._clone(memo) : undefined;
+        walker.nextIteration._clone() : undefined;
       this.canEndAttribute = walker.canEndAttribute;
       this.canEnd = walker.canEnd;
     }
   }
 
-  _clone(memo: CloneMap): this {
-    return new OneOrMoreWalker(this, memo) as this;
+  _clone(): this {
+    return new OneOrMoreWalker(this) as this;
   }
 
   possible(): EventSet {
@@ -84,7 +74,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
 
     if (this.currentIteration.canEnd) {
       if (this.nextIteration === undefined) {
-        this.nextIteration = this.subPat.newWalker(this.nameResolver);
+        this.nextIteration = this.subPat.newWalker();
       }
       union(ret, this.nextIteration.possible());
     }
@@ -97,7 +87,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
 
     if (this.currentIteration.canEnd) {
       if (this.nextIteration === undefined) {
-        this.nextIteration = this.subPat.newWalker(this.nameResolver);
+        this.nextIteration = this.subPat.newWalker();
       }
       union(ret, this.nextIteration.possibleAttributes());
     }
@@ -105,7 +95,8 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     return ret;
   }
 
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
       return new InternalFireEventResult(false);
@@ -113,7 +104,7 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
 
     const currentIteration = this.currentIteration;
 
-    const ret = currentIteration.fireEvent(name, params);
+    const ret = currentIteration.fireEvent(name, params, nameResolver);
     if (ret.matched) {
       if (evIsAttributeEvent) {
         this.canEndAttribute = currentIteration.canEndAttribute;
@@ -125,9 +116,9 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
 
     if (currentIteration.canEnd) {
       if (this.nextIteration === undefined) {
-        this.nextIteration = this.subPat.newWalker(this.nameResolver);
+        this.nextIteration = this.subPat.newWalker();
       }
-      const nextRet = this.nextIteration.fireEvent(name, params);
+      const nextRet = this.nextIteration.fireEvent(name, params, nameResolver);
       if (nextRet.matched) {
         if (currentIteration.end()) {
           throw new Error(

@@ -6,8 +6,8 @@
  */
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, OneSubpattern } from "./base";
+import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
+         InternalWalker, OneSubpattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -33,9 +33,9 @@ export class List extends OneSubpattern {
     return false;
   }
 
-  newWalker(nameResolver: NameResolver): InternalWalker<List> {
+  newWalker(): InternalWalker<List> {
     // tslint:disable-next-line:no-use-before-declare
-    return new ListWalker(this, nameResolver);
+    return new ListWalker(this);
   }
 }
 
@@ -46,36 +46,30 @@ export class List extends OneSubpattern {
 class ListWalker extends InternalWalker<List> {
   protected readonly el: List;
   private subwalker: InternalWalker<BasePattern>;
-  private readonly nameResolver: NameResolver;
   canEnd: boolean;
   canEndAttribute: boolean;
 
-  constructor(other: ListWalker, memo: CloneMap);
-  constructor(el: List, nameResolver: NameResolver);
-  constructor(elOrWalker: List | ListWalker,
-              nameResolverOrMemo: NameResolver | CloneMap) {
+  constructor(other: ListWalker);
+  constructor(el: List);
+  constructor(elOrWalker: List | ListWalker) {
     super();
     if ((elOrWalker as List).newWalker !== undefined) {
       const el = elOrWalker as List;
-      const nameResolver = nameResolverOrMemo as NameResolver;
       this.el = el;
-      this.nameResolver = nameResolver;
-      this.subwalker = el.pat.newWalker(nameResolver);
+      this.subwalker = el.pat.newWalker();
       this.canEndAttribute = this.canEnd = this.hasEmptyPattern();
     }
     else {
       const walker = elOrWalker as ListWalker;
-      const memo = nameResolverOrMemo as CloneMap;
       this.el = walker.el;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
-      this.subwalker = walker.subwalker._clone(memo);
+      this.subwalker = walker.subwalker._clone();
       this.canEnd = walker.canEnd;
       this.canEndAttribute = walker.canEndAttribute;
     }
   }
 
-  _clone(memo: CloneMap): this {
-    return new ListWalker(this, memo) as this;
+  _clone(): this {
+    return new ListWalker(this) as this;
   }
 
   possible(): EventSet {
@@ -86,7 +80,8 @@ class ListWalker extends InternalWalker<List> {
     return new Set<Event>();
   }
 
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     // Only this can match.
     if (name !== "text") {
       return new InternalFireEventResult(false);
@@ -104,7 +99,7 @@ class ListWalker extends InternalWalker<List> {
     // above.
     let ret!: InternalFireEventResult;
     for (const token of trimmed.split(/\s+/)) {
-      ret = this.subwalker.fireEvent("text", [token]);
+      ret = this.subwalker.fireEvent("text", [token], nameResolver);
       if (!ret.matched) {
         this.canEndAttribute = this.canEnd = false;
 

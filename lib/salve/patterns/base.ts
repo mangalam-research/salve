@@ -204,10 +204,6 @@ if (DEBUG) {
 
 export type EventSet = Set<Event>;
 
-export interface Clonable {
-  clone(): this;
-}
-
 export type FireEventResult = false | undefined | ValidationError[];
 
 export class InternalFireEventResult {
@@ -325,7 +321,7 @@ export abstract class Pattern extends BasePattern {
    *
    * @returns A walker.
    */
-  newWalker(resolver: NameResolver): InternalWalker<BasePattern> {
+  newWalker(): InternalWalker<BasePattern> {
     // Rather than make it abstract, we provide a default implementation for
     // this method, which throws an exception if called. We could probably
     // reorganize the code to do without but a) we would not gain much b) it
@@ -532,38 +528,6 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
   /* tslint:enable */
 }
 
-export type CloneMap = Map<any, any>;
-
-/**
- * Helper method for cloning. This method should be called to clone objects that
- * do not participate in the ``clone``, protocol. This typically means instance
- * properties that are not ``Walker`` objects and not immutable.
- *
- * This method will call a ``clone`` method on ``obj``, when it determines
- * that cloning must happen.
- *
- * @param obj The object to clone.
- *
- * @param memo A mapping of old object to copy object. As a tree of patterns
- * is being cloned, this memo is populated. So if A is cloned to B then a
- * mapping from A to B is stored in the memo. If A is seen again in the same
- * cloning operation, then it will be substituted with B instead of creating a
- * new object. This should be the same object as the one passed to the
- * constructor.
- *
- * @returns A clone of ``obj``.
- */
-export function cloneIfNeeded<C extends Clonable>(obj: C, memo: CloneMap): C {
-  let other = memo.get(obj);
-  if (other !== undefined) {
-    return other as C;
-  }
-  other = obj.clone();
-  memo.set(obj, other);
-
-  return other;
-}
-
 /**
  * Roughly speaking each [[Pattern]] object has a corresponding ``Walker`` class
  * that models an object which is able to walk the pattern to which it
@@ -590,7 +554,7 @@ export abstract class BaseWalker<T extends BasePattern> {
    * @returns A deep copy of the Walker.
    */
   clone(): this {
-    return this._clone(new Map<any, any>());
+    return this._clone();
   }
 
  /**
@@ -612,7 +576,7 @@ export abstract class BaseWalker<T extends BasePattern> {
   *
   * @returns The clone.
   */
-  abstract _clone(memo: CloneMap): this;
+  abstract _clone(): this;
 
   hasEmptyPattern(): boolean {
     return this.el.hasEmptyPattern();
@@ -632,11 +596,14 @@ export abstract class InternalWalker<T extends BasePattern>
    *
    * @param params The event parameters.
    *
+   * @param nameResolver The name resolver to use to resolve names.
+   *
    * @returns The value ``false`` if there was no error. The value ``undefined``
    * if no walker matches the pattern. Otherwise, an array of
    * [[ValidationError]] objects.
    */
-  abstract fireEvent(name: string, params: string[]): InternalFireEventResult;
+  abstract fireEvent(name: string, params: string[],
+                     nameResolver: NameResolver): InternalFireEventResult;
 
   /**
    * Flag indicating whether the walker can end.

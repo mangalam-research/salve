@@ -12,9 +12,8 @@ import { NameResolver } from "../name_resolver";
 import { filter, union } from "../set";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
-import { BasePattern, BaseWalker, cloneIfNeeded, CloneMap, EndResult, Event,
-         EventSet, FireEventResult, InternalFireEventResult, InternalWalker,
-         Pattern } from "./base";
+import { BasePattern, BaseWalker, EndResult, Event, EventSet, FireEventResult,
+         InternalFireEventResult, InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
 import { Ref } from "./ref";
@@ -180,11 +179,12 @@ export class Grammar extends BasePattern {
 }
 
 interface IWalker {
-  fireEvent(name: string, params: string[]): InternalFireEventResult;
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult;
   canEnd: boolean;
   canEndAttribute: boolean;
   end(attribute?: boolean): EndResult;
-  _clone(memo: CloneMap): IWalker;
+  _clone(): IWalker;
   possible(): EventSet;
 }
 
@@ -213,7 +213,7 @@ class MisplacedElementWalker implements IWalker {
     return new Set<Event>();
   }
 
-  _clone<T extends this>(this: T, memo: CloneMap): T {
+  _clone<T extends this>(this: T): T {
     return new (this.constructor as { new (...args: any[]): T })();
   }
 }
@@ -240,9 +240,9 @@ export class GrammarWalker extends BaseWalker<Grammar> {
    * @param el The grammar for which this walker was
    * created.
    */
-  protected constructor(walker: GrammarWalker, memo: CloneMap);
+  protected constructor(walker: GrammarWalker);
   protected constructor(el: Grammar);
-  protected constructor(elOrWalker: GrammarWalker | Grammar, memo?: CloneMap) {
+  protected constructor(elOrWalker: GrammarWalker | Grammar) {
     super();
     if ((elOrWalker as Grammar).newWalker !== undefined) {
       const grammar = elOrWalker as Grammar;
@@ -250,17 +250,15 @@ export class GrammarWalker extends BaseWalker<Grammar> {
       this.nameResolver = new NameResolver();
       this._swallowAttributeValue = false;
       this.ignoreNextWs = false;
-      this.elementWalkerStack = [[grammar.start.newWalker(this.nameResolver)]];
+      this.elementWalkerStack = [[grammar.start.newWalker()]];
       this.misplacedDepth = 0;
     }
     else {
       const walker = elOrWalker as GrammarWalker;
       this.el = walker.el;
-      // tslint:disable-next-line:no-non-null-assertion
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo!);
+      this.nameResolver = walker.nameResolver.clone();
       this.elementWalkerStack = walker.elementWalkerStack
-      // tslint:disable-next-line:no-non-null-assertion
-        .map((walkers) => walkers.map((x) => x._clone(memo!)));
+        .map((walkers) => walkers.map((x) => x._clone()));
       this.misplacedDepth = walker.misplacedDepth;
       this._swallowAttributeValue = walker._swallowAttributeValue;
       this.suspendedWs = walker.suspendedWs;
@@ -272,8 +270,8 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     return new GrammarWalker(el);
   }
 
-  _clone(memo: CloneMap): this {
-    return new GrammarWalker(this, memo) as this;
+  _clone(): this {
+    return new GrammarWalker(this) as this;
   }
 
   /**
@@ -400,11 +398,10 @@ export class GrammarWalker extends BaseWalker<Grammar> {
         const newWalkers: InternalWalker<BasePattern>[] = [];
         const boundName = new Name("", params[0], params[1]);
         for (const item of ret.refs) {
-          const walker = item.element.newWalker(this.nameResolver,
-                                                boundName);
+          const walker = item.element.newWalker(boundName);
           // If we get anything else than false here, the internal logic is
           // wrong.
-          if (!walker.fireEvent(name, params).matched) {
+          if (!walker.fireEvent(name, params, this.nameResolver).matched) {
             throw new Error("error or failed to match on a new element \
 walker: the internal logic is incorrect");
           }
@@ -438,9 +435,10 @@ walker: the internal logic is incorrect");
             const candidates = this.el.elementDefinitions[elName.toString()];
             if (candidates !== undefined && candidates.length === 1) {
               const newWalker =
-                candidates[0].newWalker(this.nameResolver, elName);
+                candidates[0].newWalker(elName);
               this.elementWalkerStack.unshift([newWalker]);
-              if (!newWalker.fireEvent(name, params).matched) {
+              if (!newWalker.fireEvent(name, params,
+                                       this.nameResolver).matched) {
                 throw new Error("internal error: the inferred element " +
                                 "does not accept its initial event");
               }
@@ -529,7 +527,7 @@ ${name}`);
     const ret = new InternalFireEventResult(true);
     const remainingWalkers: IWalker[] = [];
     for (const walker of walkers) {
-      const result = walker.fireEvent(name, params);
+      const result = walker.fireEvent(name, params, this.nameResolver);
       // We immediately filter out results that report a match (i.e. false).
       if (result.matched) {
         remainingWalkers.push(walker);

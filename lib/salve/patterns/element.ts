@@ -7,8 +7,8 @@
 import { ElementNameError } from "../errors";
 import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
-import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, Pattern } from "./base";
+import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
+         InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { NotAllowed } from "./not_allowed";
 import { Ref } from "./ref";
@@ -32,12 +32,11 @@ export class Element extends BasePattern {
     this.notAllowed = this.pat instanceof NotAllowed;
   }
 
-  newWalker(resolver: NameResolver,
-            boundName: Name): InternalWalker<BasePattern> {
+  newWalker(boundName: Name): InternalWalker<BasePattern> {
     return this.notAllowed ?
-      this.pat.newWalker(resolver) :
+      this.pat.newWalker() :
       // tslint:disable-next-line:no-use-before-declare
-      new ElementWalker(this, resolver, boundName);
+      new ElementWalker(this, boundName);
   }
 
   hasAttrs(): boolean {
@@ -71,29 +70,24 @@ class ElementWalker extends InternalWalker<Element> {
   private walker: InternalWalker<BasePattern>;
   private endTagEvent: Event;
   private boundName: Name;
-  private readonly nameResolver: NameResolver;
   canEndAttribute: boolean;
   canEnd: boolean;
 
   /**
-   * @param el The pattern for which this walker was
-   * created.
+   * @param el The pattern for which this walker was created.
    *
-   * @param nameResolver The name resolver that
-   * can be used to convert namespace prefixes to namespaces.
+   * @param boundName The name actually used in the XML document being
+   * validated. Name classes allow for multiple possible names. We need to know
+   * which *specific* name was actually used in the XML.
    */
-  constructor(walker: ElementWalker, memo: CloneMap);
-  constructor(el: Element, nameResolver: NameResolver, boundName: Name);
-  constructor(elOrWalker: ElementWalker | Element,
-              nameResolverOrMemo: NameResolver | CloneMap,
-              boundName?: Name) {
+  constructor(walker: ElementWalker);
+  constructor(el: Element, boundName: Name);
+  constructor(elOrWalker: ElementWalker | Element, boundName?: Name) {
     super();
     if ((elOrWalker as Element).newWalker !== undefined) {
       const el = elOrWalker as Element;
-      const nameResolver = nameResolverOrMemo as NameResolver;
       this.el = el;
-      this.nameResolver = nameResolver;
-      this.walker = el.pat.newWalker(nameResolver);
+      this.walker = el.pat.newWalker();
       this.endedStartTag = false;
       // tslint:disable-next-line:no-non-null-assertion
       this.boundName = boundName!;
@@ -103,11 +97,9 @@ class ElementWalker extends InternalWalker<Element> {
     }
     else {
       const walker = elOrWalker as ElementWalker;
-      const memo = nameResolverOrMemo as CloneMap;
       this.el = walker.el;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
       this.endedStartTag = walker.endedStartTag;
-      this.walker = walker.walker._clone(memo);
+      this.walker = walker.walker._clone();
 
       // No cloning needed since these are immutable.
       this.endTagEvent = walker.endTagEvent;
@@ -117,8 +109,8 @@ class ElementWalker extends InternalWalker<Element> {
     }
   }
 
-  _clone(memo: CloneMap): this {
-    return new ElementWalker(this, memo) as this;
+  _clone(): this {
+    return new ElementWalker(this) as this;
   }
 
   possible(): EventSet {
@@ -158,7 +150,8 @@ class ElementWalker extends InternalWalker<Element> {
     throw new Error("calling possibleAttributes on ElementWalker is invalid");
   }
 
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     // This is not a useful optimization. canEnd becomes true once we see
     // the end tag, which means that this walker will be popped of
     // GrammarWalker's stack and won't be called again.
@@ -178,7 +171,7 @@ class ElementWalker extends InternalWalker<Element> {
         return InternalFireEventResult.fromEndResult(walker.end());
       }
 
-      return walker.fireEvent(name, params);
+      return walker.fireEvent(name, params, nameResolver);
     }
 
     switch (name) {
@@ -197,7 +190,7 @@ class ElementWalker extends InternalWalker<Element> {
         for (let ix = 2; ix < params.length; ix += 3) {
           const attrRet = walker.fireEvent("attributeNameAndValue",
                                            [params[ix], params[ix + 1],
-                                            params[ix + 2]]);
+                                            params[ix + 2]], nameResolver);
           if (!attrRet.matched) {
             return attrRet;
           }
@@ -213,7 +206,7 @@ class ElementWalker extends InternalWalker<Element> {
       default:
     }
 
-    return walker.fireEvent(name, params);
+    return walker.fireEvent(name, params, nameResolver);
   }
 
   end(): EndResult {
