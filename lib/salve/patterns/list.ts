@@ -34,8 +34,12 @@ export class List extends OneSubpattern {
   }
 
   newWalker(): InternalWalker<List> {
+    const hasEmptyPattern = this.hasEmptyPattern();
     // tslint:disable-next-line:no-use-before-declare
-    return new ListWalker(this);
+    return new ListWalker(this,
+                          this.pat.newWalker(),
+                          hasEmptyPattern,
+                          hasEmptyPattern);
   }
 }
 
@@ -44,32 +48,18 @@ export class List extends OneSubpattern {
  *
  */
 class ListWalker extends InternalWalker<List> {
-  protected readonly el: List;
-  private subwalker: InternalWalker<BasePattern>;
-  canEnd: boolean;
-  canEndAttribute: boolean;
-
-  constructor(other: ListWalker);
-  constructor(el: List);
-  constructor(elOrWalker: List | ListWalker) {
+  constructor(protected readonly el: List,
+              private readonly subwalker: InternalWalker<BasePattern>,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {
     super();
-    if ((elOrWalker as List).newWalker !== undefined) {
-      const el = elOrWalker as List;
-      this.el = el;
-      this.subwalker = el.pat.newWalker();
-      this.canEndAttribute = this.canEnd = this.hasEmptyPattern();
-    }
-    else {
-      const walker = elOrWalker as ListWalker;
-      this.el = walker.el;
-      this.subwalker = walker.subwalker._clone();
-      this.canEnd = walker.canEnd;
-      this.canEndAttribute = walker.canEndAttribute;
-    }
   }
 
   _clone(): this {
-    return new ListWalker(this) as this;
+    return new ListWalker(this.el,
+                          this.subwalker._clone(),
+                          this.canEndAttribute,
+                          this.canEnd) as this;
   }
 
   possible(): EventSet {

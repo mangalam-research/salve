@@ -29,11 +29,31 @@ export class Choice extends TwoSubpatterns {
   }
 
   newWalker(): InternalWalker<Choice> {
-    return this.optional ?
+    const hasAttrs = this.hasAttrs();
+    const walkerB = this.patB.newWalker();
+    if (this.optional) {
       // tslint:disable-next-line:no-use-before-declare
-      new OptionalChoiceWalker(this) :
+      return new OptionalChoiceWalker(this,
+                                      walkerB,
+                                      hasAttrs,
+                                      false,
+                                      true,
+                                      true);
+    }
+    else {
+      const walkerA = this.patA.newWalker();
+
       // tslint:disable-next-line:no-use-before-declare
-      new ChoiceWalker(this);
+      return new ChoiceWalker(this,
+                              walkerA,
+                              walkerB,
+                              hasAttrs,
+                              false,
+                              false,
+                              !hasAttrs || walkerA.canEndAttribute ||
+                              walkerB.canEndAttribute,
+                              walkerA.canEnd || walkerB.canEnd);
+    }
   }
 }
 
@@ -41,47 +61,27 @@ export class Choice extends TwoSubpatterns {
  * Walker for [[Choice]].
  */
 class ChoiceWalker extends InternalWalker<Choice> {
-  protected readonly el: Choice;
-  private readonly hasAttrs: boolean;
-  private readonly walkerA: InternalWalker<BasePattern>;
-  private readonly walkerB: InternalWalker<BasePattern>;
-  private deactivateA: boolean;
-  private deactivateB: boolean;
-  canEndAttribute: boolean;
-  canEnd: boolean;
-
-  constructor(walker: ChoiceWalker);
-  constructor(el: Choice);
-  constructor(elOrWalker: ChoiceWalker | Choice)
+  constructor(protected readonly el: Choice,
+              private readonly walkerA: InternalWalker<BasePattern>,
+              private readonly walkerB: InternalWalker<BasePattern>,
+              private readonly hasAttrs: boolean,
+              private deactivateA: boolean,
+              private deactivateB: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean)
   {
     super();
-    if ((elOrWalker as Choice).newWalker !== undefined) {
-      const el = elOrWalker as Choice;
-      this.el = el;
-      this.hasAttrs = el.hasAttrs();
-      this.deactivateA = false;
-      this.deactivateB = false;
-      const walkerA = this.walkerA = el.patA.newWalker();
-      const walkerB = this.walkerB = el.patB.newWalker();
-      this.canEndAttribute = !this.hasAttrs ||
-        walkerA.canEndAttribute || walkerB.canEndAttribute;
-      this.canEnd = walkerA.canEnd || walkerB.canEnd;
-    }
-    else {
-      const walker = elOrWalker as ChoiceWalker;
-      this.el = walker.el;
-      this.hasAttrs = walker.hasAttrs;
-      this.walkerA = walker.walkerA._clone();
-      this.walkerB = walker.walkerB._clone();
-      this.deactivateA = walker.deactivateA;
-      this.deactivateB = walker.deactivateB;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
   }
 
   _clone(): this {
-    return new ChoiceWalker(this) as this;
+    return new ChoiceWalker(this.el,
+                            this.walkerA._clone(),
+                            this.walkerB._clone(),
+                            this.hasAttrs,
+                            this.deactivateA,
+                            this.deactivateB,
+                            this.canEndAttribute,
+                            this.canEnd) as this;
   }
 
   possible(): EventSet {
@@ -278,40 +278,23 @@ class ChoiceWalker extends InternalWalker<Choice> {
  * Walker for [[Choice]].
  */
 class OptionalChoiceWalker extends InternalWalker<Choice> {
-  protected readonly el: Choice;
-  private readonly hasAttrs: boolean;
-  private readonly walkerB: InternalWalker<BasePattern>;
-  private ended: boolean;
-  canEndAttribute: boolean;
-  canEnd: boolean;
-
-  constructor(walker: OptionalChoiceWalker);
-  constructor(el: Choice);
-  constructor(elOrWalker: OptionalChoiceWalker | Choice)
+  constructor(protected readonly el: Choice,
+              private readonly walkerB: InternalWalker<BasePattern>,
+              private readonly hasAttrs: boolean,
+              private ended: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean)
   {
     super();
-    if ((elOrWalker as Choice).newWalker !== undefined) {
-      const el = elOrWalker as Choice;
-      this.el = el;
-      this.hasAttrs = el.hasAttrs();
-      this.ended = false;
-      this.walkerB = el.patB.newWalker();
-      this.canEndAttribute = true;
-      this.canEnd = true;
-    }
-    else {
-      const walker = elOrWalker as OptionalChoiceWalker;
-      this.el = walker.el;
-      this.hasAttrs = walker.hasAttrs;
-      this.walkerB = walker.walkerB._clone();
-      this.ended = walker.ended;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
   }
 
   _clone(): this {
-    return new OptionalChoiceWalker(this) as this;
+    return new OptionalChoiceWalker(this.el,
+                                    this.walkerB._clone(),
+                                    this.hasAttrs,
+                                    this.ended,
+                                    this.canEndAttribute,
+                                    this.canEnd) as this;
   }
 
   possible(): EventSet {

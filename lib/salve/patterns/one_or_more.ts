@@ -18,8 +18,17 @@ export class  OneOrMore extends OneSubpattern {
   }
 
   newWalker(): InternalWalker<OneOrMore> {
+    const hasAttrs = this.hasAttrs();
+    const currentIteration = this.pat.newWalker();
+
     // tslint:disable-next-line:no-use-before-declare
-    return new OneOrMoreWalker(this);
+    return new OneOrMoreWalker(this,
+                               currentIteration,
+                               undefined,
+                               hasAttrs,
+                               this.pat,
+                               !hasAttrs || currentIteration.canEndAttribute,
+                               currentIteration.canEnd);
   }
 }
 
@@ -27,46 +36,25 @@ export class  OneOrMore extends OneSubpattern {
  * Walker for [[OneOrMore]]
  */
 class OneOrMoreWalker extends InternalWalker<OneOrMore> {
-  protected readonly el: OneOrMore;
-  private readonly subPat: Pattern;
-  private readonly hasAttrs: boolean;
-  private currentIteration: InternalWalker<BasePattern>;
-  private nextIteration: InternalWalker<BasePattern> | undefined;
-  canEndAttribute: boolean;
-  canEnd: boolean;
-
-  /**
-   * @param el The pattern for which this walker was created.
-   */
-  constructor(walker: OneOrMoreWalker);
-  constructor(el: OneOrMore);
-  constructor(elOrWalker: OneOrMoreWalker | OneOrMore) {
+  constructor(protected readonly el: OneOrMore,
+              private currentIteration: InternalWalker<BasePattern>,
+              private nextIteration: InternalWalker<BasePattern> | undefined,
+              private readonly hasAttrs: boolean,
+              private readonly subPat: Pattern,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {
     super();
-    if ((elOrWalker as OneOrMore).newWalker !== undefined) {
-      const el = elOrWalker as OneOrMore;
-      this.el = el;
-      this.subPat = el.pat;
-      this.hasAttrs = el.hasAttrs();
-      this.currentIteration = el.pat.newWalker();
-      this.canEndAttribute = !this.hasAttrs ||
-        this.currentIteration.canEndAttribute;
-      this.canEnd = this.currentIteration.canEnd;
-    }
-    else {
-      const walker = elOrWalker as OneOrMoreWalker;
-      this.el = walker.el;
-      this.subPat = walker.subPat;
-      this.hasAttrs = walker.hasAttrs;
-      this.currentIteration = walker.currentIteration._clone();
-      this.nextIteration = walker.nextIteration !== undefined ?
-        walker.nextIteration._clone() : undefined;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
   }
 
   _clone(): this {
-    return new OneOrMoreWalker(this) as this;
+    return new OneOrMoreWalker(this.el,
+                               this.currentIteration._clone(),
+                               this.nextIteration !== undefined ?
+                               this.nextIteration._clone() : undefined,
+                               this.hasAttrs,
+                               this.subPat,
+                               this.canEndAttribute,
+                               this.canEnd) as this;
   }
 
   possible(): EventSet {

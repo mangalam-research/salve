@@ -33,10 +33,16 @@ export class Element extends BasePattern {
   }
 
   newWalker(boundName: Name): InternalWalker<BasePattern> {
-    return this.notAllowed ?
+    return (this.notAllowed) ?
       this.pat.newWalker() :
       // tslint:disable-next-line:no-use-before-declare
-      new ElementWalker(this, boundName);
+      new ElementWalker(this,
+                        this.pat.newWalker(),
+                        false,
+                        new Event("endTag", boundName),
+                        boundName,
+                        true,
+                        false);
   }
 
   hasAttrs(): boolean {
@@ -65,52 +71,24 @@ export class Element extends BasePattern {
 class ElementWalker extends InternalWalker<Element> {
   private static _leaveStartTagEvent: Event = new Event("leaveStartTag");
 
-  protected readonly el: Element;
-  private endedStartTag: boolean;
-  private walker: InternalWalker<BasePattern>;
-  private endTagEvent: Event;
-  private boundName: Name;
-  canEndAttribute: boolean;
-  canEnd: boolean;
-
-  /**
-   * @param el The pattern for which this walker was created.
-   *
-   * @param boundName The name actually used in the XML document being
-   * validated. Name classes allow for multiple possible names. We need to know
-   * which *specific* name was actually used in the XML.
-   */
-  constructor(walker: ElementWalker);
-  constructor(el: Element, boundName: Name);
-  constructor(elOrWalker: ElementWalker | Element, boundName?: Name) {
+  constructor(protected readonly el: Element,
+              private readonly walker: InternalWalker<BasePattern>,
+              private endedStartTag: boolean,
+              private readonly endTagEvent: Event,
+              private boundName: Name,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {
     super();
-    if ((elOrWalker as Element).newWalker !== undefined) {
-      const el = elOrWalker as Element;
-      this.el = el;
-      this.walker = el.pat.newWalker();
-      this.endedStartTag = false;
-      // tslint:disable-next-line:no-non-null-assertion
-      this.boundName = boundName!;
-      this.endTagEvent = new Event("endTag", this.boundName);
-      this.canEndAttribute = true;
-      this.canEnd = false;
-    }
-    else {
-      const walker = elOrWalker as ElementWalker;
-      this.el = walker.el;
-      this.endedStartTag = walker.endedStartTag;
-      this.walker = walker.walker._clone();
-
-      // No cloning needed since these are immutable.
-      this.endTagEvent = walker.endTagEvent;
-      this.boundName = walker.boundName;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
   }
 
   _clone(): this {
-    return new ElementWalker(this) as this;
+    return new ElementWalker(this.el,
+                             this.walker._clone(),
+                             this.endedStartTag,
+                             this.endTagEvent,
+                             this.boundName,
+                             this.canEndAttribute,
+                             this.canEnd) as this;
   }
 
   possible(): EventSet {

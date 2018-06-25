@@ -19,8 +19,20 @@ export class Group extends TwoSubpatterns {
   }
 
   newWalker(): InternalWalker<Group> {
+    const hasAttrs = this.hasAttrs();
+    const walkerA = this.patA.newWalker();
+    const walkerB = this.patB.newWalker();
+
     // tslint:disable-next-line:no-use-before-declare
-    return new GroupWalker(this);
+    return new GroupWalker(this,
+                           walkerA,
+                           walkerB,
+                           hasAttrs,
+                           false,
+                           false,
+                           !hasAttrs ||
+                           (walkerA.canEndAttribute && walkerB.canEndAttribute),
+                           walkerA.canEnd && walkerB.canEnd);
   }
 }
 
@@ -28,49 +40,26 @@ export class Group extends TwoSubpatterns {
  * Walker for [[Group]].
  */
 class GroupWalker extends InternalWalker<Group> {
-  protected readonly el: Group;
-  private readonly hasAttrs: boolean;
-  private ended: boolean;
-  private walkerA: InternalWalker<BasePattern>;
-  private walkerB: InternalWalker<BasePattern>;
-  private endedA: boolean;
-  canEndAttribute: boolean;
-  canEnd: boolean;
-
-  /**
-   * @param el The pattern for which this walker was created.
-   */
-  constructor(walker: GroupWalker);
-  constructor(el: Group);
-  constructor(elOrWalker: GroupWalker | Group) {
+  constructor(protected readonly el: Group,
+              private readonly walkerA: InternalWalker<BasePattern>,
+              private readonly walkerB: InternalWalker<BasePattern>,
+              private readonly hasAttrs: boolean,
+              private ended: boolean,
+              private endedA: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {
     super();
-    if ((elOrWalker as Group).newWalker !== undefined) {
-      const el = elOrWalker as Group;
-      this.el = el;
-      this.hasAttrs = el.hasAttrs();
-      this.ended = false;
-      const walkerA = this.walkerA = el.patA.newWalker();
-      const walkerB = this.walkerB = el.patB.newWalker();
-      this.endedA = false;
-      this.canEndAttribute = !this.hasAttrs ||
-        (walkerA.canEndAttribute && walkerB.canEndAttribute);
-      this.canEnd = walkerA.canEnd && walkerB.canEnd;
-    }
-    else {
-      const walker = elOrWalker as GroupWalker;
-      this.el = walker.el;
-      this.hasAttrs = walker.hasAttrs;
-      this.walkerA = walker.walkerA._clone();
-      this.walkerB = walker.walkerB._clone();
-      this.endedA = walker.endedA;
-      this.ended = walker.ended;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
   }
 
   _clone(): this {
-    return new GroupWalker(this) as this;
+    return new GroupWalker(this.el,
+                           this.walkerA._clone(),
+                           this.walkerB._clone(),
+                           this.hasAttrs,
+                           this.ended,
+                           this.endedA,
+                           this.canEndAttribute,
+                           this.canEnd) as this;
   }
 
   possible(): EventSet {

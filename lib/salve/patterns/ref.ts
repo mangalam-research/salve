@@ -43,47 +43,38 @@ resolved");
   }
 
   newWalker(): InternalWalker<Ref> {
+    const element = this.element;
+
     // tslint:disable-next-line:no-use-before-declare
-    return new RefWalker(this);
+    return new RefWalker(this,
+                         element,
+                         element.name,
+                         new Event("enterStartTag", element.name),
+                         true,
+                         false);
   }
 }
 
 export class RefWalker extends InternalWalker<Ref> {
-  protected readonly el: Ref;
-  private startName: ConcreteName;
-  private startTagEvent: Event;
-  canEndAttribute: boolean;
-  canEnd: boolean;
-  readonly element: Element;
-
   /**
    * @param el The pattern for which this walker was constructed.
    */
-  constructor(walker: RefWalker);
-  constructor(el: Ref);
-  constructor(elOrWalker: RefWalker | Ref) {
+  constructor(protected readonly el: Ref,
+              readonly element: Element,
+              private readonly startName: ConcreteName,
+              private readonly startTagEvent: Event,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {
     super();
-    if ((elOrWalker as Ref).newWalker !== undefined) {
-      this.el = elOrWalker as Ref;
-      this.element = elOrWalker.element;
-      this.startName = elOrWalker.element.name;
-      this.startTagEvent = new Event("enterStartTag", this.startName);
-      this.canEndAttribute = true;
-      this.canEnd = false;
-    }
-    else {
-      const walker = elOrWalker as RefWalker;
-      this.el = walker.el;
-      this.startName = walker.startName;
-      this.startTagEvent = walker.startTagEvent;
-      this.element = walker.element;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
   }
 
   _clone(): this {
-    return new RefWalker(this) as this;
+    return new RefWalker(this.el,
+                         this.element,
+                         this.startName,
+                         this.startTagEvent,
+                         this.canEndAttribute,
+                         this.canEnd) as this;
   }
 
   possible(): EventSet {

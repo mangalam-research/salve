@@ -60,8 +60,13 @@ export class Data extends Pattern {
   }
 
   newWalker(): InternalWalker<Data> {
+    const allowsEmptyContent = this.allowsEmptyContent();
+
     // tslint:disable-next-line:no-use-before-declare
-    return new DataWalker(this);
+    return new DataWalker(this,
+                          false,
+                          allowsEmptyContent,
+                          allowsEmptyContent);
   }
 }
 
@@ -69,39 +74,18 @@ export class Data extends Pattern {
  * Walker for [[Data]].
  */
 class DataWalker extends InternalWalker<Data> {
-  protected readonly el: Data;
-  private matched: boolean;
-  canEndAttribute: boolean;
-  canEnd: boolean;
-
-  /**
-   * @param el The pattern for which this walker was created.
-   *
-   * @param resolver The name resolver that can be used to convert namespace
-   * prefixes to namespaces.
-   */
-  constructor(other: DataWalker);
-  constructor(el: Data);
-  constructor(elOrWalker: DataWalker | Data) {
+  constructor(protected readonly el: Data,
+              private matched: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {
     super();
-    if ((elOrWalker as Data).newWalker !== undefined) {
-      const el = elOrWalker as Data;
-      this.el = el;
-      this.matched = false;
-      this.canEnd = this.el.allowsEmptyContent();
-      this.canEndAttribute = this.canEnd;
-    }
-    else {
-      const walker = elOrWalker as DataWalker;
-      this.el = walker.el;
-      this.matched = walker.matched;
-      this.canEnd = walker.canEnd;
-      this.canEndAttribute = walker.canEndAttribute;
-    }
   }
 
   _clone(): this {
-    return new DataWalker(this) as this;
+    return new DataWalker(this.el,
+                          this.matched,
+                          this.canEndAttribute,
+                          this.canEnd) as this;
   }
 
   possible(): EventSet {

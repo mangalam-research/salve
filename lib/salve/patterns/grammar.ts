@@ -222,56 +222,35 @@ class MisplacedElementWalker implements IWalker {
  * Walker for [[Grammar]].
  */
 export class GrammarWalker extends BaseWalker<Grammar> {
-  protected readonly el: Grammar;
-
-  private readonly nameResolver: NameResolver;
-
-  private _swallowAttributeValue: boolean;
-
-  private suspendedWs: string | undefined;
-
-  private ignoreNextWs: boolean;
-
-  private elementWalkerStack: IWalker[][];
-
-  private misplacedDepth: number;
-
-  /**
-   * @param el The grammar for which this walker was
-   * created.
-   */
-  protected constructor(walker: GrammarWalker);
-  protected constructor(el: Grammar);
-  protected constructor(elOrWalker: GrammarWalker | Grammar) {
+  private constructor(protected readonly el: Grammar,
+                      private readonly nameResolver: NameResolver,
+                      private elementWalkerStack: IWalker[][],
+                      private misplacedDepth: number,
+                      private _swallowAttributeValue: boolean,
+                      private suspendedWs: string | undefined,
+                      private ignoreNextWs: boolean) {
     super();
-    if ((elOrWalker as Grammar).newWalker !== undefined) {
-      const grammar = elOrWalker as Grammar;
-      this.el = grammar;
-      this.nameResolver = new NameResolver();
-      this._swallowAttributeValue = false;
-      this.ignoreNextWs = false;
-      this.elementWalkerStack = [[grammar.start.newWalker()]];
-      this.misplacedDepth = 0;
-    }
-    else {
-      const walker = elOrWalker as GrammarWalker;
-      this.el = walker.el;
-      this.nameResolver = walker.nameResolver.clone();
-      this.elementWalkerStack = walker.elementWalkerStack
-        .map((walkers) => walkers.map((x) => x._clone()));
-      this.misplacedDepth = walker.misplacedDepth;
-      this._swallowAttributeValue = walker._swallowAttributeValue;
-      this.suspendedWs = walker.suspendedWs;
-      this.ignoreNextWs = walker.ignoreNextWs;
-    }
   }
 
   static make(el: Grammar): GrammarWalker {
-    return new GrammarWalker(el);
+    return new GrammarWalker(el,
+                             new NameResolver(),
+                             [[el.start.newWalker()]],
+                             0,
+                             false,
+                             undefined,
+                             false);
   }
 
   _clone(): this {
-    return new GrammarWalker(this) as this;
+    return new GrammarWalker(this.el,
+                             this.nameResolver.clone(),
+                             this.elementWalkerStack
+                             .map((walkers) => walkers.map((x) => x._clone())),
+                             this.misplacedDepth,
+                             this._swallowAttributeValue,
+                             this.suspendedWs,
+                             this.ignoreNextWs) as this;
   }
 
   /**

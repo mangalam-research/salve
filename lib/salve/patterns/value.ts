@@ -68,8 +68,13 @@ export class Value extends Pattern {
   }
 
   newWalker(): InternalWalker<Value> {
+    const hasEmptyPattern = this.hasEmptyPattern();
+
     // tslint:disable-next-line:no-use-before-declare
-    return new ValueWalker(this);
+    return new ValueWalker(this,
+                           false,
+                           hasEmptyPattern,
+                           hasEmptyPattern);
   }
 }
 
@@ -77,32 +82,18 @@ export class Value extends Pattern {
  * Walker for [[Value]].
  */
 class ValueWalker extends InternalWalker<Value> {
-  protected readonly el: Value;
-  private matched: boolean;
-  canEnd: boolean;
-  canEndAttribute: boolean;
-
-  constructor(other: ValueWalker);
-  constructor(el: Value);
-  constructor(elOrWalker: Value |  ValueWalker) {
+  constructor(protected readonly el: Value,
+              private matched: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {
     super();
-    if ((elOrWalker as Value).newWalker !== undefined) {
-      const el = elOrWalker as Value;
-      this.el = el;
-      this.matched = false;
-      this.canEndAttribute = this.canEnd = el.hasEmptyPattern();
-    }
-    else {
-      const walker = elOrWalker as ValueWalker;
-      this.el = walker.el;
-      this.matched = walker.matched;
-      this.canEnd = walker.canEnd;
-      this.canEndAttribute = walker.canEndAttribute;
-    }
   }
 
   _clone(): this {
-    return new ValueWalker(this) as this;
+    return new ValueWalker(this.el,
+                           this.matched,
+                           this.canEndAttribute,
+                           this.canEnd) as this;
   }
 
   possible(): EventSet {

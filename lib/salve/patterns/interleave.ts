@@ -18,8 +18,19 @@ export class Interleave extends TwoSubpatterns {
   }
 
   newWalker(): InternalWalker<Interleave> {
+    const hasAttrs = this.hasAttrs();
+    const walkerA = this.patA.newWalker();
+    const walkerB = this.patB.newWalker();
+
     // tslint:disable-next-line:no-use-before-declare
-    return new InterleaveWalker(this);
+    return new InterleaveWalker(this,
+                                walkerA,
+                                walkerB,
+                                hasAttrs,
+                                false,
+                                !hasAttrs || (walkerA.canEndAttribute &&
+                                              walkerB.canEndAttribute),
+                                walkerA.canEnd && walkerB.canEnd);
   }
 }
 
@@ -27,46 +38,24 @@ export class Interleave extends TwoSubpatterns {
  * Walker for [[Interleave]].
  */
 class InterleaveWalker extends InternalWalker<Interleave> {
-  protected readonly el: Interleave;
-  private ended: boolean;
-  private readonly hasAttrs: boolean;
-  private readonly walkerA: InternalWalker<BasePattern>;
-  private readonly walkerB: InternalWalker<BasePattern>;
-  canEndAttribute: boolean;
-  canEnd: boolean;
-
-  /**
-   * @param el The pattern for which this walker was created.
-   */
-  constructor(walker: InterleaveWalker);
-  constructor(el: Interleave);
-  constructor(elOrWalker: InterleaveWalker | Interleave) {
+  constructor(protected readonly el: Interleave,
+              private readonly walkerA: InternalWalker<BasePattern>,
+              private readonly walkerB: InternalWalker<BasePattern>,
+              private readonly hasAttrs: boolean,
+              private ended: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {
     super();
-    if ((elOrWalker as Interleave).newWalker !== undefined) {
-      const el = elOrWalker as Interleave;
-      this.el = el;
-      this.ended = false;
-      this.hasAttrs = el.hasAttrs();
-      this.walkerA = el.patA.newWalker();
-      this.walkerB = el.patB.newWalker();
-      this.canEndAttribute = !this.hasAttrs ||
-        (this.walkerA.canEndAttribute && this.walkerB.canEndAttribute);
-      this.canEnd = this.walkerA.canEnd && this.walkerB.canEnd;
-    }
-    else {
-      const walker = elOrWalker as InterleaveWalker;
-      this.el = walker.el;
-      this.ended = walker.ended;
-      this.hasAttrs = walker.hasAttrs;
-      this.walkerA = walker.walkerA._clone();
-      this.walkerB = walker.walkerB._clone();
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
   }
 
   _clone(): this {
-    return new InterleaveWalker(this) as this;
+    return new InterleaveWalker(this.el,
+                                this.walkerA._clone(),
+                                this.walkerB._clone(),
+                                this.hasAttrs,
+                                this.ended,
+                                this.canEndAttribute,
+                                this.canEnd) as this;
   }
 
   possible(): EventSet {

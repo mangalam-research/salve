@@ -49,7 +49,11 @@ export class Attribute extends Pattern {
 
   newWalker(): InternalWalker<Attribute> {
     // tslint:disable-next-line:no-use-before-declare
-    return new AttributeWalker(this);
+    return new AttributeWalker(this,
+                               this.pat.newWalker(),
+                               false, /* seenName */
+                               false,
+                               false);
   }
 }
 
@@ -57,42 +61,26 @@ export class Attribute extends Pattern {
  * Walker for [[Attribute]].
  */
 class AttributeWalker extends InternalWalker<Attribute> {
-  protected readonly el: Attribute;
-  private seenName: boolean;
-  private readonly subwalker: InternalWalker<BasePattern>;
   private readonly name: ConcreteName;
-  canEndAttribute: boolean;
-  canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was created.
    */
-  constructor(walker: AttributeWalker);
-  constructor(el: Attribute);
-  constructor(elOrWalker: AttributeWalker | Attribute) {
+  constructor(protected readonly el: Attribute,
+              private readonly subwalker: InternalWalker<BasePattern>,
+              private seenName: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {
     super();
-    if ((elOrWalker as Attribute).newWalker !== undefined) {
-      const el = elOrWalker as Attribute;
-      this.el = el;
-      this.subwalker = el.pat.newWalker();
-      this.name = el.name;
-      this.seenName = false;
-      this.canEndAttribute = false;
-      this.canEnd = false;
-    }
-    else {
-      const walker = elOrWalker as AttributeWalker;
-      this.el = walker.el;
-      this.seenName = walker.seenName;
-      this.subwalker = walker.subwalker._clone();
-      this.name = walker.name;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
+    this.name = el.name;
   }
 
   _clone(): this {
-    return new AttributeWalker(this) as this;
+    return new AttributeWalker(this.el,
+                               this.subwalker._clone(),
+                               this.seenName,
+                               this.canEndAttribute,
+                               this.canEnd) as this;
   }
 
   possible(): EventSet {
