@@ -196,7 +196,8 @@ class ElementWalker extends InternalWalker<Element> {
         // We need to handle all attributes and leave the start tag.
         for (let ix = 2; ix < params.length; ix += 3) {
           const attrRet = walker.fireEvent("attributeNameAndValue",
-                                           params.slice(ix, ix + 3));
+                                           [params[ix], params[ix + 1],
+                                            params[ix + 2]]);
           if (!attrRet.matched) {
             return attrRet;
           }

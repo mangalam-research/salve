@@ -122,7 +122,7 @@ function walk(check: boolean, state: State, el: Element): Element | null {
       else {
         while (el.children.length > 2) {
           const wrap = Element.makeElement(local);
-          wrap.appendChildren(el.children.slice(0, 2));
+          wrap.appendChildren([el.children[0], el.children[1]]);
           el.prependChild(wrap);
         }
       }
