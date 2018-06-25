@@ -8,9 +8,8 @@ import { ChoiceError, ValidationError } from "../errors";
 import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, isAttributeEvent, Pattern,
-         TwoSubpatterns } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         isAttributeEvent, Pattern, TwoSubpatterns } from "./base";
 import { Empty } from "./empty";
 
 /**
@@ -28,7 +27,7 @@ export class Choice extends TwoSubpatterns {
     return this.patA.hasEmptyPattern() || this.patB.hasEmptyPattern();
   }
 
-  newWalker(): InternalWalker<Choice> {
+  newWalker(): InternalWalker {
     const hasAttrs = this.hasAttrs();
     const walkerB = this.patB.newWalker();
     if (this.optional) {
@@ -60,18 +59,16 @@ export class Choice extends TwoSubpatterns {
 /**
  * Walker for [[Choice]].
  */
-class ChoiceWalker extends InternalWalker<Choice> {
+class ChoiceWalker implements InternalWalker {
   constructor(protected readonly el: Choice,
-              private readonly walkerA: InternalWalker<BasePattern>,
-              private readonly walkerB: InternalWalker<BasePattern>,
+              private readonly walkerA: InternalWalker,
+              private readonly walkerB: InternalWalker,
               private readonly hasAttrs: boolean,
               private deactivateA: boolean,
               private deactivateB: boolean,
               public canEndAttribute: boolean,
               public canEnd: boolean)
-  {
-    super();
-  }
+  {}
 
   clone(): this {
     return new ChoiceWalker(this.el,
@@ -277,16 +274,13 @@ class ChoiceWalker extends InternalWalker<Choice> {
 /**
  * Walker for [[Choice]].
  */
-class OptionalChoiceWalker extends InternalWalker<Choice> {
+class OptionalChoiceWalker implements InternalWalker {
   constructor(protected readonly el: Choice,
-              private readonly walkerB: InternalWalker<BasePattern>,
+              private readonly walkerB: InternalWalker,
               private readonly hasAttrs: boolean,
               private ended: boolean,
               public canEndAttribute: boolean,
-              public canEnd: boolean)
-  {
-    super();
-  }
+              public canEnd: boolean) {}
 
   clone(): this {
     return new OptionalChoiceWalker(this.el,

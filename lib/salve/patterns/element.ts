@@ -32,7 +32,7 @@ export class Element extends BasePattern {
     this.notAllowed = this.pat instanceof NotAllowed;
   }
 
-  newWalker(boundName: Name): InternalWalker<BasePattern> {
+  newWalker(boundName: Name): InternalWalker {
     return (this.notAllowed) ?
       this.pat.newWalker() :
       // tslint:disable-next-line:no-use-before-declare
@@ -68,18 +68,16 @@ export class Element extends BasePattern {
  *
  * Walker for [[Element]].
  */
-class ElementWalker extends InternalWalker<Element> {
+class ElementWalker implements InternalWalker {
   private static _leaveStartTagEvent: Event = new Event("leaveStartTag");
 
   constructor(protected readonly el: Element,
-              private readonly walker: InternalWalker<BasePattern>,
+              private readonly walker: InternalWalker,
               private endedStartTag: boolean,
               private readonly endTagEvent: Event,
               private boundName: Name,
               public canEndAttribute: boolean,
-              public canEnd: boolean) {
-    super();
-  }
+              public canEnd: boolean) {}
 
   clone(): this {
     return new ElementWalker(this.el,

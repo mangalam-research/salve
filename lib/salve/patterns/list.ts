@@ -6,8 +6,8 @@
  */
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, OneSubpattern } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         OneSubpattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -33,7 +33,7 @@ export class List extends OneSubpattern {
     return false;
   }
 
-  newWalker(): InternalWalker<List> {
+  newWalker(): InternalWalker {
     const hasEmptyPattern = this.hasEmptyPattern();
     // tslint:disable-next-line:no-use-before-declare
     return new ListWalker(this,
@@ -47,13 +47,11 @@ export class List extends OneSubpattern {
  * Walker for [[List]].
  *
  */
-class ListWalker extends InternalWalker<List> {
+class ListWalker implements InternalWalker {
   constructor(protected readonly el: List,
-              private readonly subwalker: InternalWalker<BasePattern>,
+              private readonly subwalker: InternalWalker,
               public canEndAttribute: boolean,
-              public canEnd: boolean) {
-    super();
-  }
+              public canEnd: boolean) {}
 
   clone(): this {
     return new ListWalker(this.el,

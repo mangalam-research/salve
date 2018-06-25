@@ -67,7 +67,7 @@ export class Value extends Pattern {
     return this.rawValue === "";
   }
 
-  newWalker(): InternalWalker<Value> {
+  newWalker(): InternalWalker {
     const hasEmptyPattern = this.hasEmptyPattern();
 
     // tslint:disable-next-line:no-use-before-declare
@@ -81,13 +81,11 @@ export class Value extends Pattern {
 /**
  * Walker for [[Value]].
  */
-class ValueWalker extends InternalWalker<Value> {
+class ValueWalker implements InternalWalker {
   constructor(protected readonly el: Value,
               private matched: boolean,
               public canEndAttribute: boolean,
-              public canEnd: boolean) {
-    super();
-  }
+              public canEnd: boolean) {}
 
   clone(): this {
     return new ValueWalker(this.el,

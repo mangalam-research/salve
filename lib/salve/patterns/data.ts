@@ -59,7 +59,7 @@ export class Data extends Pattern {
       !this.datatype.disallows("", this.params);
   }
 
-  newWalker(): InternalWalker<Data> {
+  newWalker(): InternalWalker {
     const allowsEmptyContent = this.allowsEmptyContent();
 
     // tslint:disable-next-line:no-use-before-declare
@@ -73,13 +73,11 @@ export class Data extends Pattern {
 /**
  * Walker for [[Data]].
  */
-class DataWalker extends InternalWalker<Data> {
+class DataWalker implements InternalWalker {
   constructor(protected readonly el: Data,
               private matched: boolean,
               public canEndAttribute: boolean,
-              public canEnd: boolean) {
-    super();
-  }
+              public canEnd: boolean) {}
 
   clone(): this {
     return new DataWalker(this.el,

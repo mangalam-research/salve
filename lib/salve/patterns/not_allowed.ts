@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Event, EventSet, InternalFireEventResult, InternalWalker,
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
 
 /**
@@ -20,7 +20,7 @@ export class NotAllowed extends Pattern {
 /**
  * Walker for [[NotAllowed]];
  */
-export class NotAllowedWalker extends InternalWalker<NotAllowed> {
+export class NotAllowedWalker implements InternalWalker {
   protected readonly el: NotAllowed;
   canEnd: boolean;
   canEndAttribute: boolean;
@@ -29,7 +29,6 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
    * @param el The pattern for which this walker was created.
    */
   constructor(el: NotAllowed) {
-    super();
     this.el = el;
     this.canEnd = true;
     this.canEndAttribute = true;
@@ -51,6 +50,14 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
 
   fireEvent(): InternalFireEventResult {
     return new InternalFireEventResult(false); // we never match!
+  }
+
+  end(): EndResult {
+    return false;
+  }
+
+  endAttributes(): EndResult {
+    return false;
   }
 }
 

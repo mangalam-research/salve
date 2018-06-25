@@ -7,8 +7,8 @@
 import { AttributeNameError, AttributeValueError } from "../errors";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, isAttributeEvent, TwoSubpatterns } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         isAttributeEvent, TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<group>``.
@@ -18,7 +18,7 @@ export class Group extends TwoSubpatterns {
     return this.patA.hasEmptyPattern() && this.patB.hasEmptyPattern();
   }
 
-  newWalker(): InternalWalker<Group> {
+  newWalker(): InternalWalker {
     const hasAttrs = this.hasAttrs();
     const walkerA = this.patA.newWalker();
     const walkerB = this.patB.newWalker();
@@ -39,17 +39,15 @@ export class Group extends TwoSubpatterns {
 /**
  * Walker for [[Group]].
  */
-class GroupWalker extends InternalWalker<Group> {
+class GroupWalker implements InternalWalker {
   constructor(protected readonly el: Group,
-              private readonly walkerA: InternalWalker<BasePattern>,
-              private readonly walkerB: InternalWalker<BasePattern>,
+              private readonly walkerA: InternalWalker,
+              private readonly walkerB: InternalWalker,
               private readonly hasAttrs: boolean,
               private ended: boolean,
               private endedA: boolean,
               public canEndAttribute: boolean,
-              public canEnd: boolean) {
-    super();
-  }
+              public canEnd: boolean) {}
 
   clone(): this {
     return new GroupWalker(this.el,

@@ -321,7 +321,7 @@ export abstract class Pattern extends BasePattern {
    *
    * @returns A walker.
    */
-  newWalker(): InternalWalker<BasePattern> {
+  newWalker(): InternalWalker {
     // Rather than make it abstract, we provide a default implementation for
     // this method, which throws an exception if called. We could probably
     // reorganize the code to do without but a) we would not gain much b) it
@@ -531,7 +531,7 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
 /**
  * This is the class of all walkers that are used internally to Salve.
  */
-export abstract class InternalWalker<T extends BasePattern> {
+export interface InternalWalker {
   /**
    * Passes an event to the walker for handling. The Walker will determine
    * whether it or one of its children can handle the event.
@@ -546,32 +546,32 @@ export abstract class InternalWalker<T extends BasePattern> {
    * if no walker matches the pattern. Otherwise, an array of
    * [[ValidationError]] objects.
    */
-  abstract fireEvent(name: string, params: string[],
-                     nameResolver: NameResolver): InternalFireEventResult;
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult;
 
   /**
    * Flag indicating whether the walker can end.
    */
-  abstract canEnd: boolean;
+  canEnd: boolean;
 
   /**
    * Flag indicating whether the walker can end, in a context where
    * we are processing attributes.
    */
-  abstract canEndAttribute: boolean;
+  canEndAttribute: boolean;
 
   /**
    * @returns The set of non-attribute event that can be fired without resulting
    * in an error. ``ElementWalker`` exceptionally returns all possible events,
    * including attribute events.
    */
-  abstract possible(): EventSet;
+  possible(): EventSet;
 
   /**
    * @returns The set of attribute events that can be fired without resulting in
    * an error. This method may not be called on ``ElementWalker``.
    */
-  abstract possibleAttributes(): EventSet;
+  possibleAttributes(): EventSet;
 
   /**
    * End the walker.
@@ -579,9 +579,7 @@ export abstract class InternalWalker<T extends BasePattern> {
    * @returns ``false`` if the walker ended without error. Otherwise, the
    * errors.
    */
-  end(): EndResult {
-    return false;
-  }
+  end(): EndResult;
 
   /**
    * End the processing of attributes.
@@ -589,16 +587,14 @@ export abstract class InternalWalker<T extends BasePattern> {
    * @returns ``false`` if the walker ended without error. Otherwise, the
    * errors.
    */
-  endAttributes(): EndResult {
-    return false;
-  }
+  endAttributes(): EndResult;
 
   /**
    * Deep copy the Walker.
    *
    * @returns A deep copy of the Walker.
    */
-  abstract clone(): this;
+  clone(): this;
 }
 
 //  LocalWords:  RNG MPL lookahead xmlns uri CodeMirror tokenizer enterStartTag

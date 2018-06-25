@@ -42,7 +42,7 @@ resolved");
     return resolvesTo.pat;
   }
 
-  newWalker(): InternalWalker<Ref> {
+  newWalker(): InternalWalker {
     const element = this.element;
 
     // tslint:disable-next-line:no-use-before-declare
@@ -55,7 +55,7 @@ resolved");
   }
 }
 
-export class RefWalker extends InternalWalker<Ref> {
+export class RefWalker implements InternalWalker {
   /**
    * @param el The pattern for which this walker was constructed.
    */
@@ -64,9 +64,7 @@ export class RefWalker extends InternalWalker<Ref> {
               private readonly startName: ConcreteName,
               private readonly startTagEvent: Event,
               public canEndAttribute: boolean,
-              public canEnd: boolean) {
-    super();
-  }
+              public canEnd: boolean) {}
 
   clone(): this {
     return new RefWalker(this.el,

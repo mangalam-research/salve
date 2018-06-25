@@ -6,8 +6,8 @@
  */
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, isAttributeEvent, TwoSubpatterns } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         isAttributeEvent, TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<interleave>``.
@@ -17,7 +17,7 @@ export class Interleave extends TwoSubpatterns {
     return this.patA.hasEmptyPattern() && this.patB.hasEmptyPattern();
   }
 
-  newWalker(): InternalWalker<Interleave> {
+  newWalker(): InternalWalker {
     const hasAttrs = this.hasAttrs();
     const walkerA = this.patA.newWalker();
     const walkerB = this.patB.newWalker();
@@ -37,16 +37,14 @@ export class Interleave extends TwoSubpatterns {
 /**
  * Walker for [[Interleave]].
  */
-class InterleaveWalker extends InternalWalker<Interleave> {
+class InterleaveWalker implements InternalWalker {
   constructor(protected readonly el: Interleave,
-              private readonly walkerA: InternalWalker<BasePattern>,
-              private readonly walkerB: InternalWalker<BasePattern>,
+              private readonly walkerA: InternalWalker,
+              private readonly walkerB: InternalWalker,
               private readonly hasAttrs: boolean,
               private ended: boolean,
               public canEndAttribute: boolean,
-              public canEnd: boolean) {
-    super();
-  }
+              public canEnd: boolean) {}
 
   clone(): this {
     return new InterleaveWalker(this.el,

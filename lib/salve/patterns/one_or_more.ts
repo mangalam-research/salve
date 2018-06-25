@@ -6,8 +6,8 @@
  */
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { BasePattern, EndResult, EventSet, InternalFireEventResult,
-         InternalWalker, isAttributeEvent, OneSubpattern, Pattern} from "./base";
+import { EndResult, EventSet, InternalFireEventResult, InternalWalker,
+         isAttributeEvent, OneSubpattern, Pattern} from "./base";
 
 /**
  * A pattern for ``<oneOrMore>``.
@@ -17,7 +17,7 @@ export class  OneOrMore extends OneSubpattern {
     return this.pat.hasEmptyPattern();
   }
 
-  newWalker(): InternalWalker<OneOrMore> {
+  newWalker(): InternalWalker {
     const hasAttrs = this.hasAttrs();
     const currentIteration = this.pat.newWalker();
 
@@ -35,16 +35,14 @@ export class  OneOrMore extends OneSubpattern {
 /**
  * Walker for [[OneOrMore]]
  */
-class OneOrMoreWalker extends InternalWalker<OneOrMore> {
+class OneOrMoreWalker implements InternalWalker {
   constructor(protected readonly el: OneOrMore,
-              private currentIteration: InternalWalker<BasePattern>,
-              private nextIteration: InternalWalker<BasePattern> | undefined,
+              private currentIteration: InternalWalker,
+              private nextIteration: InternalWalker | undefined,
               private readonly hasAttrs: boolean,
               private readonly subPat: Pattern,
               public canEndAttribute: boolean,
-              public canEnd: boolean) {
-    super();
-  }
+              public canEnd: boolean) {}
 
   clone(): this {
     return new OneOrMoreWalker(this.el,

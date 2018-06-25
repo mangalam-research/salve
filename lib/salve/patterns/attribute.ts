@@ -8,8 +8,8 @@ import { AttributeNameError, AttributeValueError } from "../errors";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { map } from "../set";
-import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, Pattern } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -47,7 +47,7 @@ export class Attribute extends Pattern {
     return false;
   }
 
-  newWalker(): InternalWalker<Attribute> {
+  newWalker(): InternalWalker {
     // tslint:disable-next-line:no-use-before-declare
     return new AttributeWalker(this,
                                this.pat.newWalker(),
@@ -60,18 +60,17 @@ export class Attribute extends Pattern {
 /**
  * Walker for [[Attribute]].
  */
-class AttributeWalker extends InternalWalker<Attribute> {
+class AttributeWalker implements InternalWalker {
   private readonly name: ConcreteName;
 
   /**
    * @param el The pattern for which this walker was created.
    */
   constructor(protected readonly el: Attribute,
-              private readonly subwalker: InternalWalker<BasePattern>,
+              private readonly subwalker: InternalWalker,
               private seenName: boolean,
               public canEndAttribute: boolean,
               public canEnd: boolean) {
-    super();
     this.name = el.name;
   }
 

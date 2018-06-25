@@ -373,7 +373,7 @@ export class GrammarWalker {
     const errors: ValidationError[] = [];
     if (ret.matched) {
       if (ret.refs !== undefined && ret.refs.length !== 0) {
-        const newWalkers: InternalWalker<BasePattern>[] = [];
+        const newWalkers: InternalWalker[] = [];
         const boundName = new Name("", params[0], params[1]);
         for (const item of ret.refs) {
           const walker = item.element.newWalker(boundName);

@@ -17,7 +17,7 @@ export class Text extends Pattern {
     return true;
   }
 
-  newWalker(): InternalWalker<Text> {
+  newWalker(): InternalWalker {
     // tslint:disable-next-line:no-use-before-declare
     return singleton;
   }
@@ -28,7 +28,7 @@ export class Text extends Pattern {
  * Walker for [[Text]]
  *
  */
-class TextWalker extends InternalWalker<Text> {
+class TextWalker implements InternalWalker {
   protected readonly el: Text;
   private static readonly _textEvent: Event = new Event("text", /^[^]*$/);
   canEnd: boolean;
@@ -38,7 +38,6 @@ class TextWalker extends InternalWalker<Text> {
    * @param el The pattern for which this walker was constructed.
    */
   constructor(el: Text) {
-    super();
     this.el = el;
     this.canEnd = true;
     this.canEndAttribute = true;
