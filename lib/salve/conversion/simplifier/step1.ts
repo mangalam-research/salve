@@ -68,6 +68,7 @@ class Step1 {
     if (!(local === "param" || local === "value")) {
       const newChildren = [];
       const children = el.children;
+      let modified = false;
       for (const child of children) {
         if (child instanceof Element) {
           newChildren.push(child);
@@ -79,14 +80,24 @@ class Step1 {
         if (clean !== "") {
           // name gets the trimmed value
           if (local === "name" && orig !== clean) {
+            // We're triming text.
+            modified = true;
             newChildren.push(new Text(clean));
           }
           else {
             newChildren.push(child);
           }
         }
+        else {
+          // We're dropping a whitespace node.
+          modified = true;
+        }
       }
-      el.replaceContent(newChildren);
+
+      // Perform the replacement only if needed.
+      if (modified) {
+        el.replaceContent(newChildren);
+      }
     }
 
     const currentBase = baseAttr === undefined ? parentBase :
