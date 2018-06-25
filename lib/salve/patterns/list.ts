@@ -87,10 +87,9 @@ class ListWalker extends InternalWalker<List> {
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
-    let ret = new InternalFireEventResult(false);
     // Only this can match.
     if (name !== "text") {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const trimmed = params[0].trim();
@@ -98,14 +97,13 @@ class ListWalker extends InternalWalker<List> {
     // The list walker cannot send empty strings to its children because it
     // validates a list of **tokens**.
     if (trimmed === "") {
-      ret.matched = true;
-
-      return ret;
+      return new InternalFireEventResult(true);
     }
 
-    const tokens = trimmed.split(/\s+/);
-
-    for (const token of tokens) {
+    // ret is necessarily set by the loop because we deal with the empty case
+    // above.
+    let ret!: InternalFireEventResult;
+    for (const token of trimmed.split(/\s+/)) {
       ret = this.subwalker.fireEvent("text", [token]);
       if (!ret.matched) {
         this.canEndAttribute = this.canEnd = false;
@@ -116,6 +114,7 @@ class ListWalker extends InternalWalker<List> {
 
     this.canEndAttribute = this.canEnd = this.subwalker.canEnd;
 
+    // It is not possible for ret to be undefined here.
     return ret;
   }
 

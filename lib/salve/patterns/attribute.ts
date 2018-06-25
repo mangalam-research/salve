@@ -129,52 +129,46 @@ class AttributeWalker extends InternalWalker<Attribute> {
   fireEvent(name: string, params: string[]): InternalFireEventResult {
     // If canEnd is true, we've done everything we could. So we don't
     // want to match again.
-    let ret = new InternalFireEventResult(false);
     if (this.canEnd) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
-    let value: string | undefined;
+    let value: string;
     if (this.seenName) {
-      if (name === "attributeValue") {
-        // Convert the attributeValue event to a text event.
-        value = params[0];
+      if (name !== "attributeValue") {
+        return new InternalFireEventResult(false);
       }
+
+      value = params[0];
     }
     else if ((name === "attributeName" || name === "attributeNameAndValue") &&
              this.name.match(params[0], params[1])) {
       this.seenName = true;
 
       if (name === "attributeName") {
-        ret.matched = true;
-
-        return ret;
+        return new InternalFireEventResult(true);
       }
 
       value = params[2];
     }
+    else {
+      return new InternalFireEventResult(false);
+    }
 
-    if (value !== undefined) {
-      this.canEnd = true;
-      this.canEndAttribute = true;
+    this.canEnd = true;
+    this.canEndAttribute = true;
 
-      if (value !== "") {
-        ret = this.subwalker.fireEvent("text", [value]);
-        if (!ret.matched) {
-          ret.errors =
-            [new AttributeValueError("invalid attribute value", this.name)];
-        }
-      }
-      else {
-        ret.matched = true;
-      }
+    if (value !== "") {
+      const ret = this.subwalker.fireEvent("text", [value]);
+      if (!ret.matched) {
+        ret.errors =
+          [new AttributeValueError("invalid attribute value", this.name)];
 
-      if (ret.matched) {
-        return InternalFireEventResult.fromEndResult(this.subwalker.end());
+        return ret;
       }
     }
 
-    return ret;
+    return InternalFireEventResult.fromEndResult(this.subwalker.end());
   }
 
   endAttributes(): EndResult {

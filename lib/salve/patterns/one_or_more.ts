@@ -106,15 +106,14 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
-    let ret = new InternalFireEventResult(false);
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const currentIteration = this.currentIteration;
 
-    ret = currentIteration.fireEvent(name, params);
+    const ret = currentIteration.fireEvent(name, params);
     if (ret.matched) {
       if (evIsAttributeEvent) {
         this.canEndAttribute = currentIteration.canEndAttribute;

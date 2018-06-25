@@ -343,7 +343,7 @@ export class GrammarWalker extends BaseWalker<Grammar> {
     // The only case where we'd want to pass a node consisting entirely of
     // whitespace is to satisfy a data or value pattern because they can require
     // a sequence of whitespaces.
-    let wsErr: InternalFireEventResult = new InternalFireEventResult(true);
+    let wsErr: InternalFireEventResult;
     if (name === "text") {
       // Earlier versions of salve processed text events ahead of this switch
       // block, but we moved it here to improve performance. There's no issue
@@ -363,15 +363,18 @@ export class GrammarWalker extends BaseWalker<Grammar> {
 
         return false;
       }
+
+      wsErr = new InternalFireEventResult(true);
     }
     else if (name === "endTag") {
-      if (!this.ignoreNextWs && this.suspendedWs !== undefined) {
-        wsErr = this._fireOnCurrentWalkers("text", [this.suspendedWs]);
-      }
+      wsErr = (!this.ignoreNextWs && this.suspendedWs !== undefined) ?
+        this._fireOnCurrentWalkers("text", [this.suspendedWs]) :
+        new InternalFireEventResult(true);
       this.ignoreNextWs = true;
     }
     else {
       this.ignoreNextWs = false;
+      wsErr = new InternalFireEventResult(true);
     }
     // Absorb the whitespace: poof, gone!
     this.suspendedWs = undefined;

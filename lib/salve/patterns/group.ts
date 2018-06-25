@@ -109,17 +109,16 @@ class GroupWalker extends InternalWalker<Group> {
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
-    const ret = new InternalFireEventResult(false);
     const evIsAttributeEvent = isAttributeEvent(name);
 
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     // This is useful because it is possible for fireEvent to be called
     // after end() has been called.
     if (this.ended) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const walkerA = this.walkerA;

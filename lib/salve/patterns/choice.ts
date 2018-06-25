@@ -133,14 +133,13 @@ class ChoiceWalker extends InternalWalker<Choice> {
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
-    const ret = new InternalFireEventResult(false);
     if (this.deactivateA && this.deactivateB) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const retA = this.deactivateA ? new InternalFireEventResult(false) :
@@ -335,14 +334,13 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {
-    const ret = new InternalFireEventResult(false);
     if (this.ended) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const retA =
