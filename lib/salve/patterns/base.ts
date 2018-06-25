@@ -234,6 +234,15 @@ export class InternalFireEventResult {
 
     return this;
   }
+
+  combineEndResult(other: EndResult): this {
+    if (other !== false) {
+      this.errors = (this.errors === undefined) ? other :
+        this.errors.concat(other);
+    }
+
+    return this;
+  }
 }
 
 export type EndResult = false | ValidationError[];

@@ -133,7 +133,7 @@ class GroupWalker implements InternalWalker {
     if (!evIsAttributeEvent && retB.matched) {
       this.endedA = true;
 
-      return retB.combine(InternalFireEventResult.fromEndResult(walkerA.end()));
+      return retB.combineEndResult(walkerA.end());
     }
 
     return retB;
