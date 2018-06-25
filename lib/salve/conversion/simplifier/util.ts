@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element } from "../parser";
+import { Element, isElement } from "../parser";
 
 // tslint:disable-next-line:no-http-string
 export const RELAXNG_URI = "http://relaxng.org/ns/structure/1.0";
@@ -13,8 +13,7 @@ export function findChildrenByLocalName(el: Element,
                                         name: string): Element[] {
   return el
     .children
-    .filter((child) => (child instanceof Element) &&
-            child.local === name) as Element[];
+    .filter((child) => isElement(child) && child.local === name) as Element[];
 }
 
 export function findDescendantsByLocalName(el: Element,
@@ -29,7 +28,7 @@ export function _findDescendantsByLocalName(el: Element,
                                             name: string,
                                             ret: Element[]): void {
   for (const child of el.children) {
-    if (!(child instanceof Element)) {
+    if (!isElement(child)) {
       continue;
     }
 
@@ -59,7 +58,7 @@ function _findMultiDescendantsByLocalName(el: Element,
                                           ret: Record<string, Element[]>):
 void {
   for (const child of el.children) {
-    if (!(child instanceof Element)) {
+    if (!isElement(child)) {
       continue;
     }
 

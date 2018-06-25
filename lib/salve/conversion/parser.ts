@@ -41,6 +41,7 @@ export type ConcreteNode = Element | Text;
 
 export abstract class Node {
   abstract readonly text: string;
+  abstract readonly kind: "element" | "text";
 
   protected _parent: Element | undefined;
 
@@ -82,6 +83,7 @@ const emptyNS = Object.create(null);
  * if the parent is provided.
  */
 export class Element extends Node {
+  readonly kind: "element" = "element";
   /**
    * The path of the element in its tree.
    */
@@ -222,7 +224,7 @@ export class Element extends Node {
     else if (this.local === "element" || this.local === "attribute") {
       // By the time path is used, the name class is the first child.
       const first = this.children[0];
-      if (first instanceof Element && first.local === "name") {
+      if (isElement(first) && first.local === "name") {
         ret += `[@name='${first.text}']`;
       }
     }
@@ -429,6 +431,8 @@ export class Element extends Node {
 }
 
 export class Text extends Node {
+  readonly kind: "text" = "text";
+
   /**
    * @param text The textual value.
    */
@@ -439,6 +443,14 @@ export class Text extends Node {
   clone(): Text {
     return new Text(this.text);
   }
+}
+
+export function isElement(node: Node): node is Element {
+  return node.kind === "element";
+}
+
+export function isText(node: Node): node is Text {
+  return node.kind === "text";
 }
 
 export interface ValidatorI {
@@ -564,8 +576,7 @@ export class BasicParser extends Parser {
    * The root of the parsed XML.
    */
   get root(): Element {
-    return this.stack[0].children
-      .filter((x) => x instanceof Element)[0] as Element;
+    return this.stack[0].children.filter(isElement)[0] as Element;
   }
 
   onopentag(node: sax.QualifiedTag): void {

@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element } from "../parser";
+import { Element, isElement } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
 import { RELAXNG_URI } from "./util";
 
@@ -66,7 +66,7 @@ function gatherGrammars(el: Element, state: State): void {
   }
 
   for (const child of el.children) {
-    if (!(child instanceof Element)) {
+    if (!isElement(child)) {
       continue;
     }
 

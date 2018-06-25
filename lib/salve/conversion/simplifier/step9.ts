@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element } from "../parser";
+import { Element, isElement } from "../parser";
 
 /**
  * Implements step 9 of the XSL pipeline. Namely:
@@ -19,7 +19,7 @@ export function step9(el: Element): Element {
   // We walk the children first so that subtrees are modified first.
   for (let ix = 0; ix < el.children.length; ++ix) {
     const child = el.children[ix];
-    if (child instanceof Element) {
+    if (isElement(child)) {
       if (child.local === "div") {
         if (child.children.length > 0) {
           el.insertAt(ix + 1, child.children.slice());

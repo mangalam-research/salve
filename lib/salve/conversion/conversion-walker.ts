@@ -5,7 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { Element } from "./parser";
+import { Element, isElement } from "./parser";
 
 /**
  * Base class for conversion walkers.
@@ -32,7 +32,7 @@ export abstract class ConversionWalker {
 
     for (let i = startAt; i < limit; ++i) {
       const child = children[i];
-      if (child instanceof Element) {
+      if (isElement(child)) {
         this.walk(child);
       }
     }

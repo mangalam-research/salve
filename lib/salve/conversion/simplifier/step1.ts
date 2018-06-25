@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element, Text } from "../parser";
+import { Element, isElement, Text } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
 import { findMultiDescendantsByLocalName, getName, groupBy,
          indexBy } from "./util";
@@ -70,7 +70,7 @@ class Step1 {
       const children = el.children;
       let modified = false;
       for (const child of children) {
-        if (child instanceof Element) {
+        if (child.kind === "element") {
           newChildren.push(child);
           continue;
         }
@@ -103,7 +103,7 @@ class Step1 {
     const currentBase = baseAttr === undefined ? parentBase :
       resolveURL(parentBase, baseAttr);
     for (const child of el.children) {
-      if (!(child instanceof Element)) {
+      if (!(isElement(child))) {
         continue;
       }
 

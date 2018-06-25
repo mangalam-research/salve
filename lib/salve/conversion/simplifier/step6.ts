@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element, Text } from "../parser";
+import { Element, isElement, Text } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
 
 function walk(el: Element, parentNs: string | null): void {
@@ -47,7 +47,7 @@ function walk(el: Element, parentNs: string | null): void {
       }
 
       const child = el.children[0];
-      if (!(child instanceof Text)) {
+      if (child.kind !== "text") {
         throw new Error("a name element must contain only text");
       }
 
@@ -89,7 +89,7 @@ function walk(el: Element, parentNs: string | null): void {
   }
 
   for (const child of el.children) {
-    if (!(child instanceof Element)) {
+    if (!isElement(child)) {
       continue;
     }
 

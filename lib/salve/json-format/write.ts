@@ -7,6 +7,7 @@
  */
 
 import { ConversionWalker, Element, Node } from "../conversion";
+import { isElement } from '../conversion/parser';
 import { nameToCode, OPTION_NO_PATHS } from "./common";
 
 /**
@@ -344,7 +345,7 @@ OPTION_NO_PATHS},"d":`);
 
 function gatherNamed(el: Element, all: Map<string, Element[]>): void {
   for (const child of el.children) {
-    if (!(child instanceof Element)) {
+    if (!isElement(child)) {
       continue;
     }
 

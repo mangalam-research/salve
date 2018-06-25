@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element } from "../parser";
+import { Element, isElement } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
 import { findDescendantsByLocalName, removeUnreferencedDefs } from "./util";
 
@@ -142,7 +142,7 @@ function substituteRefs(state: State, el: Element,
     // either it has no children, or it has been substituted and walked above.
     for (let ix = 0; ix < el.children.length; ++ix) {
       const child = el.children[ix];
-      if (!(child instanceof Element)) {
+      if (!isElement(child)) {
         continue;
       }
 

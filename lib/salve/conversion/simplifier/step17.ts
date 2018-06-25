@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element } from "../parser";
+import { Element, isElement } from "../parser";
 import { removeUnreferencedDefs } from "./util";
 
 // These are elements that cannot contain notAllowed and cannot contain
@@ -19,7 +19,7 @@ function walk(el: Element, refs: Set<string>): void {
   // the children are applied before we deal with the parent, and there should
   // not be any need to process the tree multiple times.
   for (const child of el.children) {
-    if (!(child instanceof Element)) {
+    if (!isElement(child)) {
       continue;
     }
 
@@ -80,7 +80,7 @@ function walk(el: Element, refs: Set<string>): void {
   }
 
   for (const child of el.children) {
-    if (!(child instanceof Element)) {
+    if (!isElement(child)) {
       continue;
     }
 
