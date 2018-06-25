@@ -529,35 +529,9 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
 }
 
 /**
- * Roughly speaking each [[Pattern]] object has a corresponding ``Walker`` class
- * that models an object which is able to walk the pattern to which it
- * belongs. So an ``Element`` has an ``ElementWalker`` and an ``Attribute`` has
- * an ``AttributeWalker``. A ``Walker`` object responds to parsing events and
- * reports whether the structure represented by these events is valid.
- *
- * This base class records only a minimal number of properties so that child
- * classes can avoid keeping useless properties. A prime example is the walker
- * for ``<empty>`` which is a terminal walker (it has no subwalker) so does not
- * need to record the name resolver.
- *
- * Note that users of this API do not instantiate Walker objects themselves.
- */
-export abstract class BaseWalker<T extends BasePattern> {
-  protected abstract readonly el: T;
-
-  /**
-   * Deep copy the Walker.
-   *
-   * @returns A deep copy of the Walker.
-   */
-  abstract clone(): this;
-}
-
-/**
  * This is the class of all walkers that are used internally to Salve.
  */
-export abstract class InternalWalker<T extends BasePattern>
-  extends BaseWalker<T> {
+export abstract class InternalWalker<T extends BasePattern> {
   /**
    * Passes an event to the walker for handling. The Walker will determine
    * whether it or one of its children can handle the event.
@@ -618,6 +592,13 @@ export abstract class InternalWalker<T extends BasePattern>
   endAttributes(): EndResult {
     return false;
   }
+
+  /**
+   * Deep copy the Walker.
+   *
+   * @returns A deep copy of the Walker.
+   */
+  abstract clone(): this;
 }
 
 //  LocalWords:  RNG MPL lookahead xmlns uri CodeMirror tokenizer enterStartTag

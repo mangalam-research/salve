@@ -12,7 +12,7 @@ import { NameResolver } from "../name_resolver";
 import { filter, union } from "../set";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
-import { BasePattern, BaseWalker, EndResult, Event, EventSet, FireEventResult,
+import { BasePattern, EndResult, Event, EventSet, FireEventResult,
          InternalFireEventResult, InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
@@ -221,7 +221,7 @@ class MisplacedElementWalker implements IWalker {
 /**
  * Walker for [[Grammar]].
  */
-export class GrammarWalker extends BaseWalker<Grammar> {
+export class GrammarWalker {
   private constructor(protected readonly el: Grammar,
                       private readonly nameResolver: NameResolver,
                       private elementWalkerStack: IWalker[][],
@@ -229,7 +229,6 @@ export class GrammarWalker extends BaseWalker<Grammar> {
                       private _swallowAttributeValue: boolean,
                       private suspendedWs: string | undefined,
                       private ignoreNextWs: boolean) {
-    super();
   }
 
   static make(el: Grammar): GrammarWalker {
