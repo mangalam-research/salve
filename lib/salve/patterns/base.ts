@@ -577,10 +577,6 @@ export abstract class BaseWalker<T extends BasePattern> {
   * @returns The clone.
   */
   abstract _clone(): this;
-
-  hasEmptyPattern(): boolean {
-    return this.el.hasEmptyPattern();
-  }
 }
 
 /**
