@@ -343,11 +343,8 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
       return new InternalFireEventResult(false);
     }
 
-    const retA =
-      new InternalFireEventResult(name === "text" && !/\S/.test(params[0]));
-
-    if (retA.matched) {
-      return retA;
+    if (name === "text" && !/\S/.test(params[0])) {
+      return new InternalFireEventResult(true);
     }
 
     const retB = this.walkerB.fireEvent(name, params);
