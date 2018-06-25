@@ -50,12 +50,6 @@ class TextWalker extends InternalWalker<Text> {
     return this;
   }
 
-  // Since TextWalker is a singleton, the cloning operation just
-  // returns the original walker.
-  _clone(): this {
-    return this;
-  }
-
   possible(): EventSet {
     return new Set([TextWalker._textEvent]);
   }

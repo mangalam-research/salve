@@ -41,12 +41,6 @@ export class NotAllowedWalker extends InternalWalker<NotAllowed> {
     return this;
   }
 
-  // Since NotAllowedWalker is a singleton, the cloning operation just
-  // returns the original walker.
-  _clone(): this {
-    return this;
-  }
-
   possible(): EventSet {
     return new Set<Event>();
   }

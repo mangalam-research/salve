@@ -184,7 +184,7 @@ interface IWalker {
   canEnd: boolean;
   canEndAttribute: boolean;
   end(attribute?: boolean): EndResult;
-  _clone(): IWalker;
+  clone(): IWalker;
   possible(): EventSet;
 }
 
@@ -213,7 +213,7 @@ class MisplacedElementWalker implements IWalker {
     return new Set<Event>();
   }
 
-  _clone<T extends this>(this: T): T {
+  clone<T extends this>(this: T): T {
     return new (this.constructor as { new (...args: any[]): T })();
   }
 }
@@ -242,11 +242,11 @@ export class GrammarWalker extends BaseWalker<Grammar> {
                              false);
   }
 
-  _clone(): this {
+  clone(): this {
     return new GrammarWalker(this.el,
                              this.nameResolver.clone(),
                              this.elementWalkerStack
-                             .map((walkers) => walkers.map((x) => x._clone())),
+                             .map((walkers) => walkers.map((x) => x.clone())),
                              this.misplacedDepth,
                              this._swallowAttributeValue,
                              this.suspendedWs,

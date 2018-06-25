@@ -89,7 +89,7 @@ class ValueWalker extends InternalWalker<Value> {
     super();
   }
 
-  _clone(): this {
+  clone(): this {
     return new ValueWalker(this.el,
                            this.matched,
                            this.canEndAttribute,

@@ -48,10 +48,10 @@ class InterleaveWalker extends InternalWalker<Interleave> {
     super();
   }
 
-  _clone(): this {
+  clone(): this {
     return new InterleaveWalker(this.el,
-                                this.walkerA._clone(),
-                                this.walkerB._clone(),
+                                this.walkerA.clone(),
+                                this.walkerB.clone(),
                                 this.hasAttrs,
                                 this.ended,
                                 this.canEndAttribute,

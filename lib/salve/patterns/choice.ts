@@ -73,10 +73,10 @@ class ChoiceWalker extends InternalWalker<Choice> {
     super();
   }
 
-  _clone(): this {
+  clone(): this {
     return new ChoiceWalker(this.el,
-                            this.walkerA._clone(),
-                            this.walkerB._clone(),
+                            this.walkerA.clone(),
+                            this.walkerB.clone(),
                             this.hasAttrs,
                             this.deactivateA,
                             this.deactivateB,
@@ -288,9 +288,9 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
     super();
   }
 
-  _clone(): this {
+  clone(): this {
     return new OptionalChoiceWalker(this.el,
-                                    this.walkerB._clone(),
+                                    this.walkerB.clone(),
                                     this.hasAttrs,
                                     this.ended,
                                     this.canEndAttribute,

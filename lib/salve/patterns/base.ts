@@ -545,38 +545,12 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
 export abstract class BaseWalker<T extends BasePattern> {
   protected abstract readonly el: T;
 
-  // These functions return true if there is no problem, or a list of
-  // ValidationError objects otherwise.
-
   /**
    * Deep copy the Walker.
    *
    * @returns A deep copy of the Walker.
    */
-  clone(): this {
-    return this._clone();
-  }
-
- /**
-  * Helper function for clone. Code that is not part of the Pattern family would
-  * call clone() whereas Pattern and its derived classes call _clone() with the
-  * appropriate memo.
-  *
-  * @param memo A mapping of old object to copy object. As a tree of patterns
-  * is being cloned, this memo is populated.  So if A is cloned to B then a
-  * mapping from A to B is stored in the memo.  If A is seen again in the same
-  * cloning operation, then it will be substituted with B instead of creating a
-  * new object.
-  *
-  * This method is meant only to be used by classes derived from
-  * [[BaseWalker]]. It is public due to a limitation of TypeScript. Don't call
-  * it from your own code. You've been warned.
-  *
-  * @protected
-  *
-  * @returns The clone.
-  */
-  abstract _clone(): this;
+  abstract clone(): this;
 }
 
 /**

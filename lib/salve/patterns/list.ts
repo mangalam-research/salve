@@ -55,9 +55,9 @@ class ListWalker extends InternalWalker<List> {
     super();
   }
 
-  _clone(): this {
+  clone(): this {
     return new ListWalker(this.el,
-                          this.subwalker._clone(),
+                          this.subwalker.clone(),
                           this.canEndAttribute,
                           this.canEnd) as this;
   }

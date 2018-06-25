@@ -46,12 +46,6 @@ class EmptyWalker extends InternalWalker<Empty> {
     return this;
   }
 
-  // Since the Empty walker is a singleton, the cloning operation just
-  // returns the original walker.
-  _clone(): this {
-    return this;
-  }
-
   possible(): EventSet {
     return new Set<Event>();
   }

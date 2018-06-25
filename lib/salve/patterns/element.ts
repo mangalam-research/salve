@@ -81,9 +81,9 @@ class ElementWalker extends InternalWalker<Element> {
     super();
   }
 
-  _clone(): this {
+  clone(): this {
     return new ElementWalker(this.el,
-                             this.walker._clone(),
+                             this.walker.clone(),
                              this.endedStartTag,
                              this.endTagEvent,
                              this.boundName,

@@ -68,7 +68,7 @@ export class RefWalker extends InternalWalker<Ref> {
     super();
   }
 
-  _clone(): this {
+  clone(): this {
     return new RefWalker(this.el,
                          this.element,
                          this.startName,

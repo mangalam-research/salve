@@ -46,11 +46,11 @@ class OneOrMoreWalker extends InternalWalker<OneOrMore> {
     super();
   }
 
-  _clone(): this {
+  clone(): this {
     return new OneOrMoreWalker(this.el,
-                               this.currentIteration._clone(),
+                               this.currentIteration.clone(),
                                this.nextIteration !== undefined ?
-                               this.nextIteration._clone() : undefined,
+                               this.nextIteration.clone() : undefined,
                                this.hasAttrs,
                                this.subPat,
                                this.canEndAttribute,

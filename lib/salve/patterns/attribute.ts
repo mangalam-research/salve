@@ -75,9 +75,9 @@ class AttributeWalker extends InternalWalker<Attribute> {
     this.name = el.name;
   }
 
-  _clone(): this {
+  clone(): this {
     return new AttributeWalker(this.el,
-                               this.subwalker._clone(),
+                               this.subwalker.clone(),
                                this.seenName,
                                this.canEndAttribute,
                                this.canEnd) as this;

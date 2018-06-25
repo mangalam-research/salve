@@ -81,7 +81,7 @@ class DataWalker extends InternalWalker<Data> {
     super();
   }
 
-  _clone(): this {
+  clone(): this {
     return new DataWalker(this.el,
                           this.matched,
                           this.canEndAttribute,

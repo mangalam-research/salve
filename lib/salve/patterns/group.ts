@@ -51,10 +51,10 @@ class GroupWalker extends InternalWalker<Group> {
     super();
   }
 
-  _clone(): this {
+  clone(): this {
     return new GroupWalker(this.el,
-                           this.walkerA._clone(),
-                           this.walkerB._clone(),
+                           this.walkerA.clone(),
+                           this.walkerB.clone(),
                            this.hasAttrs,
                            this.ended,
                            this.endedA,
