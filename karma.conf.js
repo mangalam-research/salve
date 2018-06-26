@@ -15,9 +15,6 @@ module.exports = function configure(config) {
     basePath: "",
     frameworks: ["mocha", "chai", "source-map-support"],
     files: [
-      "node_modules/core-js/client/core.js",
-      "node_modules/url-polyfill/url-polyfill.js",
-      "node_modules/whatwg-fetch/fetch.js",
       "build/dist/salve.min.js",
       "browser-test/**/*.js",
       { pattern: "build/dist/**/*.map", included: false },
@@ -49,13 +46,6 @@ module.exports = function configure(config) {
         os: "Windows",
         os_version: "10",
       },
-      IE11: {
-        base: "BrowserStack",
-        browser: "IE",
-        browser_version: "11",
-        os: "Windows",
-        os_version: "10",
-      },
       Edge: {
         base: "BrowserStack",
         browser: "Edge",
@@ -79,12 +69,6 @@ module.exports = function configure(config) {
         browser: "Safari",
         os: "OS X",
         os_version: "Sierra",
-      },
-      SafariElCapitan: {
-        base: "BrowserStack",
-        browser: "Safari",
-        os: "OS X",
-        os_version: "El Capitan",
       },
     },
     singleRun: false,

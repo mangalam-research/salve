@@ -598,7 +598,7 @@ one fell swoop. You'll have to provide polyfills for ``fetch`` and ``URL`` from
 other sources.
 
 Note that we do not support old browsers. Notably, salve won't run on any
-version of IE earlier than IE11.
+version of IE.
 
 Build System
 ============

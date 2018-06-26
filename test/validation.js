@@ -702,8 +702,8 @@ describe("error objects", () => {
 
     it(ctorName, () => {
       const ctor = salve[ctorName];
-      const err = Object.create(ctor.prototype);
-      ctor.apply(err, ["blah"].concat(names));
+      // eslint-disable-next-line new-cap
+      const err = new ctor(...["blah"].concat(names));
       assert.equal(err.toString(), first);
       assert.sameMembers(err.getNames(), names);
       assert.equal(err.toStringWithNames(fakeNames),

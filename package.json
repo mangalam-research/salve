@@ -50,7 +50,6 @@
     "bluebird": ">=3.1.1 <4",
     "chai": "^4.1.2",
     "child-process-promise": "^2.2.1",
-    "core-js": "^2.5.3",
     "del": "^3.0.0",
     "eslint": "^4.19.0",
     "eslint-config-lddubeau-base": "^2.0.0",
@@ -77,11 +76,9 @@
     "tslint-config-lddubeau": "^2.0.3",
     "typedoc": "^0.11.1",
     "typescript": "^2.7.2",
-    "url-polyfill": "^1.0.11",
     "versync": "^4.0.0",
     "webpack": "^4.8.1",
-    "webpack-cli": "^3.0.2",
-    "whatwg-fetch": "^2.0.3"
+    "webpack-cli": "^3.0.2"
   },
   "bin": {
     "salve-convert": "./bin/salve-convert"
