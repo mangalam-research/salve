@@ -29,9 +29,12 @@ export class Parser {
    * compatible.
    */
   constructor(readonly saxParser: sax.SAXParser) {
-    for (const name in this) {
-      if (name.lastIndexOf("on", 0) === 0) {
-        (this.saxParser as any)[name] = (this as any)[name].bind(this);
+    for (const name of sax.EVENTS) {
+      const methodName = `on${name}`;
+      const method = (this as any)[methodName];
+      if (method !== undefined) {
+        (this.saxParser as any)[methodName] =
+          (this as any)[methodName].bind(this);
       }
     }
   }
@@ -488,7 +491,7 @@ export class Validator implements ValidatorI {
   protected fireEvent(name: string, args: string[]): void {
     const ret = this.walker.fireEvent(name, args);
     if (ret as boolean) {
-      this.errors.push(...ret);
+      this.errors.push(...ret as ValidationError[]);
     }
   }
 
