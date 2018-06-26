@@ -379,9 +379,12 @@ export class GrammarWalker {
           const walker = item.element.newWalker(boundName);
           // If we get anything else than false here, the internal logic is
           // wrong.
-          if (!walker.fireEvent(name, params, this.nameResolver).matched) {
-            throw new Error("error or failed to match on a new element \
+          if (name === "startTagAndAttributes") {
+            if (!walker.initWithAttributes(params.slice(2),
+                                           this.nameResolver).matched) {
+              throw new Error("error or failed to match on a new element \
 walker: the internal logic is incorrect");
+            }
           }
           newWalkers.push(walker);
         }
@@ -415,10 +418,12 @@ walker: the internal logic is incorrect");
               const newWalker =
                 candidates[0].newWalker(elName);
               this.elementWalkerStack.unshift([newWalker]);
-              if (!newWalker.fireEvent(name, params,
-                                       this.nameResolver).matched) {
-                throw new Error("internal error: the inferred element " +
-                                "does not accept its initial event");
+              if (name === "startTagAndAttributes") {
+                if (!newWalker.initWithAttributes(params.slice(2),
+                                                  this.nameResolver).matched) {
+                  throw new Error("internal error: the inferred element " +
+                                  "does not accept its initial event");
+                }
               }
             }
             else {

@@ -10,14 +10,17 @@ import { NameResolver } from "../name_resolver";
 import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
          InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
-import { NotAllowed } from "./not_allowed";
 import { Ref } from "./ref";
+
+export interface Initializable {
+  initWithAttributes(attrs: string[],
+                     nameResolver: NameResolver): InternalFireEventResult;
+}
 
 /**
  * A pattern for elements.
  */
 export class Element extends BasePattern {
-  private readonly notAllowed: boolean;
   /**
    * @param xmlPath This is a string which uniquely identifies the
    * element from the simplified RNG tree. Used in debugging.
@@ -29,20 +32,17 @@ export class Element extends BasePattern {
   constructor(xmlPath: string, readonly name: ConcreteName,
               readonly pat: Pattern) {
     super(xmlPath);
-    this.notAllowed = this.pat instanceof NotAllowed;
   }
 
-  newWalker(boundName: Name): InternalWalker {
-    return (this.notAllowed) ?
-      this.pat.newWalker() :
-      // tslint:disable-next-line:no-use-before-declare
-      new ElementWalker(this,
-                        this.pat.newWalker(),
-                        false,
-                        new Event("endTag", boundName),
-                        boundName,
-                        true,
-                        false);
+  newWalker(boundName: Name): InternalWalker & Initializable {
+    // tslint:disable-next-line:no-use-before-declare
+    return new ElementWalker(this,
+                             this.pat.newWalker(),
+                             false,
+                             new Event("endTag", boundName),
+                             boundName,
+                             true,
+                             false);
   }
 
   hasAttrs(): boolean {
@@ -68,7 +68,7 @@ export class Element extends BasePattern {
  *
  * Walker for [[Element]].
  */
-class ElementWalker implements InternalWalker {
+class ElementWalker implements InternalWalker, Initializable {
   private static _leaveStartTagEvent: Event = new Event("leaveStartTag");
 
   constructor(protected readonly el: Element,
@@ -126,6 +126,27 @@ class ElementWalker implements InternalWalker {
     throw new Error("calling possibleAttributes on ElementWalker is invalid");
   }
 
+  initWithAttributes(attrs: string[],
+                     nameResolver: NameResolver): InternalFireEventResult {
+    const { walker } = this;
+    // We need to handle all attributes and leave the start tag.
+    for (let ix = 0; ix < attrs.length; ix += 3) {
+      const attrRet = walker.fireEvent("attributeNameAndValue",
+                                       [attrs[ix], attrs[ix + 1],
+                                        attrs[ix + 2]], nameResolver);
+      if (!attrRet.matched) {
+        return attrRet;
+      }
+    }
+
+    // Make leaveStartTag effective.
+    this.endedStartTag = true;
+
+    return this.el.pat.hasAttrs() ?
+      InternalFireEventResult.fromEndResult(walker.endAttributes()) :
+      new InternalFireEventResult(true);
+  }
+
   fireEvent(name: string, params: string[],
             nameResolver: NameResolver): InternalFireEventResult {
     // This is not a useful optimization. canEnd becomes true once we see
@@ -150,36 +171,12 @@ class ElementWalker implements InternalWalker {
       return walker.fireEvent(name, params, nameResolver);
     }
 
-    switch (name) {
-      case "enterStartTag":
-        if (!this.boundName.match(params[0], params[1])) {
-          throw new Error("event starting the element had an incorrect name");
-        }
+    if (name === "leaveStartTag") {
+      this.endedStartTag = true;
 
-        return new InternalFireEventResult(true);
-      case "startTagAndAttributes":
-        if (!this.boundName.match(params[0], params[1])) {
-          throw new Error("event starting the element had an incorrect name");
-        }
-
-        // We need to handle all attributes and leave the start tag.
-        for (let ix = 2; ix < params.length; ix += 3) {
-          const attrRet = walker.fireEvent("attributeNameAndValue",
-                                           [params[ix], params[ix + 1],
-                                            params[ix + 2]], nameResolver);
-          if (!attrRet.matched) {
-            return attrRet;
-          }
-        }
-
-        /* fall through */
-      case "leaveStartTag":
-        this.endedStartTag = true;
-
-        return this.el.pat.hasAttrs() ?
-          InternalFireEventResult.fromEndResult(walker.endAttributes()) :
-          new InternalFireEventResult(true);
-      default:
+      return this.el.pat.hasAttrs() ?
+        InternalFireEventResult.fromEndResult(walker.endAttributes()) :
+        new InternalFireEventResult(true);
     }
 
     return walker.fireEvent(name, params, nameResolver);
