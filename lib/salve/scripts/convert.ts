@@ -22,9 +22,9 @@ import fileUrl from "file-url";
 
 // We load individual modules rather than the build module because the
 // conversion code uses parts of salve that are not public.
-import { ConversionParser, getAvailableSimplifiers, getAvailableValidators,
-         makeResourceLoader, makeSimplifier, makeValidator,
-         SchemaValidationError, serialize,
+import { ConversionParser, Element, getAvailableSimplifiers,
+         getAvailableValidators, makeResourceLoader, makeSimplifier,
+         makeValidator, SchemaValidationError, serialize,
          SimplificationResult } from "../conversion";
 import { ParameterParsingError, ValueValidationError } from "../datatypes";
 import { renameRefsDefines, writeTreeToJSON } from "../json-format/write";
@@ -109,12 +109,10 @@ const availableValidators = getAvailableValidators();
 if (!availableValidators.includes("internal")) {
   throw new Fatal("internal must be among the available validators on Node!");
 }
+availableValidators.push("none");
 
 parser.addArgument(["--validator"], {
-  help: "Select how the schema is going to be validated. NOTE: use xmllint \
-ONLY FOR DEBUGGING PURPOSES. xmllint is known to not perform a thorough \
-validation of the Relax NG schema it is given. It is thus not supported for \
-formal work.",
+  help: "Select how the schema is going to be validated.",
   choices: availableValidators,
   defaultValue: "internal",
 });
@@ -297,30 +295,34 @@ async function start(): Promise<void> {
     });
   }
 
-  if (args.verbose) {
-    console.log("Validating RNG...");
-    if (args.timing) {
-      startTime = Date.now();
-    }
-  }
-
   const resourceLoader = makeResourceLoader();
 
-  const validator = makeValidator(args.validator, {
-    verbose: args.verbose,
-    timing: args.timing,
-    resourceLoader,
-    keepTemp: args.keep_temp,
-    simplifyTo: args.simplify_to,
-    ensureTempDir,
-    validate: true,
-  });
+  let simplified: Element | undefined;
+  let warnings: string[] | undefined;
+  if (args.validator !== "none") {
+    if (args.verbose) {
+      console.log("Validating RNG...");
+      if (args.timing) {
+        startTime = Date.now();
+      }
+    }
 
-  const { simplified, warnings } =
-    await validator.validate(new URL(fileUrl(args.input_path)));
+    const validator = makeValidator(args.validator, {
+      verbose: args.verbose,
+      timing: args.timing,
+      resourceLoader,
+      keepTemp: args.keep_temp,
+      simplifyTo: args.simplify_to,
+      ensureTempDir,
+      validate: true,
+    });
 
-  if (args.timing) {
-    console.log(`Validation delta: ${Date.now() - startTime!}`);
+    ({ simplified, warnings } =
+     await validator.validate(new URL(fileUrl(args.input_path))));
+
+    if (args.timing) {
+      console.log(`Validation delta: ${Date.now() - startTime!}`);
+    }
   }
 
   if (simplified !== undefined) {
