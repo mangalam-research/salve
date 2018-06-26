@@ -207,9 +207,9 @@ export type EventSet = Set<Event>;
 export type FireEventResult = false | undefined | ValidationError[];
 
 export class InternalFireEventResult {
-  constructor(public matched: boolean,
-              public errors?: ValidationError[],
-              public refs?: RefWalker[]) {}
+  constructor(readonly matched: boolean,
+              readonly errors?: ReadonlyArray<ValidationError>,
+              readonly refs?: ReadonlyArray<RefWalker>) {}
 
   static fromEndResult(result: EndResult): InternalFireEventResult {
     return (result === false) ?
@@ -217,31 +217,25 @@ export class InternalFireEventResult {
       new InternalFireEventResult(false, result);
   }
 
-  combine(other: InternalFireEventResult): this {
-    if (this.errors === undefined) {
-      this.errors = other.errors;
+  combine(other: InternalFireEventResult): InternalFireEventResult {
+    let errors: ReadonlyArray<ValidationError> | undefined;
+    let refs: ReadonlyArray<RefWalker> | undefined;
+    if (this.matched) {
+      refs = this.refs;
+      const oRefs = other.refs;
+      if (oRefs !== undefined) {
+        refs = refs === undefined ? oRefs : refs.concat(oRefs);
+      }
     }
-    else if (other.errors !== undefined) {
-      this.errors = this.errors.concat(other.errors);
-    }
-
-    if (this.refs === undefined) {
-      this.refs = other.refs;
-    }
-    else if (other.refs !== undefined) {
-      this.refs = this.refs.concat(other.refs);
-    }
-
-    return this;
-  }
-
-  combineEndResult(other: EndResult): this {
-    if (other !== false) {
-      this.errors = (this.errors === undefined) ? other :
-        this.errors.concat(other);
+    else {
+      errors = this.errors;
+      const oErrors = other.errors;
+      if (oErrors !== undefined) {
+        errors = errors === undefined ? oErrors : errors.concat(oErrors);
+      }
     }
 
-    return this;
+    return new InternalFireEventResult(this.matched, errors, refs);
   }
 }
 

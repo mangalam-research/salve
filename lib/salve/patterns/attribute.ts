@@ -138,14 +138,11 @@ class AttributeWalker implements InternalWalker {
     this.canEnd = true;
     this.canEndAttribute = true;
 
-    if (value !== "") {
-      const ret = this.subwalker.fireEvent("text", [value], nameResolver);
-      if (!ret.matched) {
-        ret.errors =
-          [new AttributeValueError("invalid attribute value", this.name)];
-
-        return ret;
-      }
+    if (value !== "" &&
+        !this.subwalker.fireEvent("text", [value], nameResolver).matched) {
+      return new InternalFireEventResult(
+        false,
+        [new AttributeValueError("invalid attribute value", this.name)]);
     }
 
     return InternalFireEventResult.fromEndResult(this.subwalker.end());

@@ -133,7 +133,12 @@ class GroupWalker implements InternalWalker {
     if (!evIsAttributeEvent && retB.matched) {
       this.endedA = true;
 
-      return retB.combineEndResult(walkerA.end());
+      // Having an end that errors here is not possible.
+      if (walkerA.end() !== false) {
+        throw new Error("walkerA can end but does not end cleanly!");
+      }
+
+      return retB;
     }
 
     return retB;

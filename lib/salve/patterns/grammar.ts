@@ -16,7 +16,7 @@ import { BasePattern, EndResult, Event, EventSet, FireEventResult,
          InternalFireEventResult, InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
-import { Ref } from "./ref";
+import { Ref, RefWalker } from "./ref";
 
 /**
  * This is an exception raised to indicate references to undefined entities in a
@@ -502,19 +502,30 @@ ${name}`);
     // Checking whether walkers.length === 0 would not be a particularly useful
     // optimization, as we don't let that happen.
 
-    const ret = new InternalFireEventResult(true);
+    const errors: ValidationError[] = [];
+    const refs: RefWalker[] = [];
     const remainingWalkers: IWalker[] = [];
     for (const walker of walkers) {
       const result = walker.fireEvent(name, params, this.nameResolver);
       // We immediately filter out results that report a match (i.e. false).
       if (result.matched) {
         remainingWalkers.push(walker);
-        ret.combine(result);
+        if (result.refs !== undefined) {
+          refs.push(...result.refs);
+        }
+        if (result.errors !== undefined) {
+          errors.push(...result.errors);
+        }
       }
       // There's no point in recording errors if we're going to toss them
       // anyway.
       else if (remainingWalkers.length === 0) {
-        ret.combine(result);
+        if (result.refs !== undefined) {
+          refs.push(...result.refs);
+        }
+        if (result.errors !== undefined) {
+          errors.push(...result.errors);
+        }
       }
     }
 
@@ -526,16 +537,13 @@ ${name}`);
 
       // If some of the walkers matched, we ignore the errors from the other
       // walkers.
-      ret.matched = true;
-      ret.errors = undefined;
-
-      return ret;
+      return new InternalFireEventResult(true, undefined,
+                                         refs.length !== 0 ? refs : undefined);
     }
 
-    ret.matched = false;
-    ret.refs = undefined;
-
-    return ret;
+    return new InternalFireEventResult(false,
+                                       errors.length !== 0 ? errors :
+                                       undefined);
   }
 
   canEnd(): boolean {
