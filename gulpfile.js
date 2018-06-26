@@ -208,17 +208,22 @@ gulp.task("convert-schema",
           () =>
           // We have to create the directory before converting.
           execFileAndReport("mkdir", ["-p", "build/dist/lib/salve/schemas/"])
+          // We have to write an empty file so that salve-convert will at least
+          // not crash due to the file being missing.
+          .then(() =>
+                fs.writeFileAsync("build/dist/lib/salve/schemas/relaxng.json",
+                                  "{}"))
           .then(() =>
                 // We use the previous version of salve to convert the
                 // validation schema.
                 execFileAndReport(
-                  "./node_modules/.bin/salve-convert",
-                  ["lib/salve/schemas/relaxng.rng",
+                  "./build/dist/bin/salve-convert",
+                  ["--validator=none", "lib/salve/schemas/relaxng.rng",
                    "build/dist/lib/salve/schemas/relaxng.json"])));
 
 
-gulp.task("default", gulp.series(gulp.parallel(tsc, "copy", "jison",
-                                               "convert-schema"),
+gulp.task("default", gulp.series(gulp.parallel(tsc, "copy", "jison"),
+                                 "convert-schema",
                                  () => webpack()));
 
 gulp.task("karma", gulp.series("default", karma));
