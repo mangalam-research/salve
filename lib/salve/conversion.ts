@@ -9,7 +9,6 @@
  */
 "use strict";
 
-export { ConversionWalker } from "./conversion/conversion-walker";
 export { ConversionResult, convertRNGToPattern } from "./conversion/convert";
 export { BasicParser, ConversionParser, Element, Found,
          IncludeParser, Node, Text } from "./conversion/parser";

@@ -1,7 +1,6 @@
 import * as datatypes from "../../datatypes";
 import { Data, Value } from "../../patterns";
-import { ConversionWalker } from "../conversion-walker";
-import { Element, Text } from "../parser";
+import { Element, isElement, Text } from "../parser";
 
 const warnAboutTheseTypes: string[] = [
   "ENTITY",
@@ -86,7 +85,7 @@ export function fromQNameToURI(value: string, el: Element): string {
  * This walker checks that the types used in the tree can be used, and does
  * special processing for ``QName`` and ``NOTATION``.
  */
-export class DatatypeProcessor extends ConversionWalker {
+export class DatatypeProcessor {
   /**
    * The warnings generated during the walk. This array is populated while
    * walking.
@@ -122,9 +121,8 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
             // tslint:disable-next-line: no-http-string
             !(libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
               (type === "QName" || type === "NOTATION"))) {
-          throw new Error("datatype needs context but is not " +
-                          "QName or NOTATION form the XML Schema " +
-                          "library: don't know how to handle");
+          throw new Error("datatype needs context but is not QName or NOTATION \
+form the XML Schema library: don't know how to handle");
         }
 
         if (datatype.needsContext) {
@@ -188,6 +186,11 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
       this.warnings.push(
         `WARNING: ${el.path} uses the ${type} type in library ${libname}`);
     }
-    this.walkChildren(el);
+
+    for (const child of el.children) {
+      if (isElement(child)) {
+        this.walk(child);
+      }
+    }
   }
 }
