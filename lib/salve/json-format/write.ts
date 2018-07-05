@@ -17,14 +17,18 @@ class RNGToJSONConverter {
   /**
    * @param version The version of the format to produce.
    *
+   * @param nameMap A map for renaming named elements.
+   *
    * @param includePaths Whether to include paths in the output.
    *
    * @param verbose Whether to output verbosely.
    *
    * @throws {Error} If the version requested in ``version`` is not supported.
    */
-  constructor(version: number, readonly includePaths: boolean = false,
-              readonly verbose: boolean = false) {
+  constructor(version: number,
+              readonly nameMap: Map<string, number> | undefined,
+              readonly includePaths: boolean,
+              readonly verbose: boolean) {
     if (version !== 3) {
       throw new Error("DefaultConversionWalker only supports version 3");
     }
@@ -199,8 +203,9 @@ OPTION_NO_PATHS},"d":`);
         break;
       case "ref": {
         const name = el.mustGetAttribute("name");
-        if (/^\d+$/.test(name)) {
-          this.outputItem(parseInt(name));
+        if (this.nameMap !== undefined) {
+          // tslint:disable-next-line:no-non-null-assertion
+          this.outputItem(this.nameMap.get(name)!);
         }
         else {
           this.outputAsString(name);
@@ -209,8 +214,9 @@ OPTION_NO_PATHS},"d":`);
       }
       case "define": {
         const name = el.mustGetAttribute("name");
-        if (/^\d+$/.test(name)) {
-          this.outputItem(parseInt(name));
+        if (this.nameMap !== undefined) {
+          // tslint:disable-next-line:no-non-null-assertion
+          this.outputItem(this.nameMap.get(name)!);
         }
         else {
           this.outputAsString(name);
@@ -391,7 +397,7 @@ OPTION_NO_PATHS},"d":`);
   }
 }
 
-function gatherNamed(el: Element, all: Map<string, Element[]>): void {
+function gatherNamed(el: Element, all: Map<string, number>): void {
   for (const child of el.children) {
     if (!isElement(child)) {
       continue;
@@ -399,52 +405,41 @@ function gatherNamed(el: Element, all: Map<string, Element[]>): void {
 
     if (child.local === "define" || child.local === "ref") {
       const name = child.mustGetAttribute("name");
-      const els = all.get(name);
-      if (els === undefined) {
-        all.set(name, [child]);
+      let count = all.get(name);
+      if (count === undefined) {
+        count = 0;
       }
-      else {
-        els.push(child);
-      }
+      all.set(name, ++count);
     }
 
     gatherNamed(child, all);
   }
 }
 
-/**
- * Rename the ``ref`` and ``define`` elements in a schema. The modifications are
- * done in-place. The new names are numbers. Using numbers saves some characters
- * because numbers can be put as-is in JSON (whereas strings require
- * delimiters). Lower numbers are assigned to the most frequent names, so as to
- * optimize for lower final JSON size.
- *
- * @param tree The schema to modify, in the form of a tree of elements.
- */
-export function renameRefsDefines(tree: Element): void {
-  const names = new Map<string, Element[]>();
-  gatherNamed(tree, names);
-  // Now assign new names with shorter new names being assigned to those
-  // original names that are most frequent. Note that we don't need the keys
-  // anymore.
-  const sorted = Array.from(names.values());
-  // Yes, we want to sort in reverse order of frequency, highest first.
-  sorted.sort((elsA, elsB) => elsB.length - elsA.length);
-
-  let id = 1;
-  for (const els of sorted) {
-    const strId = String(id++);
-    for (const el of els) {
-      el.setAttribute("name", strId);
-    }
-  }
-}
-
 export function writeTreeToJSON(tree: Element, formatVersion: number,
                                 includePaths: boolean = false,
-                                verbose: boolean = false): string {
-  const walker = new RNGToJSONConverter(formatVersion, includePaths,
-                                             verbose);
+                                verbose: boolean = false,
+                                rename: boolean = true): string {
+  let nameMap: Map<string, number> | undefined;
+  if (rename) {
+    const names = new Map<string, number>();
+    gatherNamed(tree, names);
+    // Now assign new names with shorter new names being assigned to those
+    // original names that are most frequent.
+    const sorted = Array.from(names.entries());
+    // Yes, we want to sort in reverse order of frequency, highest first.
+    sorted.sort(([_keyA, freqA], [_keyB, freqB]) => freqB - freqA);
+
+    let id = 1;
+    nameMap = new Map();
+    for (const [key, _] of sorted) {
+      nameMap.set(key, id++);
+    }
+  }
+
+  const walker = new RNGToJSONConverter(formatVersion, nameMap, includePaths,
+                                        verbose);
+
   walker.convert(tree);
 
   return walker.output;

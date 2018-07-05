@@ -14,7 +14,7 @@ export { eventsToTreeString, Event, EventSet, Grammar, GrammarWalker,
 
 export { ConversionResult, convertRNGToPattern } from "./conversion";
 
-export { writeTreeToJSON, renameRefsDefines } from "./json-format/write";
+export { writeTreeToJSON } from "./json-format/write";
 export { constructTree, readTreeFromJSON } from "./json-format/read";
 
 export { EName }  from "./ename";

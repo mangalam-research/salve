@@ -27,7 +27,7 @@ import { ConversionParser, Element, getAvailableSimplifiers,
          makeValidator, SchemaValidationError, serialize,
          SimplificationResult } from "../conversion";
 import { ParameterParsingError, ValueValidationError } from "../datatypes";
-import { renameRefsDefines, writeTreeToJSON } from "../json-format/write";
+import { writeTreeToJSON } from "../json-format/write";
 import { version } from "../validate";
 import { Fatal } from "./convert/fatal";
 
@@ -267,14 +267,11 @@ async function convert(result: SimplificationResult): Promise<void> {
     }
   }
 
-  if (!args.no_optimize_ids) {
-    renameRefsDefines(simplified);
-  }
-
   if (!args.no_output) {
     fs.writeFileSync(args.output_path,
                      writeTreeToJSON(simplified, args.format_version,
-                                     args.include_paths, args.verbose_format));
+                                     args.include_paths, args.verbose_format,
+                                     !args.no_optimize_ids));
   }
 
   if (args.timing) {
