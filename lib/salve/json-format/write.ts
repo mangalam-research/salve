@@ -60,21 +60,9 @@ class RNGToJSONConverter {
    * construct is closed properly.
    */
   openConstruct(open: string): void {
+    this.newItem();
     this._firstItem = true;
     this._output += open;
-  }
-
-  /**
-   * Closes a construct in the output.
-   *
-   * @param close The closing string. This will be used to check that the
-   * construct is closed properly.
-   *
-   * @throws {Error} If the ``close`` parameter does not match what was passed
-   * to [[openConstruct]].
-   */
-  closeConstruct(close: string): void {
-    this._output += close;
   }
 
   /**
@@ -136,6 +124,7 @@ OPTION_NO_PATHS},"d":`);
     if (code === undefined) {
       throw new Error("can't find constructor for grammar");
     }
+    this._firstItem = true;
     this.openConstruct("[");
     if (this.verbose) {
       this.outputAsString("Grammar");
@@ -148,20 +137,16 @@ OPTION_NO_PATHS},"d":`);
     }
     // el.children[0] is a start element: walk start's children.
     this.walkChildren(el.children[0] as Element);
-    this.newItem();
     this.openArray();
     // Walk the definitions...
     this.walkChildren(el, 1);
-    this.closeConstruct("]");
-    this.closeConstruct("]");
-    this.closeConstruct("}");
+    this._output += "]]}";
   }
 
   // tslint:disable-next-line: max-func-body-length
   walk(el: Element): void {
     const { local } = el;
 
-    this.newItem();
     const code = nameToCode[local];
     if (code === undefined) {
       throw new Error(`can't find constructor for ${local}`);
@@ -183,10 +168,9 @@ OPTION_NO_PATHS},"d":`);
       case "interleave":
       case "choice":
       case "oneOrMore":
-        this.newItem();
         this.openArray();
         this.walkChildren(el);
-        this.closeConstruct("]");
+        this._output += "]";
         break;
       case "element":
       case "attribute":
@@ -196,10 +180,9 @@ OPTION_NO_PATHS},"d":`);
         // that follows. (A name class cannot contain `<element>` or
         // `<attribute>`.
         this.walkNameClass(el.children[0] as Element);
-        this.newItem();
         this.openArray();
         this.walkChildren(el, 1);
-        this.closeConstruct("]");
+        this._output += "]";
         break;
       case "ref": {
         const name = el.mustGetAttribute("name");
@@ -221,10 +204,9 @@ OPTION_NO_PATHS},"d":`);
         else {
           this.outputAsString(name);
         }
-        this.newItem();
         this.openArray();
         this.walkChildren(el);
-        this.closeConstruct("]");
+        this._output += "]";
         break;
       }
       case "value": {
@@ -283,7 +265,6 @@ OPTION_NO_PATHS},"d":`);
           if (datatypeLibraryAttr !== "" || hasParams || hasExcept) {
             this.outputAsString(datatypeLibraryAttr);
             if (hasParams || hasExcept) {
-              this.newItem();
               this.openArray();
               if (hasParams) {
                 const limit = hasExcept ? length - 1 : children.length;
@@ -293,7 +274,7 @@ OPTION_NO_PATHS},"d":`);
                   this.outputAsString(param.children[0]);
                 }
               }
-              this.closeConstruct("]");
+              this._output += "]";
               if (hasExcept) {
                 this.walkChildren(children[length - 1] as Element);
               }
@@ -313,7 +294,7 @@ OPTION_NO_PATHS},"d":`);
       default:
         throw new Error(`did not expect an element with name ${local} here`);
     }
-    this.closeConstruct("]");
+    this._output += "]";
   }
 
   // tslint:disable-next-line: max-func-body-length
@@ -323,7 +304,6 @@ OPTION_NO_PATHS},"d":`);
       local = "nameChoice";
     }
 
-    this.newItem();
     const code = nameToCode[local];
     if (code === undefined) {
       throw new Error(`can't find constructor for ${local}`);
@@ -346,12 +326,11 @@ OPTION_NO_PATHS},"d":`);
         this.outputAsString(el);
         break;
       case "nameChoice":
-        this.newItem();
         this.openArray();
         for (const child of el.children as Element[]) {
           this.walkNameClass(child);
         }
-        this.closeConstruct("]");
+        this._output += "]";
         break;
       case "nsName":
         this.outputAsString(el.mustGetAttribute("ns"));
@@ -370,7 +349,7 @@ OPTION_NO_PATHS},"d":`);
       default:
         throw new Error(`did not expect an element with name ${local} here`);
     }
-    this.closeConstruct("]");
+    this._output += "]";
   }
 
   /**
