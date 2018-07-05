@@ -302,7 +302,7 @@ export class Element extends Node {
     }
     child.parent = this;
     this.children.unshift(child);
-    }
+  }
 
   insertAt(index: number, toInsert: ConcreteNode[]): void {
     for (const el of toInsert) {
@@ -515,12 +515,12 @@ export class Validator implements ValidatorI {
     }
     this.fireEvent("startTagAndAttributes", [node.uri, node.local,
                                              ...attributeEvents]);
-    this.contextStack.unshift(hasContext);
+    this.contextStack.push(hasContext);
   }
 
   onclosetag(node: sax.QualifiedTag): void {
     this.flushTextBuf();
-    const hasContext = this.contextStack.shift();
+    const hasContext = this.contextStack.pop();
     if (hasContext === undefined) {
       throw new Error("stack underflow");
     }
@@ -579,7 +579,7 @@ export class BasicParser extends Parser {
    * The root of the parsed XML.
    */
   get root(): Element {
-    return this.stack[0].children.filter(isElement)[0] as Element;
+    return this.stack[0].children.filter(isElement)[0];
   }
 
   onopentag(node: sax.QualifiedTag): void {
@@ -595,7 +595,7 @@ export class BasicParser extends Parser {
       return;
     }
 
-    this.stack.unshift({
+    this.stack.push({
       node,
       children: [],
     });
@@ -613,8 +613,9 @@ export class BasicParser extends Parser {
     }
 
     // tslint:disable-next-line:no-non-null-assertion
-    const { node: topNode, children } = this.stack.shift()!;
-    this.stack[0].children.push(Element.fromSax(topNode, children));
+    const { node: topNode, children } = this.stack.pop()!;
+    this.stack[this.stack.length - 1].children
+      .push(Element.fromSax(topNode, children));
   }
 
   ontext(text: string): void {
@@ -623,7 +624,7 @@ export class BasicParser extends Parser {
       return;
     }
 
-    this.stack[0].children.push(new Text(text));
+    this.stack[this.stack.length - 1].children.push(new Text(text));
   }
 }
 
@@ -655,7 +656,7 @@ export class ConversionParser extends BasicParser {
       return;
     }
 
-    const top = this.stack[0];
+    const top = this.stack[this.stack.length - 1];
     const local = top.node.local;
     // The parser does not allow non-RNG nodes, so we don't need to check the
     // namespace.

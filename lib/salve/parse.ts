@@ -135,7 +135,7 @@ export async function parse(rngSource: string | Grammar,
       fireEvent(event[0], event.slice(1));
     }
     fireEvent("leaveStartTag", []);
-    tagStack.unshift({
+    tagStack.push({
       uri: node.uri,
       local: node.local,
       hasContext: nsDefinitions.length !== 0,
@@ -148,7 +148,7 @@ export async function parse(rngSource: string | Grammar,
 
   parser.onclosetag = () => {
     flushTextBuf();
-    const tagInfo = tagStack.shift();
+    const tagInfo = tagStack.pop();
     if (tagInfo === undefined) {
       throw new Error("stack underflow");
     }

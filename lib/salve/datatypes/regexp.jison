@@ -159,8 +159,8 @@ else {
 var groupState = [];
 var needsXRegExpRe = /\\p/i;
 
-function unshiftGroupState(negative) {
-  groupState.unshift({
+function enterGroupState(negative) {
+  groupState.push({
     negative: negative,
     capturedMultiChar: [],
   });
@@ -265,7 +265,7 @@ charClassExpr
     : charClassExprStart charGroup ']'
     {
       var orig = $1 + $2 + $3;
-      var state = groupState.shift();
+      var state = groupState.pop();
       var capturedMultiChar = state.capturedMultiChar;
 
       var subtraction = state.subtraction ?
@@ -298,12 +298,12 @@ charClassExpr
 charClassExprStart
     : '['
     {
-      unshiftGroupState(false);
+      enterGroupState(false);
       $$ = $1;
     }
     | '[^'
     {
-      unshiftGroupState(true);
+      enterGroupState(true);
       $$ = $1;
     }
     ;
@@ -326,7 +326,7 @@ charClassSub
     : posCharGroups CLASSSUBTRACTION charClassExpr
     {
       $$ = $1;
-      groupState[0].subtraction = $3;
+      groupState[groupState.length - 1].subtraction = $3;
     }
     ;
 
@@ -350,7 +350,7 @@ charClassEsc
       if (groupState.length) {
         var repl = multiCharEscapesInGroup[$1];
         if (repl.charAt(0) === "^") {
-          groupState[0].capturedMultiChar.push($1);
+          groupState[groupState.length - 1].capturedMultiChar.push($1);
           $$ = "";
         }
         else {

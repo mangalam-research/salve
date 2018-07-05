@@ -91,9 +91,11 @@ export function findMultiNames(el: Element,
   const name = nameClass.local;
   if (names.includes(name)) {
     if (!(name in descendants)) {
-      descendants[name] = [];
+      descendants[name] = [nameClass];
     }
-    descendants[name].unshift(nameClass);
+    else {
+      descendants[name].unshift(nameClass);
+    }
   }
 
   return descendants;

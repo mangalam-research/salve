@@ -95,7 +95,7 @@ export class NameResolver {
       throw new Error("trying to define 'xml' to an incorrect URI");
     }
 
-    const top = this._contextStack[0];
+    const top = this._contextStack[this._contextStack.length - 1];
     top.forward.set(prefix, uri);
 
     let prefixes = top.backwards.get(uri);
@@ -125,7 +125,7 @@ export class NameResolver {
    * created. There is no need to create it and it is not possible to leave it.
    */
   enterContext(): void {
-    this._contextStack.unshift({
+    this._contextStack.push({
       forward: new Map(),
       backwards: new Map(),
     });
@@ -140,7 +140,7 @@ export class NameResolver {
    */
   leaveContext(): void {
     if (this._contextStack.length > 1) {
-      this._contextStack.shift();
+      this._contextStack.pop();
     }
     else {
       throw new Error("trying to leave the default context");
@@ -186,7 +186,8 @@ export class NameResolver {
     }
 
     // Search through the contexts.
-    for (const context of this._contextStack) {
+    for (let ix = this._contextStack.length - 1; ix >= 0; --ix) {
+      const context = this._contextStack[ix];
       const uri = context.forward.get(prefix);
       if (uri !== undefined) {
         return new EName(uri, local);
@@ -227,8 +228,8 @@ export class NameResolver {
 
     // Search through the contexts.
     let prefixes: string[] | undefined;
-    for (let cIx = 0; (prefixes === undefined) &&
-         (cIx < this._contextStack.length); ++cIx) {
+    for (let cIx = this._contextStack.length - 1;
+         (prefixes === undefined) && (cIx >= 0); --cIx) {
       prefixes = this._contextStack[cIx].backwards.get(uri);
     }
 
@@ -253,8 +254,8 @@ export class NameResolver {
    */
   prefixFromURI(uri: string): string | undefined {
     let prefixes: string[] | undefined;
-    for (let cIx = 0; (prefixes === undefined) &&
-         (cIx < this._contextStack.length); ++cIx) {
+    for (let cIx = this._contextStack.length - 1;
+         (prefixes === undefined) && (cIx >= 0); --cIx) {
       prefixes = this._contextStack[cIx].backwards.get(uri);
     }
 

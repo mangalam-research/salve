@@ -389,7 +389,7 @@ walker: the internal logic is incorrect");
           newWalkers.push(walker);
         }
 
-        this.elementWalkerStack.unshift(newWalkers);
+        this.elementWalkerStack.push(newWalkers);
       }
     }
     else if (ret.errors !== undefined) {
@@ -402,7 +402,7 @@ walker: the internal logic is incorrect");
           // Once in dumb mode, we remain in dumb mode.
           if (this.misplacedDepth > 0) {
             this.misplacedDepth++;
-            this.elementWalkerStack.unshift([new MisplacedElementWalker()]);
+            this.elementWalkerStack.push([new MisplacedElementWalker()]);
           }
           else {
             const elName = new Name("", params[0], params[1]);
@@ -417,7 +417,7 @@ walker: the internal logic is incorrect");
             if (candidates !== undefined && candidates.length === 1) {
               const newWalker =
                 candidates[0].newWalker(elName);
-              this.elementWalkerStack.unshift([newWalker]);
+              this.elementWalkerStack.push([newWalker]);
               if (name === "startTagAndAttributes") {
                 if (!newWalker.initWithAttributes(params.slice(2),
                                                   this.nameResolver).matched) {
@@ -429,7 +429,7 @@ walker: the internal logic is incorrect");
             else {
               // Dumb mode...
               this.misplacedDepth++;
-              this.elementWalkerStack.unshift([new MisplacedElementWalker()]);
+              this.elementWalkerStack.push([new MisplacedElementWalker()]);
             }
           }
           break;
@@ -478,7 +478,7 @@ ${name}`);
       // for elements calls end when it sees an "endTag" event.
       // We do not reduce the stack to nothing.
       if (this.elementWalkerStack.length > 1) {
-        this.elementWalkerStack.shift();
+        this.elementWalkerStack.pop();
       }
 
       if (this.misplacedDepth > 0) {
@@ -502,7 +502,7 @@ ${name}`);
 
   private _fireOnCurrentWalkers(name: string,
                                 params: string[]): InternalFireEventResult {
-    const walkers = this.elementWalkerStack[0];
+    const walkers = this.elementWalkerStack[this.elementWalkerStack.length - 1];
 
     // Checking whether walkers.length === 0 would not be a particularly useful
     // optimization, as we don't let that happen.
@@ -538,7 +538,8 @@ ${name}`);
     // were not, then we just keep the successful ones. But removing all walkers
     // at once prevents us from giving useful error messages.
     if (remainingWalkers.length !== 0) {
-      this.elementWalkerStack[0] = remainingWalkers;
+      this.elementWalkerStack[this.elementWalkerStack.length - 1] =
+        remainingWalkers;
 
       // If some of the walkers matched, we ignore the errors from the other
       // walkers.
@@ -552,7 +553,7 @@ ${name}`);
   }
 
   canEnd(): boolean {
-    const top = this.elementWalkerStack[0];
+    const top = this.elementWalkerStack[this.elementWalkerStack.length - 1];
 
     return this.elementWalkerStack.length === 1 &&
       top.length > 0 && top[0].canEnd;
@@ -564,7 +565,8 @@ ${name}`);
     }
 
     let finalResult: ValidationError[] = [];
-    for (const stackElement of this.elementWalkerStack) {
+    for (let ix = this.elementWalkerStack.length - 1; ix >= 0; --ix) {
+      const stackElement = this.elementWalkerStack[ix];
       for (const walker of stackElement) {
         const result = walker.end();
         if (result) {
@@ -578,7 +580,8 @@ ${name}`);
 
   possible(): EventSet {
     let possible = new Set<Event>();
-    for (const walker of this.elementWalkerStack[0]) {
+    for (const walker of
+         this.elementWalkerStack[this.elementWalkerStack.length - 1]) {
       union(possible, walker.possible());
     }
 
