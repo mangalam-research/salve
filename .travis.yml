@@ -20,7 +20,7 @@ before_install:
 - npm install -g greenkeeper-lockfile@1
 # We need this to work around this:
 # https://github.com/greenkeeperio/greenkeeper-lockfile/issues/156
-install: 'if [[ $TRAVIS_BRANCH = greenkeeper/* ]]; then npm install; else npm ci; fi'
+install: 'if [[ ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH} = greenkeeper/* ]]; then npm install; else npm ci; fi'
 script: gulp test
 before_script: greenkeeper-lockfile-update
 after_script: greenkeeper-lockfile-upload
