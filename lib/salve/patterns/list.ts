@@ -35,6 +35,7 @@ export class List extends OneSubpattern {
 
   newWalker(): InternalWalker {
     const hasEmptyPattern = this.hasEmptyPattern();
+
     // tslint:disable-next-line:no-use-before-declare
     return new ListWalker(this,
                           this.pat.newWalker(),
