@@ -340,6 +340,7 @@ gulp.task("versync", () => versync.run({
 gulp.task("mocha", gulp.series("default", mocha));
 
 gulp.task("test",
-          gulp.series("default", gulp.parallel("versync", mocha, karma)));
+          gulp.series("default",
+                      gulp.parallel("versync", mocha, karma, "lint")));
 
 gulp.task("clean", () => del(["build", "gh-pages-build"]));
