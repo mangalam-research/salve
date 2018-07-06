@@ -2,7 +2,7 @@
 
 /* global __dirname */
 const webpack = require("webpack");
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 
 const source = "build/dist";
 module.exports = {
