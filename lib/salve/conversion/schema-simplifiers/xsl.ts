@@ -9,9 +9,8 @@
 import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
-import * as sax from "sax";
 
-import { ConversionParser, Found, IncludeParser } from "../parser";
+import { dependsOnExternalFile, parseSimplifiedSchema } from "../parser";
 import { registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { BaseSimplifier } from "./base";
@@ -65,22 +64,9 @@ export class XSLSimplifier extends BaseSimplifier {
       };
       if (file === "rng-simplification_step1.xsl") {
         ret.saxon = true;
-        ret.repeatWhen = (output: string) => {
-          // We want to check whether we need to run the step again to include
-          // more files.
-          const incParser =
-            new IncludeParser(sax.parser(true, { xmlns: true }));
-          try {
-            incParser.saxParser.write(output).close();
-          }
-          catch (ex) {
-            if (!(ex instanceof Found)) {
-              throw ex;
-            }
-          }
-
-          return incParser.found;
-        };
+        // We want to check whether we need to run the step again to include
+        // more files.
+        ret.repeatWhen = dependsOnExternalFile;
       }
 
       return ret;
@@ -111,9 +97,7 @@ export class XSLSimplifier extends BaseSimplifier {
       await this.executeStep(originalInputDir, 0,
                              fs.readFileSync(schemaPath).toString());
 
-    const convParser = new ConversionParser(sax.parser(true, { xmlns: true }));
-    convParser.saxParser.write(result).close();
-    const simplified = convParser.root;
+    const simplified = parseSimplifiedSchema(schemaPath, result);
     const warnings: string[] = (this.options.simplifyTo >= 18) ?
       this.processDatatypes(simplified) : [];
 

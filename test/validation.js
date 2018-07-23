@@ -4,14 +4,14 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-/* global it, describe, before */
+/* global it, describe, before, beforeEach */
 
 "use strict";
 
 const fs = require("fs");
 const path = require("path");
 const { assert } = require("chai");
-const sax = require("sax");
+const { SaxesParser } = require("saxes");
 const salve = require("../build/dist");
 
 function fileAsString(p) {
@@ -27,7 +27,7 @@ function errorsToString(errs) {
 }
 
 function makeParser(er, walker) {
-  const parser = sax.parser(true, { xmlns: true });
+  const parser = new SaxesParser({ xmlns: true });
 
   const tagStack = [];
   parser.onopentag = function onopentag(node) {
@@ -324,39 +324,93 @@ describe("GrammarWalker.fireEvent", () => {
       };
     }
 
-    describe("a tei-based file", () => {
-      before(() => {
-        rng = "test/tei/simplified-rng.js";
-      });
-      it("which is empty", makeErrorTest("empty"));
-      it("which has an unclosed element",
-         makeErrorTest("not_closed1"));
-      it("which has two unclosed elements",
-         makeErrorTest("not_closed2"));
-      it("which has two unclosed elements, with contents",
-         makeErrorTest("not_closed3"));
-      it("which has a missing namespace",
-         makeErrorTest("missing_namespace"));
-      it("which has a missing element",
-         makeErrorTest("missing_element"));
-    });
+    function makeSimpleTEITests(name, rngSource) {
+      describe(`a tei-based file ${name}`, () => {
+        let walker;
 
-    describe("a tei-based file (optimized ids)", () => {
-      before(() => {
-        rng = "test/tei/simplified-rng.js";
+        beforeEach(() => {
+          // needed for makeErrorTest.
+          rng = rngSource;
+          const tree = salve.readTreeFromJSON(fileAsString(rngSource));
+          walker = tree.newWalker();
+        });
+
+        it("which is empty", () => {
+          const ret = walker.end();
+          assert.deepEqual(ret.map(x => x.toString()), [
+            `tag required: {"ns":"http://www.tei-c.org/ns/1.0","name":"TEI"}`,
+          ]);
+        });
+
+        it("which has an unclosed element", () => {
+          walker.enterContext();
+          walker.definePrefix("", "http://www.tei-c.org/ns/1.0");
+          let ret = walker.fireEvent("startTagAndAttributes",
+                                     ["http://www.tei-c.org/ns/1.0", "TEI"]);
+          assert.isFalse(ret);
+          ret = walker.end();
+          assert.deepEqual(ret.map(x => x.toString()), [
+            `tag required: {"ns":"http://www.tei-c.org/ns/1.0",\
+"name":"teiHeader"}`,
+            `tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"TEI"}`,
+          ]);
+        });
+
+        it("which has more than one unclosed element", () => {
+          walker.enterContext();
+          walker.definePrefix("", "http://www.tei-c.org/ns/1.0");
+          let ret;
+          const names = ["TEI", "teiHeader", "fileDesc", "titleStmt"];
+          for (const tagName of names) {
+            ret = walker.fireEvent("startTagAndAttributes",
+                                   ["http://www.tei-c.org/ns/1.0", tagName]);
+            assert.isFalse(ret);
+          }
+          ret = walker.end();
+          assert.deepEqual(ret.map(x => x.toString()), [
+            `tag required: {"ns":"http://www.tei-c.org/ns/1.0","name":"title"}`,
+            `tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"titleStmt"}`,
+            `tag required: {"ns":"http://www.tei-c.org/ns/1.0","name":"publicationStmt"}`,
+            `tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"fileDesc"}`,
+            `tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"teiHeader"}`,
+            `tag required: {"ns":"http://www.tei-c.org/ns/1.0","name":"text"}`,
+            `tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"TEI"}`,
+          ]);
+        });
+
+        it("which has more than one unclosed element, with contents", () => {
+          walker.enterContext();
+          walker.definePrefix("", "http://www.tei-c.org/ns/1.0");
+          let ret;
+          const names = ["TEI", "teiHeader", "fileDesc", "titleStmt", "title"];
+          for (const tagName of names) {
+            ret = walker.fireEvent("startTagAndAttributes",
+                                   ["http://www.tei-c.org/ns/1.0", tagName]);
+            assert.isFalse(ret);
+          }
+          ret = walker.fireEvent("text", ["toto"]);
+          assert.isFalse(ret);
+          ret = walker.end();
+          assert.deepEqual(ret.map(x => x.toString()), [
+            `tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"title"}`,
+            `tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"titleStmt"}`,
+            `tag required: {"ns":"http://www.tei-c.org/ns/1.0","name":"publicationStmt"}`,
+            `tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"fileDesc"}`,
+            `tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"teiHeader"}`,
+            `tag required: {"ns":"http://www.tei-c.org/ns/1.0","name":"text"}`,
+            `tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"TEI"}`,
+          ]);
+        });
+
+        it("which has a missing namespace",
+           makeErrorTest("missing_namespace"));
+        it("which has a missing element",
+           makeErrorTest("missing_element"));
       });
-      it("which is empty", makeErrorTest("empty"));
-      it("which has an unclosed element",
-         makeErrorTest("not_closed1"));
-      it("which has two unclosed elements",
-         makeErrorTest("not_closed2"));
-      it("which has two unclosed elements, with contents",
-         makeErrorTest("not_closed3"));
-      it("which has a missing namespace",
-         makeErrorTest("missing_namespace"));
-      it("which has a missing element",
-         makeErrorTest("missing_element"));
-    });
+    }
+
+    makeSimpleTEITests("", "test/tei/simplified-rng-not-optimized.js");
+    makeSimpleTEITests("(optimized ids)", "test/tei/simplified-rng.js");
 
     describe("a simple schema", () => {
       before(() => {
@@ -399,11 +453,18 @@ describe("GrammarWalker.fireEvent", () => {
            check_possible: false,
          }));
 
-      it("top-level opening tag without closing",
-         makeErrorTest("opening_no_closing", {
-           check_fireEvent_invocation: true,
-           check_possible: false,
-         }));
+      it("top-level opening tag without closing", () => {
+        const tree =
+              salve.readTreeFromJSON(
+                fileAsString("test/opening_no_closing/simplified-rng.js"));
+        const walker = tree.newWalker();
+        let ret = walker.fireEvent("startTagAndAttributes", ["", "html"]);
+        ret = walker.end();
+        assert.deepEqual(ret.map(x => x.toString()), [
+          `tag required: {"ns":"","name":"q"}`,
+          `tag not closed: {"ns":"","name":"html"}`,
+        ]);
+      });
 
       it("invalid attribute",
          makeErrorTest("invalid_attribute", {

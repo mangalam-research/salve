@@ -10,7 +10,7 @@
 "use strict";
 
 export { ConversionResult, convertRNGToPattern } from "./conversion/convert";
-export { ConversionParser, Element, Found, IncludeParser, Node,
+export { Element, Node, parseSimplifiedSchema,
          Text } from "./conversion/parser";
 export { makeResourceLoader } from "./conversion/resource-loader";
 export { serialize } from "./conversion/serializer";

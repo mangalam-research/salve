@@ -5,7 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import * as sax from "sax";
+import { EVENTS, SaxesAttribute, SaxesParser, SaxesTag } from "saxes";
 
 import { ValidationError } from "../errors";
 import { XML1_NAMESPACE, XMLNS_NAMESPACE } from "../name_resolver";
@@ -25,15 +25,15 @@ import { RELAXNG_URI } from "./simplifier/util";
  */
 export class Parser {
   /**
-   * @param saxParser A parser created by the ``sax-js`` library or something
+   * @param saxesParser A parser created by the ``saxes`` library or something
    * compatible.
    */
-  constructor(readonly saxParser: sax.SAXParser) {
-    for (const name of sax.EVENTS) {
+  constructor(readonly saxesParser: SaxesParser) {
+    for (const name of EVENTS) {
       const methodName = `on${name}`;
       const method = (this as any)[methodName];
       if (method !== undefined) {
-        (this.saxParser as any)[methodName] =
+        (this.saxesParser as any)[methodName] =
           (this as any)[methodName].bind(this);
       }
     }
@@ -101,7 +101,7 @@ export class Element extends Node {
   // ns is meant to be immutable.
   private readonly ns: Record<string, string>;
 
-  attributes: Record<string, sax.QualifiedAttribute>;
+  attributes: Record<string, SaxesAttribute>;
 
   /**
    * @param node The value of the ``node`` created by the SAX parser.
@@ -113,7 +113,7 @@ export class Element extends Node {
               local: string,
               uri: string,
               ns: Record<string, string>,
-              attributes: Record<string, sax.QualifiedAttribute>,
+              attributes: Record<string, SaxesAttribute>,
               readonly children: ConcreteNode[] = []) {
     super();
     this.prefix = prefix;
@@ -128,18 +128,13 @@ export class Element extends Node {
     }
   }
 
-  static fromSax(node: sax.QualifiedTag, children: ConcreteNode[]): Element {
+  static fromSax(node: SaxesTag, children: ConcreteNode[]): Element {
     return new Element(
       node.prefix,
       node.local,
       node.uri,
-      // We create a new object even when using a sax node. Sax uses a prototype
-      // trick to flatten the hierarchy of namespace declarations but that
-      // screws us over when we mutate the tree. It is simpler to just undo the
-      // trick and have a resolve() method that searches up the tree. We don't
-      // do that many searches anyway.
-      Object.assign(Object.create(null), node.ns),
-      node.attributes,
+      node.ns,
+      node.attributes as Record<string, SaxesAttribute>,
       children);
   }
 
@@ -400,7 +395,7 @@ export class Element extends Node {
     return (attr !== undefined) ? attr.value : undefined;
   }
 
-  getRawAttributes(): Record<string, sax.QualifiedAttribute> {
+  getRawAttributes(): Record<string, SaxesAttribute> {
     return this.attributes;
   }
 
@@ -457,8 +452,8 @@ export function isText(node: Node): node is Text {
 }
 
 export interface ValidatorI {
-  onopentag(node: sax.QualifiedTag): void;
-  onclosetag(node: sax.QualifiedTag): void;
+  onopentag(node: SaxesTag): void;
+  onclosetag(node: SaxesTag): void;
   ontext(text: string): void;
 }
 
@@ -495,12 +490,13 @@ export class Validator implements ValidatorI {
     }
   }
 
-  onopentag(node: sax.QualifiedTag): void {
+  onopentag(node: SaxesTag): void {
     this.flushTextBuf();
     let hasContext = false;
     const attributeEvents: string[] = [];
     for (const name of Object.keys(node.attributes)) {
-      const { uri, prefix, local, value } = node.attributes[name];
+      const { uri, prefix, local, value } =
+        node.attributes[name] as SaxesAttribute;
       if ((local === "" && name === "xmlns") ||
           prefix === "xmlns") { // xmlns="..." or xmlns:q="..."
         if (!hasContext) {
@@ -518,7 +514,7 @@ export class Validator implements ValidatorI {
     this.contextStack.push(hasContext);
   }
 
-  onclosetag(node: sax.QualifiedTag): void {
+  onclosetag(node: SaxesTag): void {
     this.flushTextBuf();
     const hasContext = this.contextStack.pop();
     if (hasContext === undefined) {
@@ -559,12 +555,11 @@ export class BasicParser extends Parser {
    * the XML file but a holder for the tree of elements. It has a single child
    * which is the root of the actual file parsed.
    */
-  protected readonly stack: { node: sax.QualifiedTag;
-                              children: ConcreteNode[]; }[];
+  protected readonly stack: { node: SaxesTag; children: ConcreteNode[] }[];
 
   protected drop: number = 0;
 
-  constructor(saxParser: sax.SAXParser,
+  constructor(saxParser: SaxesParser,
               protected readonly validator: ValidatorI = new NullValidator()) {
     super(saxParser);
     this.stack = [{
@@ -582,7 +577,7 @@ export class BasicParser extends Parser {
     return this.stack[0].children.filter(isElement)[0];
   }
 
-  onopentag(node: sax.QualifiedTag): void {
+  onopentag(node: SaxesTag): void {
     // We have to validate the node even if we are not going to record it,
     // because RelaxNG does not allow foreign nodes everywhere.
     this.validator.onopentag(node);
@@ -601,7 +596,7 @@ export class BasicParser extends Parser {
     });
   }
 
-  onclosetag(node: sax.QualifiedTag): void {
+  onclosetag(node: SaxesTag): void {
     // We have to validate the node even if we are not going to record it,
     // because RelaxNG does not allow foreign nodes everywhere.
     this.validator.onclosetag(node);
@@ -631,7 +626,7 @@ export class BasicParser extends Parser {
 /**
  * This parser is specifically dedicated to the task of reading simplified Relax
  * NG schemas. In a Relax NG schema, text nodes that consist entirely of white
- * space are expandable, except in the ``param`` and ``value`` elements, where
+ * space are expendable, except in the ``param`` and ``value`` elements, where
  * they do potentially carry significant information.
  *
  * This parser strips nodes that consist entirely of white space because this
@@ -640,8 +635,8 @@ export class BasicParser extends Parser {
  *
  * This parser does not allow elements which are not in the Relax NG namespace.
  */
-export class ConversionParser extends BasicParser {
-  onopentag(node: sax.QualifiedTag): void {
+class ConversionParser extends BasicParser {
+  onopentag(node: SaxesTag): void {
     // tslint:disable-next-line: no-http-string
     if (node.uri !== "http://relaxng.org/ns/structure/1.0") {
       throw new Error(`node in unexpected namespace: ${node.uri}`);
@@ -668,30 +663,62 @@ export class ConversionParser extends BasicParser {
   }
 }
 
-// Exception used to terminate the sax parser early.
-export class Found extends Error {
+export function parseSimplifiedSchema(fileName: string,
+                                      simplifiedSchema: string): Element {
+  const convParser = new ConversionParser(new SaxesParser({ xmlns: true,
+                                                            position: false,
+                                                            fileName }));
+  convParser.saxesParser.write(simplifiedSchema).close();
+
+  return convParser.root;
+}
+
+// Exception used to terminate the saxes parser early.
+class Found extends Error {
   constructor() {
     super();
     fixPrototype(this, Found);
   }
 }
 
-export class IncludeParser extends Parser {
-  found: boolean;
-
-  constructor(saxParser: sax.SAXParser) {
-    super(saxParser);
-    this.found = false;
+class IncludeParser extends Parser {
+  constructor(saxesParser: SaxesParser) {
+    super(saxesParser);
   }
 
-  onopentag(node: sax.QualifiedTag): void {
+  onopentag(node: SaxesTag): void {
     // tslint:disable-next-line:no-http-string
     if (node.uri === "http://relaxng.org/ns/structure/1.0" &&
         (node.local === "include" || node.local === "externalRef")) {
-      this.found = true;
       throw new Found();  // Stop early.
     }
   }
+}
+
+/**
+ * Determine whether an RNG file depends on another file either through the use
+ * of ``include`` or ``externalRef``.
+ *
+ * @param rng The RNG file to check.
+ *
+ * @returns ``true`` if dependent, ``false`` if not.
+ */
+export function dependsOnExternalFile(rng: string): boolean {
+  const parser =
+    new IncludeParser(new SaxesParser({ xmlns: true, position: false }));
+  let found = false;
+  try {
+    parser.saxesParser.write(rng).close();
+  }
+  catch (ex) {
+    if (!(ex instanceof Found)) {
+      throw ex;
+    }
+
+    found = true;
+  }
+
+  return found;
 }
 
 //  LocalWords:  MPL NG param RNG

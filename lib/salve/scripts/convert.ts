@@ -10,7 +10,6 @@ import * as fs from "fs";
 import * as nodeFetch from "node-fetch";
 import * as path from "path";
 import requireDir from "require-dir";
-import * as sax from "sax";
 import * as temp from "temp";
 import { URL } from "url";
 import * as util from "util";
@@ -22,9 +21,9 @@ import fileUrl from "file-url";
 
 // We load individual modules rather than the build module because the
 // conversion code uses parts of salve that are not public.
-import { ConversionParser, Element, getAvailableSimplifiers,
-         getAvailableValidators, makeResourceLoader, makeSimplifier,
-         makeValidator, SchemaValidationError, serialize,
+import { Element, getAvailableSimplifiers, getAvailableValidators,
+         makeResourceLoader, makeSimplifier, makeValidator,
+         parseSimplifiedSchema, SchemaValidationError, serialize,
          SimplificationResult } from "../conversion";
 import { ParameterParsingError, ValueValidationError } from "../datatypes";
 import { writeTreeToJSON } from "../json-format/write";
@@ -282,12 +281,10 @@ async function convert(result: SimplificationResult): Promise<void> {
 async function start(): Promise<void> {
   let startTime: number | undefined;
   if (args.simplified_input) {
-    const convParser = new ConversionParser(sax.parser(true, { xmlns: true }));
-    convParser.saxParser
-      .write(fs.readFileSync(args.input_path).toString()).close();
-
     return convert({
-      simplified: convParser.root,
+      simplified: parseSimplifiedSchema(
+        args.input_path,
+        fs.readFileSync(args.input_path).toString()),
       warnings: [],
     });
   }

@@ -5,7 +5,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import * as sax from "sax";
+import { SaxesParser } from "saxes";
 
 import { registry, ValueError, ValueValidationError } from "../../datatypes";
 import { readTreeFromJSON } from "../../json-format/read";
@@ -678,13 +678,13 @@ export class InternalSimplifier extends BaseSimplifier {
       validator = new Validator(getGrammar());
     }
 
-    const parser = new BasicParser(sax.parser(true,
-                                              { xmlns: true,
-                                                strictEntities: true,
-                                                position: false } as any),
+    const parser =
+      new BasicParser(new SaxesParser({ xmlns: true,
+                                        position: false,
+                                        fileName: filePath.toString() }),
                                    validator);
-    parser.saxParser.write(schema);
-    parser.saxParser.close();
+    parser.saxesParser.write(schema);
+    parser.saxesParser.close();
 
     if (validator !== undefined) {
       if (validator.errors.length !== 0) {

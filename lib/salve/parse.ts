@@ -8,19 +8,13 @@
 import fileUrl from "file-url";
 import * as fs from "fs";
 import * as path from "path";
-import * as sax from "sax";
+import { SaxesAttribute, SaxesParser, SaxesTag } from "saxes";
 
 import { convertRNGToPattern, Grammar, readTreeFromJSON } from "./validate";
 
 // tslint:disable no-console
 
-declare module "sax" {
-  export interface SAXParser {
-    ENTITIES: {[key: string]: string};
-  }
-}
-
-const parser = sax.parser(true, { xmlns: true });
+const parser = new SaxesParser({ xmlns: true });
 
 type TagInfo = {
   uri: string;
@@ -105,14 +99,14 @@ export async function parse(rngSource: string | Grammar,
     }
   }
 
-  parser.onopentag = (node: sax.QualifiedTag) => {
+  parser.onopentag = (node: SaxesTag) => {
     flushTextBuf();
     const names = Object.keys(node.attributes);
     const nsDefinitions = [];
     const attributeEvents = [];
     names.sort();
     for (const name of names) {
-      const attr = node.attributes[name];
+      const attr = node.attributes[name] as SaxesAttribute;
       if (attr.local === "" && name === "xmlns") { // xmlns="..."
         nsDefinitions.push(["", attr.value]);
       }

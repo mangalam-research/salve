@@ -1,6 +1,0 @@
-fireEvent returned false
-fireEvent returned false
-fireEvent returned false
-fireEvent returned false
-fireEvent returned false
-end returned tag required: {"ns":"http://www.tei-c.org/ns/1.0","name":"teiHeader"},tag not closed: {"ns":"http://www.tei-c.org/ns/1.0","name":"TEI"}
