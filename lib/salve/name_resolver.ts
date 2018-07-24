@@ -180,7 +180,7 @@ export class NameResolver {
     else {
       prefix = name.substr(0, colon);
       local = name.substr(colon + 1);
-      if (local.indexOf(":") !== -1) {
+      if (local.includes(":")) {
         throw new Error("invalid name passed to resolveName");
       }
     }

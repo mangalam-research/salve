@@ -239,7 +239,7 @@ function makeValidTest(dir) {
 }
 
 function dropId(obj, memo) {
-  if (memo.indexOf(obj) !== -1) {
+  if (memo.includes(obj)) {
     return;
   }
   memo.push(obj);

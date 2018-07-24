@@ -94,7 +94,7 @@ parser.addArgument(["--version"], {
 } as any);
 
 const availableSimplifiers = getAvailableSimplifiers();
-if (availableSimplifiers.indexOf("internal") === -1) {
+if (!availableSimplifiers.includes("internal")) {
   throw new Fatal("internal must be among the available validators");
 }
 

@@ -182,7 +182,7 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
     // tslint:disable-next-line: no-http-string
     if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
         // tslint:disable-next-line:no-non-null-assertion
-        warnAboutTheseTypes.indexOf(type!) !== -1) {
+        warnAboutTheseTypes.includes(type!)) {
       this.warnings.push(
         `WARNING: ${el.path} uses the ${type} type in library ${libname}`);
     }

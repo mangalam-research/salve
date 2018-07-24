@@ -682,7 +682,7 @@ export class InternalSimplifier extends BaseSimplifier {
       new BasicParser(new SaxesParser({ xmlns: true,
                                         position: false,
                                         fileName: filePath.toString() }),
-                                   validator);
+                      validator);
     parser.saxesParser.write(schema);
     parser.saxesParser.close();
 

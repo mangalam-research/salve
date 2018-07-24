@@ -362,7 +362,7 @@ export class Element extends Node {
    * @param value The new value of the attribute.
    */
   setAttribute(name: string, value: string): void {
-    if (name.indexOf(":") !== -1) {
+    if (name.includes(":")) {
       throw new Error("we don't support namespaces on this function");
     }
 
