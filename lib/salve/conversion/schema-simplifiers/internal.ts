@@ -23,27 +23,30 @@ import { BaseSimplifier } from "./base";
 import { fromQNameToURI, localName } from "./common";
 
 function makeNamePattern(el: Element): ConcreteName {
-  const first = el.children[0] as Element;
-  const second = el.children[1] as Element;
   switch (el.local) {
     case "name":
       return new Name("", el.mustGetAttribute("ns"), el.text);
     case "choice":
-      return new NameChoice("", makeNamePattern(first),
-                            makeNamePattern(second));
+      return new NameChoice("",
+                            makeNamePattern(el.children[0] as Element),
+                            makeNamePattern(el.children[1] as Element));
     case "anyName": {
+      const first = el.children[0] as Element;
+
       return new AnyName("",
                          first !== undefined ? makeNamePattern(first) :
                          undefined);
     }
     case "nsName": {
+      const first = el.children[0] as Element;
+
       return new NsName("",
                         el.mustGetAttribute("ns"),
                         first !== undefined ? makeNamePattern(first) :
                         undefined);
     }
     case "except":
-      return makeNamePattern(first);
+      return makeNamePattern(el.children[0] as Element);
     default:
       throw new Error(`unexpected element in name pattern ${el.local}`);
   }
