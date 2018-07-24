@@ -98,20 +98,56 @@ class ProhibitedDataExceptPath extends SchemaValidationError {
 }
 
 interface CheckResult {
-  contentType: ContentType | null;
+  readonly contentType: ContentType | null;
 
-  occurringAttributes: ReadonlyArray<Element>;
+  readonly occurringAttributes: ReadonlyArray<Element>;
 
   // We considered making this variable a Set. Multiple ref of the same name are
   // bound to happen in any schemas beyond trivial ones. However, the cost of
   // maintaining Set objects negates the benefits that occur when checking
   // interleave elements.
-  occurringRefs: ReadonlyArray<Element>;
+  readonly occurringRefs: ReadonlyArray<Element>;
 
-  occurringTexts: number;
+  readonly occurringTexts: number;
 }
 
 const EMPTY_ELEMENT_ARRAY: ReadonlyArray<Element> = [];
+
+const TEXT_RESULT: CheckResult = {
+  contentType: ContentType.COMPLEX,
+  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringRefs: EMPTY_ELEMENT_ARRAY,
+  occurringTexts: 1,
+};
+
+const EMPTY_RESULT: CheckResult = {
+  contentType: ContentType.EMPTY,
+  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringRefs: EMPTY_ELEMENT_ARRAY,
+  occurringTexts: 0,
+};
+
+const DATA_RESULT: CheckResult = {
+  contentType: ContentType.SIMPLE,
+  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringRefs: EMPTY_ELEMENT_ARRAY,
+  occurringTexts: 0,
+};
+
+const LIST_RESULT = DATA_RESULT;
+const VALUE_RESULT = DATA_RESULT;
+
+const NOT_ALLOWED_RESULT: CheckResult = {
+  contentType: null,
+  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringRefs: EMPTY_ELEMENT_ARRAY,
+  occurringTexts: 0,
+};
+
+const DEFINE_RESULT = NOT_ALLOWED_RESULT;
+const START_RESULT = NOT_ALLOWED_RESULT;
+const GRAMMAR_RESULT = NOT_ALLOWED_RESULT;
+const EXCEPT_RESULT = NOT_ALLOWED_RESULT;
 
 type Handler = (this: GeneralChecker, el: Element,
                 state: State) => CheckResult;
@@ -208,12 +244,7 @@ class must be a descendant of oneOrMore (section 7.3)");
     }
     this._check(el.children[0] as Element, newState);
 
-    return {
-      contentType: null,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return EXCEPT_RESULT;
   }
 
   oneOrMoreHandler(el: Element, state: State): CheckResult {
@@ -317,12 +348,7 @@ class must be a descendant of oneOrMore (section 7.3)");
 
     this._check(el.children[0] as Element, { ...state, inList: true });
 
-    return {
-      contentType: ContentType.SIMPLE,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return LIST_RESULT;
   }
 
   dataHandler(el: Element, state: State): CheckResult {
@@ -381,12 +407,7 @@ ${libname}`);
       this._check(last, state);
     }
 
-    return {
-      contentType: ContentType.SIMPLE,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return DATA_RESULT;
   }
 
   valueHandler(el: Element, state: State): CheckResult {
@@ -438,13 +459,7 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
 ${libname}`);
     }
 
-    // The child of value can only be a text node.
-    return {
-      contentType: ContentType.SIMPLE,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return VALUE_RESULT;
   }
 
   textHandler(el: Element, state: State): CheckResult {
@@ -460,12 +475,7 @@ ${libname}`);
       throw new ProhibitedDataExceptPath(el.local);
     }
 
-    return {
-      contentType: ContentType.COMPLEX,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 1,
-    };
+    return TEXT_RESULT;
   }
 
   refHandler(el: Element, state: State): CheckResult {
@@ -498,21 +508,11 @@ ${libname}`);
       throw new ProhibitedDataExceptPath(el.local);
     }
 
-    return {
-      contentType: ContentType.EMPTY,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return EMPTY_RESULT;
   }
 
   notAllowedHandler(): CheckResult {
-    return {
-      contentType: null,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return NOT_ALLOWED_RESULT;
   }
 
   defineHandler(el: Element, state: State): CheckResult {
@@ -523,23 +523,13 @@ ${libname}`);
 on string values (section 7.2)`);
     }
 
-    return {
-      contentType: null,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return DEFINE_RESULT;
   }
 
   startHandler(el: Element, state: State): CheckResult {
     this._check(el.children[0] as Element, { ...state, inStart: true });
 
-    return {
-      contentType: null,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return START_RESULT;
   }
 
   grammarHandler(el: Element, state: State): CheckResult {
@@ -547,12 +537,7 @@ on string values (section 7.2)`);
       this._check(child as Element, state);
     }
 
-    return {
-      contentType: null,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return GRAMMAR_RESULT;
   }
 
   private getAttrName(attr: Element): ConcreteName {
