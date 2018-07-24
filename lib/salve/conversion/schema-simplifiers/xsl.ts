@@ -150,8 +150,8 @@ export class XSLSimplifier extends BaseSimplifier {
       // Only step 1 requires XSLT 2. Remember that steps are 0-based here.
       if (step.saxon) {
         child = spawn(
-          "saxon",
-          [`-xsl:${step.path}`, "-s:-",
+          "java",
+          ["-jar", "/usr/share/java/Saxon-HE.jar", `-xsl:${step.path}`, "-s:-",
            `originalDir=file://${originalInputDir}`],
           { stdio: ["pipe", "pipe", "inherit"] });
       }

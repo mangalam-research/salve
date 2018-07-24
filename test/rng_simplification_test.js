@@ -28,9 +28,9 @@ describe("rng simplification", () => {
     // Only step 1 requires XSLT 2.
     if (number === 1) {
       child = spawn(
-        "saxon",
-        [`-xsl:${stepPath}`, `-s:${inpath}`, `-o:${outpath}`,
-         `originalDir=${originalDir}`],
+        "java",
+        ["-jar", "/usr/share/java/Saxon-HE.jar", `-xsl:${stepPath}`,
+         `-s:${inpath}`, `-o:${outpath}`, `originalDir=${originalDir}`],
         { stdio: "inherit" });
     }
     else {
