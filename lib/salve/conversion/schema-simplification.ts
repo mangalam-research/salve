@@ -29,7 +29,7 @@ export interface SchemaSimplifierOptions {
 
   /**
    * Validate while simplifying. It is an error to set this true for a
-   * validator that does not validate.
+   * simplifier that does not validate.
    */
   validate: boolean;
 }
