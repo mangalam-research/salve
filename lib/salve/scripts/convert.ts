@@ -4,6 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
+import * as crypto from "@trust/webcrypto";
 import { ArgumentParser } from "argparse";
 import { spawn } from "child_process";
 import * as fs from "fs";
@@ -18,6 +19,8 @@ import fileUrl from "file-url";
 
 (global as any).fetch = nodeFetch;
 (global as any).URL = URL;
+(global as any).crypto = crypto;
+(global as any).TextEncoder = util.TextEncoder;
 
 // We load individual modules rather than the build module because the
 // conversion code uses parts of salve that are not public.
@@ -286,6 +289,7 @@ async function start(): Promise<void> {
         args.input_path,
         fs.readFileSync(args.input_path).toString()),
       warnings: [],
+      manifest: [],
     });
   }
 
@@ -309,6 +313,8 @@ async function start(): Promise<void> {
       simplifyTo: args.simplify_to,
       ensureTempDir,
       validate: true,
+      createManifest: false,
+      manifestHashAlgorithm: "void",
     });
 
     ({ simplified, warnings } =
@@ -323,6 +329,7 @@ async function start(): Promise<void> {
     return convert({
       simplified,
       warnings: warnings === undefined ? [] : warnings,
+      manifest: [],
     });
   }
 
@@ -334,6 +341,8 @@ async function start(): Promise<void> {
     ensureTempDir,
     resourceLoader,
     validate: false,
+    createManifest: false,
+    manifestHashAlgorithm: "void",
   });
 
   return simplifier.simplify(new URL(fileUrl(args.input_path))).then(convert);

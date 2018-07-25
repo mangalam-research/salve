@@ -23,8 +23,15 @@ interface Step {
   saxon: boolean;
 }
 
+/**
+ * A simplifier implemented as a series of XSL transformations. It launches
+ * external processes to perform the transformation.
+ *
+ * This simiplifier does not produce a manifest, and it does not validate.
+ */
 export class XSLSimplifier extends BaseSimplifier {
   static validates: false = false;
+  static createsManifest: false = false;
 
   private lastStepStart: number;
   private _steps?: Step[];
@@ -107,7 +114,11 @@ export class XSLSimplifier extends BaseSimplifier {
       console.log(`Simplification delta: ${Date.now() - startTime!}`);
     }
 
-    return { simplified, warnings };
+    return {
+      simplified,
+      warnings,
+      manifest: [],
+    };
   }
 
   stepTiming(): void {

@@ -14,7 +14,7 @@ import { AnyName, ConcreteName, Grammar, Name, NameChoice,
          NsName } from "../../patterns";
 import * as relaxng from "../../schemas/relaxng";
 import { BasicParser, Element, Text, Validator } from "../parser";
-import { registerSimplifier, SchemaSimplifierOptions,
+import { ManifestEntry, registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { SchemaValidationError } from "../schema-validation";
 import * as simplifier from "../simplifier";
@@ -649,8 +649,10 @@ function getGrammar(): Grammar {
  */
 export class InternalSimplifier extends BaseSimplifier {
   static validates: true = true;
+  static createsManifest: true = true;
 
   private lastStepStart?: number;
+  private readonly manifestPromises: PromiseLike<ManifestEntry>[] = [];
 
   constructor(options: SchemaSimplifierOptions) {
     super(options);
@@ -679,6 +681,24 @@ export class InternalSimplifier extends BaseSimplifier {
         const message = validator.errors.map((x) => x.toString()).join("\n");
         throw new SchemaValidationError(message);
       }
+    }
+
+    if (this.options.createManifest) {
+      const algo = this.options.manifestHashAlgorithm;
+      this.manifestPromises.push((async () => {
+        const digest =
+          // tslint:disable-next-line:await-promise
+          await crypto.subtle.digest(algo, new TextEncoder().encode(schema));
+
+        const arr = new Uint8Array(digest);
+        let hash = `${algo}-`;
+        for (const x of arr) {
+          const hex = x.toString(16);
+          hash += x > 0xF ? hex : `0${hex}`;
+        }
+
+        return { filePath: filePath.toString(), hash };
+      })());
     }
 
     return parser.root;
@@ -789,7 +809,11 @@ export class InternalSimplifier extends BaseSimplifier {
       console.log(`Simplification delta: ${Date.now() - startTime!}`);
     }
 
-    return { simplified: tree, warnings };
+    return {
+      simplified: tree,
+      warnings,
+      manifest: await Promise.all(this.manifestPromises),
+    };
   }
 }
 

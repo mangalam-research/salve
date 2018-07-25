@@ -4,9 +4,13 @@
 
 const { URL } = require("url");
 const fetch = require("node-fetch");
+const crypto = require("@trust/webcrypto");
+const util = require("util");
 
 global.URL = URL;
 global.fetch = fetch;
+global.crypto = crypto;
+global.TextEncoder = util.TextEncoder;
 
 const Mocha = require("mocha");
 

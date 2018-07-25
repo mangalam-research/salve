@@ -12,7 +12,8 @@ export { eventsToTreeString, Event, EventSet, Grammar, GrammarWalker,
          BasePattern, RefError, FireEventResult,
          EndResult } from "./patterns";
 
-export { ConversionResult, convertRNGToPattern } from "./conversion";
+export { ConversionResult, convertRNGToPattern,
+         ManifestEntry } from "./conversion";
 
 export { writeTreeToJSON } from "./json-format/write";
 export { constructTree, readTreeFromJSON } from "./json-format/read";

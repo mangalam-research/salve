@@ -20,6 +20,12 @@ export abstract class BaseSimplifier implements SchemaSimplifier {
       throw new Error(
         "requested validation on a simplifier that does not validate");
     }
+
+    if (options.createManifest &&
+        !(this.constructor as SchemaSimplifierCtor).createsManifest) {
+      throw new Error(
+        "requested a manifest on a simplifier that does not create manifests");
+    }
   }
 
   abstract simplify(schemaPath: string | URL): Promise<SimplificationResult>;
