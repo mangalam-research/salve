@@ -6,7 +6,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { Element, Node } from "../conversion";
+import { Element } from "../conversion";
 import { isElement } from "../conversion/parser";
 import { nameToCode, OPTION_NO_PATHS } from "./common";
 
@@ -97,10 +97,9 @@ class RNGToJSONConverter {
    *
    * @param thing The string to output.
    */
-  outputAsString(thing: string | Node): void {
+  outputAsString(thing: string): void {
     this.newItem();
-    const text = (thing instanceof Node ? thing.text : thing)
-      .replace(/(["\\])/g, "\\$1");
+    const text = thing.replace(/(["\\])/g, "\\$1");
     this._output += `"${text}"`;
   }
 
@@ -219,7 +218,7 @@ OPTION_NO_PATHS},"d":`);
         // 3                it0     it1    it2              ""
         // 4                it0     it1    it2              it3
         //
-        this.outputAsString(el);
+        this.outputAsString(el.text);
         const typeAttr = el.mustGetAttribute("type");
         const datatypeLibraryAttr = el.mustGetAttribute("datatypeLibrary");
         const nsAttr = el.mustGetAttribute("ns");
@@ -271,7 +270,7 @@ OPTION_NO_PATHS},"d":`);
                 for (let paramIx = 0; paramIx < limit; ++paramIx) {
                   const param = children[paramIx] as Element;
                   this.outputAsString(param.mustGetAttribute("name"));
-                  this.outputAsString(param.children[0]);
+                  this.outputAsString(param.children[0].text);
                 }
               }
               this._output += "]";
@@ -323,7 +322,7 @@ OPTION_NO_PATHS},"d":`);
     switch (local) {
       case "name":
         this.outputAsString(el.mustGetAttribute("ns"));
-        this.outputAsString(el);
+        this.outputAsString(el.text);
         break;
       case "nameChoice":
         this.openArray();
