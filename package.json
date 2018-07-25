@@ -26,7 +26,7 @@
   "bugs": "https://github.com/mangalam-research/salve/issues",
   "license": "MPL-2.0",
   "engines": {
-    "node": ">=6 <9",
+    "node": ">=6",
     "npm": ">=4"
   },
   "dependencies": {
