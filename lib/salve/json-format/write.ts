@@ -488,7 +488,7 @@ export function writeTreeToJSON(tree: Element, formatVersion: number,
 
     let id = 1;
     nameMap = new Map();
-    for (const [key, _] of sorted) {
+    for (const [key] of sorted) {
       nameMap.set(key, id++);
     }
   }

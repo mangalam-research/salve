@@ -486,7 +486,7 @@ interface NodeMap extends Map<string, false | NodeMap> {}
 export function eventsToTreeString(evs: Event[] | EventSet): string {
   const eventArray = (evs instanceof Set) ? Array.from(evs) : evs;
 
-  const hash: NodeMap = new Map();
+  const hash: NodeMap = new Map<string, false | NodeMap>();
   eventArray.forEach((ev) => {
     const params = ev.params;
 
@@ -500,7 +500,7 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
       else {
         let nextNode = node.get(key) as NodeMap | undefined;
         if (nextNode === undefined) {
-          nextNode = new Map();
+          nextNode = new Map<string, false | NodeMap>();
           node.set(key, nextNode);
         }
         node = nextNode;
