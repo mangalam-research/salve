@@ -41,10 +41,10 @@
     "xregexp": "^4.1.1"
   },
   "devDependencies": {
-    "@types/argparse": "^1.0.30",
+    "@types/argparse": "^1.0.34",
     "@types/file-url": "^2.0.0",
-    "@types/node": "^10.5.3",
-    "@types/node-fetch": "^1.6.7",
+    "@types/node": "^10.5.4",
+    "@types/node-fetch": "^2.1.2",
     "@types/require-dir": "^0.3.0",
     "@types/temp": "^0.8.29",
     "bluebird": ">=3.1.1 <4",
