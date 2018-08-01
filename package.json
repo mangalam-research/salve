@@ -86,5 +86,15 @@
   },
   "scripts": {
     "test": "gulp test"
+  },
+  "greenkeeper": {
+    "commitMessages": {
+      "addConfigFile": "build: add Greenkeeper config file",
+      "updateConfigFile": "build: update Greenkeeper config file",
+      "initialDependencies": "build(package): update dependencies",
+      "initialBranches": "build(ci): whitelist greenkeeper branches",
+      "devDependencyUpdate": "build(package): update ${dependency} to version ${version}",
+      "devDependencyPin": "build(package): pin ${dependency} to ${oldVersion}"
+    }
   }
 }
