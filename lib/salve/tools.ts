@@ -6,35 +6,6 @@
  */
 
 /**
- * @private
- */
-function copy(target: any, source: any): void {
-  for (const i in source) { // tslint:disable-line: forin
-    target[i] = source[i];
-  }
-}
-
-/**
- * Modify ``target`` by copying the sources into it. This function is designed
- * to fit the internal needs of salve and is not meant as a general purpose
- * "extend" function like provided by jQuery or Lodash (for instance).
- *
- * @param target The target to copy into.
- *
- * @param sources The sources from which to copy. These sources are
- * processed in order.
- *
- * @returns The target, modified.
- */
-export function extend(target: any, ...sources: any[]): any {
-  for (const source of sources) {
-    copy(target, source);
-  }
-
-  return target;
-}
-
-/**
  * This is required to work around a problem when extending built-in classes
  * like ``Error``. Some of the constructors for these classes return a value
  * from the constructor, which is then picked up by the constructors generated
