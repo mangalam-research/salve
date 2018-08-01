@@ -110,7 +110,7 @@ class Step1 {
       await this.walk(currentBase, seenURLs, currentRoot, child);
     }
 
-    const handler = (this as any as Record<string, Handler>)[el.local];
+    const handler = (this as unknown as Record<string, Handler>)[el.local];
 
     if (handler !== undefined) {
       const replacement = await handler.call(this, currentBase, seenURLs, el);

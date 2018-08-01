@@ -33,8 +33,7 @@ export class Parser {
       const methodName = `on${name}`;
       const method = (this as any)[methodName];
       if (method !== undefined) {
-        (this.saxesParser as any)[methodName] =
-          (this as any)[methodName].bind(this);
+        (this.saxesParser as any)[methodName] = method.bind(this);
       }
     }
   }

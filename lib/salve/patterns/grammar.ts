@@ -214,7 +214,7 @@ class MisplacedElementWalker implements IWalker {
   }
 
   clone<T extends this>(this: T): T {
-    return new (this.constructor as { new (...args: any[]): T })();
+    return new (this.constructor as { new (...args: unknown[]): T })();
   }
 }
 

@@ -49,10 +49,10 @@ requireDir("../conversion/schema-validators");
 
 let args: any;
 let terminating = false;
-function terminate(ex: any): void {
+function terminate(ex: unknown): void {
   // We don't want to handle exceptions that happen while we're terminating.
   if (terminating) {
-    if (ex) {
+    if (ex != null) {
       process.stderr.write(`${prog}: got error while terminating\n`);
       process.stderr.write(util.inspect(ex));
     }
@@ -61,7 +61,7 @@ function terminate(ex: any): void {
   }
 
   terminating = true;
-  if (ex) {
+  if (ex != null) {
     if (ex instanceof Fatal) {
       process.stderr.write(`${prog}: ${ex.message}\n`);
       process.exit(1);

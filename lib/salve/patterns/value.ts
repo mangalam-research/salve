@@ -44,7 +44,7 @@ export class Value extends Pattern {
   }
 
   get value(): any {
-    let ret: any = this._value;
+    let ret = this._value;
     if (ret != null) {
       return ret;
     }

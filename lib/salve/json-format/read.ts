@@ -18,6 +18,8 @@ class OldFormatError extends Error {
   }
 }
 
+type KindAndArgs = [number, ...any[]];
+
 /**
  * A class for walking the JSON object representing a schema.
  */
@@ -42,8 +44,8 @@ class V2JSONWalker {
    *
    * @returns The return value of [[V2JSONWalker._processObject]].
    */
-  walkObject(array: any[]): any {
-    const kind: number = array[0];
+  walkObject(array: KindAndArgs): unknown {
+    const kind = array[0];
     const ctor = codeToConstructor[kind];
     if (ctor === undefined) {
       if (array.length < 1) {
@@ -65,7 +67,7 @@ class V2JSONWalker {
     }
 
     // We do not pass Array to this function.
-    return this._processObject(kind, ctor as PatternCtor, args);
+    return this._processObject(kind, ctor as PatternCtor, args as PathAndArgs);
   }
 
   /**
@@ -83,18 +85,18 @@ class V2JSONWalker {
    * instance is meant to check the JSON data, then it should return
    * ``undefined``.
    */
-  _processObject(kind: number, ctor: PatternCtor, args: any[]): any {
+  _processObject(kind: number, ctor: PatternCtor, args: PathAndArgs): unknown {
     return undefined; // Do nothing
   }
 
-  _transformArray(arr: any[]): void {
+  _transformArray(arr: unknown[]): void {
     const limit = arr.length;
     for (let elIx = 0; elIx < limit; elIx++) {
-      const el: any = arr[elIx];
+      const el = arr[elIx];
 
       if (el instanceof Array) {
         if (el[0] !== 0) {
-          arr[elIx] = this.walkObject(el);
+          arr[elIx] = this.walkObject(el as KindAndArgs);
         }
         else {
           el.shift(); // Drop the leading 0.
@@ -105,9 +107,10 @@ class V2JSONWalker {
   }
 }
 
-type ArgFilter = (args: any[]) => any[];
+type PathAndArgs = [string, ...any[]];
+type ArgFilter = (args: PathAndArgs) => PathAndArgs;
 
-function namedOnePatternFilter(args: any[]): any[] {
+function namedOnePatternFilter(args: PathAndArgs): PathAndArgs {
   // Same thing as for OneOrMore, but for these elements the array of patterns
   // is at index 2 rather than index 1 because index 1 contains a name.
   if (args[2].length !== 1) {
@@ -118,7 +121,7 @@ function namedOnePatternFilter(args: any[]): any[] {
   return [args[0], args[1], args[2][0]];
 }
 
-function twoPatternFilter(args: any[]): any[] {
+function twoPatternFilter(args: PathAndArgs): PathAndArgs {
   if (args[1].length !== 2) {
     throw new Error("PatternTwoPatterns with an array of patterns that " +
                     "contains other than 2 pattern");
@@ -131,11 +134,11 @@ const kindToArgFilter: (ArgFilter | undefined)[] = [
   undefined, // Array
   undefined, // Empty,
   // Data
-  (args: any[]) => {
+  (args: PathAndArgs) => {
     if (args.length >= 4) {
       // Parameters are represented as an array of strings in the file.
       // Transform this array of strings into an array of objects.
-      const params: any[] = args[3];
+      const params = args[3];
       if (params.length % 2 !== 0) {
         throw new Error("parameter array length not a multiple of 2");
       }
@@ -159,7 +162,7 @@ const kindToArgFilter: (ArgFilter | undefined)[] = [
   undefined, // Text,
   undefined, // Ref,
   // OneOrMore
-  (args: any[]) => {
+  (args: PathAndArgs) => {
     //
     // In the file we have two arguments: the XML path, an array of length 1
     // that contains the one subpattern.
@@ -193,7 +196,7 @@ const kindToArgFilter: (ArgFilter | undefined)[] = [
  * @private
  */
 class V2Constructor extends V2JSONWalker {
-  _processObject(kind: number, ctor: PatternCtor, args: any[]): any {
+  _processObject(kind: number, ctor: PatternCtor, args: PathAndArgs): unknown {
     const filter = kindToArgFilter[kind];
 
     return new ctor(...(filter === undefined ? args : filter(args)));
@@ -223,7 +226,7 @@ export function readTreeFromJSON(code: string | {}): Grammar {
 
   const { v: version, o: options, d: data } = parsed;
   if (version === 3) {
-    return new V2Constructor(options).walkObject(data);
+    return new V2Constructor(options).walkObject(data) as Grammar;
   }
 
   throw new Error(`unknown version: ${version}`);
