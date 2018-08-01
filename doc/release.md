@@ -4,25 +4,20 @@ versions.
 The following assumes that ``origin`` is **a private fork** and
 ``upstream`` is the main repository.
 
-1. ``$ git flow release start [new version, **without** the `v`]``
+1. ``$ npm version [new version]``
 
-2. ``$ versync -b [new version]``
+2. Check the format of the generated changelog entries. Perform whatever other
+changes must happen and commit.
 
-3. Perform whatever other changes must happen and commit.
-
-4. ``$ gulp test``
-
-5. ``$ gulp install_test`` This performs a package installation test.
-
-6. Push the release to ``origin`` so that Travis is run. **THIS IS IMPORTANT.**
+3. Push the release to ``origin`` so that Travis is run. **THIS IS IMPORTANT.**
    The local test may run fine but you may still get a failure on Travis because
    the dependencies allow loading a newer package version that causes a
    failure. It *has* happened.
 
-7. ``$ git flow release finish [version]``
+4. ``$ git flow release finish [version]``
 
-8. ``$ gulp publish``
+5. ``$ gulp publish``
 
-9. ``$ git push origin : --follow-tags``
+6. ``$ git push origin : --follow-tags``
 
-10. ``$ git push upstream : --follow-tags``
+7. ``$ git push upstream : --follow-tags``
