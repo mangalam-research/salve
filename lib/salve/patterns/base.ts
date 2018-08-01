@@ -69,10 +69,6 @@ import { Ref, RefWalker } from "./ref";
 // uglification strips it from the minified code.)
 const DEBUG: boolean = false;
 
-// This is here to shut the compiler up about unused variables.
-/* tslint:disable: no-empty no-invalid-this */
-function noop(..._args: any[]): void {}
-
 // tslint:disable-next-line:strict-boolean-expressions
 if (DEBUG) {
   //
@@ -83,10 +79,10 @@ if (DEBUG) {
     console.log(msg); // tslint:disable-line:no-console
   };
 
+  // @ts-ignore
   const stackTrace: () => void = () => {
     trace(new Error().stack);
   };
-  noop(stackTrace);
 
   // tslint:disable:no-var-keyword
   // @ts-ignore
@@ -188,6 +184,7 @@ if (DEBUG) {
    * @param f The function that should serve as wrapper.
    *
    */
+  // @ts-ignore
   // tslint:disable-next-line:only-arrow-functions no-var-keyword prefer-const
   var wrap: (me: any, name: string, f: Function) => void =
     (me: any, name: string, f: Function) => {
@@ -198,7 +195,6 @@ if (DEBUG) {
         return f.call(this, me[mangledName], name, arguments);
       };
     };
-  noop(wrap);
   /* tslint:enable */
 }
 
