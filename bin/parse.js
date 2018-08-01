@@ -3,12 +3,14 @@
 "use strict";
 
 const nodeFetch = require("node-fetch");
+const { URL } = require("url");
+const crypto = require("@trust/webcrypto");
+const util = require("util");
 
 global.fetch = nodeFetch;
-
-const { URL } = require("url");
-
 global.URL = URL;
+global.crypto = crypto;
+global.TextEncoder = util.TextEncoder;
 
 // eslint-disable-next-line import/no-unresolved, prefer-destructuring
 const parse = require("../lib/salve/parse").parse;

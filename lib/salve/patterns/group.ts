@@ -7,9 +7,8 @@
 import { AttributeNameError, AttributeValueError } from "../errors";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isAttributeEvent,
-         TwoSubpatterns } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         isAttributeEvent, TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<group>``.
@@ -19,68 +18,46 @@ export class Group extends TwoSubpatterns {
     return this.patA.hasEmptyPattern() && this.patB.hasEmptyPattern();
   }
 
-  newWalker(nameResolver: NameResolver): InternalWalker<Group> {
+  newWalker(): InternalWalker {
+    const hasAttrs = this.hasAttrs();
+    const walkerA = this.patA.newWalker();
+    const walkerB = this.patB.newWalker();
+
     // tslint:disable-next-line:no-use-before-declare
-    return new GroupWalker(this, nameResolver);
+    return new GroupWalker(this,
+                           walkerA,
+                           walkerB,
+                           hasAttrs,
+                           false,
+                           false,
+                           !hasAttrs ||
+                           (walkerA.canEndAttribute && walkerB.canEndAttribute),
+                           walkerA.canEnd && walkerB.canEnd);
   }
 }
 
 /**
  * Walker for [[Group]].
  */
-class GroupWalker extends InternalWalker<Group> {
-  protected readonly el: Group;
-  private readonly hasAttrs: boolean;
-  private ended: boolean;
-  private walkerA: InternalWalker<BasePattern>;
-  private walkerB: InternalWalker<BasePattern>;
-  private endedA: boolean;
-  private readonly nameResolver: NameResolver;
-  canEndAttribute: boolean;
-  canEnd: boolean;
+class GroupWalker implements InternalWalker {
+  constructor(protected readonly el: Group,
+              private readonly walkerA: InternalWalker,
+              private readonly walkerB: InternalWalker,
+              private readonly hasAttrs: boolean,
+              private ended: boolean,
+              private endedA: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {}
 
-  /**
-   * @param el The pattern for which this walker was created.
-   *
-   * @param nameResolver The name resolver that can be used to convert namespace
-   * prefixes to namespaces.
-   */
-  constructor(walker: GroupWalker, memo: CloneMap);
-  constructor(el: Group, nameResolver: NameResolver);
-  constructor(elOrWalker: GroupWalker | Group,
-              nameResolverOrMemo: CloneMap | NameResolver) {
-    super();
-    if ((elOrWalker as Group).newWalker !== undefined) {
-      const el = elOrWalker as Group;
-      const nameResolver = nameResolverOrMemo as NameResolver;
-      this.el = el;
-      this.hasAttrs = el.hasAttrs();
-      this.nameResolver = nameResolver;
-      this.ended = false;
-      const walkerA = this.walkerA = el.patA.newWalker(nameResolver);
-      const walkerB = this.walkerB = el.patB.newWalker(nameResolver);
-      this.endedA = false;
-      this.canEndAttribute = !this.hasAttrs ||
-        (walkerA.canEndAttribute && walkerB.canEndAttribute);
-      this.canEnd = walkerA.canEnd && walkerB.canEnd;
-    }
-    else {
-      const walker = elOrWalker as GroupWalker;
-      const memo = nameResolverOrMemo as CloneMap;
-      this.el = walker.el;
-      this.hasAttrs = walker.hasAttrs;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
-      this.walkerA = walker.walkerA._clone(memo);
-      this.walkerB = walker.walkerB._clone(memo);
-      this.endedA = walker.endedA;
-      this.ended = walker.ended;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
-  }
-
-  _clone(memo: CloneMap): this {
-    return new GroupWalker(this, memo) as this;
+  clone(): this {
+    return new GroupWalker(this.el,
+                           this.walkerA.clone(),
+                           this.walkerB.clone(),
+                           this.hasAttrs,
+                           this.ended,
+                           this.endedA,
+                           this.canEndAttribute,
+                           this.canEnd) as this;
   }
 
   possible(): EventSet {
@@ -108,24 +85,24 @@ class GroupWalker extends InternalWalker<Group> {
     return ret;
   }
 
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
-    const ret = new InternalFireEventResult(false);
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     const evIsAttributeEvent = isAttributeEvent(name);
 
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     // This is useful because it is possible for fireEvent to be called
     // after end() has been called.
     if (this.ended) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const walkerA = this.walkerA;
     const walkerB = this.walkerB;
     if (!this.endedA) {
-      const retA = walkerA.fireEvent(name, params);
+      const retA = walkerA.fireEvent(name, params, nameResolver);
       if (retA.matched || retA.errors !== undefined) {
         if (evIsAttributeEvent) {
           this.canEndAttribute = walkerA.canEndAttribute &&
@@ -144,7 +121,7 @@ class GroupWalker extends InternalWalker<Group> {
       }
     }
 
-    const retB = walkerB.fireEvent(name, params);
+    const retB = walkerB.fireEvent(name, params, nameResolver);
     if (evIsAttributeEvent) {
       this.canEndAttribute = walkerA.canEndAttribute && walkerB.canEndAttribute;
     }
@@ -156,7 +133,12 @@ class GroupWalker extends InternalWalker<Group> {
     if (!evIsAttributeEvent && retB.matched) {
       this.endedA = true;
 
-      return retB.combine(InternalFireEventResult.fromEndResult(walkerA.end()));
+      // Having an end that errors here is not possible.
+      if (walkerA.end() !== false) {
+        throw new Error("walkerA can end but does not end cleanly!");
+      }
+
+      return retB;
     }
 
     return retB;

@@ -9,14 +9,12 @@
  */
 "use strict";
 
-export { ConversionWalker } from "./conversion/conversion-walker";
 export { ConversionResult, convertRNGToPattern } from "./conversion/convert";
-export { BasicParser, ConversionParser, Element, Found,
-         IncludeParser, Node, Text } from "./conversion/parser";
+export { Element, Node, parseSimplifiedSchema,
+         Text } from "./conversion/parser";
 export { makeResourceLoader } from "./conversion/resource-loader";
 export { serialize } from "./conversion/serializer";
-export { getAvailableSimplifiers,
-         makeSimplifier,
+export { getAvailableSimplifiers, makeSimplifier, ManifestEntry,
          SimplificationResult } from "./conversion/schema-simplification";
 export { getAvailableValidators, makeValidator, SchemaValidationError,
          SchemaValidationResult } from "./conversion/schema-validation";

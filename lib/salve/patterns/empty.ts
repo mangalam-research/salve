@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Event, EventSet, InternalFireEventResult, InternalWalker,
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
 
 /**
@@ -15,7 +15,7 @@ export class Empty extends Pattern {
     return true;
   }
 
-  newWalker(): InternalWalker<Empty> {
+  newWalker(): InternalWalker {
     // tslint:disable-next-line:no-use-before-declare
     return singleton;
   }
@@ -28,13 +28,12 @@ export class Empty extends Pattern {
  *
  * @param resolver Ignored by this walker.
  */
-class EmptyWalker extends InternalWalker<Empty> {
+class EmptyWalker implements InternalWalker {
   protected readonly el: Empty;
   canEnd: boolean;
   canEndAttribute: boolean;
 
   constructor(el: Empty) {
-    super();
     this.el = el;
     this.canEnd = true;
     this.canEndAttribute = true;
@@ -43,12 +42,6 @@ class EmptyWalker extends InternalWalker<Empty> {
   // Since the Empty walker is a singleton, the cloning operation just
   // returns the original walker.
   clone(): this {
-    return this;
-  }
-
-  // Since the Empty walker is a singleton, the cloning operation just
-  // returns the original walker.
-  _clone(): this {
     return this;
   }
 
@@ -63,6 +56,14 @@ class EmptyWalker extends InternalWalker<Empty> {
   fireEvent(name: string, params: string[]): InternalFireEventResult {
     return new InternalFireEventResult((name === "text") &&
                                        !/\S/.test(params[0]));
+  }
+
+  end(): EndResult {
+    return false;
+  }
+
+  endAttributes(): EndResult {
+    return false;
   }
 }
 

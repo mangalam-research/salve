@@ -4,8 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { ParamError, ParameterParsingError, ValueError,
-         ValueValidationError } from "./errors";
+import { ParamError, ParameterParsingError, ValueError } from "./errors";
 import { Datatype, ParsedParams, ParsedValue, RawParameter,
          TypeLibrary } from "./library";
 
@@ -45,11 +44,8 @@ abstract class Base implements Datatype<string> {
   }
 
   parseValue(location: string, value: string): ParsedValue<string> {
-    const errors = this.disallows(value);
-    if (errors && errors.length !== 0) {
-      throw new ValueValidationError(location, errors);
-    }
-
+    // The builtins do not disallow anything so we don't call disallows to check
+    // whether the value is disallowed.
     return { value };
   }
 

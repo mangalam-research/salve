@@ -7,8 +7,8 @@
 import { Datatype, RawParameter, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, Pattern } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 /**
  * Data pattern.
  */
@@ -59,60 +59,31 @@ export class Data extends Pattern {
       !this.datatype.disallows("", this.params);
   }
 
-  newWalker(nameResolver: NameResolver): InternalWalker<Data> {
+  newWalker(): InternalWalker {
+    const allowsEmptyContent = this.allowsEmptyContent();
+
     // tslint:disable-next-line:no-use-before-declare
-    return new DataWalker(this, nameResolver);
+    return new DataWalker(this,
+                          false,
+                          allowsEmptyContent,
+                          allowsEmptyContent);
   }
 }
 
 /**
  * Walker for [[Data]].
  */
-class DataWalker extends InternalWalker<Data> {
-  protected readonly el: Data;
-  private readonly context: { resolver: NameResolver } | undefined;
-  private matched: boolean;
-  private readonly nameResolver: NameResolver;
-  canEndAttribute: boolean;
-  canEnd: boolean;
+class DataWalker implements InternalWalker {
+  constructor(protected readonly el: Data,
+              private matched: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {}
 
-  /**
-   * @param el The pattern for which this walker was created.
-   *
-   * @param resolver The name resolver that can be used to convert namespace
-   * prefixes to namespaces.
-   */
-  constructor(other: DataWalker, memo: CloneMap);
-  constructor(el: Data, nameResolver: NameResolver);
-  constructor(elOrWalker: DataWalker | Data,
-              nameResolverOrMemo: NameResolver | CloneMap) {
-    super();
-    if ((elOrWalker as Data).newWalker !== undefined) {
-      const el = elOrWalker as Data;
-      const nameResolver = nameResolverOrMemo as NameResolver;
-      this.el = el;
-      this.nameResolver = nameResolver;
-      this.context = el.datatype.needsContext ?
-        { resolver: this.nameResolver } : undefined;
-      this.matched = false;
-      this.canEnd = this.el.allowsEmptyContent();
-      this.canEndAttribute = this.canEnd;
-    }
-    else {
-      const walker = elOrWalker as DataWalker;
-      const memo = nameResolverOrMemo as CloneMap;
-      this.el = walker.el;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
-      this.context = walker.context !== undefined ?
-        { resolver: this.nameResolver } : undefined;
-      this.matched = walker.matched;
-      this.canEnd = walker.canEnd;
-      this.canEndAttribute = walker.canEndAttribute;
-    }
-  }
-
-  _clone(memo: CloneMap): this {
-    return new DataWalker(this, memo) as this;
+  clone(): this {
+    return new DataWalker(this.el,
+                          this.matched,
+                          this.canEndAttribute,
+                          this.canEnd) as this;
   }
 
   possible(): EventSet {
@@ -126,21 +97,22 @@ class DataWalker extends InternalWalker<Data> {
     return new Set();
   }
 
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
-    const ret = new InternalFireEventResult(false);
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     if (this.matched || name !== "text" ||
-        this.el.datatype.disallows(params[0], this.el.params, this.context)) {
-      return ret;
+        this.el.datatype.disallows(params[0], this.el.params,
+                                   { resolver: nameResolver })) {
+      return new InternalFireEventResult(false);
     }
 
     if (this.el.except !== undefined) {
-      const walker = this.el.except.newWalker(this.nameResolver);
-      const exceptRet = walker.fireEvent(name, params);
+      const walker = this.el.except.newWalker();
+      const exceptRet = walker.fireEvent(name, params, nameResolver);
 
       // False, so the except does match the text, and so this pattern does
       // not match it.
       if (exceptRet.matched) {
-        return ret;
+        return new InternalFireEventResult(false);
       }
 
       // Otherwise, it is undefined, in which case it means the except does
@@ -158,9 +130,7 @@ class DataWalker extends InternalWalker<Data> {
     this.canEnd = true;
     this.canEndAttribute = true;
 
-    ret.matched = true;
-
-    return ret;
+    return new InternalFireEventResult(true);
   }
 
   end(): EndResult {

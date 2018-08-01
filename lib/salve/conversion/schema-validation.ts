@@ -7,7 +7,6 @@
 import { Element } from "./parser";
 import { ResourceLoader } from "./resource-loader";
 import { SchemaSimplifierOptions } from "./schema-simplification";
-import { autoload } from "./schema-validators/autoload";
 
 import { fixPrototype } from "../tools";
 
@@ -90,5 +89,3 @@ SchemaValidator {
 
   return new ctor(options);
 }
-
-autoload();

@@ -6,8 +6,8 @@
  */
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, OneSubpattern } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         OneSubpattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -33,9 +33,14 @@ export class List extends OneSubpattern {
     return false;
   }
 
-  newWalker(nameResolver: NameResolver): InternalWalker<List> {
+  newWalker(): InternalWalker {
+    const hasEmptyPattern = this.hasEmptyPattern();
+
     // tslint:disable-next-line:no-use-before-declare
-    return new ListWalker(this, nameResolver);
+    return new ListWalker(this,
+                          this.pat.newWalker(),
+                          hasEmptyPattern,
+                          hasEmptyPattern);
   }
 }
 
@@ -43,39 +48,17 @@ export class List extends OneSubpattern {
  * Walker for [[List]].
  *
  */
-class ListWalker extends InternalWalker<List> {
-  protected readonly el: List;
-  private subwalker: InternalWalker<BasePattern>;
-  private readonly nameResolver: NameResolver;
-  canEnd: boolean;
-  canEndAttribute: boolean;
+class ListWalker implements InternalWalker {
+  constructor(protected readonly el: List,
+              private readonly subwalker: InternalWalker,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {}
 
-  constructor(other: ListWalker, memo: CloneMap);
-  constructor(el: List, nameResolver: NameResolver);
-  constructor(elOrWalker: List | ListWalker,
-              nameResolverOrMemo: NameResolver | CloneMap) {
-    super();
-    if ((elOrWalker as List).newWalker !== undefined) {
-      const el = elOrWalker as List;
-      const nameResolver = nameResolverOrMemo as NameResolver;
-      this.el = el;
-      this.nameResolver = nameResolver;
-      this.subwalker = el.pat.newWalker(nameResolver);
-      this.canEndAttribute = this.canEnd = this.hasEmptyPattern();
-    }
-    else {
-      const walker = elOrWalker as ListWalker;
-      const memo = nameResolverOrMemo as CloneMap;
-      this.el = walker.el;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
-      this.subwalker = walker.subwalker._clone(memo);
-      this.canEnd = walker.canEnd;
-      this.canEndAttribute = walker.canEndAttribute;
-    }
-  }
-
-  _clone(memo: CloneMap): this {
-    return new ListWalker(this, memo) as this;
+  clone(): this {
+    return new ListWalker(this.el,
+                          this.subwalker.clone(),
+                          this.canEndAttribute,
+                          this.canEnd) as this;
   }
 
   possible(): EventSet {
@@ -86,11 +69,11 @@ class ListWalker extends InternalWalker<List> {
     return new Set<Event>();
   }
 
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
-    let ret = new InternalFireEventResult(false);
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     // Only this can match.
     if (name !== "text") {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const trimmed = params[0].trim();
@@ -98,15 +81,14 @@ class ListWalker extends InternalWalker<List> {
     // The list walker cannot send empty strings to its children because it
     // validates a list of **tokens**.
     if (trimmed === "") {
-      ret.matched = true;
-
-      return ret;
+      return new InternalFireEventResult(true);
     }
 
-    const tokens = trimmed.split(/\s+/);
-
-    for (const token of tokens) {
-      ret = this.subwalker.fireEvent("text", [token]);
+    // ret is necessarily set by the loop because we deal with the empty case
+    // above.
+    let ret!: InternalFireEventResult;
+    for (const token of trimmed.split(/\s+/)) {
+      ret = this.subwalker.fireEvent("text", [token], nameResolver);
       if (!ret.matched) {
         this.canEndAttribute = this.canEnd = false;
 
@@ -116,6 +98,7 @@ class ListWalker extends InternalWalker<List> {
 
     this.canEndAttribute = this.canEnd = this.subwalker.canEnd;
 
+    // It is not possible for ret to be undefined here.
     return ret;
   }
 

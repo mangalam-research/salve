@@ -4,30 +4,32 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
+import * as crypto from "@trust/webcrypto";
 import { ArgumentParser } from "argparse";
 import { spawn } from "child_process";
 import * as fs from "fs";
 import * as nodeFetch from "node-fetch";
 import * as path from "path";
-import * as sax from "sax";
+import requireDir from "require-dir";
 import * as temp from "temp";
 import { URL } from "url";
 import * as util from "util";
 
-// tslint:disable-next-line:no-require-imports import-name
-import fileURL = require("file-url");
+import fileUrl from "file-url";
 
 (global as any).fetch = nodeFetch;
 (global as any).URL = URL;
+(global as any).crypto = crypto;
+(global as any).TextEncoder = util.TextEncoder;
 
 // We load individual modules rather than the build module because the
 // conversion code uses parts of salve that are not public.
-import { ConversionParser, getAvailableSimplifiers, getAvailableValidators,
+import { Element, getAvailableSimplifiers, getAvailableValidators,
          makeResourceLoader, makeSimplifier, makeValidator,
-         SchemaValidationError, serialize,
+         parseSimplifiedSchema, SchemaValidationError, serialize,
          SimplificationResult } from "../conversion";
 import { ParameterParsingError, ValueValidationError } from "../datatypes";
-import { renameRefsDefines, writeTreeToJSON } from "../json-format/write";
+import { writeTreeToJSON } from "../json-format/write";
 import { version } from "../validate";
 import { Fatal } from "./convert/fatal";
 
@@ -38,16 +40,19 @@ temp.track();
 const prog = path.basename(process.argv[1]);
 const stderr = process.stderr;
 
+requireDir("../conversion/schema-simplifiers");
+requireDir("../conversion/schema-validators");
+
 //
 // Safety harness
 //
 
 let args: any;
 let terminating = false;
-function terminate(ex: any): void {
+function terminate(ex: unknown): void {
   // We don't want to handle exceptions that happen while we're terminating.
   if (terminating) {
-    if (ex) {
+    if (ex != null) {
       process.stderr.write(`${prog}: got error while terminating\n`);
       process.stderr.write(util.inspect(ex));
     }
@@ -56,7 +61,7 @@ function terminate(ex: any): void {
   }
 
   terminating = true;
-  if (ex) {
+  if (ex != null) {
     if (ex instanceof Fatal) {
       process.stderr.write(`${prog}: ${ex.message}\n`);
       process.exit(1);
@@ -92,7 +97,7 @@ parser.addArgument(["--version"], {
 } as any);
 
 const availableSimplifiers = getAvailableSimplifiers();
-if (availableSimplifiers.indexOf("internal") === -1) {
+if (!availableSimplifiers.includes("internal")) {
   throw new Fatal("internal must be among the available validators");
 }
 
@@ -106,12 +111,10 @@ const availableValidators = getAvailableValidators();
 if (!availableValidators.includes("internal")) {
   throw new Fatal("internal must be among the available validators on Node!");
 }
+availableValidators.push("none");
 
 parser.addArgument(["--validator"], {
-  help: "Select how the schema is going to be validated. NOTE: use xmllint \
-ONLY FOR DEBUGGING PURPOSES. xmllint is known to not perform a thorough \
-validation of the Relax NG schema it is given. It is thus not supported for \
-formal work.",
+  help: "Select how the schema is going to be validated.",
   choices: availableValidators,
   defaultValue: "internal",
 });
@@ -266,14 +269,11 @@ async function convert(result: SimplificationResult): Promise<void> {
     }
   }
 
-  if (!args.no_optimize_ids) {
-    renameRefsDefines(simplified);
-  }
-
   if (!args.no_output) {
     fs.writeFileSync(args.output_path,
                      writeTreeToJSON(simplified, args.format_version,
-                                     args.include_paths, args.verbose_format));
+                                     args.include_paths, args.verbose_format,
+                                     !args.no_optimize_ids));
   }
 
   if (args.timing) {
@@ -284,46 +284,52 @@ async function convert(result: SimplificationResult): Promise<void> {
 async function start(): Promise<void> {
   let startTime: number | undefined;
   if (args.simplified_input) {
-    const convParser = new ConversionParser(sax.parser(true, { xmlns: true }));
-    convParser.saxParser
-      .write(fs.readFileSync(args.input_path).toString()).close();
-
     return convert({
-      simplified: convParser.root,
+      simplified: parseSimplifiedSchema(
+        args.input_path,
+        fs.readFileSync(args.input_path).toString()),
       warnings: [],
+      manifest: [],
     });
-  }
-
-  if (args.verbose) {
-    console.log("Validating RNG...");
-    if (args.timing) {
-      startTime = Date.now();
-    }
   }
 
   const resourceLoader = makeResourceLoader();
 
-  const validator = makeValidator(args.validator, {
-    verbose: args.verbose,
-    timing: args.timing,
-    resourceLoader,
-    keepTemp: args.keep_temp,
-    simplifyTo: args.simplify_to,
-    ensureTempDir,
-    validate: true,
-  });
+  let simplified: Element | undefined;
+  let warnings: string[] | undefined;
+  if (args.validator !== "none") {
+    if (args.verbose) {
+      console.log("Validating RNG...");
+      if (args.timing) {
+        startTime = Date.now();
+      }
+    }
 
-  const { simplified, warnings } =
-    await validator.validate(new URL(fileURL(args.input_path)));
+    const validator = makeValidator(args.validator, {
+      verbose: args.verbose,
+      timing: args.timing,
+      resourceLoader,
+      keepTemp: args.keep_temp,
+      simplifyTo: args.simplify_to,
+      ensureTempDir,
+      validate: true,
+      createManifest: false,
+      manifestHashAlgorithm: "void",
+    });
 
-  if (args.timing) {
-    console.log(`Validation delta: ${Date.now() - startTime!}`);
+    ({ simplified, warnings } =
+     await validator.validate(new URL(fileUrl(args.input_path))));
+
+    if (args.timing) {
+      console.log(`Validation delta: ${Date.now() - startTime!}`);
+    }
   }
 
   if (simplified !== undefined) {
     return convert({
       simplified,
       warnings: warnings === undefined ? [] : warnings,
+      manifest: [],
     });
   }
 
@@ -335,9 +341,11 @@ async function start(): Promise<void> {
     ensureTempDir,
     resourceLoader,
     validate: false,
+    createManifest: false,
+    manifestHashAlgorithm: "void",
   });
 
-  return simplifier.simplify(new URL(fileURL(args.input_path))).then(convert);
+  return simplifier.simplify(new URL(fileUrl(args.input_path))).then(convert);
 }
 
 // tslint:disable-next-line:no-floating-promises

@@ -69,10 +69,6 @@ import { Ref, RefWalker } from "./ref";
 // uglification strips it from the minified code.)
 const DEBUG: boolean = false;
 
-// This is here to shut the compiler up about unused variables.
-/* tslint:disable: no-empty no-invalid-this */
-function noop(..._args: any[]): void {}
-
 // tslint:disable-next-line:strict-boolean-expressions
 if (DEBUG) {
   //
@@ -83,10 +79,10 @@ if (DEBUG) {
     console.log(msg); // tslint:disable-line:no-console
   };
 
+  // @ts-ignore
   const stackTrace: () => void = () => {
     trace(new Error().stack);
   };
-  noop(stackTrace);
 
   // tslint:disable:no-var-keyword
   // @ts-ignore
@@ -188,6 +184,7 @@ if (DEBUG) {
    * @param f The function that should serve as wrapper.
    *
    */
+  // @ts-ignore
   // tslint:disable-next-line:only-arrow-functions no-var-keyword prefer-const
   var wrap: (me: any, name: string, f: Function) => void =
     (me: any, name: string, f: Function) => {
@@ -198,22 +195,17 @@ if (DEBUG) {
         return f.call(this, me[mangledName], name, arguments);
       };
     };
-  noop(wrap);
   /* tslint:enable */
 }
 
 export type EventSet = Set<Event>;
 
-export interface Clonable {
-  clone(): this;
-}
-
 export type FireEventResult = false | undefined | ValidationError[];
 
 export class InternalFireEventResult {
-  constructor(public matched: boolean,
-              public errors?: ValidationError[],
-              public refs?: RefWalker[]) {}
+  constructor(readonly matched: boolean,
+              readonly errors?: ReadonlyArray<ValidationError>,
+              readonly refs?: ReadonlyArray<RefWalker>) {}
 
   static fromEndResult(result: EndResult): InternalFireEventResult {
     return (result === false) ?
@@ -221,22 +213,25 @@ export class InternalFireEventResult {
       new InternalFireEventResult(false, result);
   }
 
-  combine(other: InternalFireEventResult): this {
-    if (this.errors === undefined) {
-      this.errors = other.errors;
+  combine(other: InternalFireEventResult): InternalFireEventResult {
+    let errors: ReadonlyArray<ValidationError> | undefined;
+    let refs: ReadonlyArray<RefWalker> | undefined;
+    if (this.matched) {
+      refs = this.refs;
+      const oRefs = other.refs;
+      if (oRefs !== undefined) {
+        refs = refs === undefined ? oRefs : refs.concat(oRefs);
+      }
     }
-    else if (other.errors !== undefined) {
-      this.errors = this.errors.concat(other.errors);
+    else {
+      errors = this.errors;
+      const oErrors = other.errors;
+      if (oErrors !== undefined) {
+        errors = errors === undefined ? oErrors : errors.concat(oErrors);
+      }
     }
 
-    if (this.refs === undefined) {
-      this.refs = other.refs;
-    }
-    else if (other.refs !== undefined) {
-      this.refs = this.refs.concat(other.refs);
-    }
-
-    return this;
+    return new InternalFireEventResult(this.matched, errors, refs);
   }
 }
 
@@ -325,7 +320,7 @@ export abstract class Pattern extends BasePattern {
    *
    * @returns A walker.
    */
-  newWalker(resolver: NameResolver): InternalWalker<BasePattern> {
+  newWalker(): InternalWalker {
     // Rather than make it abstract, we provide a default implementation for
     // this method, which throws an exception if called. We could probably
     // reorganize the code to do without but a) we would not gain much b) it
@@ -451,6 +446,7 @@ export class Event {
 }
 
 export function isAttributeEvent(name: string): boolean {
+  // Using a set here is not clearly faster than using this logic.
   return (name === "attributeName" || name === "attributeValue" ||
           name === "attributeNameAndValue");
 }
@@ -486,7 +482,7 @@ interface NodeMap extends Map<string, false | NodeMap> {}
 export function eventsToTreeString(evs: Event[] | EventSet): string {
   const eventArray = (evs instanceof Set) ? Array.from(evs) : evs;
 
-  const hash: NodeMap = new Map();
+  const hash: NodeMap = new Map<string, false | NodeMap>();
   eventArray.forEach((ev) => {
     const params = ev.params;
 
@@ -500,7 +496,7 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
       else {
         let nextNode = node.get(key) as NodeMap | undefined;
         if (nextNode === undefined) {
-          nextNode = new Map();
+          nextNode = new Map<string, false | NodeMap>();
           node.set(key, nextNode);
         }
         node = nextNode;
@@ -531,98 +527,10 @@ export function eventsToTreeString(evs: Event[] | EventSet): string {
   /* tslint:enable */
 }
 
-export type CloneMap = Map<any, any>;
-
-/**
- * Helper method for cloning. This method should be called to clone objects that
- * do not participate in the ``clone``, protocol. This typically means instance
- * properties that are not ``Walker`` objects and not immutable.
- *
- * This method will call a ``clone`` method on ``obj``, when it determines
- * that cloning must happen.
- *
- * @param obj The object to clone.
- *
- * @param memo A mapping of old object to copy object. As a tree of patterns
- * is being cloned, this memo is populated. So if A is cloned to B then a
- * mapping from A to B is stored in the memo. If A is seen again in the same
- * cloning operation, then it will be substituted with B instead of creating a
- * new object. This should be the same object as the one passed to the
- * constructor.
- *
- * @returns A clone of ``obj``.
- */
-export function cloneIfNeeded<C extends Clonable>(obj: C, memo: CloneMap): C {
-  let other = memo.get(obj);
-  if (other !== undefined) {
-    return other as C;
-  }
-  other = obj.clone();
-  memo.set(obj, other);
-
-  return other;
-}
-
-/**
- * Roughly speaking each [[Pattern]] object has a corresponding ``Walker`` class
- * that models an object which is able to walk the pattern to which it
- * belongs. So an ``Element`` has an ``ElementWalker`` and an ``Attribute`` has
- * an ``AttributeWalker``. A ``Walker`` object responds to parsing events and
- * reports whether the structure represented by these events is valid.
- *
- * This base class records only a minimal number of properties so that child
- * classes can avoid keeping useless properties. A prime example is the walker
- * for ``<empty>`` which is a terminal walker (it has no subwalker) so does not
- * need to record the name resolver.
- *
- * Note that users of this API do not instantiate Walker objects themselves.
- */
-export abstract class BaseWalker<T extends BasePattern> {
-  protected abstract readonly el: T;
-
-  // These functions return true if there is no problem, or a list of
-  // ValidationError objects otherwise.
-
-  /**
-   * Deep copy the Walker.
-   *
-   * @returns A deep copy of the Walker.
-   */
-  clone(): this {
-    return this._clone(new Map<any, any>());
-  }
-
- /**
-  * Helper function for clone. Code that is not part of the Pattern family would
-  * call clone() whereas Pattern and its derived classes call _clone() with the
-  * appropriate memo.
-  *
-  * @param memo A mapping of old object to copy object. As a tree of patterns
-  * is being cloned, this memo is populated.  So if A is cloned to B then a
-  * mapping from A to B is stored in the memo.  If A is seen again in the same
-  * cloning operation, then it will be substituted with B instead of creating a
-  * new object.
-  *
-  * This method is meant only to be used by classes derived from
-  * [[BaseWalker]]. It is public due to a limitation of TypeScript. Don't call
-  * it from your own code. You've been warned.
-  *
-  * @protected
-  *
-  * @returns The clone.
-  */
-  abstract _clone(memo: CloneMap): this;
-
-  hasEmptyPattern(): boolean {
-    return this.el.hasEmptyPattern();
-  }
-}
-
 /**
  * This is the class of all walkers that are used internally to Salve.
  */
-export abstract class InternalWalker<T extends BasePattern>
-  extends BaseWalker<T> {
+export interface InternalWalker {
   /**
    * Passes an event to the walker for handling. The Walker will determine
    * whether it or one of its children can handle the event.
@@ -631,35 +539,38 @@ export abstract class InternalWalker<T extends BasePattern>
    *
    * @param params The event parameters.
    *
+   * @param nameResolver The name resolver to use to resolve names.
+   *
    * @returns The value ``false`` if there was no error. The value ``undefined``
    * if no walker matches the pattern. Otherwise, an array of
    * [[ValidationError]] objects.
    */
-  abstract fireEvent(name: string, params: string[]): InternalFireEventResult;
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult;
 
   /**
    * Flag indicating whether the walker can end.
    */
-  abstract canEnd: boolean;
+  canEnd: boolean;
 
   /**
    * Flag indicating whether the walker can end, in a context where
    * we are processing attributes.
    */
-  abstract canEndAttribute: boolean;
+  canEndAttribute: boolean;
 
   /**
    * @returns The set of non-attribute event that can be fired without resulting
    * in an error. ``ElementWalker`` exceptionally returns all possible events,
    * including attribute events.
    */
-  abstract possible(): EventSet;
+  possible(): EventSet;
 
   /**
    * @returns The set of attribute events that can be fired without resulting in
    * an error. This method may not be called on ``ElementWalker``.
    */
-  abstract possibleAttributes(): EventSet;
+  possibleAttributes(): EventSet;
 
   /**
    * End the walker.
@@ -667,9 +578,7 @@ export abstract class InternalWalker<T extends BasePattern>
    * @returns ``false`` if the walker ended without error. Otherwise, the
    * errors.
    */
-  end(): EndResult {
-    return false;
-  }
+  end(): EndResult;
 
   /**
    * End the processing of attributes.
@@ -677,9 +586,14 @@ export abstract class InternalWalker<T extends BasePattern>
    * @returns ``false`` if the walker ended without error. Otherwise, the
    * errors.
    */
-  endAttributes(): EndResult {
-    return false;
-  }
+  endAttributes(): EndResult;
+
+  /**
+   * Deep copy the Walker.
+   *
+   * @returns A deep copy of the Walker.
+   */
+  clone(): this;
 }
 
 //  LocalWords:  RNG MPL lookahead xmlns uri CodeMirror tokenizer enterStartTag

@@ -1,8 +1,13 @@
-.. image:: https://travis-ci.org/mangalam-research/salve.png
-
+.. image:: https://badge.fury.io/js/salve.svg
+   :target: https://badge.fury.io/js/salve
+.. image:: https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg
+   :target: https://opensource.org/licenses/MPL-2.0
+.. image:: https://travis-ci.org/mangalam-research/salve.svg?branch=master
+   :target: https://travis-ci.org/mangalam-research/salve
 .. image:: https://badges.greenkeeper.io/mangalam-research/salve.svg
    :alt: Greenkeeper badge
    :target: https://greenkeeper.io/
+
 
 .. note:: Github currently does not implement all reStructuredText directives,
           so some links in this readme may not work correctly when viewed there.
@@ -22,11 +27,10 @@ subset of Relax NG (RNG). It is developed as part of the Buddhist Translators
 Workbench. It can be seen in action in `wed
 <https://github.com/mangalam-research/wed>`_.
 
-Salve is currently used to validate schemas generated from the `TEI standard
-<http://www.tei-c.org/>`_, schemas derived from this standard, and custom
-schemas. We've also validated files that use the DocBook v5.0 schema. We want to
-support as much Relax NG as reasonably possible, but it currently has the
-following limitations:
+Salve is used for validating XML with custom Relax NG schemas. We've also
+validated files that use the `TEI standard <http://www.tei-c.org/>`_ and the
+DocBook v5.0 schema. We want to support as much Relax NG as reasonably possible,
+but salve currently has the following limitations:
 
 * XML Schema types ``ENTITY`` and ``ENTITIES`` are treated as a ``string``.
 
@@ -39,17 +43,6 @@ following limitations:
   limitation of validators. We tested with ``jing`` and ``xmllint --relaxng``
   and found they do not raise errors if, for instance, a validation that expects
   a float is given a value that cannot be represented with a float.)
-
-* Text meant to be contiguous must be passed to salve in one event. In
-  particular, comments and processing instructions are invisible to
-  salve. (There are no events for them.) Take for instance, this XML:
-
-      ab&lt;!-- blah -->cd
-
-  In a DOM interpretation, you'd have two text nodes separated by a comment
-  node. For the purpose of Relax NG validation, this is a single string "abcd"
-  and should be passed to salve as "abcd" and not as the two strings "ab" and
-  "cd".
 
 If someone wishes to use salve but needs support for any of the features that
 are missing, they may ask for the feature to be added. Submit an issue on GitHub
@@ -108,7 +101,7 @@ A typical usage scenario would be as follows::
 
     // Source is a URL to the Relax NG schema to use. A ``file://`` URL
     // may be used to load from the local fs.
-    const grammar = salve.convertRNGToPattern(source);
+    const grammar = salve.convertRNGToPattern(source).pattern;
 
     // Get a walker on which to fire events.
     const walker = grammar.newWalker();
@@ -174,6 +167,92 @@ module) contains an example of a rudimentary parser runnable in Node.js::
 The ``[rng as js]`` parameter is the RNG, simplified and converted to
 JavaScript. The ``[xml to validate]`` parameter is the XML file to validate
 against the RNG.
+
+Converting Schemas
+==================
+
+As you can see above, a Relax NG schema, stored in XML, needs to be converted to
+salve's internal format before salve can use it. Internally this happens:
+
+* The XML file recording the Relax NG schema is converted to a tree of objects
+  representing the XML.
+
+* The XML tree is validated against the Relax NG schema.
+
+* The XML tree is simplified as described in the Relax NG specification.
+
+* Constraints specified by the Relax NG specification are checked.
+
+* The XML tree is converted to a "pattern", which is a structure internal to
+  salve.
+
+The simplest usage is like this::
+
+    const result = salve.convertRNGToPattern(source);
+
+By default the conversion returns an object with a grammar stored on the
+``pattern`` field, may reveal some simplification warnings on the ``warnings``
+field, and provides a the simplified schema as an XML tree on the ``simplified``
+field. In trivial use-case scenarios, only ``pattern`` and ``warnings`` are
+used.
+
+In some cases, the code using ``convertRNGToPattern`` may want to serialize the
+result of simplification for future use. To do this, it should use
+``writeTreeToJSON`` and pass the value of the ``simplified`` field to serialize
+the simplified XML tree to JSON. The serialized JSON may then be read with
+``readTreeFromJSON`` to create a structure identical to the original
+``pattern``. Consider the following code::
+
+    const result = salve.convertRNGToPattern(source);
+    const json = salve.writeTreeToJSON(result.simplified);
+    const x = salve.readTreeFromJSON(json);
+
+After executing it, ``x`` contains a pattern which represents the same Relax NG
+schema as ``result.pattern``.
+
+Do note that that ``writeTreeToJSON`` takes **an XML tree** and produces JSON,
+whereas ``readTreeFromJSON`` reads a JSON and produces **a pattern** rather than
+an XML tree. There is currently no use-case scenario that requires the two
+functions to mirror one-another.
+
+Optionally, you may pass an options object as the 2nd argument of
+``convertRNGToPattern`` with ``createManifest`` set to ``true``. If you do this,
+then you also get a ``manifest`` field which is an array of objects containing
+file paths and their corresponding hashes. Manifests are useful to allow systems
+that use salve to know whether a pattern needs to be regenerated with
+``convertRNGToPattern``. This is necessary if the system allows a schema to
+change after use. Consider the following scenario. Alice uses an XML editor that
+uses salve to perform on the fly validation.
+
+1. Alice edits the file ``foo.xml`` with the schema ``foo.rng``. It so happens
+   that ``foo.rng`` imports ``math.rng``. The editor will use
+   ``convertRNGToPattern`` to convert ``foo.rng`` and ``math.rng`` into the
+   format salve needs. It also uses ``writeTreeToJSON`` to cache the
+   result. Alice sees a brief progress indicator while the editor converts the
+   schema.
+
+2. Over the span of a week, Alice continues editing ``foo.xml``. Each time she
+   opens the editor, the editor uses ``readTreeFromJSON`` to load the tree from
+   cache instead of using ``convertRNGToPattern`` over and over. As far as Alice
+   is concerned, the editor starts immediately. There's no progress indicator
+   needed because ``readTreeFromJSON`` is super fast.
+
+3. Alice then changes ``math.rng`` to add new elements. When Alice starts the
+   XML editor to edit ``foo.xml`` again, the XML editor must be able to detect
+   that the schema needs to go through ``convertRNGToPattern`` *again* because
+   ``math.rng`` has changed.
+
+The manifest is used to support the scenario above. If the XML editor stores the
+converted schema, and the manifest into its cache, then it can detect if and
+when it needs to convert the schema anew.
+
+Security note: It is up to you to decide what strength hash you need. **The
+manifest is not designed for the sake of providing security.** So its hashes are
+not designed to detect willful tampering but rather to quickly determine whether
+a schema was edited. In the vast majority of real world usage scenarios, using a
+stronger hash would not provide better security because if an attacker can
+replace a schema with their own file, they also can access the manifest and
+replace the hash in the manifest.
 
 Events
 ======
@@ -605,7 +684,7 @@ one fell swoop. You'll have to provide polyfills for ``fetch`` and ``URL`` from
 other sources.
 
 Note that we do not support old browsers. Notably, salve won't run on any
-version of IE earlier than IE11.
+version of IE.
 
 Build System
 ============
@@ -660,10 +739,9 @@ Deploying
 When you install salve through `npm`, you get a package that contains:
 
 * a hierarchy of CommonJS modules in `lib`,
-* a UMD build as `salve.js`,
 * a minified UMD build as `salve.min.js`.
 
-The UMD builds can be loaded in a CommonJS environment, in a AMD environment or
+The UMD build can be loaded in a CommonJS environment, in a AMD environment or
 as "plain scripts" in a browser. If you use the latter, then salve will be
 accessible as the `salve` global.
 

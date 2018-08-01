@@ -732,7 +732,7 @@ abstract class Base<T> implements Datatype<T> {
 
   disallows(value: string, params?: ParsedParams,
             context?: Context): ValueError[] | false {
-    if (value.match(this.regexp) === null) {
+    if (!this.regexp.test(value)) {
       return [new ValueError(this.typeErrorMsg)];
     }
 
@@ -842,7 +842,7 @@ class token extends normalizedString {
 class tokenInternal extends token {
   disallows(value: string, params?: ParsedParams,
             context?: Context): ValueError[] | false {
-    if (value.match(this.regexp) === null) {
+    if (!this.regexp.test(value)) {
       return [new ValueError(this.typeErrorMsg)];
     }
 

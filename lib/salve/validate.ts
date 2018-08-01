@@ -6,15 +6,16 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-export const version: string = "7.0.3";
+export const version: string = "8.0.0";
 
 export { eventsToTreeString, Event, EventSet, Grammar, GrammarWalker,
          BasePattern, RefError, FireEventResult,
          EndResult } from "./patterns";
 
-export { ConversionResult, convertRNGToPattern } from "./conversion";
+export { ConversionResult, convertRNGToPattern,
+         ManifestEntry } from "./conversion";
 
-export { writeTreeToJSON, renameRefsDefines } from "./json-format/write";
+export { writeTreeToJSON } from "./json-format/write";
 export { constructTree, readTreeFromJSON } from "./json-format/read";
 
 export { EName }  from "./ename";

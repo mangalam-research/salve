@@ -47,18 +47,9 @@ interface Context {
  * resolver maintains mappings from namespace prefix to namespace URI.
  */
 export class NameResolver {
-  /**
-   * The next id to associate to the next NameResolver object to be created.
-   * This is used so that [[NameResolver.hash]] can return unique values.
-   */
-  private static __id: number = 0; // tslint:disable-line: variable-name
-
-  readonly id: string;
-
   private readonly _contextStack: Context[];
 
   constructor(other?: NameResolver) {
-    this.id = `N${this.__newID()}`;
     if (other !== undefined) {
       this._contextStack = other._contextStack.slice();
     }
@@ -74,23 +65,6 @@ export class NameResolver {
       }];
 
     }
-  }
-
-  /**
-   * This method is mainly used to be able to use [[NameResolver]] objects in a
-   * collection.
-   *
-   * Returns a hash guaranteed to be unique to this object. There are some
-   * limitations. First, if this module is instantiated twice, the objects
-   * created by the two instances cannot mix without violating the uniqueness
-   * guarantee. Second, the hash is a monotonically increasing counter, so when
-   * it reaches beyond the maximum integer that the JavaScript vm can handle,
-   * things go kaboom.
-   *
-   * @returns A number unique to this object.
-   */
-  hash(): string {
-    return this.id;
   }
 
   /**
@@ -121,7 +95,7 @@ export class NameResolver {
       throw new Error("trying to define 'xml' to an incorrect URI");
     }
 
-    const top = this._contextStack[0];
+    const top = this._contextStack[this._contextStack.length - 1];
     top.forward.set(prefix, uri);
 
     let prefixes = top.backwards.get(uri);
@@ -151,7 +125,7 @@ export class NameResolver {
    * created. There is no need to create it and it is not possible to leave it.
    */
   enterContext(): void {
-    this._contextStack.unshift({
+    this._contextStack.push({
       forward: new Map(),
       backwards: new Map(),
     });
@@ -166,7 +140,7 @@ export class NameResolver {
    */
   leaveContext(): void {
     if (this._contextStack.length > 1) {
-      this._contextStack.shift();
+      this._contextStack.pop();
     }
     else {
       throw new Error("trying to leave the default context");
@@ -190,29 +164,30 @@ export class NameResolver {
    * resolved.
    */
   resolveName(name: string, attribute: boolean = false): EName | undefined {
-    const parts = name.split(":");
+    const colon = name.indexOf(":");
 
     let prefix: string;
     let local: string;
-    switch (parts.length) {
-      case 2:
-        [prefix, local] = parts;
-        break;
-      case 1:
-        if (attribute) { // Attribute in undefined namespace
-          return new EName("", name);
-        }
+    if (colon === -1) {
+      if (attribute) { // Attribute in undefined namespace
+        return new EName("", name);
+      }
 
-        // We are searching for the default namespace currently in effect.
-        prefix = "";
-        local = name;
-        break;
-      default:
+      // We are searching for the default namespace currently in effect.
+      prefix = "";
+      local = name;
+    }
+    else {
+      prefix = name.substr(0, colon);
+      local = name.substr(colon + 1);
+      if (local.includes(":")) {
         throw new Error("invalid name passed to resolveName");
+      }
     }
 
     // Search through the contexts.
-    for (const context of this._contextStack) {
+    for (let ix = this._contextStack.length - 1; ix >= 0; --ix) {
+      const context = this._contextStack[ix];
       const uri = context.forward.get(prefix);
       if (uri !== undefined) {
         return new EName(uri, local);
@@ -253,8 +228,8 @@ export class NameResolver {
 
     // Search through the contexts.
     let prefixes: string[] | undefined;
-    for (let cIx = 0; (prefixes === undefined) &&
-         (cIx < this._contextStack.length); ++cIx) {
+    for (let cIx = this._contextStack.length - 1;
+         (prefixes === undefined) && (cIx >= 0); --cIx) {
       prefixes = this._contextStack[cIx].backwards.get(uri);
     }
 
@@ -279,8 +254,8 @@ export class NameResolver {
    */
   prefixFromURI(uri: string): string | undefined {
     let prefixes: string[] | undefined;
-    for (let cIx = 0; (prefixes === undefined) &&
-         (cIx < this._contextStack.length); ++cIx) {
+    for (let cIx = this._contextStack.length - 1;
+         (prefixes === undefined) && (cIx >= 0); --cIx) {
       prefixes = this._contextStack[cIx].backwards.get(uri);
     }
 
@@ -289,15 +264,6 @@ export class NameResolver {
     }
 
     return prefixes[0];
-  }
-
-  /**
-   * Gets a new Pattern id.
-   *
-   * @returns The new id.
-   */
-  private __newID(): number {
-    return NameResolver.__id++;
   }
 }
 

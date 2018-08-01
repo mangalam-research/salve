@@ -7,17 +7,20 @@
 import { ElementNameError } from "../errors";
 import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
-import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, Pattern } from "./base";
+import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
+         InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
-import { NotAllowed } from "./not_allowed";
 import { Ref } from "./ref";
+
+export interface Initializable {
+  initWithAttributes(attrs: string[],
+                     nameResolver: NameResolver): InternalFireEventResult;
+}
 
 /**
  * A pattern for elements.
  */
 export class Element extends BasePattern {
-  private readonly notAllowed: boolean;
   /**
    * @param xmlPath This is a string which uniquely identifies the
    * element from the simplified RNG tree. Used in debugging.
@@ -29,15 +32,17 @@ export class Element extends BasePattern {
   constructor(xmlPath: string, readonly name: ConcreteName,
               readonly pat: Pattern) {
     super(xmlPath);
-    this.notAllowed = this.pat instanceof NotAllowed;
   }
 
-  newWalker(resolver: NameResolver,
-            boundName: Name): InternalWalker<BasePattern> {
-    return this.notAllowed ?
-      this.pat.newWalker(resolver) :
-      // tslint:disable-next-line:no-use-before-declare
-      new ElementWalker(this, resolver, boundName);
+  newWalker(boundName: Name): InternalWalker & Initializable {
+    // tslint:disable-next-line:no-use-before-declare
+    return new ElementWalker(this,
+                             this.pat.newWalker(),
+                             false,
+                             new Event("endTag", boundName),
+                             boundName,
+                             true,
+                             false);
   }
 
   hasAttrs(): boolean {
@@ -63,62 +68,25 @@ export class Element extends BasePattern {
  *
  * Walker for [[Element]].
  */
-class ElementWalker extends InternalWalker<Element> {
+class ElementWalker implements InternalWalker, Initializable {
   private static _leaveStartTagEvent: Event = new Event("leaveStartTag");
 
-  protected readonly el: Element;
-  private endedStartTag: boolean;
-  private walker: InternalWalker<BasePattern>;
-  private endTagEvent: Event;
-  private boundName: Name;
-  private readonly nameResolver: NameResolver;
-  canEndAttribute: boolean;
-  canEnd: boolean;
+  constructor(protected readonly el: Element,
+              private readonly walker: InternalWalker,
+              private endedStartTag: boolean,
+              private readonly endTagEvent: Event,
+              private boundName: Name,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {}
 
-  /**
-   * @param el The pattern for which this walker was
-   * created.
-   *
-   * @param nameResolver The name resolver that
-   * can be used to convert namespace prefixes to namespaces.
-   */
-  constructor(walker: ElementWalker, memo: CloneMap);
-  constructor(el: Element, nameResolver: NameResolver, boundName: Name);
-  constructor(elOrWalker: ElementWalker | Element,
-              nameResolverOrMemo: NameResolver | CloneMap,
-              boundName?: Name) {
-    super();
-    if ((elOrWalker as Element).newWalker !== undefined) {
-      const el = elOrWalker as Element;
-      const nameResolver = nameResolverOrMemo as NameResolver;
-      this.el = el;
-      this.nameResolver = nameResolver;
-      this.walker = el.pat.newWalker(nameResolver);
-      this.endedStartTag = false;
-      // tslint:disable-next-line:no-non-null-assertion
-      this.boundName = boundName!;
-      this.endTagEvent = new Event("endTag", this.boundName);
-      this.canEndAttribute = true;
-      this.canEnd = false;
-    }
-    else {
-      const walker = elOrWalker as ElementWalker;
-      const memo = nameResolverOrMemo as CloneMap;
-      this.el = walker.el;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
-      this.endedStartTag = walker.endedStartTag;
-      this.walker = walker.walker._clone(memo);
-
-      // No cloning needed since these are immutable.
-      this.endTagEvent = walker.endTagEvent;
-      this.boundName = walker.boundName;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
-  }
-
-  _clone(memo: CloneMap): this {
-    return new ElementWalker(this, memo) as this;
+  clone(): this {
+    return new ElementWalker(this.el,
+                             this.walker.clone(),
+                             this.endedStartTag,
+                             this.endTagEvent,
+                             this.boundName,
+                             this.canEndAttribute,
+                             this.canEnd) as this;
   }
 
   possible(): EventSet {
@@ -158,7 +126,29 @@ class ElementWalker extends InternalWalker<Element> {
     throw new Error("calling possibleAttributes on ElementWalker is invalid");
   }
 
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
+  initWithAttributes(attrs: string[],
+                     nameResolver: NameResolver): InternalFireEventResult {
+    const { walker } = this;
+    // We need to handle all attributes and leave the start tag.
+    for (let ix = 0; ix < attrs.length; ix += 3) {
+      const attrRet = walker.fireEvent("attributeNameAndValue",
+                                       [attrs[ix], attrs[ix + 1],
+                                        attrs[ix + 2]], nameResolver);
+      if (!attrRet.matched) {
+        return attrRet;
+      }
+    }
+
+    // Make leaveStartTag effective.
+    this.endedStartTag = true;
+
+    return this.el.pat.hasAttrs() ?
+      InternalFireEventResult.fromEndResult(walker.endAttributes()) :
+      new InternalFireEventResult(true);
+  }
+
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     // This is not a useful optimization. canEnd becomes true once we see
     // the end tag, which means that this walker will be popped of
     // GrammarWalker's stack and won't be called again.
@@ -178,41 +168,18 @@ class ElementWalker extends InternalWalker<Element> {
         return InternalFireEventResult.fromEndResult(walker.end());
       }
 
-      return walker.fireEvent(name, params);
+      return walker.fireEvent(name, params, nameResolver);
     }
 
-    switch (name) {
-      case "enterStartTag":
-        if (!this.boundName.match(params[0], params[1])) {
-          throw new Error("event starting the element had an incorrect name");
-        }
+    if (name === "leaveStartTag") {
+      this.endedStartTag = true;
 
-        return new InternalFireEventResult(true);
-      case "startTagAndAttributes":
-        if (!this.boundName.match(params[0], params[1])) {
-          throw new Error("event starting the element had an incorrect name");
-        }
-
-        // We need to handle all attributes and leave the start tag.
-        for (let ix = 2; ix < params.length; ix += 3) {
-          const attrRet = walker.fireEvent("attributeNameAndValue",
-                                           params.slice(ix, ix + 3));
-          if (!attrRet.matched) {
-            return attrRet;
-          }
-        }
-
-        /* fall through */
-      case "leaveStartTag":
-        this.endedStartTag = true;
-
-        return this.el.pat.hasAttrs() ?
-          InternalFireEventResult.fromEndResult(walker.endAttributes()) :
-          new InternalFireEventResult(true);
-      default:
+      return this.el.pat.hasAttrs() ?
+        InternalFireEventResult.fromEndResult(walker.endAttributes()) :
+        new InternalFireEventResult(true);
     }
 
-    return walker.fireEvent(name, params);
+    return walker.fireEvent(name, params, nameResolver);
   }
 
   end(): EndResult {
@@ -220,15 +187,13 @@ class ElementWalker extends InternalWalker<Element> {
       return false;
     }
 
+    const err = new ElementNameError(this.endedStartTag ?
+                                     "tag not closed" :
+                                     "start tag not terminated",
+                                     this.boundName);
     const walkerRet = this.walker.end();
-    const ret = walkerRet ? walkerRet : [];
 
-    ret.push(new ElementNameError(this.endedStartTag ?
-                                 "tag not closed" :
-                                 "start tag not terminated",
-                                  this.boundName));
-
-    return ret;
+    return walkerRet ? walkerRet.concat(err) : [err];
   }
 
   endAttributes(): EndResult {

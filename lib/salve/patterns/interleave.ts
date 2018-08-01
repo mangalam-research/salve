@@ -6,9 +6,8 @@
  */
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isAttributeEvent,
-         TwoSubpatterns } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         isAttributeEvent, TwoSubpatterns } from "./base";
 
 /**
  * A pattern for ``<interleave>``.
@@ -18,66 +17,43 @@ export class Interleave extends TwoSubpatterns {
     return this.patA.hasEmptyPattern() && this.patB.hasEmptyPattern();
   }
 
-  newWalker(nameResolver: NameResolver): InternalWalker<Interleave> {
+  newWalker(): InternalWalker {
+    const hasAttrs = this.hasAttrs();
+    const walkerA = this.patA.newWalker();
+    const walkerB = this.patB.newWalker();
+
     // tslint:disable-next-line:no-use-before-declare
-    return new InterleaveWalker(this, nameResolver);
+    return new InterleaveWalker(this,
+                                walkerA,
+                                walkerB,
+                                hasAttrs,
+                                false,
+                                !hasAttrs || (walkerA.canEndAttribute &&
+                                              walkerB.canEndAttribute),
+                                walkerA.canEnd && walkerB.canEnd);
   }
 }
 
 /**
  * Walker for [[Interleave]].
  */
-class InterleaveWalker extends InternalWalker<Interleave> {
-  protected readonly el: Interleave;
-  private ended: boolean;
-  private readonly hasAttrs: boolean;
-  private readonly walkerA: InternalWalker<BasePattern>;
-  private readonly walkerB: InternalWalker<BasePattern>;
-  private readonly nameResolver: NameResolver;
-  canEndAttribute: boolean;
-  canEnd: boolean;
+class InterleaveWalker implements InternalWalker {
+  constructor(protected readonly el: Interleave,
+              private readonly walkerA: InternalWalker,
+              private readonly walkerB: InternalWalker,
+              private readonly hasAttrs: boolean,
+              private ended: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {}
 
-  /**
-   * @param el The pattern for which this walker was
-   * created.
-   *
-   * @param resolver The name resolver that
-   * can be used to convert namespace prefixes to namespaces.
-   */
-  constructor(walker: InterleaveWalker, memo: CloneMap);
-  constructor(el: Interleave, nameResolver: NameResolver);
-  constructor(elOrWalker: InterleaveWalker | Interleave,
-              nameResolverOrMemo: NameResolver | CloneMap) {
-    super();
-    if ((elOrWalker as Interleave).newWalker !== undefined) {
-      const el = elOrWalker as Interleave;
-      const nameResolver = nameResolverOrMemo as NameResolver;
-      this.el = el;
-      this.nameResolver = nameResolver;
-      this.ended = false;
-      this.hasAttrs = el.hasAttrs();
-      this.walkerA = el.patA.newWalker(nameResolver);
-      this.walkerB = el.patB.newWalker(nameResolver);
-      this.canEndAttribute = !this.hasAttrs ||
-        (this.walkerA.canEndAttribute && this.walkerB.canEndAttribute);
-      this.canEnd = this.walkerA.canEnd && this.walkerB.canEnd;
-    }
-    else {
-      const walker = elOrWalker as InterleaveWalker;
-      const memo = nameResolverOrMemo as CloneMap;
-      this.el = walker.el;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
-      this.ended = walker.ended;
-      this.hasAttrs = walker.hasAttrs;
-      this.walkerA = walker.walkerA._clone(memo);
-      this.walkerB = walker.walkerB._clone(memo);
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
-  }
-
-  _clone(memo: CloneMap): this {
-    return new InterleaveWalker(this, memo) as this;
+  clone(): this {
+    return new InterleaveWalker(this.el,
+                                this.walkerA.clone(),
+                                this.walkerB.clone(),
+                                this.hasAttrs,
+                                this.ended,
+                                this.canEndAttribute,
+                                this.canEnd) as this;
   }
 
   possible(): EventSet {
@@ -132,23 +108,23 @@ class InterleaveWalker extends InternalWalker<Interleave> {
   // seen by a pattern. When they are equal we can switch away from from the
   // pattern to another one.
   //
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
-    const ret = new InternalFireEventResult(false);
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     // This is useful because it is possible for fireEvent to be called
     // after end() has been called.
     if (this.ended) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const walkerA = this.walkerA;
     const walkerB = this.walkerB;
 
-    const retA = walkerA.fireEvent(name, params);
+    const retA = walkerA.fireEvent(name, params, nameResolver);
     if (retA.matched) {
       if (evIsAttributeEvent) {
         this.canEndAttribute =
@@ -164,7 +140,7 @@ class InterleaveWalker extends InternalWalker<Interleave> {
       return retA;
     }
 
-    const retB = walkerB.fireEvent(name, params);
+    const retB = walkerB.fireEvent(name, params, nameResolver);
     if (retB.matched) {
       if (evIsAttributeEvent) {
         this.canEndAttribute =
@@ -176,7 +152,7 @@ class InterleaveWalker extends InternalWalker<Interleave> {
       return retB;
     }
 
-    return ret;
+    return new InternalFireEventResult(false);
   }
 
   end(): EndResult {

@@ -2,6 +2,9 @@
   "compilerOptions": {
     "rootDir": "lib",
     "module": "commonjs",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "noEmitOnError": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
@@ -13,10 +16,9 @@
     "sourceMap": true,
     "inlineSources": true,
     "strictNullChecks": true,
-    "downlevelIteration": true,
     "importHelpers": true,
-    "target": "es5",
-    "lib": ["es5", "es6", "es2016", "dom"]
+    "target": "es6",
+    "lib": ["es2016", "dom"]
   },
   "include": [
     "lib/salve/**/*.ts"

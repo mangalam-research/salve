@@ -7,8 +7,8 @@
 import { Datatype, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
-import { cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, Pattern } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 
 /**
  * Value pattern.
@@ -44,7 +44,7 @@ export class Value extends Pattern {
   }
 
   get value(): any {
-    let ret: any = this._value;
+    let ret = this._value;
     if (ret != null) {
       return ret;
     }
@@ -67,53 +67,31 @@ export class Value extends Pattern {
     return this.rawValue === "";
   }
 
-  newWalker(nameResolver: NameResolver): InternalWalker<Value> {
+  newWalker(): InternalWalker {
+    const hasEmptyPattern = this.hasEmptyPattern();
+
     // tslint:disable-next-line:no-use-before-declare
-    return new ValueWalker(this, nameResolver);
+    return new ValueWalker(this,
+                           false,
+                           hasEmptyPattern,
+                           hasEmptyPattern);
   }
 }
 
 /**
  * Walker for [[Value]].
  */
-class ValueWalker extends InternalWalker<Value> {
-  protected readonly el: Value;
-  private matched: boolean;
-  private readonly context: { resolver: NameResolver } | undefined;
-  private readonly nameResolver: NameResolver;
-  canEnd: boolean;
-  canEndAttribute: boolean;
+class ValueWalker implements InternalWalker {
+  constructor(protected readonly el: Value,
+              private matched: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {}
 
-  constructor(other: ValueWalker, memo: CloneMap);
-  constructor(el: Value, nameResolver: NameResolver);
-  constructor(elOrWalker: Value |  ValueWalker,
-              nameResolverOrMemo: CloneMap | NameResolver) {
-    super();
-    if ((elOrWalker as Value).newWalker !== undefined) {
-      const el = elOrWalker as Value;
-      const nameResolver = nameResolverOrMemo as NameResolver;
-      this.el = el;
-      this.nameResolver = nameResolver;
-      this.context = el.datatype.needsContext ?
-        { resolver: this.nameResolver } : undefined;
-      this.matched = false;
-      this.canEndAttribute = this.canEnd = el.hasEmptyPattern();
-    }
-    else {
-      const walker = elOrWalker as ValueWalker;
-      const memo = nameResolverOrMemo as CloneMap;
-      this.el = walker.el;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
-      this.context = walker.context !== undefined ?
-        { resolver: this.nameResolver } : undefined;
-      this.matched = walker.matched;
-      this.canEnd = walker.canEnd;
-      this.canEndAttribute = walker.canEndAttribute;
-    }
-  }
-
-  _clone(memo: CloneMap): this {
-    return new ValueWalker(this, memo) as this;
+  clone(): this {
+    return new ValueWalker(this.el,
+                           this.matched,
+                           this.canEndAttribute,
+                           this.canEnd) as this;
   }
 
   possible(): EventSet {
@@ -125,9 +103,11 @@ class ValueWalker extends InternalWalker<Value> {
     return new Set<Event>();
   }
 
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     if (this.matched || name !== "text" ||
-       !this.el.datatype.equal(params[0], this.el.value, this.context)) {
+        !this.el.datatype.equal(params[0], this.el.value,
+                                { resolver: nameResolver })) {
       return new InternalFireEventResult(false);
     }
 

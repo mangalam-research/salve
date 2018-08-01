@@ -1,5 +1,5 @@
 /**
- * Naive set implementation.
+ * Set utilities.
  *
  * @author Louis-Dominique Dubeau
  * @license MPL 2.0
@@ -14,7 +14,7 @@
  *
  * @param s The set to add.
  */
-export function union(me: Set<any>, s: Set<any>): void {
+export function union<T>(me: Set<T>, s: Set<T>): void {
   for (const x of s) {
     me.add(x);
   }

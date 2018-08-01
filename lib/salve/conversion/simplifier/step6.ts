@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element, Text } from "../parser";
+import { Element, isElement, Text } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
 
 function walk(el: Element, parentNs: string | null): void {
@@ -47,27 +47,24 @@ function walk(el: Element, parentNs: string | null): void {
       }
 
       const child = el.children[0];
-      if (!(child instanceof Text)) {
+      if (child.kind !== "text") {
         throw new Error("a name element must contain only text");
       }
 
-      const parts = child.text.split(":");
-      switch (parts.length) {
-        case 1:
-          break;
-        case 2: {
-          const ns = el.resolve(parts[0]);
-          if (ns === undefined) {
-            throw new SchemaValidationError(
-              `cannot resolve name ${child.text}`);
-          }
-          el.setAttribute("ns", ns);
-          resolvedNs = true;
-          el.replaceChildAt(0, new Text(parts[1]));
-          break;
+      const { text } = child;
+      const colon = text.indexOf(":");
+      if (colon !== -1) {
+        if (text.lastIndexOf(":") !== colon) {
+          throw new Error(`${text} is not a valid QName`);
         }
-        default:
-          throw new Error(`${child} is not a valid QName`);
+
+        const ns = el.resolve(text.substr(0, colon));
+        if (ns === undefined) {
+          throw new SchemaValidationError(`cannot resolve name ${text}`);
+        }
+        el.setAttribute("ns", ns);
+        resolvedNs = true;
+        el.replaceChildAt(0, new Text(text.substr(colon + 1)));
       }
       // Yes, we fall through.
     case "nsName":
@@ -92,7 +89,7 @@ function walk(el: Element, parentNs: string | null): void {
   }
 
   for (const child of el.children) {
-    if (!(child instanceof Element)) {
+    if (!isElement(child)) {
       continue;
     }
 

@@ -1,7 +1,6 @@
 import * as datatypes from "../../datatypes";
 import { Data, Value } from "../../patterns";
-import { ConversionWalker } from "../conversion-walker";
-import { Element, Text } from "../parser";
+import { Element, isElement, Text } from "../parser";
 
 const warnAboutTheseTypes: string[] = [
   "ENTITY",
@@ -35,23 +34,25 @@ export function localName(value: string): string {
 }
 
 export function fromQNameToURI(value: string, el: Element): string {
-  const attribute: boolean = inAttribute(el);
-  let parts: string[] = value.split(":");
+  const colon = value.indexOf(":");
 
-  if (parts.length === 1) { // If there is no prefix
-    if (attribute) { // Attribute in undefined namespace
+  let prefix: string;
+  if (colon === -1) { // If there is no prefix
+    if (inAttribute(el)) { // Attribute in undefined namespace
       return "";
     }
 
     // We are searching for the default namespace currently in effect.
-    parts = ["", value];
+    prefix = "";
+  }
+  else {
+    prefix = value.substr(0, colon);
+    if (value.lastIndexOf(":") !== colon) {
+      throw new Error("invalid name");
+    }
   }
 
-  if (parts.length > 2) {
-    throw new Error("invalid name");
-  }
-
-  if (parts[0] === "") {
+  if (prefix === "") {
     // Yes, we return the empty string even if that what @ns is set to:
     // there is no default namespace when @ns is set to ''.
     return el.mustGetAttribute("ns");
@@ -72,9 +73,9 @@ export function fromQNameToURI(value: string, el: Element): string {
   // both). However... in any case the information is available through the
   // namespace information stored on the nodes. So...)
   //
-  const uri: string | undefined = el.resolve(parts[0]);
+  const uri = el.resolve(prefix);
   if (uri === undefined) {
-    throw new Error(`cannot resolve prefix: ${parts[0]}`);
+    throw new Error(`cannot resolve prefix: ${prefix}`);
   }
 
   return uri;
@@ -84,7 +85,7 @@ export function fromQNameToURI(value: string, el: Element): string {
  * This walker checks that the types used in the tree can be used, and does
  * special processing for ``QName`` and ``NOTATION``.
  */
-export class DatatypeProcessor extends ConversionWalker {
+export class DatatypeProcessor {
   /**
    * The warnings generated during the walk. This array is populated while
    * walking.
@@ -120,9 +121,8 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
             // tslint:disable-next-line: no-http-string
             !(libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
               (type === "QName" || type === "NOTATION"))) {
-          throw new Error("datatype needs context but is not " +
-                          "QName or NOTATION form the XML Schema " +
-                          "library: don't know how to handle");
+          throw new Error("datatype needs context but is not QName or NOTATION \
+form the XML Schema library: don't know how to handle");
         }
 
         if (datatype.needsContext) {
@@ -182,10 +182,15 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
     // tslint:disable-next-line: no-http-string
     if (libname === "http://www.w3.org/2001/XMLSchema-datatypes" &&
         // tslint:disable-next-line:no-non-null-assertion
-        warnAboutTheseTypes.indexOf(type!) !== -1) {
+        warnAboutTheseTypes.includes(type!)) {
       this.warnings.push(
         `WARNING: ${el.path} uses the ${type} type in library ${libname}`);
     }
-    this.walkChildren(el);
+
+    for (const child of el.children) {
+      if (isElement(child)) {
+        this.walk(child);
+      }
+    }
   }
 }

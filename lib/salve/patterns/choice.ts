@@ -8,9 +8,8 @@ import { ChoiceError, ValidationError } from "../errors";
 import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, isAttributeEvent, Pattern,
-         TwoSubpatterns } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         isAttributeEvent, Pattern, TwoSubpatterns } from "./base";
 import { Empty } from "./empty";
 
 /**
@@ -28,66 +27,58 @@ export class Choice extends TwoSubpatterns {
     return this.patA.hasEmptyPattern() || this.patB.hasEmptyPattern();
   }
 
-  newWalker(resolver: NameResolver): InternalWalker<Choice> {
-    return this.optional ?
+  newWalker(): InternalWalker {
+    const hasAttrs = this.hasAttrs();
+    const walkerB = this.patB.newWalker();
+    if (this.optional) {
       // tslint:disable-next-line:no-use-before-declare
-      new OptionalChoiceWalker(this, resolver) :
+      return new OptionalChoiceWalker(this,
+                                      walkerB,
+                                      hasAttrs,
+                                      false,
+                                      true,
+                                      true);
+    }
+    else {
+      const walkerA = this.patA.newWalker();
+
       // tslint:disable-next-line:no-use-before-declare
-      new ChoiceWalker(this, resolver);
+      return new ChoiceWalker(this,
+                              walkerA,
+                              walkerB,
+                              hasAttrs,
+                              false,
+                              false,
+                              !hasAttrs || walkerA.canEndAttribute ||
+                              walkerB.canEndAttribute,
+                              walkerA.canEnd || walkerB.canEnd);
+    }
   }
 }
 
 /**
  * Walker for [[Choice]].
  */
-class ChoiceWalker extends InternalWalker<Choice> {
-  protected readonly el: Choice;
-  private readonly hasAttrs: boolean;
-  private readonly walkerA: InternalWalker<BasePattern>;
-  private readonly walkerB: InternalWalker<BasePattern>;
-  private deactivateA: boolean;
-  private deactivateB: boolean;
-  private readonly nameResolver: NameResolver;
-  canEndAttribute: boolean;
-  canEnd: boolean;
+class ChoiceWalker implements InternalWalker {
+  constructor(protected readonly el: Choice,
+              private readonly walkerA: InternalWalker,
+              private readonly walkerB: InternalWalker,
+              private readonly hasAttrs: boolean,
+              private deactivateA: boolean,
+              private deactivateB: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean)
+  {}
 
-  constructor(walker: ChoiceWalker, memo: CloneMap);
-  constructor(el: Choice, nameResolver: NameResolver);
-  constructor(elOrWalker: ChoiceWalker | Choice,
-              nameResolverOrMemo: NameResolver | CloneMap)
-  {
-    super();
-    if ((elOrWalker as Choice).newWalker !== undefined) {
-      const el = elOrWalker as Choice;
-      const nameResolver = nameResolverOrMemo as NameResolver;
-      this.el = el;
-      this.hasAttrs = el.hasAttrs();
-      this.nameResolver = nameResolver;
-      this.deactivateA = false;
-      this.deactivateB = false;
-      const walkerA = this.walkerA = el.patA.newWalker(nameResolver);
-      const walkerB = this.walkerB = el.patB.newWalker(nameResolver);
-      this.canEndAttribute = !this.hasAttrs ||
-        walkerA.canEndAttribute || walkerB.canEndAttribute;
-      this.canEnd = walkerA.canEnd || walkerB.canEnd;
-    }
-    else {
-      const walker = elOrWalker as ChoiceWalker;
-      const memo = nameResolverOrMemo as CloneMap;
-      this.el = walker.el;
-      this.hasAttrs = walker.hasAttrs;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
-      this.walkerA = walker.walkerA._clone(memo);
-      this.walkerB = walker.walkerB._clone(memo);
-      this.deactivateA = walker.deactivateA;
-      this.deactivateB = walker.deactivateB;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
-  }
-
-  _clone(memo: CloneMap): this {
-    return new ChoiceWalker(this, memo) as this;
+  clone(): this {
+    return new ChoiceWalker(this.el,
+                            this.walkerA.clone(),
+                            this.walkerB.clone(),
+                            this.hasAttrs,
+                            this.deactivateA,
+                            this.deactivateB,
+                            this.canEndAttribute,
+                            this.canEnd) as this;
   }
 
   possible(): EventSet {
@@ -132,21 +123,21 @@ class ChoiceWalker extends InternalWalker<Choice> {
     return ret;
   }
 
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
-    const ret = new InternalFireEventResult(false);
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     if (this.deactivateA && this.deactivateB) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const retA = this.deactivateA ? new InternalFireEventResult(false) :
-      this.walkerA.fireEvent(name, params);
+      this.walkerA.fireEvent(name, params, nameResolver);
     const retB = this.deactivateB ? new InternalFireEventResult(false) :
-      this.walkerB.fireEvent(name, params);
+      this.walkerB.fireEvent(name, params, nameResolver);
 
     if (retA.matched) {
       if (!retB.matched) {
@@ -283,47 +274,21 @@ class ChoiceWalker extends InternalWalker<Choice> {
 /**
  * Walker for [[Choice]].
  */
-class OptionalChoiceWalker extends InternalWalker<Choice> {
-  protected readonly el: Choice;
-  private readonly hasAttrs: boolean;
-  private readonly walkerB: InternalWalker<BasePattern>;
-  private ended: boolean;
-  private readonly nameResolver: NameResolver;
-  canEndAttribute: boolean;
-  canEnd: boolean;
+class OptionalChoiceWalker implements InternalWalker {
+  constructor(protected readonly el: Choice,
+              private readonly walkerB: InternalWalker,
+              private readonly hasAttrs: boolean,
+              private ended: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {}
 
-  constructor(walker: OptionalChoiceWalker, memo: CloneMap);
-  constructor(el: Choice, nameResolver: NameResolver);
-  constructor(elOrWalker: OptionalChoiceWalker | Choice,
-              nameResolverOrMemo: NameResolver | CloneMap)
-  {
-    super();
-    if ((elOrWalker as Choice).newWalker !== undefined) {
-      const el = elOrWalker as Choice;
-      const nameResolver = nameResolverOrMemo as NameResolver;
-      this.el = el;
-      this.hasAttrs = el.hasAttrs();
-      this.nameResolver = nameResolver;
-      this.ended = false;
-      this.walkerB = el.patB.newWalker(nameResolver);
-      this.canEndAttribute = true;
-      this.canEnd = true;
-    }
-    else {
-      const walker = elOrWalker as OptionalChoiceWalker;
-      const memo = nameResolverOrMemo as CloneMap;
-      this.el = walker.el;
-      this.hasAttrs = walker.hasAttrs;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
-      this.walkerB = walker.walkerB._clone(memo);
-      this.ended = walker.ended;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
-  }
-
-  _clone(memo: CloneMap): this {
-    return new OptionalChoiceWalker(this, memo) as this;
+  clone(): this {
+    return new OptionalChoiceWalker(this.el,
+                                    this.walkerB.clone(),
+                                    this.hasAttrs,
+                                    this.ended,
+                                    this.canEndAttribute,
+                                    this.canEnd) as this;
   }
 
   possible(): EventSet {
@@ -334,25 +299,22 @@ class OptionalChoiceWalker extends InternalWalker<Choice> {
     return this.ended ? new Set<Event>() : this.walkerB.possibleAttributes();
   }
 
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
-    const ret = new InternalFireEventResult(false);
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     if (this.ended) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
-    const retA =
-      new InternalFireEventResult(name === "text" && !/\S/.test(params[0]));
-
-    if (retA.matched) {
-      return retA;
+    if (name === "text" && !/\S/.test(params[0])) {
+      return new InternalFireEventResult(true);
     }
 
-    const retB = this.walkerB.fireEvent(name, params);
+    const retB = this.walkerB.fireEvent(name, params, nameResolver);
     if (retB.matched) {
       if (evIsAttributeEvent) {
         this.canEndAttribute = this.walkerB.canEndAttribute;

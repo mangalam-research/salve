@@ -1,5 +1,13 @@
-%{var xmlcharacters = require("./xmlcharacters");
-var XRegExp = require("xregexp");
+%{
+var xmlcharacters = require("./xmlcharacters");
+var XRegExp = require("xregexp/lib/xregexp");
+var base = require("xregexp/lib/addons/unicode-base");
+var blocks = require("xregexp/lib/addons/unicode-blocks");
+var categories = require("xregexp/lib/addons/unicode-categories");
+
+base(XRegExp);
+blocks(XRegExp);
+categories(XRegExp);
 %}
 //
 // Terminology:
@@ -147,26 +155,26 @@ else {
 }
 
 
-var xmlNameChar = xmlcharacters.xmlNameChar;
-var xmlLetter = xmlcharacters.xmlLetter;
-
 // Maintain a group state.
 var groupState = [];
 var needsXRegExpRe = /\\p/i;
 
-function unshiftGroupState(negative) {
-  groupState.unshift({
+function enterGroupState(negative) {
+  groupState.push({
     negative: negative,
     capturedMultiChar: [],
   });
 }
 
+var xmlNameChar = xmlcharacters.xmlNameChar;
+var xmlLetter = xmlcharacters.xmlLetter;
+
 var multiCharEscapesInGroup = {
     "\\s": " \\t\\n\\r",
     "\\S": "^ \\t\\n\\r",
-    "\\i": "" + xmlLetter + "_:",
+    "\\i": xmlLetter + "_:",
     "\\I": "^" + xmlLetter + "_:",
-    "\\c": "" + xmlNameChar,
+    "\\c": xmlNameChar,
     "\\C": "^" + xmlNameChar,
     "\\d": "\\p{Nd}",
     "\\D": "^\\p{Nd}",
@@ -176,9 +184,6 @@ var multiCharEscapesInGroup = {
 
 var multiCharEscapes = [];
 for(var i in multiCharEscapesInGroup) {
-  if (!multiCharEscapesInGroup.hasOwnProperty(i)) {
-    continue;
-  }
   multiCharEscapes[i] = "[" + multiCharEscapesInGroup[i] + "]";
 }
 
@@ -220,7 +225,7 @@ input
 
 regexp
     : branch
-    | branch '|' regexp -> $1.concat($2, $3)
+    | branch '|' regexp -> $1 + $2 + $3
     ;
 
 branch
@@ -237,13 +242,13 @@ quantifier
     : '?'
     | '*'
     | '+'
-    | '{' quantity '}' -> $1.concat($2, $3)
+    | '{' quantity '}' -> $1 + $2 + $3
     ;
 
 quantity
     : NUMBER
-    | NUMBER ',' NUMBER -> $1.concat(',', $3)
-    | NUMBER ',' -> $1.concat($2)
+    | NUMBER ',' NUMBER -> $1 + ',' + $3
+    | NUMBER ',' -> $1 + $2
     ;
 
 atom
@@ -259,32 +264,30 @@ charClass
 charClassExpr
     : charClassExprStart charGroup ']'
     {
-      var state = groupState.shift();
+      var orig = $1 + $2 + $3;
+      var state = groupState.pop();
       var capturedMultiChar = state.capturedMultiChar;
 
       var subtraction = state.subtraction ?
-            ("(?!" +  state.subtraction + ")") : "";
+          ("(?!" +  state.subtraction + ")") : "";
       if (capturedMultiChar.length !== 0) {
-        var out = ["(?:", subtraction];
+        var out = "";
         if (state.negative) {
-          out.push("(?=[");
+          out += "(?=[";
           for (var i = 0; i < capturedMultiChar.length; ++i) {
-            out.push(multiCharEscapesInGroup[capturedMultiChar[i]].slice(1));
+            out += multiCharEscapesInGroup[capturedMultiChar[i]].slice(1);
           }
-          out.push("])");
+          out += "])";
         }
         else {
           for (var i = 0; i < capturedMultiChar.length; ++i) {
-            out.push("[", multiCharEscapesInGroup[capturedMultiChar[i]], "]|");
+            out += "[" + multiCharEscapesInGroup[capturedMultiChar[i]] + "]|";
           }
         }
-        out.push($1, $2, $3, ")");
-        $$ = out.join("");
+        $$ = "(?:" + subtraction + out + orig + ")";
       }
       else {
-        $$ = (subtraction !== "") ?
-          "(?:" + subtraction + $1.concat($2, $3) + ")":
-          $1.concat($2, $3);
+        $$ = (subtraction !== "") ? "(?:" + subtraction + orig + ")": orig;
       }
     }
     ;
@@ -295,12 +298,12 @@ charClassExpr
 charClassExprStart
     : '['
     {
-      unshiftGroupState(false);
+      enterGroupState(false);
       $$ = $1;
     }
     | '[^'
     {
-      unshiftGroupState(true);
+      enterGroupState(true);
       $$ = $1;
     }
     ;
@@ -323,7 +326,7 @@ charClassSub
     : posCharGroups CLASSSUBTRACTION charClassExpr
     {
       $$ = $1;
-      groupState[0].subtraction = $3;
+      groupState[groupState.length - 1].subtraction = $3;
     }
     ;
 
@@ -332,7 +335,7 @@ charRange
     ;
 
 seRange
-    : charOrEsc '-' charOrEsc -> $1.concat($2, $3)
+    : charOrEsc '-' charOrEsc -> $1 + $2 + $3
     | charOrEsc
     ;
 
@@ -345,9 +348,9 @@ charClassEsc
     | MULTICHARESC
     {
       if (groupState.length) {
-        var repl = multiCharEscapesInGroup[$1]
+        var repl = multiCharEscapesInGroup[$1];
         if (repl.charAt(0) === "^") {
-          groupState[0].capturedMultiChar.push($1);
+          groupState[groupState.length - 1].capturedMultiChar.push($1);
           $$ = "";
         }
         else {
@@ -355,7 +358,7 @@ charClassEsc
         }
       }
       else {
-        $$ = multiCharEscapes[$1]
+        $$ = multiCharEscapes[$1];
       }
     }
     | CATESC

@@ -8,9 +8,11 @@ const { spawn } = require("child_process");
 const fs = require("fs");
 const { expect } = require("chai");
 const conversion = require("../build/dist/lib/salve/conversion");
+const { BasicParser, dependsOnExternalFile } =
+      require("../build/dist/lib/salve/conversion/parser");
 const simplifier =
       require("../build/dist/lib/salve/conversion/simplifier");
-const sax = require("sax");
+const { SaxesParser } = require("saxes");
 
 const dataDir = path.join(__dirname, "rng_simplification_data");
 
@@ -26,9 +28,9 @@ describe("rng simplification", () => {
     // Only step 1 requires XSLT 2.
     if (number === 1) {
       child = spawn(
-        "saxon",
-        [`-xsl:${stepPath}`, `-s:${inpath}`, `-o:${outpath}`,
-         `originalDir=${originalDir}`],
+        "java",
+        ["-jar", "/usr/share/java/Saxon-HE.jar", `-xsl:${stepPath}`,
+         `-s:${inpath}`, `-o:${outpath}`, `originalDir=${originalDir}`],
         { stdio: "inherit" });
     }
     else {
@@ -67,18 +69,8 @@ describe("rng simplification", () => {
         return result;
       }
 
-      // Step 1 is special in that it may need to be repeated.
-      const parser = new conversion.IncludeParser(
-        sax.parser(true, { xmlns: true }));
-      try {
-        parser.saxParser.write(result).close();
-      }
-      catch (ex) {
-        if (!(ex instanceof conversion.Found)) {
-          throw ex;
-        }
-      }
-      if (parser.found) {
+      const found = dependsOnExternalFile(result);
+      if (found) {
         fs.writeFileSync(tmppath, result);
         return transformXSLStep(1, tmppath);
       }
@@ -88,9 +80,11 @@ describe("rng simplification", () => {
   }
 
   function reparse(result) {
-    const parser = new conversion.BasicParser(
-      sax.parser(true, { xmlns: true }));
-    parser.saxParser.write(result).close();
+    const parser = new BasicParser(new SaxesParser({
+      xmlns: true,
+      position: false,
+    }));
+    parser.saxesParser.write(result).close();
     return conversion.serialize(parser.root);
   }
 
@@ -101,6 +95,7 @@ describe("rng simplification", () => {
     return transformXSLStep(numbers[0], inpath)
       .then((result) => {
         if (numbers.length === 1) {
+          // Reparsing the result allows us to normalize our output.
           return reparse(result);
         }
 
@@ -110,13 +105,15 @@ describe("rng simplification", () => {
   }
 
   function parseJS(inpath) {
-    const parser = new conversion.BasicParser(
-      sax.parser(true, { xmlns: true }));
+    const parser = new BasicParser(new SaxesParser({
+      xmlns: true,
+      position: false,
+    }));
     if (inpath instanceof URL) {
       inpath = inpath.toString().replace(/^file:\/\//, "");
     }
     const source = fs.readFileSync(inpath).toString();
-    parser.saxParser.write(source).close();
+    parser.saxesParser.write(source).close();
     return parser.root;
   }
 

@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element } from "../parser";
+import { Element, isElement } from "../parser";
 
 // These are elements that cannot contain empty.
 const skip = new Set(["name", "anyName", "nsName", "param", "empty",
@@ -53,7 +53,7 @@ const handlers: Record<string, Handler> = {
 
 function walk(el: Element): void {
   for (const child of el.children) {
-    if (child instanceof Element && !skip.has(child.local)) {
+    if (isElement(child) && !skip.has(child.local)) {
       walk(child);
     }
   }

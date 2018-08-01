@@ -5,7 +5,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element, Text } from "./parser";
+import { Element } from "./parser";
 
 //
 // WARNING: This serializer is *not* meant to be able to handle all possible XML
@@ -108,7 +108,7 @@ function _serialize(mixed: boolean,
   else {
     let childrenMixed = false;
     for (const child of el.children) {
-      if (child instanceof Text) {
+      if (child.kind === "text") {
         childrenMixed = true;
         break;
       }
@@ -122,8 +122,7 @@ function _serialize(mixed: boolean,
     const childIndent = options.prettyPrint ? `${curIndent}  ` : "";
 
     for (const child of el.children) {
-      buf += (child instanceof Text) ?
-        escape(child.text, false) :
+      buf += child.kind === "text" ? escape(child.text, false) :
         _serialize(childrenMixed, childIndent, child, options);
     }
 

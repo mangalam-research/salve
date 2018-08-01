@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element } from "../parser";
+import { Element, isElement } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
 import { RELAXNG_URI } from "./util";
 
@@ -30,8 +30,8 @@ function gatherGrammars(el: Element, state: State): void {
   const { local } = el;
 
   const { stack } = state;
-  const top = stack[0];
-  let shift = false;
+  const top = stack[stack.length - 1];
+  let pop = false;
   switch (local) {
     case "ref":
       top.refs.push(el);
@@ -42,9 +42,9 @@ function gatherGrammars(el: Element, state: State): void {
       top.defineNames.add(el.mustGetAttribute("name"));
       break;
     case "grammar":
-      shift = true;
+      pop = true;
       const thisGrammar = new GrammarNode(++state.latestId, el);
-      stack.unshift(thisGrammar);
+      stack.push(thisGrammar);
       if (top !== undefined) {
         top.childGrammars.push(thisGrammar);
       }
@@ -55,8 +55,8 @@ function gatherGrammars(el: Element, state: State): void {
       break;
     default:
       if (state.root === null) {
-        stack.unshift(new GrammarNode(++state.latestId, el));
-        shift = true;
+        stack.push(new GrammarNode(++state.latestId, el));
+        pop = true;
       }
   }
 
@@ -66,15 +66,15 @@ function gatherGrammars(el: Element, state: State): void {
   }
 
   for (const child of el.children) {
-    if (!(child instanceof Element)) {
+    if (!isElement(child)) {
       continue;
     }
 
     gatherGrammars(child, state);
   }
 
-  if (shift) {
-    stack.shift();
+  if (pop) {
+    stack.pop();
   }
 }
 

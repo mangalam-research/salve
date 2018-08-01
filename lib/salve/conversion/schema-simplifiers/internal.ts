@@ -5,7 +5,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import * as sax from "sax";
+import { SaxesParser } from "saxes";
 
 import { registry, ValueError, ValueValidationError } from "../../datatypes";
 import { readTreeFromJSON } from "../../json-format/read";
@@ -14,7 +14,7 @@ import { AnyName, ConcreteName, Grammar, Name, NameChoice,
          NsName } from "../../patterns";
 import * as relaxng from "../../schemas/relaxng";
 import { BasicParser, Element, Text, Validator } from "../parser";
-import { registerSimplifier, SchemaSimplifierOptions,
+import { ManifestEntry, registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { SchemaValidationError } from "../schema-validation";
 import * as simplifier from "../simplifier";
@@ -23,27 +23,30 @@ import { BaseSimplifier } from "./base";
 import { fromQNameToURI, localName } from "./common";
 
 function makeNamePattern(el: Element): ConcreteName {
-  const first = el.children[0] as Element;
-  const second = el.children[1] as Element;
   switch (el.local) {
     case "name":
       return new Name("", el.mustGetAttribute("ns"), el.text);
     case "choice":
-      return new NameChoice("", makeNamePattern(first),
-                            makeNamePattern(second));
+      return new NameChoice("",
+                            makeNamePattern(el.children[0] as Element),
+                            makeNamePattern(el.children[1] as Element));
     case "anyName": {
+      const first = el.children[0] as Element;
+
       return new AnyName("",
                          first !== undefined ? makeNamePattern(first) :
                          undefined);
     }
     case "nsName": {
+      const first = el.children[0] as Element;
+
       return new NsName("",
                         el.mustGetAttribute("ns"),
                         first !== undefined ? makeNamePattern(first) :
                         undefined);
     }
     case "except":
-      return makeNamePattern(first);
+      return makeNamePattern(el.children[0] as Element);
     default:
       throw new Error(`unexpected element in name pattern ${el.local}`);
   }
@@ -98,20 +101,56 @@ class ProhibitedDataExceptPath extends SchemaValidationError {
 }
 
 interface CheckResult {
-  contentType: ContentType | null;
+  readonly contentType: ContentType | null;
 
-  occurringAttributes: ReadonlyArray<Element>;
+  readonly occurringAttributes: ReadonlyArray<Element>;
 
   // We considered making this variable a Set. Multiple ref of the same name are
   // bound to happen in any schemas beyond trivial ones. However, the cost of
   // maintaining Set objects negates the benefits that occur when checking
   // interleave elements.
-  occurringRefs: ReadonlyArray<Element>;
+  readonly occurringRefs: ReadonlyArray<Element>;
 
-  occurringTexts: number;
+  readonly occurringTexts: number;
 }
 
 const EMPTY_ELEMENT_ARRAY: ReadonlyArray<Element> = [];
+
+const TEXT_RESULT: CheckResult = {
+  contentType: ContentType.COMPLEX,
+  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringRefs: EMPTY_ELEMENT_ARRAY,
+  occurringTexts: 1,
+};
+
+const EMPTY_RESULT: CheckResult = {
+  contentType: ContentType.EMPTY,
+  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringRefs: EMPTY_ELEMENT_ARRAY,
+  occurringTexts: 0,
+};
+
+const DATA_RESULT: CheckResult = {
+  contentType: ContentType.SIMPLE,
+  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringRefs: EMPTY_ELEMENT_ARRAY,
+  occurringTexts: 0,
+};
+
+const LIST_RESULT = DATA_RESULT;
+const VALUE_RESULT = DATA_RESULT;
+
+const NOT_ALLOWED_RESULT: CheckResult = {
+  contentType: null,
+  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringRefs: EMPTY_ELEMENT_ARRAY,
+  occurringTexts: 0,
+};
+
+const DEFINE_RESULT = NOT_ALLOWED_RESULT;
+const START_RESULT = NOT_ALLOWED_RESULT;
+const GRAMMAR_RESULT = NOT_ALLOWED_RESULT;
+const EXCEPT_RESULT = NOT_ALLOWED_RESULT;
 
 type Handler = (this: GeneralChecker, el: Element,
                 state: State) => CheckResult;
@@ -208,12 +247,7 @@ class must be a descendant of oneOrMore (section 7.3)");
     }
     this._check(el.children[0] as Element, newState);
 
-    return {
-      contentType: null,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return EXCEPT_RESULT;
   }
 
   oneOrMoreHandler(el: Element, state: State): CheckResult {
@@ -317,12 +351,7 @@ class must be a descendant of oneOrMore (section 7.3)");
 
     this._check(el.children[0] as Element, { ...state, inList: true });
 
-    return {
-      contentType: ContentType.SIMPLE,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return LIST_RESULT;
   }
 
   dataHandler(el: Element, state: State): CheckResult {
@@ -381,12 +410,7 @@ ${libname}`);
       this._check(last, state);
     }
 
-    return {
-      contentType: ContentType.SIMPLE,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return DATA_RESULT;
   }
 
   valueHandler(el: Element, state: State): CheckResult {
@@ -438,13 +462,7 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
 ${libname}`);
     }
 
-    // The child of value can only be a text node.
-    return {
-      contentType: ContentType.SIMPLE,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return VALUE_RESULT;
   }
 
   textHandler(el: Element, state: State): CheckResult {
@@ -460,12 +478,7 @@ ${libname}`);
       throw new ProhibitedDataExceptPath(el.local);
     }
 
-    return {
-      contentType: ContentType.COMPLEX,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 1,
-    };
+    return TEXT_RESULT;
   }
 
   refHandler(el: Element, state: State): CheckResult {
@@ -498,21 +511,11 @@ ${libname}`);
       throw new ProhibitedDataExceptPath(el.local);
     }
 
-    return {
-      contentType: ContentType.EMPTY,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return EMPTY_RESULT;
   }
 
   notAllowedHandler(): CheckResult {
-    return {
-      contentType: null,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return NOT_ALLOWED_RESULT;
   }
 
   defineHandler(el: Element, state: State): CheckResult {
@@ -523,23 +526,13 @@ ${libname}`);
 on string values (section 7.2)`);
     }
 
-    return {
-      contentType: null,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return DEFINE_RESULT;
   }
 
   startHandler(el: Element, state: State): CheckResult {
     this._check(el.children[0] as Element, { ...state, inStart: true });
 
-    return {
-      contentType: null,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return START_RESULT;
   }
 
   grammarHandler(el: Element, state: State): CheckResult {
@@ -547,12 +540,7 @@ on string values (section 7.2)`);
       this._check(child as Element, state);
     }
 
-    return {
-      contentType: null,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
-      occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
-    };
+    return GRAMMAR_RESULT;
   }
 
   private getAttrName(attr: Element): ConcreteName {
@@ -661,8 +649,10 @@ function getGrammar(): Grammar {
  */
 export class InternalSimplifier extends BaseSimplifier {
   static validates: true = true;
+  static createsManifest: true = true;
 
   private lastStepStart?: number;
+  private readonly manifestPromises: PromiseLike<ManifestEntry>[] = [];
 
   constructor(options: SchemaSimplifierOptions) {
     super(options);
@@ -678,17 +668,37 @@ export class InternalSimplifier extends BaseSimplifier {
       validator = new Validator(getGrammar());
     }
 
-    const parser = new BasicParser(sax.parser(true,
-                                              { xmlns: true,
-                                                strictEntities: true } as any),
-                                   validator);
-    parser.saxParser.write(schema);
+    const parser =
+      new BasicParser(new SaxesParser({ xmlns: true,
+                                        position: false,
+                                        fileName: filePath.toString() }),
+                      validator);
+    parser.saxesParser.write(schema);
+    parser.saxesParser.close();
 
     if (validator !== undefined) {
       if (validator.errors.length !== 0) {
         const message = validator.errors.map((x) => x.toString()).join("\n");
         throw new SchemaValidationError(message);
       }
+    }
+
+    if (this.options.createManifest) {
+      const algo = this.options.manifestHashAlgorithm;
+      this.manifestPromises.push((async () => {
+        const digest =
+          // tslint:disable-next-line:await-promise
+          await crypto.subtle.digest(algo, new TextEncoder().encode(schema));
+
+        const arr = new Uint8Array(digest);
+        let hash = `${algo}-`;
+        for (const x of arr) {
+          const hex = x.toString(16);
+          hash += x > 0xF ? hex : `0${hex}`;
+        }
+
+        return { filePath: filePath.toString(), hash };
+      })());
     }
 
     return parser.root;
@@ -799,7 +809,11 @@ export class InternalSimplifier extends BaseSimplifier {
       console.log(`Simplification delta: ${Date.now() - startTime!}`);
     }
 
-    return { simplified: tree, warnings };
+    return {
+      simplified: tree,
+      warnings,
+      manifest: await Promise.all(this.manifestPromises),
+    };
   }
 }
 

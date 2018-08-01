@@ -2,6 +2,7 @@
 
 /* global __dirname */
 const webpack = require("webpack");
+const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 
 const source = "build/dist";
 module.exports = {
@@ -38,6 +39,15 @@ module.exports = {
     sourceMapFilename: "[name].js.map",
     library: "salve",
     libraryTarget: "umd",
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [new UglifyJsPlugin({
+      uglifyOptions: {
+        safari10: true,
+      },
+      sourceMap: true,
+    })],
   },
   plugins: [
     // We drop from the bundle everything that is Node-dependent.

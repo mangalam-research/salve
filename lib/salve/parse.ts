@@ -5,23 +5,16 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 "use strict";
-// tslint:disable-next-line:no-require-imports import-name
-import fileURL = require("file-url");
+import fileUrl from "file-url";
 import * as fs from "fs";
 import * as path from "path";
-import * as sax from "sax";
+import { SaxesAttribute, SaxesParser, SaxesTag } from "saxes";
 
 import { convertRNGToPattern, Grammar, readTreeFromJSON } from "./validate";
 
 // tslint:disable no-console
 
-declare module "sax" {
-  export interface SAXParser {
-    ENTITIES: {[key: string]: string};
-  }
-}
-
-const parser = sax.parser(true, { xmlns: true });
+const parser = new SaxesParser({ xmlns: true });
 
 type TagInfo = {
   uri: string;
@@ -51,7 +44,7 @@ Promise<Grammar> {
   }
 
   // Treat it as a Relax NG schema.
-  return (await convertRNGToPattern(new URL(fileURL(rngSource)))).pattern;
+  return (await convertRNGToPattern(new URL(fileUrl(rngSource)))).pattern;
 }
 
 /**
@@ -106,14 +99,14 @@ export async function parse(rngSource: string | Grammar,
     }
   }
 
-  parser.onopentag = (node: sax.QualifiedTag) => {
+  parser.onopentag = (node: SaxesTag) => {
     flushTextBuf();
     const names = Object.keys(node.attributes);
     const nsDefinitions = [];
     const attributeEvents = [];
     names.sort();
     for (const name of names) {
-      const attr = node.attributes[name];
+      const attr = node.attributes[name] as SaxesAttribute;
       if (attr.local === "" && name === "xmlns") { // xmlns="..."
         nsDefinitions.push(["", attr.value]);
       }
@@ -136,7 +129,7 @@ export async function parse(rngSource: string | Grammar,
       fireEvent(event[0], event.slice(1));
     }
     fireEvent("leaveStartTag", []);
-    tagStack.unshift({
+    tagStack.push({
       uri: node.uri,
       local: node.local,
       hasContext: nsDefinitions.length !== 0,
@@ -149,7 +142,7 @@ export async function parse(rngSource: string | Grammar,
 
   parser.onclosetag = () => {
     flushTextBuf();
-    const tagInfo = tagStack.shift();
+    const tagInfo = tagStack.pop();
     if (tagInfo === undefined) {
       throw new Error("stack underflow");
     }

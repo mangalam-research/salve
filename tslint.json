@@ -8,6 +8,7 @@
     [false, "It  may be worth reinstating when we do a rework of the ",
      "documentation"],
     "radix": false,
-    "no-backbone-get-set-outside-model": false
+    "no-backbone-get-set-outside-model": false,
+    "no-unused-variable": false
   }
 }

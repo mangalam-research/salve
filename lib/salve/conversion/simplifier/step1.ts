@@ -4,10 +4,10 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element, Text } from "../parser";
+import { Element, isElement, Text } from "../parser";
 import { SchemaValidationError } from "../schema-validation";
-import { findMultiDescendantsByLocalName, getName, groupBy, indexBy,
-         RELAXNG_URI } from "./util";
+import { findMultiDescendantsByLocalName, getName, groupBy,
+         indexBy } from "./util";
 
 export type Parser = (filePath: URL) => Promise<Element>;
 
@@ -39,8 +39,6 @@ class Step1 {
              el: Element): Promise<Element> {
     let currentRoot = root;
     const baseAttr = el.getAttribute("xml:base");
-    const currentBase = baseAttr === undefined ? parentBase :
-      resolveURL(parentBase, baseAttr);
 
     // The XML parser we use immediately drops all *elements* which are not in
     // the RELAXNG_URI namespace so we don't have to remove them here.
@@ -55,67 +53,70 @@ class Step1 {
     for (const name of Object.keys(attrs)) {
       const attr = attrs[name];
       const { uri, prefix } = attr;
-      if (uri === RELAXNG_URI) {
-        // We move all RNG nodes into the default namespace.
-        attr.prefix = "";
-        attr.name = attr.local;
-      }
-      else if (name !== "xmlns" && uri !== "" && prefix !== "xmlns") {
+      if (name !== "xmlns" && uri !== "" && prefix !== "xmlns") {
         delete attrs[name];
       }
-    }
-
-    for (const attrName of ["name", "type", "combine"]) {
-      const attr = el.getAttribute(attrName);
-      if (attr !== undefined) {
-        el.setAttribute(attrName, attr.trim());
+      else if (name === "name" ||
+               name === "type" ||
+               name === "combine") {
+        attr.value = attr.value.trim();
       }
     }
 
     const local = el.local;
     // We don't normalize text nodes in param or value.
     if (!(local === "param" || local === "value")) {
+      const newChildren = [];
       const children = el.children;
-      for (let i = 0; i < children.length; ++i) {
-        const child = children[i];
-        if (child instanceof Element) {
+      let modified = false;
+      for (const child of children) {
+        if (child.kind === "element") {
+          newChildren.push(child);
           continue;
         }
 
-        const clean = child.text.trim();
-        if (clean === "") {
-          el.removeChildAt(i);
-          // Move back so that we don't skip an element...
-          i--;
+        const orig = child.text;
+        const clean = orig.trim();
+        if (clean !== "") {
+          // name gets the trimmed value
+          if (local === "name" && orig !== clean) {
+            // We're triming text.
+            modified = true;
+            newChildren.push(new Text(clean));
+          }
+          else {
+            newChildren.push(child);
+          }
         }
-        else if (local === "name") {
-          child.replaceWith(new Text(clean));
+        else {
+          // We're dropping a whitespace node.
+          modified = true;
         }
+      }
+
+      // Perform the replacement only if needed.
+      if (modified) {
+        el.replaceContent(newChildren);
       }
     }
 
+    const currentBase = baseAttr === undefined ? parentBase :
+      resolveURL(parentBase, baseAttr);
     for (const child of el.children) {
-      if (!(child instanceof Element)) {
+      if (!(isElement(child))) {
         continue;
       }
 
       await this.walk(currentBase, seenURLs, currentRoot, child);
     }
 
-    const handler = (this as any as Record<string, Handler>)[el.local];
+    const handler = (this as unknown as Record<string, Handler>)[el.local];
 
     if (handler !== undefined) {
       const replacement = await handler.call(this, currentBase, seenURLs, el);
-      if (replacement !== null) {
-        if (el === currentRoot) {
-          // We have a new root.
-          currentRoot = replacement;
-        }
-
-        // We have to walk the replacement too. (And yes, this could change
-        // the root.)
-        currentRoot = await this.walk(currentBase, seenURLs, currentRoot,
-                                      replacement);
+      if (replacement !== null && el === currentRoot) {
+        // We have a new root.
+        currentRoot = replacement;
       }
     }
 

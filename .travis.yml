@@ -3,7 +3,6 @@ language: node_js
 node_js:
 - '10'
 - '8'
-- '6'
 env:
   global:
     # For Greenkeeper.
@@ -11,16 +10,14 @@ env:
 before_install:
 # We want a dump of the travis variables for debugging purposes.
 - env | grep TRAVIS_
-- sudo add-apt-repository "deb http://tei.oucs.ox.ac.uk/teideb/binary ./"
-- sudo apt-key add test/tei.key
 - sudo apt-get update -qq
-- sudo apt-get install -y xsltproc jing saxon
+- sudo apt-get install -y xsltproc jing libsaxonhe-java
 # We need at least npm 6
 - '[[ $(npm -v) =~ ^[6-9].*$ ]] || npm install -g npm@latest'
 - npm install -g greenkeeper-lockfile@1
 # We need this to work around this:
 # https://github.com/greenkeeperio/greenkeeper-lockfile/issues/156
-install: 'if [[ $TRAVIS_BRANCH = greenkeeper/* ]]; then npm install; else npm ci; fi'
+install: 'if [[ ${TRAVIS_PULL_REQUEST_BRANCH:-$TRAVIS_BRANCH} = greenkeeper/* ]]; then npm install; else npm ci; fi'
 script: gulp test
 before_script: greenkeeper-lockfile-update
 after_script: greenkeeper-lockfile-upload

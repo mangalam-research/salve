@@ -8,8 +8,8 @@ import { AttributeNameError, AttributeValueError } from "../errors";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { map } from "../set";
-import { BasePattern, cloneIfNeeded, CloneMap, EndResult, Event, EventSet,
-         InternalFireEventResult, InternalWalker, Pattern } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
 
@@ -47,60 +47,39 @@ export class Attribute extends Pattern {
     return false;
   }
 
-  newWalker(nameResolver: NameResolver): InternalWalker<Attribute> {
+  newWalker(): InternalWalker {
     // tslint:disable-next-line:no-use-before-declare
-    return new AttributeWalker(this, nameResolver);
+    return new AttributeWalker(this,
+                               this.pat.newWalker(),
+                               false, /* seenName */
+                               false,
+                               false);
   }
 }
 
 /**
  * Walker for [[Attribute]].
  */
-class AttributeWalker extends InternalWalker<Attribute> {
-  protected readonly el: Attribute;
-  private seenName: boolean;
-  private readonly subwalker: InternalWalker<BasePattern>;
-  private readonly nameResolver: NameResolver;
+class AttributeWalker implements InternalWalker {
   private readonly name: ConcreteName;
-  canEndAttribute: boolean;
-  canEnd: boolean;
 
   /**
    * @param el The pattern for which this walker was created.
-   *
-   * @param nameResolver The name resolver that can be used to convert namespace
-   * prefixes to namespaces.
    */
-  constructor(walker: AttributeWalker, memo: CloneMap);
-  constructor(el: Attribute, nameResolver: NameResolver);
-  constructor(elOrWalker: AttributeWalker | Attribute,
-              nameResolverOrMemo: CloneMap | NameResolver) {
-    super();
-    if ((elOrWalker as Attribute).newWalker !== undefined) {
-      const el = elOrWalker as Attribute;
-      this.el = el;
-      this.nameResolver = nameResolverOrMemo as NameResolver;
-      this.subwalker = el.pat.newWalker(this.nameResolver);
-      this.name = el.name;
-      this.seenName = false;
-      this.canEndAttribute = false;
-      this.canEnd = false;
-    }
-    else {
-      const walker = elOrWalker as AttributeWalker;
-      const memo = nameResolverOrMemo as CloneMap;
-      this.el = walker.el;
-      this.nameResolver = cloneIfNeeded(walker.nameResolver, memo);
-      this.seenName = walker.seenName;
-      this.subwalker = walker.subwalker._clone(memo);
-      this.name = walker.name;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
+  constructor(protected readonly el: Attribute,
+              private readonly subwalker: InternalWalker,
+              private seenName: boolean,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {
+    this.name = el.name;
   }
 
-  _clone(memo: CloneMap): this {
-    return new AttributeWalker(this, memo) as this;
+  clone(): this {
+    return new AttributeWalker(this.el,
+                               this.subwalker.clone(),
+                               this.seenName,
+                               this.canEndAttribute,
+                               this.canEnd) as this;
   }
 
   possible(): EventSet {
@@ -126,55 +105,47 @@ class AttributeWalker extends InternalWalker<Attribute> {
     });
   }
 
-  fireEvent(name: string, params: string[]): InternalFireEventResult {
+  fireEvent(name: string, params: string[],
+            nameResolver: NameResolver): InternalFireEventResult {
     // If canEnd is true, we've done everything we could. So we don't
     // want to match again.
-    let ret = new InternalFireEventResult(false);
     if (this.canEnd) {
-      return ret;
+      return new InternalFireEventResult(false);
     }
 
-    let value: string | undefined;
+    let value: string;
     if (this.seenName) {
-      if (name === "attributeValue") {
-        // Convert the attributeValue event to a text event.
-        value = params[0];
+      if (name !== "attributeValue") {
+        return new InternalFireEventResult(false);
       }
+
+      value = params[0];
     }
     else if ((name === "attributeName" || name === "attributeNameAndValue") &&
              this.name.match(params[0], params[1])) {
       this.seenName = true;
 
       if (name === "attributeName") {
-        ret.matched = true;
-
-        return ret;
+        return new InternalFireEventResult(true);
       }
 
       value = params[2];
     }
-
-    if (value !== undefined) {
-      this.canEnd = true;
-      this.canEndAttribute = true;
-
-      if (value !== "") {
-        ret = this.subwalker.fireEvent("text", [value]);
-        if (!ret.matched) {
-          ret.errors =
-            [new AttributeValueError("invalid attribute value", this.name)];
-        }
-      }
-      else {
-        ret.matched = true;
-      }
-
-      if (ret.matched) {
-        return InternalFireEventResult.fromEndResult(this.subwalker.end());
-      }
+    else {
+      return new InternalFireEventResult(false);
     }
 
-    return ret;
+    this.canEnd = true;
+    this.canEndAttribute = true;
+
+    if (value !== "" &&
+        !this.subwalker.fireEvent("text", [value], nameResolver).matched) {
+      return new InternalFireEventResult(
+        false,
+        [new AttributeValueError("invalid attribute value", this.name)]);
+    }
+
+    return InternalFireEventResult.fromEndResult(this.subwalker.end());
   }
 
   endAttributes(): EndResult {

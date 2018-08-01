@@ -9,9 +9,8 @@
 import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
-import * as sax from "sax";
 
-import { ConversionParser, Found, IncludeParser } from "../parser";
+import { dependsOnExternalFile, parseSimplifiedSchema } from "../parser";
 import { registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { BaseSimplifier } from "./base";
@@ -24,8 +23,15 @@ interface Step {
   saxon: boolean;
 }
 
+/**
+ * A simplifier implemented as a series of XSL transformations. It launches
+ * external processes to perform the transformation.
+ *
+ * This simiplifier does not produce a manifest, and it does not validate.
+ */
 export class XSLSimplifier extends BaseSimplifier {
   static validates: false = false;
+  static createsManifest: false = false;
 
   private lastStepStart: number;
   private _steps?: Step[];
@@ -65,22 +71,9 @@ export class XSLSimplifier extends BaseSimplifier {
       };
       if (file === "rng-simplification_step1.xsl") {
         ret.saxon = true;
-        ret.repeatWhen = (output: string) => {
-          // We want to check whether we need to run the step again to include
-          // more files.
-          const incParser =
-            new IncludeParser(sax.parser(true, { xmlns: true }));
-          try {
-            incParser.saxParser.write(output).close();
-          }
-          catch (ex) {
-            if (!(ex instanceof Found)) {
-              throw ex;
-            }
-          }
-
-          return incParser.found;
-        };
+        // We want to check whether we need to run the step again to include
+        // more files.
+        ret.repeatWhen = dependsOnExternalFile;
       }
 
       return ret;
@@ -111,9 +104,7 @@ export class XSLSimplifier extends BaseSimplifier {
       await this.executeStep(originalInputDir, 0,
                              fs.readFileSync(schemaPath).toString());
 
-    const convParser = new ConversionParser(sax.parser(true, { xmlns: true }));
-    convParser.saxParser.write(result).close();
-    const simplified = convParser.root;
+    const simplified = parseSimplifiedSchema(schemaPath, result);
     const warnings: string[] = (this.options.simplifyTo >= 18) ?
       this.processDatatypes(simplified) : [];
 
@@ -123,7 +114,11 @@ export class XSLSimplifier extends BaseSimplifier {
       console.log(`Simplification delta: ${Date.now() - startTime!}`);
     }
 
-    return { simplified, warnings };
+    return {
+      simplified,
+      warnings,
+      manifest: [],
+    };
   }
 
   stepTiming(): void {
@@ -166,8 +161,8 @@ export class XSLSimplifier extends BaseSimplifier {
       // Only step 1 requires XSLT 2. Remember that steps are 0-based here.
       if (step.saxon) {
         child = spawn(
-          "saxon",
-          [`-xsl:${step.path}`, "-s:-",
+          "java",
+          ["-jar", "/usr/share/java/Saxon-HE.jar", `-xsl:${step.path}`, "-s:-",
            `originalDir=file://${originalInputDir}`],
           { stdio: ["pipe", "pipe", "inherit"] });
       }

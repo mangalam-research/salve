@@ -461,7 +461,7 @@ export class NsName extends Base {
           acc.set(`{${name.ns}}${name.name}`, name);
 
           return acc;
-        }, new Map() as Map<string, Name>);
+        }, new Map());
 
         const names = Array.from(map.values());
 

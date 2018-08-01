@@ -1,8 +1,7 @@
 import { ElementNameError } from "../errors";
 import { ConcreteName } from "../name_patterns";
-import { NameResolver } from "../name_resolver";
-import { CloneMap, EndResult, Event, EventSet, InternalFireEventResult,
-         InternalWalker, Pattern } from "./base";
+import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+         Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
 
@@ -43,48 +42,37 @@ resolved");
     return resolvesTo.pat;
   }
 
-  newWalker(_nameResolver: NameResolver): InternalWalker<Ref> {
+  newWalker(): InternalWalker {
+    const element = this.element;
+
     // tslint:disable-next-line:no-use-before-declare
-    return new RefWalker(this);
+    return new RefWalker(this,
+                         element,
+                         element.name,
+                         new Event("enterStartTag", element.name),
+                         true,
+                         false);
   }
 }
 
-export class RefWalker extends InternalWalker<Ref> {
-  protected readonly el: Ref;
-  private startName: ConcreteName;
-  private startTagEvent: Event;
-  canEndAttribute: boolean;
-  canEnd: boolean;
-  readonly element: Element;
-
+export class RefWalker implements InternalWalker {
   /**
    * @param el The pattern for which this walker was constructed.
    */
-  constructor(walker: RefWalker, memo: CloneMap);
-  constructor(el: Ref);
-  constructor(elOrWalker: RefWalker | Ref, memo?: CloneMap) {
-    super();
-    if ((elOrWalker as Ref).newWalker !== undefined) {
-      this.el = elOrWalker as Ref;
-      this.element = elOrWalker.element;
-      this.startName = elOrWalker.element.name;
-      this.startTagEvent = new Event("enterStartTag", this.startName);
-      this.canEndAttribute = true;
-      this.canEnd = false;
-    }
-    else {
-      const walker = elOrWalker as RefWalker;
-      this.el = walker.el;
-      this.startName = walker.startName;
-      this.startTagEvent = walker.startTagEvent;
-      this.element = walker.element;
-      this.canEndAttribute = walker.canEndAttribute;
-      this.canEnd = walker.canEnd;
-    }
-  }
+  constructor(protected readonly el: Ref,
+              readonly element: Element,
+              private readonly startName: ConcreteName,
+              private readonly startTagEvent: Event,
+              public canEndAttribute: boolean,
+              public canEnd: boolean) {}
 
-  _clone(memo: CloneMap): this {
-    return new RefWalker(this, memo) as this;
+  clone(): this {
+    return new RefWalker(this.el,
+                         this.element,
+                         this.startName,
+                         this.startTagEvent,
+                         this.canEndAttribute,
+                         this.canEnd) as this;
   }
 
   possible(): EventSet {
