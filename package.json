@@ -81,7 +81,7 @@
     "typedoc": "^0.11.1",
     "typescript": "^3.0.1",
     "uglifyjs-webpack-plugin": "^1.2.7",
-    "versync": "^4.0.0",
+    "versync": "^4.1.0",
     "webpack": "^4.16.3",
     "webpack-cli": "^3.1.0"
   },
@@ -93,7 +93,7 @@
     "test": "gulp test",
     "install_test": "gulp install_test",
     "preversion": "npm test && npm run install_test && git flow release start $npm_package_version",
-    "version": "versync -b sync && git add lib/salve/validate.ts && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md"
+    "version": "versync -b sync -a && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md"
   },
   "config": {
     "git-tag-version": false
