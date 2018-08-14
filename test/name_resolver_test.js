@@ -47,8 +47,9 @@ describe("NameResolver", () => {
                    "{http://www.w3.org/2000/xmlns/}foo");
     });
 
-    it("returns undefined when resolving an unknown prefix", () =>
-       assert.equal(resolver.resolveName("garbage:blah", true), undefined));
+    it("returns undefined when resolving an unknown prefix",
+       () => assert.equal(resolver.resolveName("garbage:blah", true),
+                          undefined));
 
     it("throws an error when trying to resolve a badly formed name",
        () => {
@@ -71,8 +72,8 @@ describe("NameResolver", () => {
        () => assert.equal(resolver.resolveName("blah", true).toString(),
                           new EName("", "blah").toString()));
 
-    it("resolves attribute names with prefix", () =>
-       assert.equal(
+    it("resolves attribute names with prefix",
+       () => assert.equal(
          resolver.resolveName("btw:blah", true).toString(),
          new EName("http://lddubeau.com/ns/btw-storage", "blah").toString()));
 
@@ -105,9 +106,10 @@ describe("NameResolver", () => {
                     Error, "trying to define 'xml' to an incorrect URI");
     });
 
-    it("allows defining xml", () =>
+    it("allows defining xml",
        // The lack of error thrown is what we are looking for.
-       resolver.definePrefix("xml", "http://www.w3.org/XML/1998/namespace"));
+       () => resolver.definePrefix("xml",
+                                   "http://www.w3.org/XML/1998/namespace"));
   });
 
   describe("", () => {
@@ -169,9 +171,9 @@ describe("NameResolver", () => {
       }
     });
 
-    it("knows the uri for the default namespace", () =>
-       assert.equal(resolver.unresolveName("http://www.tei-c.org/ns/1.0",
-                                           "blah"), "blah"));
+    it("knows the uri for the default namespace",
+       () => assert.equal(resolver.unresolveName("http://www.tei-c.org/ns/1.0",
+                                                 "blah"), "blah"));
 
     it("knows the XML namespace",
        () => assert.equal(resolver.unresolveName(
@@ -215,12 +217,13 @@ describe("NameResolver", () => {
       }
     });
 
-    it("knows the uri for the default namespace", () =>
-       assert.equal(resolver.prefixFromURI("http://www.tei-c.org/ns/1.0"), ""));
+    it("knows the uri for the default namespace",
+       () => assert.equal(resolver.prefixFromURI("http://www.tei-c.org/ns/1.0"),
+                          ""));
 
-    it("knows the uri of other namespaces that were defined", () =>
-         assert.equal(
-           resolver.prefixFromURI("http://lddubeau.com/ns/btw-storage"), "btw"));
+    it("knows the uri of other namespaces that were defined",
+       () => assert.equal(
+         resolver.prefixFromURI("http://lddubeau.com/ns/btw-storage"), "btw"));
 
     it("returns undefined when passed an unknown uri",
        () => assert.isUndefined(resolver.prefixFromURI("ttt")));

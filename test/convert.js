@@ -9,9 +9,9 @@
 "use strict";
 
 const path = require("path");
-const { convertRNGToPattern } = require("../build/dist");
 const fileURL = require("file-url");
 const { expect } = require("chai");
+const { convertRNGToPattern } = require("../build/dist");
 
 describe("convertRNGToPattern", () => {
   describe("with a manifest", () => {

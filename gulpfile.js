@@ -205,22 +205,19 @@ gulp.task("copy", gulp.series(gulp.parallel(copySrc, copyReadme),
                               () => fs.writeFileAsync("build/dist/.npmignore",
                                                       "bin/parse.js")));
 gulp.task("convert-schema",
-          () =>
           // We have to create the directory before converting.
-          execFileAndReport("mkdir", ["-p", "build/dist/lib/salve/schemas/"])
+          () => execFileAndReport("mkdir", ["-p",
+                                            "build/dist/lib/salve/schemas/"])
           // We have to write an empty file so that salve-convert will at least
           // not crash due to the file being missing.
-          .then(() =>
-                fs.writeFileAsync("build/dist/lib/salve/schemas/relaxng.json",
-                                  "{}"))
-          .then(() =>
-                // We use the previous version of salve to convert the
-                // validation schema.
-                execFileAndReport(
-                  "./build/dist/bin/salve-convert",
-                  ["--validator=none", "lib/salve/schemas/relaxng.rng",
-                   "build/dist/lib/salve/schemas/relaxng.json"])));
-
+          .then(() => fs.writeFileAsync(
+            "build/dist/lib/salve/schemas/relaxng.json", "{}"))
+          // We use the previous version of salve to convert the
+          // validation schema.
+          .then(() => execFileAndReport(
+            "./build/dist/bin/salve-convert",
+            ["--validator=none", "lib/salve/schemas/relaxng.rng",
+             "build/dist/lib/salve/schemas/relaxng.json"])));
 
 gulp.task("default", gulp.series(gulp.parallel(tsc, "copy", "jison"),
                                  "convert-schema",
@@ -319,9 +316,9 @@ gulp.task("readme", () => {
   const src = "README.rst";
   return gulp.src(src, { read: false })
     .pipe(gulpNewer(dest))
-    .pipe(es.map((file, callback) =>
-                 childProcess.execFile(options.rst2html, [src, dest],
-                                       () => callback())));
+    .pipe(es.map(
+      (file, callback) => childProcess.execFile(options.rst2html, [src, dest],
+                                                () => callback())));
 });
 
 gulp.task("doc", gulp.parallel("typedoc", "readme"));

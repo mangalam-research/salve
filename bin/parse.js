@@ -12,10 +12,10 @@ global.URL = URL;
 global.crypto = crypto;
 global.TextEncoder = util.TextEncoder;
 
-// eslint-disable-next-line import/no-unresolved, prefer-destructuring
-const parse = require("../lib/salve/parse").parse;
 const fs = require("fs");
 const path = require("path");
+// eslint-disable-next-line import/no-unresolved, prefer-destructuring
+const parse = require("../lib/salve/parse").parse;
 
 process.on("uncaughtException", (ex) => {
   if (ex instanceof Error) {

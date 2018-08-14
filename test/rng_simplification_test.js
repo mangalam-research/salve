@@ -7,12 +7,12 @@ const path = require("path");
 const { spawn } = require("child_process");
 const fs = require("fs");
 const { expect } = require("chai");
+const { SaxesParser } = require("saxes");
 const conversion = require("../build/dist/lib/salve/conversion");
 const { BasicParser, dependsOnExternalFile } =
       require("../build/dist/lib/salve/conversion/parser");
 const simplifier =
       require("../build/dist/lib/salve/conversion/simplifier");
-const { SaxesParser } = require("saxes");
 
 const dataDir = path.join(__dirname, "rng_simplification_data");
 
@@ -177,19 +177,19 @@ describe("rng simplification", () => {
             .timeout(10000);
         }
 
-        it(`${testName} (TS)`, () =>
-          transformJS(shortName, inpath).then((actual) => {
-            let expected = fs.readFileSync(commonExpectedPath);
-            expected = expected.toString().replace(/@CURDIR@/g, dataDir);
-            if (number === 1) {
-              // We do this so that we can use the same files for the XSL test
-              // and the TypeScript test. In the later pipeline, step1 removes
-              // all xml:base elements from the resulting XML (whereas the XSL
-              // pipeline preserves them.
-              expected = expected.replace(/\s+xml:base=".*?"/g, "");
-            }
-            expect(actual).to.equal(expected);
-          }));
+        it(`${testName} (TS)`,
+           () => transformJS(shortName, inpath).then((actual) => {
+             let expected = fs.readFileSync(commonExpectedPath);
+             expected = expected.toString().replace(/@CURDIR@/g, dataDir);
+             if (number === 1) {
+               // We do this so that we can use the same files for the XSL test
+               // and the TypeScript test. In the later pipeline, step1 removes
+               // all xml:base elements from the resulting XML (whereas the XSL
+               // pipeline preserves them.
+               expected = expected.replace(/\s+xml:base=".*?"/g, "");
+             }
+             expect(actual).to.equal(expected);
+           }));
       });
 
       after(() => {

@@ -87,8 +87,8 @@ function Test(testPath) {
 const tests = testDirs.map(x => new Test(x));
 
 function makeValidityTest(data, vfile, passes) {
-  it(vfile, () =>
-     parse(data.grammar, fileAsString(vfile), !passes).then((error) => {
+  it(vfile,
+     () => parse(data.grammar, fileAsString(vfile), !passes).then((error) => {
        assert.equal(!error, passes, "parse result");
      }));
 }
@@ -96,12 +96,12 @@ function makeValidityTest(data, vfile, passes) {
 function makeTests(test) {
   const skip = skips[test.test] || {};
   if (!skip.incorrect && test.incorrect) {
-    it(test.incorrect, () =>
-       salve.convertRNGToPattern(new URL(fileURL(test.incorrect)))
-        .then(() => assert.isFalse(true,
-                                   "expected conversion to fail, but it passed"),
-              // A failure is what we want.
-              () => {}));
+    it(test.incorrect,
+       () => salve.convertRNGToPattern(new URL(fileURL(test.incorrect)))
+       .then(() => assert.isFalse(true,
+                                  "expected conversion to fail, but it passed"),
+             // A failure is what we want.
+             () => {}));
   }
 
   if (!skip.correct && test.correct) {
@@ -112,8 +112,7 @@ function makeTests(test) {
       describe(`valid and invalid cases (${test.correct})`, () => {
         const data = {};
 
-        before(() =>
-          salve.convertRNGToPattern(new URL(fileURL(test.correct)))
+        before(() => salve.convertRNGToPattern(new URL(fileURL(test.correct)))
                .then((result) => {
                  data.grammar = result.pattern;
                }));
