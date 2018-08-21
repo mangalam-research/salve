@@ -377,10 +377,10 @@ export class Element extends Node {
   setXMLNS(value: string): void {
     this.attributes.xmlns = {
       name: "xmlns",
-      prefix: "xmlns",
+      prefix: "",
       uri: XMLNS_NAMESPACE,
       value,
-      local: "",
+      local: "xmlns",
     };
   }
 
@@ -496,13 +496,13 @@ export class Validator implements ValidatorI {
     for (const name of Object.keys(node.attributes)) {
       const { uri, prefix, local, value } =
         node.attributes[name] as SaxesAttribute;
-      if ((local === "" && name === "xmlns") ||
-          prefix === "xmlns") { // xmlns="..." or xmlns:q="..."
+      // xmlns="..." or xmlns:q="..."
+      if (name === "xmlns" || prefix === "xmlns") {
         if (!hasContext) {
           this.walker.enterContext();
           hasContext = true;
         }
-        this.walker.definePrefix(local, value);
+        this.walker.definePrefix(name === "xmlns" ? "" : local, value);
       }
       else {
         attributeEvents.push(uri, local, value);

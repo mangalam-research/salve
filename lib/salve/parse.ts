@@ -107,7 +107,7 @@ export async function parse(rngSource: string | Grammar,
     names.sort();
     for (const name of names) {
       const attr = node.attributes[name] as SaxesAttribute;
-      if (attr.local === "" && name === "xmlns") { // xmlns="..."
+      if (name === "xmlns") { // xmlns="..."
         nsDefinitions.push(["", attr.value]);
       }
       else if (attr.prefix === "xmlns") { // xmlns:...=...

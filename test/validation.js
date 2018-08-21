@@ -38,11 +38,10 @@ function makeParser(er, walker) {
     for (const name of names) {
       const attr = node.attributes[name];
       const { local, prefix, value } = attr;
-      if (// xmlns="..."
-        (local === "" && name === "xmlns") ||
-          // xmlns:...=...
-          (prefix === "xmlns")) {
-        er.recordEvent(walker, "definePrefix", local, value);
+      // xmlns="..." or xmlns:...=...
+      if (name === "xmlns" || prefix === "xmlns") {
+        er.recordEvent(walker, "definePrefix", name === "xmlns" ? "" : local,
+                       value);
       }
     }
 
@@ -55,10 +54,8 @@ function makeParser(er, walker) {
       const { local, prefix, value } = attr;
       // eslint-disable-next-line prefer-destructuring
       let uri = attr.uri;
-      if (// xmlns="..."
-        (local === "" && name === "xmlns") ||
-          // xmlns:...=...
-          (prefix === "xmlns")) {
+      // xmlns="..." or xmlns:...=...
+      if (name === "xmlns" || prefix === "xmlns") {
         continue; // eslint-disable-line no-continue
       }
       if (prefix !== "") {
