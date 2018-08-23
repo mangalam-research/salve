@@ -8,7 +8,8 @@
 import { Element } from "./parser";
 import { ResourceLoader } from "./resource-loader";
 
-export interface SchemaSimplifierOptions {
+export interface SchemaSimplifierOptions
+  <RL extends ResourceLoader = ResourceLoader> {
   /** True if the simplification should run verbosely. */
   verbose: boolean;
 
@@ -22,7 +23,7 @@ export interface SchemaSimplifierOptions {
   simplifyTo: number;
 
   /** The resource loader to use if resources are needed. */
-  resourceLoader: ResourceLoader;
+  resourceLoader: RL;
 
   /** A function that creates a temporary directory and returns the path. */
   ensureTempDir?(): string;
@@ -102,14 +103,15 @@ export interface SchemaSimplifier {
   simplify(schemaPath: URL): Promise<SimplificationResult>;
 }
 
-export interface SchemaSimplifierCtor {
+export interface SchemaSimplifierCtor
+  <RL extends ResourceLoader = ResourceLoader> {
   /** True if this simplifier validates the schema as it simplifies. */
   validates: boolean;
 
   /** True if this simplifier can create a file manifest. */
   createsManifest: boolean;
 
-  new (options: SchemaSimplifierOptions): SchemaSimplifier;
+  new (options: SchemaSimplifierOptions<RL>): SchemaSimplifier;
 }
 
 const availableSimplifiers: Record<string, SchemaSimplifierCtor> =
@@ -128,8 +130,9 @@ export function registerSimplifier(name: string,
   availableSimplifiers[name] = ctor;
 }
 
-export function makeSimplifier(name: string,
-                               options: SchemaSimplifierOptions):
+export function makeSimplifier<RL extends ResourceLoader>(
+  name: string,
+  options: SchemaSimplifierOptions<RL>):
 SchemaSimplifier {
   const ctor = availableSimplifiers[name];
   if (ctor === undefined) {

@@ -14,6 +14,7 @@ import { AnyName, ConcreteName, Grammar, Name, NameChoice,
          NsName } from "../../patterns";
 import * as relaxng from "../../schemas/relaxng";
 import { BasicParser, Element, Text, Validator } from "../parser";
+import { ResourceLoader } from "../resource-loader";
 import { ManifestEntry, registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { SchemaValidationError } from "../schema-validation";
@@ -647,14 +648,15 @@ function getGrammar(): Grammar {
 /**
  * A simplifier implemented in TypeScript (thus internal to Salve).
  */
-export class InternalSimplifier extends BaseSimplifier {
+export class InternalSimplifier<RL extends ResourceLoader>
+  extends BaseSimplifier {
   static validates: true = true;
   static createsManifest: true = true;
 
   private lastStepStart?: number;
   private readonly manifestPromises: PromiseLike<ManifestEntry>[] = [];
 
-  constructor(options: SchemaSimplifierOptions) {
+  constructor(options: SchemaSimplifierOptions<RL>) {
     super(options);
     if (options.timing) {
       options.verbose = true;
@@ -662,7 +664,8 @@ export class InternalSimplifier extends BaseSimplifier {
   }
 
   private async parse(filePath: URL): Promise<Element> {
-    const schema = await this.options.resourceLoader.load(filePath);
+    const schema =
+      await (await this.options.resourceLoader.load(filePath)).getText();
     let validator: Validator | undefined;
     if (this.options.validate) {
       validator = new Validator(getGrammar());

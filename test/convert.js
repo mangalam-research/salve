@@ -11,17 +11,36 @@
 const path = require("path");
 const fileURL = require("file-url");
 const { expect } = require("chai");
-const { convertRNGToPattern } = require("../build/dist");
+const { convertRNGToPattern, makeResourceLoader } = require("../build/dist");
+
+class MyLoader {
+  constructor() {
+    this.delegate = makeResourceLoader();
+    this.used = false;
+  }
+
+  load(url) {
+    this.used = true;
+    return this.delegate.load(url);
+  }
+}
+
 
 describe("convertRNGToPattern", () => {
   describe("with a manifest", () => {
     let result;
+    let resourceLoader;
+
+    before(() => {
+      resourceLoader = new MyLoader();
+    });
 
     before(() => convertRNGToPattern(new URL(fileURL(
       path.join(__dirname, "inclusion/doc-unannotated.rng"))),
                                      {
                                        createManifest: true,
                                        manifestHashAlgorithm: "SHA-1",
+                                       resourceLoader,
                                      })
            .then((_result) => {
              result = _result;
@@ -47,6 +66,10 @@ describe("convertRNGToPattern", () => {
         filePath: `file://${__dirname}/inclusion/doc-common.rng`,
         hash: "SHA-1-c4e57689cf2c39239f654eb9ae5cfaa07f858455",
       }]);
+    });
+
+    it("uses a custom loader", () => {
+      expect(resourceLoader).to.have.property("used").true;
     });
   });
 

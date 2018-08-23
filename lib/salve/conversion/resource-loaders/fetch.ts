@@ -5,11 +5,19 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { ResourceLoader } from "../resource-loader";
+import { Resource, ResourceLoader } from "../resource-loader";
 
 // tslint:disable-next-line:no-typeof-undefined
 if (typeof fetch === "undefined") {
   throw new Error("trying to load the fetch loader when fetch is absent");
+}
+
+export class FetchResource implements Resource {
+  constructor(readonly response: Response) {}
+
+  async getText(): Promise<string> {
+    return this.response.text();
+  }
 }
 
 /**
@@ -18,8 +26,8 @@ if (typeof fetch === "undefined") {
  *
  * This loader does not allow loading from ``file://``.
  */
-export class FetchResourceLoader implements ResourceLoader {
-  async load(url: URL): Promise<string> {
+export class FetchResourceLoader implements ResourceLoader<FetchResource> {
+  async load(url: URL): Promise<FetchResource> {
     if (url.protocol === "file:") {
       throw new Error("this loader cannot load from the file system");
     }
@@ -29,6 +37,6 @@ export class FetchResourceLoader implements ResourceLoader {
       throw new Error(`unable to fetch ${url}`);
     }
 
-    return response.text();
+    return new FetchResource(response);
   }
 }
