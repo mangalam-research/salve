@@ -12,7 +12,7 @@ import { Resource, ResourceLoader } from "../resource-loader";
 import { FetchResourceLoader } from "./fetch";
 
 export class NodeResource implements Resource {
-  constructor(private readonly text: string) {}
+  constructor(readonly url: URL, private readonly text: string) {}
 
   async getText(): Promise<string> {
     return this.text;
@@ -46,7 +46,7 @@ export class NodeResourceLoader implements ResourceLoader {
             return;
           }
 
-          resolve(new NodeResource(data.toString()));
+          resolve(new NodeResource(url, data.toString()));
         });
       });
     }

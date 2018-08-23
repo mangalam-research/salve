@@ -13,7 +13,7 @@ if (typeof fetch === "undefined") {
 }
 
 export class FetchResource implements Resource {
-  constructor(readonly response: Response) {}
+  constructor(readonly url: URL, readonly response: Response) {}
 
   async getText(): Promise<string> {
     return this.response.text();
@@ -37,6 +37,6 @@ export class FetchResourceLoader implements ResourceLoader<FetchResource> {
       throw new Error(`unable to fetch ${url}`);
     }
 
-    return new FetchResource(response);
+    return new FetchResource(url, response);
   }
 }

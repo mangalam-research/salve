@@ -664,19 +664,19 @@ export class InternalSimplifier<RL extends ResourceLoader>
   }
 
   private async parse(filePath: URL): Promise<Element> {
-    const schema =
-      await (await this.options.resourceLoader.load(filePath)).getText();
+    const schemaResource = await this.options.resourceLoader.load(filePath);
+    const schemaText = await schemaResource.getText();
     let validator: Validator | undefined;
     if (this.options.validate) {
       validator = new Validator(getGrammar());
     }
 
-    const parser =
-      new BasicParser(new SaxesParser({ xmlns: true,
-                                        position: false,
-                                        fileName: filePath.toString() }),
-                      validator);
-    parser.saxesParser.write(schema);
+    const fileName = filePath.toString();
+    const parser = new BasicParser(new SaxesParser({ xmlns: true,
+                                                     position: false,
+                                                     fileName }),
+                                   validator);
+    parser.saxesParser.write(schemaText);
     parser.saxesParser.close();
 
     if (validator !== undefined) {
@@ -688,20 +688,30 @@ export class InternalSimplifier<RL extends ResourceLoader>
 
     if (this.options.createManifest) {
       const algo = this.options.manifestHashAlgorithm;
-      this.manifestPromises.push((async () => {
-        const digest =
-          // tslint:disable-next-line:await-promise
-          await crypto.subtle.digest(algo, new TextEncoder().encode(schema));
+      if (typeof algo === "string") {
+        this.manifestPromises.push((async () => {
+          const digest =
+            // tslint:disable-next-line:await-promise
+            await crypto.subtle.digest(algo,
+                                       new TextEncoder().encode(schemaText));
 
-        const arr = new Uint8Array(digest);
-        let hash = `${algo}-`;
-        for (const x of arr) {
-          const hex = x.toString(16);
-          hash += x > 0xF ? hex : `0${hex}`;
-        }
+          const arr = new Uint8Array(digest);
+          let hash = `${algo}-`;
+          for (const x of arr) {
+            const hex = x.toString(16);
+            hash += x > 0xF ? hex : `0${hex}`;
+          }
 
-        return { filePath: filePath.toString(), hash };
-      })());
+          return { filePath: fileName, hash };
+        })());
+      }
+      else {
+        this.manifestPromises.push((async () => {
+          const hash = await algo(schemaResource);
+
+          return { filePath: fileName, hash };
+        })());
+      }
     }
 
     return parser.root;

@@ -7,9 +7,10 @@
  */
 
 export interface Resource {
-  /**
-   * Get the resource as a string.
-   */
+  /** The URL for this resource. */
+  url: URL;
+
+  /** Get the resource as a string. */
   getText(): Promise<string>;
 }
 

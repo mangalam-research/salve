@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "",
+    "sourceMap": true,
+    "lib": ["es2016", "dom"],
+    "target": "es6"
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.d.ts"
+  ]
+}

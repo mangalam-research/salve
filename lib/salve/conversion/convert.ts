@@ -10,7 +10,7 @@ import { Grammar } from "../patterns";
 import { makePatternFromSimplifiedSchema } from "./convert-simplified";
 import { Element } from "./parser";
 import { makeResourceLoader, ResourceLoader } from "./resource-loader";
-import { ManifestEntry } from "./schema-simplification";
+import { HashFunction, ManifestEntry } from "./schema-simplification";
 import { InternalSimplifier } from "./schema-simplifiers/internal";
 
 export interface ConversionResult {
@@ -37,8 +37,12 @@ export interface ConversionOptions<
   createManifest: boolean;
 
   /**
-   * Name of the algorithm to use for creating the hashes in the manifest. The
-   * supported names are those of the [``SubtleCrypto.digest()``][1] function.
+   * Either a hash function or the name of an algorithm to use for hashing the
+   * source.
+   *
+   * If a string, then the string is the name of the algorithm to use for
+   * creating the hashes in the manifest. The supported names are those of the
+   * [``SubtleCrypto.digest()``][1] function.
    *
    * [1]: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
    *
@@ -50,7 +54,7 @@ export interface ConversionOptions<
    * because if an attacker can replace a schema with their own file, they also
    * can access the manifest and replace the hash.
    */
-  manifestHashAlgorithm: string;
+  manifestHashAlgorithm: string | HashFunction;
 
   /**
    * The resource loader to use to load resources. This is what the conversion
