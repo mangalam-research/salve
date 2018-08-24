@@ -3,13 +3,11 @@
 "use strict";
 
 const fs_ = require("fs");
-const childProcess = require("child_process");
 const path = require("path");
 
 const gulp = require("gulp");
 const log = require("fancy-log");
 const gulpNewer = require("gulp-newer");
-const rename = require("gulp-rename");
 const jison = require("jison-gho");
 const Promise = require("bluebird");
 const del = require("del");
@@ -75,11 +73,6 @@ parser.addArgument(["--mocha-grep"], {
   help: "A pattern to pass to mocha to select tests.",
 });
 
-parser.addArgument(["--rst2html"], {
-  help: "The path of the rst2html executable.",
-  defaultValue: localConfig.rst2html || "rst2html",
-});
-
 parser.addArgument(["--browsers"], {
   help: "The list of browsers to use for Karma.",
   nargs: "+",
@@ -127,21 +120,11 @@ function copySrc() {
   const dest = "build/dist/";
   return gulp.src([
     "package.json",
+    "README.md",
     "bin/*",
     "lib/**/*.d.ts",
     "lib/**/*.xsl",
   ], { base: "." })
-    .pipe(gulpNewer(dest))
-    .pipe(gulp.dest(dest));
-}
-
-function copyReadme() {
-  const dest = "build/dist/";
-  return gulp.src("NPM_README.md")
-    .pipe(rename("README.md"))
-  // Yep, gulpNewer has to be after the rename. The rename is done in memory and
-  // we want to have it done *before* the test so that the test tests against
-  // the correct file in the filesystem.
     .pipe(gulpNewer(dest))
     .pipe(gulp.dest(dest));
 }
@@ -201,7 +184,7 @@ gulp.task("jison", () => {
     .pipe(gulp.dest(dest));
 });
 
-gulp.task("copy", gulp.series(gulp.parallel(copySrc, copyReadme),
+gulp.task("copy", gulp.series(copySrc,
                               () => fs.writeFileAsync("build/dist/.npmignore",
                                                       "bin/parse.js")));
 gulp.task("convert-schema",
@@ -307,21 +290,7 @@ gulp.task("typedoc",
                                  touch(stamp)]);
             })));
 
-gulp.task("readme", () => {
-  // The following code works fine only with one source and one
-  // destination. We're pretty much using gulp in a non-gulp way but this avoids
-  // having to code the logic of gulpNewer() ourselves. YMMV as to whether this
-  // is better.
-  const dest = "README.html";
-  const src = "README.rst";
-  return gulp.src(src, { read: false })
-    .pipe(gulpNewer(dest))
-    .pipe(es.map(
-      (file, callback) => childProcess.execFile(options.rst2html, [src, dest],
-                                                () => callback())));
-});
-
-gulp.task("doc", gulp.parallel("typedoc", "readme"));
+gulp.task("doc", gulp.task("typedoc"));
 
 gulp.task("gh-pages-build", gulp.series("typedoc", () => {
   const dest = "gh-pages-build";

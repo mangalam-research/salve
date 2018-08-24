@@ -63,7 +63,6 @@
     "gulp": "^4.0.0",
     "gulp-eslint": "^5.0.0",
     "gulp-newer": "^1.4.0",
-    "gulp-rename": "^1.4.0",
     "husky": "^0.14.3",
     "jison-gho": "^0.6.1-215",
     "karma": "^3.0.0",

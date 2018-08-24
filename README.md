@@ -1,22 +1,7 @@
-.. image:: https://badge.fury.io/js/salve.svg
-   :target: https://badge.fury.io/js/salve
-.. image:: https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg
-   :target: https://opensource.org/licenses/MPL-2.0
-.. image:: https://travis-ci.org/mangalam-research/salve.svg?branch=master
-   :target: https://travis-ci.org/mangalam-research/salve
-.. image:: https://badges.greenkeeper.io/mangalam-research/salve.svg
-   :alt: Greenkeeper badge
-   :target: https://greenkeeper.io/
-
-
-.. note:: Github currently does not implement all reStructuredText directives,
-          so some links in this readme may not work correctly when viewed there.
-
-.. note:: If you are reading this file from the set of files installed by ``npm
-          install``, please keep in mind that the npm package only includes what
-          is strictly necessary to *use* salve. For instance, the test suite is
-          not included in the npm package.  This documentation, however, covers
-          *all* of salve.  Consequently, it may refer to items you do not have.
+[![Package bagge](https://badge.fury.io/js/salve.svg)](https://badge.fury.io/js/salve)
+[![License badge](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
+[![Travis badge](https://travis-ci.org/mangalam-research/salve.svg?branch=master)](https://travis-ci.org/mangalam-research/salve)
+[![Greenkeeper badge](https://badges.greenkeeper.io/mangalam-research/salve.svg)](https://greenkeeper.io/)
 
 Introduction
 ============
@@ -24,11 +9,10 @@ Introduction
 Salve (Schema-Aware Library for Validation and Edition) is a TypeScript library
 which implements a validator able to validate an XML document on the basis of a
 subset of Relax NG (RNG). It is developed as part of the Buddhist Translators
-Workbench. It can be seen in action in `wed
-<https://github.com/mangalam-research/wed>`_.
+Workbench. It can be seen in action in [wed](https://github.com/mangalam-research/wed).
 
 Salve is used for validating XML with custom Relax NG schemas. We've also
-validated files that use the `TEI standard <http://www.tei-c.org/>`_ and the
+validated files that use the [TEI standard](http://www.tei-c.org/) and the
 DocBook v5.0 schema. We want to support as much Relax NG as reasonably possible,
 but salve currently has the following limitations:
 
@@ -60,7 +44,7 @@ A full validation solution has the following components:
 
 * A parser: responsible for converting tokens to validation events (see below).
 
-* A well-formedness checker. Please check the `Events`_ section for more
+* A well-formedness checker. Please check the [Events](#events) section for more
   information about what this concretely means.
 
 * A validator: responsible for checking that validation events are valid against
@@ -69,28 +53,27 @@ A full validation solution has the following components:
   namespace uris are used in the schema). **This is what salve offers, and only
   this!**
 
-A good example of this division of labor can be found in `<bin/parse.js>`_ and
-in the test suite. In both cases the tokenizer function is performed by
-``saxes``, and the parser function is performed by a parser object that
-``saxes`` creates, customized to call salve's ``Walker.fireEvent()``.
+A good example of this division of labor can be found in ``bin/parse.js`` and in
+the test suite. In both cases the tokenizer function is performed by ``saxes``,
+and the parser function is performed by a parser object that ``saxes`` creates,
+customized to call salve's ``Walker.fireEvent()``.
 
-Salve has a sister library named `salve-dom
-<https://github.com/mangalam-research/salve-dom>`_ which uses the parsing
-facilities available in a browser to provide the tokenizer, well-formedness and
-parser components described above.
+Salve has a sister library named
+[salve-dom](https://github.com/mangalam-research/salve-dom) which uses the
+parsing facilities available in a browser to provide the tokenizer,
+well-formedness and parser components described above.
 
-.. note:: If you are looking at the source tree of salve as cloned from GitHub,
-          know that executables cannot be executed from `<bin>`__. They can be
-          executed after a build, from the `<build/dist/bin>`_ directory.
+NOTE: If you are looking at the source tree of salve as cloned from GitHub, know
+that executables cannot be executed from ``bin``. They can be executed after a
+build, from the ``build/dist/bin`` directory.
 
-          If you are looking at the files installed by ``npm`` when you install
-          salve as a *package*, the files in `<bin>`__ *are* those you want to
-          execute.
+If you are looking at the files installed by ``npm`` when you install salve as a
+*package*, the files in ``bin`` *are* those you want to execute.
 
 Basic Usage
 ===========
 
-A typical usage scenario would be as follows::
+A typical usage scenario would be as follows:
 
     // Import the validation module
     const salve = require("salve");
@@ -107,8 +90,8 @@ Then the code that parses the XML file to be validated should call
 walker at the end of validation to make sure that there are no unclosed tags,
 etc.
 
-The file `<bin/parse.js>`_ (included in salve's source but not in the npm
-module) contains an example of a rudimentary parser runnable in Node.js::
+The file ``bin/parse.js`` (included in salve's source but not in the npm module)
+contains an example of a rudimentary parser runnable in Node.js::
 
     $ node ....../parse.js [rng] [xml to validate]
 
@@ -119,9 +102,8 @@ the XML file to validate against the schema.
 Deprecated Usage
 ----------------
 
-.. note:: The following description represent a deprecated way of using
-          salve. You should use the approach describe above instead of what
-          follows.
+**NOTE: The following description represent a deprecated way of using salve. You
+should use the approach describe above instead of what follows.**
 
 A Relax NG schema must be prepared before it can be used by salve. The ``bin/``
 subdirectory contains a JavaScript script which can be used to convert a Relax
@@ -155,8 +137,8 @@ Then the code that parses the XML file to be validated should call
 walker at the end of validation to make sure that there are no unclosed tags,
 etc.
 
-The file `<bin/parse.js>`_ (included in salve's source but not in the npm
-module) contains an example of a rudimentary parser runnable in Node.js::
+The file ``bin/parse.js`` (included in salve's source but not in the npm module)
+contains an example of a rudimentary parser runnable in Node.js::
 
     $ node ...../parse.js [rng as js] [xml to validate]
 
@@ -610,8 +592,8 @@ the documentation::
 
 You may need to create a ``gulp.local`` module to tell ``gulp`` where to get
 ``rst2html``. (Defaults are such that ``gulp`` will use your ``PATH`` to locate
-such tools.) The formatted documentation will appear in the `<build/api/>`_
-subdirectory, and the `<README.html>`_ in the root of the source tree.
+such tools.) The formatted documentation will appear in the ``build/api/``
+subdirectory, and the ``README.html`` in the root of the source tree.
 
 **NOTE**: All the public interfaces of salve are available through the
 ``validate`` module. However, ``validate`` is a facade that exposes interfaces
@@ -642,15 +624,15 @@ in salve).
           debugging cases because it is buggy.
 
 Running salve's tests **additionally** requires that the development
-dependencies be installed. Please see the `<package.json>`_ file for details
+dependencies be installed. Please see the ``package.json`` file for details
 regarding these dependencies. Note that ``gulp`` should be installed so that its
 executable is in your path.  Either this, or you will have to execute
 ``./node_modules/.bin/gulp``
 
 If you want to contribute to salve, your code will have to pass the checks
-listed in `<.glerbl/repo_conf.py>`_. So you either have to install glerbl to get
+listed in ``.glerbl/repo_conf.py``. So you either have to install glerbl to get
 those checks done for you or run the checks through other means. See
-Contributing_.
+[Contributing](#contributing).
 
 In The Browser
 --------------
@@ -724,9 +706,9 @@ Run::
 
     $ gulp
 
-This will create a `<build/dist/>`_ subdirectory in which the JavaScript
+This will create a ``build/dist/`` subdirectory in which the JavaScript
 necessary to validate XML files against a prepared Relax NG schema. You could
-copy what is in `<build/dist>`_ to a server to serve these files to a client
+copy what is in ``build/dist>`` to a server to serve these files to a client
 that would then perform validation.
 
 Deploying
@@ -755,11 +737,10 @@ Contributing
 ============
 
 Contributions must pass the commit checks turned on in
-`<.glerbl/repo_conf.py>`_. Use ``glerbl install`` to install the
-hooks. Glerbl itself can be found at
-https://github.com/lddubeau/glerbl. It will eventually make its way to
-the Python package repository so that ``pip install glerbl`` will
-work.
+``glerbl/repo_conf.py``. Use ``glerbl install`` to install the hooks. Glerbl
+itself can be found at https://github.com/lddubeau/glerbl. It will eventually
+make its way to the Python package repository so that ``pip install glerbl``
+will work.
 
 Schema File Format
 ==================
@@ -794,20 +775,18 @@ License
 Original Code
 -------------
 
-Code completely original to salve is released under the `Mozilla
-Public License version 2.0
-<http://www.mozilla.org/MPL/2.0/>`_. Copyright 2013-2016 Mangalam
+Code completely original to salve is released under the [Mozilla Public License
+version 2.0](http://www.mozilla.org/MPL/2.0/). Copyright 2013-2016 Mangalam
 Research Center for Buddhist Languages, Berkeley, CA.
 
 RNG Simplification Code
 -----------------------
 
-The RNG simplification files coded in XSL were adapted from `Nicolas Debeissat's
-code
-<https://github.com/ndebeiss/jsrelaxngvalidator/commit/8d353c73880ff519b31193905638cc97a93d1fad>`_. These
-files were originally released under the `CeCILL license
-<http://www.cecill.info/index.en.html>`_. Nicolas in `March 2016
-<https://github.com/ndebeiss/jsrelaxngvalidator/commit/f7336b2472baec60ab16571b865447e1146196ab>`_
+The RNG simplification files coded in XSL were adapted from [Nicolas Debeissat's
+code](https://github.com/ndebeiss/jsrelaxngvalidator/commit/8d353c73880ff519b31193905638cc97a93d1fad). These
+files were originally released under the [CeCILL
+license](http://www.cecill.info/index.en.html). Nicolas in [March
+2016](https://github.com/ndebeiss/jsrelaxngvalidator/commit/f7336b2472baec60ab16571b865447e1146196ab)
 then changed the license to the Apache License 2.0.
 
 In the version of these files bundled with salve, multiple bugs have been
@@ -825,8 +804,7 @@ Mangalam Research Center for Buddhist Languages.
 Jesse Bethel has contributed to salve's documentation, and migrated salve's
 build system from Make to Grunt.
 
-.. image:: https://secure.gravatar.com/avatar/7fc4e7a64d9f789a90057e7737e39b2a
-   :target: http://www.mangalamresearch.org/
+[![Mangalam Research Logo](https://secure.gravatar.com/avatar/7fc4e7a64d9f789a90057e7737e39b2a)](http://www.mangalamresearch.org/)
 
 This software has been made possible in part by a Level I Digital Humanities
 Start-up Grant and a Level II Digital Humanities Start-up Grant from the
@@ -835,22 +813,21 @@ HD-51772-13). Any views, findings, conclusions, or recommendations expressed in
 this software do not necessarily represent those of the National Endowment for
 the Humanities.
 
-.. image:: http://www.neh.gov/files/neh_logo_horizontal_rgb.jpg
-   :target: http://www.neh.gov/
+[![NEH](http://www.neh.gov/files/neh_logo_horizontal_rgb.jpg)](http://www.neh.gov/)
 
-..  LocalWords:  fireEvent js chai semver json xmllint xsltproc npm
-..  LocalWords:  RNG minified rng XSLT xsl constructTree newWalker mk
-..  LocalWords:  xml enterStartTag uri leaveStartTag endTag nxml html
-..  LocalWords:  attributeName attributeValue Debeissat's API
-..  LocalWords:  CeCILL tokenizer Makefile README boolean anyName RST
-..  LocalWords:  nsName URIs uris enterContext leaveContext xmlns rst
-..  LocalWords:  definePrefix useNameResolver foons resolveName HD NG
-..  LocalWords:  args param TEI glerbl Github reStructuredText readme
-..  LocalWords:  validator namespace RequireJS subdirectory DOM cli
-..  LocalWords:  Dubeau Mangalam argparse Gruntfile Bethel unclosed
-..  LocalWords:  runnable namespaces reparsing amd executables usr lt
-..  LocalWords:  deployable schemas LocalWords api dir maxInclusive
-..  LocalWords:  minInclusive minExclusive maxExclusive cd abcd jing
-..  LocalWords:  github jison NaN baz emph lodash xregexp XRegExp ns
-..  LocalWords:  init positiveInteger NCName NameChoice superName
-..  LocalWords:  EName
+#  LocalWords:  fireEvent js chai semver json xmllint xsltproc npm
+#  LocalWords:  RNG minified rng XSLT xsl constructTree newWalker mk
+#  LocalWords:  xml enterStartTag uri leaveStartTag endTag nxml html
+#  LocalWords:  attributeName attributeValue Debeissat's API
+#  LocalWords:  CeCILL tokenizer Makefile README boolean anyName RST
+#  LocalWords:  nsName URIs uris enterContext leaveContext xmlns rst
+#  LocalWords:  definePrefix useNameResolver foons resolveName HD NG
+#  LocalWords:  args param TEI glerbl Github reStructuredText readme
+#  LocalWords:  validator namespace RequireJS subdirectory DOM cli
+#  LocalWords:  Dubeau Mangalam argparse Gruntfile Bethel unclosed
+#  LocalWords:  runnable namespaces reparsing amd executables usr lt
+#  LocalWords:  deployable schemas LocalWords api dir maxInclusive
+#  LocalWords:  minInclusive minExclusive maxExclusive cd abcd jing
+#  LocalWords:  github jison NaN baz emph lodash xregexp XRegExp ns
+#  LocalWords:  init positiveInteger NCName NameChoice superName
+#  LocalWords:  EName
