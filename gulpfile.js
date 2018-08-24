@@ -100,7 +100,6 @@ function runEslint() {
   return gulp.src([
     "*.js",
     "bin/**/*.js",
-    "lib/**/*.js",
     "gulptasks/**/*.js",
     "test/**/*.js",
     "!test/salve-convert/**/*.js",
