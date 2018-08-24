@@ -201,8 +201,7 @@ gulp.task("install_test", gulp.series(
     yield del(testDir);
     yield fs.mkdirAsync(testDir);
     yield fs.mkdirAsync(path.join(testDir, "node_modules"));
-    yield execFile("npm", ["install", `../${packname}`, "sax", "@types/sax"],
-          { cwd: testDir });
+    yield execFile("npm", ["install", `../${packname}`], { cwd: testDir });
     let module = yield fs.readFileAsync("lib/salve/parse.ts");
     module = module.toString();
     module = module.replace("./validate", "salve");
