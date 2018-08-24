@@ -8,11 +8,9 @@ const path = require("path");
 const gulp = require("gulp");
 const log = require("fancy-log");
 const gulpNewer = require("gulp-newer");
-const jison = require("jison-gho");
 const Promise = require("bluebird");
 const del = require("del");
 const touch = require("touch");
-const es = require("event-stream");
 const { ArgumentParser } = require("argparse");
 const eslint = require("gulp-eslint");
 const versync = require("versync");
@@ -161,28 +159,6 @@ function mocha() {
 
 gulp.task("lint", gulp.parallel(tslint, runEslint));
 
-gulp.task("jison", () => {
-  const dest = "build/dist/lib/salve/datatypes";
-  return gulp.src("lib/salve/datatypes/regexp.jison")
-    .pipe(gulpNewer(`${dest}/regexp.js`))
-  // eslint-disable-next-line array-callback-return
-    .pipe(es.map((data, callback) => {
-      const generated = new jison.Generator(data.contents.toString(), {
-        moduleType: "commonjs",
-        // Override the default main created by Jison. This module cannot ever
-        // be used as a main script. And the default that Jison uses does
-        // `require("fs")` which causes problems.
-        moduleMain: function main() {
-          throw new Error("this module cannot be used as main");
-        },
-      }).generate();
-      data.contents = Buffer.from(generated);
-      data.path = data.path.replace(/.jison$/, ".js");
-      callback(null, data);
-    }))
-    .pipe(gulp.dest(dest));
-});
-
 gulp.task("copy", gulp.series(copySrc,
                               () => fs.writeFileAsync("build/dist/.npmignore",
                                                       "bin/parse.js")));
@@ -201,7 +177,7 @@ gulp.task("convert-schema",
             ["--validator=none", "lib/salve/schemas/relaxng.rng",
              "build/dist/lib/salve/schemas/relaxng.json"])));
 
-gulp.task("default", gulp.series(gulp.parallel(tsc, "copy", "jison"),
+gulp.task("default", gulp.series(gulp.parallel(tsc, "copy"),
                                  "convert-schema",
                                  () => webpack()));
 
