@@ -124,8 +124,7 @@ function convertInternalNumberToString(value: number): string {
 //
 
 /**
- * A parameter used for XML
- * Schema type processing.
+ * A parameter used for XML Schema type processing.
  */
 abstract class Parameter {
 
@@ -181,23 +180,6 @@ abstract class Parameter {
    */
   abstract isInvalidValue(value: any, param: any,
                           type: Base<{}>): ValueError | false;
-
-  /**
-   * Combine multiple values from the schema into an internal value. This method
-   * may be called only for parameters that are repeatable.
-   *
-   * @param values The values to combine
-   *
-   * @returns An array of internal values.
-   */
-  combine(values: string[]): any[] {
-    if (!this.repeatable) {
-      throw new Error("this parameter is not repeatable");
-    }
-
-    throw new Error("derived classes must implement this method " +
-                    "if they are repeatable");
-  }
 }
 
 abstract class NumericParameter extends Parameter {
@@ -292,10 +274,6 @@ class PatternP extends Parameter {
       rng: value,
       internal,
     };
-  }
-
-  combine(values: string[]): ConvertedPattern[] {
-    return values.map(this.convert);
   }
 
   isInvalidParam(value: string): ParamError | false {
@@ -573,11 +551,11 @@ abstract class Base<T> implements Datatype<T> {
 
   // tslint:disable-next-line: max-func-body-length
   parseParams(location: string, params?: RawParameter[]): ParsedParams {
-    const names: TrivialMap<string[]> = Object.create(null);
+    const ret: TrivialMap<string[]> = Object.create(null);
     if (params === undefined) {
       // Yes, if the list of parameters is empty, we return an empty map because
       // by default there are no default parameters.
-      return names;
+      return ret;
     }
 
     const errors: ParamError[] = [];
@@ -598,37 +576,29 @@ abstract class Base<T> implements Datatype<T> {
       if (invalid) {
         errors.push(invalid);
       }
-
-      // Is it repeated, and repeatable?
-      if (names[name] !== undefined && !prop.repeatable) {
-        errors.push(new ParamError(`cannot repeat parameter ${name}`));
+      else {
+        const converted = prop.convert(value);
+        const values = ret[name];
+        // We gather all the values in a map of name to value.
+        if (values === undefined) {
+          ret[name] = converted;
+        }
+        else {
+          if (!prop.repeatable) {
+            errors.push(new ParamError(`cannot repeat parameter ${name}`));
+          }
+          if (Array.isArray(values)) {
+            values.push(converted);
+          }
+          else {
+            ret[name] = [values, converted];
+          }
+        }
       }
-
-      // We gather all the values in a map of name to value.
-      let values = names[name];
-      if (values === undefined) {
-        values = names[name] = [];
-      }
-
-      values.push(value);
     }
 
     if (errors.length !== 0) {
       throw new ParameterParsingError(location, errors);
-    }
-
-    // We just modify the ``names`` object to produce a return value.
-    const ret = names;
-    for (const key in ret) { // tslint:disable-line:forin
-      const value = ret[key];
-      const prop = this.paramNameToObj[key];
-      if (value.length > 1) {
-        ret[key] = prop.combine(value);
-      }
-      else {
-        ret[key] = ((prop.convert !== undefined) ?
-                    prop.convert(value[0]) : value[0]);
-      }
     }
 
     // Inter-parameter checks. There's no point in trying to generalize
