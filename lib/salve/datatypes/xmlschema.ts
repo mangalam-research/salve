@@ -17,68 +17,6 @@ import { xmlNameChar, xmlNameRe, xmlNcname,
 // tslint:disable: no-reserved-keywords
 
 /**
- * Check whether a parameter is an integer.
- *
- * @param value The parameter value.
- *
- * @param name The name of the parameter.
- *
- * @return ``false`` if there is no error. Otherwise it returns a [[ParamError]]
- * that records the error.
- *
- * @private
- */
-function failIfNotInteger(value: string, name: string): ParamError | false {
-  if (value.search(/^\d+$/) !== -1) {
-    return false;
-  }
-
-  return new ParamError(`${name} must have an integer value`);
-}
-
-/**
- * Check whether a parameter is a non-negative integer.
- *
- * @param value The parameter value.
- *
- * @param name The name of the parameter.
- *
- * @return ``false`` if there is no error. Otherwise it returns a [[ParamError]]
- * that records the error.
- *
- * @private
- */
-function failIfNotNonNegativeInteger(value: string, name: string):
-ParamError | false {
-  if (!failIfNotInteger(value, name) && Number(value) >= 0) {
-    return false;
-  }
-
-  return new ParamError(`${name} must have a non-negative integer value`);
-}
-
-/**
- * Check whether a parameter is a positive integer.
- *
- * @param value The parameter value.
- *
- * @param name The name of the parameter.
- *
- * @return ``false`` if there is no error. Otherwise it returns a [[ParamError]]
- * that records the error.
- *
- * @private
- */
-function failIfNotPositiveInteger(value: string, name: string):
-ParamError | false {
-  if (!failIfNotInteger(value, name) && Number(value) > 0) {
-    return false;
-  }
-
-  return new ParamError(`${name} must have a positive value`);
-}
-
-/**
  * Convert a number to an internal representation. This takes care of the
  * differences between JavaScript and XML Schema (e.g. "Infinity" vs "INF").
  *
@@ -197,7 +135,12 @@ abstract class NumericParameter implements Parameter {
 
 abstract class NonNegativeIntegerParameter extends NumericParameter {
   isInvalidParam(value: string, name: string): ParamError | false {
-    return failIfNotNonNegativeInteger(value, name);
+    const asNum = Number(value);
+    if (Number.isInteger(asNum) && asNum >= 0) {
+      return false;
+    }
+
+    return new ParamError(`${name} must have a non-negative integer value`);
   }
 }
 
@@ -337,7 +280,12 @@ class TotalDigitsP extends NumericParameter {
   readonly repeatable: boolean = false;
 
   isInvalidParam(value: string, name: string): ParamError | false {
-    return failIfNotPositiveInteger(value, name);
+    const asNum = Number(value);
+    if (Number.isInteger(asNum) && asNum > 0) {
+      return false;
+    }
+
+    return new ParamError(`${name} must have a positive value`);
   }
 
   isInvalidValue(value: any, param: any): ValueError | false {
