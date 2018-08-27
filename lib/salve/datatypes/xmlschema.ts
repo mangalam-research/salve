@@ -471,7 +471,16 @@ function whitespaceReplace(value: string): string {
   return value.replace(/\s+/g, " ");
 }
 
-type NameToParameterMap = TrivialMap<Parameter>;
+/**
+ * A mapping of parameter names to parameter objects.
+ */
+const PARAM_NAME_TO_OBJ: TrivialMap<Parameter> = Object.create(null);
+
+for (const param of [lengthP, minLengthP, maxLengthP, patternP, totalDigitsP,
+                     fractionDigitsP, minExclusiveP, minInclusiveP,
+                     maxExclusiveP, maxInclusiveP]) {
+  PARAM_NAME_TO_OBJ[param.name] = param;
+}
 
 /**
  * The structure that all datatype implementations in this module share.
@@ -504,27 +513,7 @@ abstract class Base<T> implements Datatype<T> {
   /**
    * Parameters that are valid for this type.
    */
-  readonly validParams: Parameter[];
-
-  protected _paramNameToObj: NameToParameterMap | undefined;
-
-  /**
-   * A mapping of parameter names to parameter objects. It is constructed during
-   * initialization of the type.
-   */
-  protected get paramNameToObj(): NameToParameterMap {
-    const paramNameToObj = this._paramNameToObj;
-    const ret = paramNameToObj !== undefined ? paramNameToObj :
-      Object.create(null);
-    if (paramNameToObj === undefined) {
-      this._paramNameToObj = ret;
-      for (const param of this.validParams) {
-        ret[param.name] = param;
-      }
-    }
-
-    return ret;
-  }
+  readonly validParams: ReadonlyArray<Parameter>;
 
   protected _defaultParams?: ParsedParams;
 
@@ -595,10 +584,10 @@ abstract class Base<T> implements Datatype<T> {
     for (const x of params) {
       const { name, value } = x;
 
-      const prop = this.paramNameToObj[name];
+      const prop = PARAM_NAME_TO_OBJ[name];
 
       // Do we know this parameter?
-      if (prop === undefined) {
+      if (prop === undefined || !this.validParams.includes(prop)) {
         errors.push(new ParamError(`unexpected parameter: ${name}`));
 
         continue;
@@ -764,9 +753,8 @@ abstract class Base<T> implements Datatype<T> {
     }
 
     const errors: ValueError[] = [];
-    // We use Object.keys because we don't know the precise type of params.
     for (const name of paramNames) {
-      const param = this.paramNameToObj[name];
+      const param = PARAM_NAME_TO_OBJ[name];
       const err = param.isInvalidValue(converted, params[name], this);
       if (err) {
         errors.push(err);
@@ -815,7 +803,7 @@ class string_ extends CommonStringBased {
     const errors: ValueError[] = [];
     // We use Object.keys because we don't know the precise type of params.
     for (const name of Object.keys(params)) {
-      const param = this.paramNameToObj[name];
+      const param = PARAM_NAME_TO_OBJ[name];
       const err = param.isInvalidValue(converted, params[name], this);
       if (err) {
         errors.push(err);

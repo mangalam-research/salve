@@ -1413,13 +1413,22 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
 
       describe("with a pattern parameter", () => {
         // Extract the pattern processor from the type.
-        const { pattern } = type.paramNameToObj;
         it("allows the pattern",
            () => assert.isFalse(
-             type.disallows("foo", { pattern: pattern.convert("[fb].*") })));
+             type.disallows("foo",
+                            type.parseParams("",
+                                             [{
+                                               name: "pattern",
+                                               value: "[fb].*",
+                                             }]))));
         it("disallows what does not match the pattern", () => {
-          const ret = type.disallows("afoo",
-                                     { pattern: pattern.convert("[fb].*") });
+          const ret =
+                type.disallows("afoo",
+                               type.parseParams("",
+                                                [{
+                                                  name: "pattern",
+                                                  value: "[fb].*",
+                                                }]));
           assert.equal(ret.length, 1);
           assert.equal(ret[0].toString(),
                        "value does not match the pattern [fb].*");
