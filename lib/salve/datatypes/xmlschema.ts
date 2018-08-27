@@ -126,17 +126,17 @@ function convertInternalNumberToString(value: number): string {
 /**
  * A parameter used for XML Schema type processing.
  */
-abstract class Parameter {
+interface Parameter {
 
   /**
    * The name of this parameter.
    */
-  abstract readonly name: string;
+  readonly name: string;
 
   /**
    * Whether the parameter can appear more than once on the same type.
    */
-  readonly repeatable: boolean = false;
+  readonly repeatable: boolean;
 
   /**
    * Convert the parameter value from a string to a value to be used internally
@@ -146,7 +146,7 @@ abstract class Parameter {
    *
    * @returns The converted value.
    */
-  abstract convert(value: string): any;
+  convert(value: string): any;
 
   /**
    * Checks whether a parameter is invalid.
@@ -161,8 +161,8 @@ abstract class Parameter {
    *
    * @returns ``false`` if there is no problem. Otherwise, an error.
    */
-  abstract isInvalidParam(value: string, name: string,
-                          type: Datatype): ParamError | false;
+  isInvalidParam(value: string, name: string,
+                 type: Datatype): ParamError | false;
 
   /**
    * Checks whether a value that appears in the XML document being validated is
@@ -178,11 +178,18 @@ abstract class Parameter {
    *
    * @returns ``false`` if there is no problem. Otherwise, an error.
    */
-  abstract isInvalidValue(value: any, param: any,
-                          type: Base<{}>): ValueError | false;
+  isInvalidValue(value: any, param: any, type: Base<{}>): ValueError | false;
 }
 
-abstract class NumericParameter extends Parameter {
+abstract class NumericParameter implements Parameter {
+  abstract readonly name: string;
+  abstract readonly repeatable: boolean;
+
+  abstract isInvalidParam(value: string, name: string,
+                          type: Datatype): ParamError | false;
+  abstract isInvalidValue(value: any, param: any,
+                          type: Base<{}>): ValueError | false;
+
   convert(value: string): any {
     return convertToInternalNumber(value);
   }
@@ -196,6 +203,7 @@ abstract class NonNegativeIntegerParameter extends NumericParameter {
 
 class LengthP extends NonNegativeIntegerParameter {
   readonly name: string = "length";
+  readonly repeatable: boolean = false;
 
   isInvalidValue(value: any, param: any, type: Base<{}>): ValueError | false {
     if (type.valueLength(value) === param) {
@@ -210,6 +218,7 @@ const lengthP = new LengthP();
 
 class MinLengthP extends NonNegativeIntegerParameter {
   readonly name: string = "minLength";
+  readonly repeatable: boolean = false;
 
   isInvalidValue(value: any, param: any, type: Base<{}>): ValueError | false {
     if (type.valueLength(value) >= param) {
@@ -225,6 +234,7 @@ const minLengthP = new MinLengthP();
 
 class MaxLengthP extends NonNegativeIntegerParameter {
   readonly name: string = "maxLength";
+  readonly repeatable: boolean = false;
 
   isInvalidValue(value: any, param: any, type: Base<{}>): ValueError | false {
     if (type.valueLength(value) <= param) {
@@ -260,7 +270,7 @@ export interface ConvertedPattern {
   internal: RegExp;
 }
 
-class PatternP extends Parameter {
+class PatternP implements Parameter {
   readonly name: string = "pattern";
   readonly repeatable: boolean = true;
 
@@ -324,6 +334,7 @@ const patternP = new PatternP();
 
 class TotalDigitsP extends NumericParameter {
   readonly name: string = "totalDigits";
+  readonly repeatable: boolean = false;
 
   isInvalidParam(value: string, name: string): ParamError | false {
     return failIfNotPositiveInteger(value, name);
@@ -343,6 +354,7 @@ const totalDigitsP = new TotalDigitsP();
 
 class FractionDigitsP extends NonNegativeIntegerParameter {
   readonly name: string = "fractionDigits";
+  readonly repeatable: boolean = false;
 
   isInvalidValue(value: any, param: any): ValueError | false {
     const str = String(Number(value)).replace(/^.*\./, "");
@@ -373,6 +385,8 @@ const fractionDigitsP = new FractionDigitsP();
 
 class MaxInclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "maxInclusive";
+  readonly repeatable: boolean = false;
+
   isInvalidValue(value: any, param: any): ValueError | false {
     if ((isNaN(value) !== isNaN(param)) || value > param) {
       const repr = convertInternalNumberToString(param);
@@ -388,6 +402,8 @@ const maxInclusiveP = new MaxInclusiveP();
 
 class MaxExclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "maxExclusive";
+  readonly repeatable: boolean = false;
+
   isInvalidValue(value: any, param: any): ValueError | false {
     // The negation of a less-than test allows handling a parameter value of NaN
     // automatically.
@@ -405,6 +421,8 @@ const maxExclusiveP = new MaxExclusiveP();
 
 class MinInclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "minInclusive";
+  readonly repeatable: boolean = false;
+
   isInvalidValue(value: any, param: any): ValueError | false {
     if ((isNaN(value) !== isNaN(param)) || value < param) {
       const repr = convertInternalNumberToString(param);
@@ -420,6 +438,8 @@ const minInclusiveP = new MinInclusiveP();
 
 class MinExclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "minExclusive";
+  readonly repeatable: boolean = false;
+
   isInvalidValue(value: any, param: any): ValueError | false {
     // The negation of a greater-than test allows handling a parameter value of
     // NaN automatically.
