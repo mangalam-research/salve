@@ -99,53 +99,6 @@ The ``[rng]`` parameter is the Relax NG schema, recorded in the full XML format
 used by Relax NG (not the compact form). The ``[xml to validate]`` parameter is
 the XML file to validate against the schema.
 
-Deprecated Usage
-----------------
-
-**NOTE: The following description represent a deprecated way of using salve. You
-should use the approach describe above instead of what follows.**
-
-A Relax NG schema must be prepared before it can be used by salve. The ``bin/``
-subdirectory contains a JavaScript script which can be used to convert a Relax
-NG schema to the format salve wants. You can use the ``--help`` option to see
-the entire list of options available. Typical usage is::
-
-    $ salve-convert [input] [output]
-
-The ``[input]`` parameter should be the Relax NG schema to convert. The
-``[output]`` parameter should be where to save the schema once it is converted
-to JavaScript. (Actually, the simplified RNG is converted to JSON. Generally
-speaking JSON is not a subset of JavaScript but in this instance, the JSON
-produced is a subset, so calling it JavaScript is correct.)
-
-Turning to actual code, a typical usage scenario would be as follows::
-
-    // Import the validation module
-    var salve = require("salve");
-
-    // Source should be a string which contains the entire
-    // output of having simplified the original RNG and converted it to JS.
-    // This would be read from [js] in the example of xsltproc invocation
-    // above.
-    var tree = salve.readTreeFromJSON(source);
-
-    // Get a walker on which to fire events.
-    var walker = tree.newWalker();
-
-Then the code that parses the XML file to be validated should call
-``fireEvent()`` on the ``walker``. Remember to call the ``end()`` method on your
-walker at the end of validation to make sure that there are no unclosed tags,
-etc.
-
-The file ``bin/parse.js`` (included in salve's source but not in the npm module)
-contains an example of a rudimentary parser runnable in Node.js::
-
-    $ node ...../parse.js [rng as js] [xml to validate]
-
-The ``[rng as js]`` parameter is the RNG, simplified and converted to
-JavaScript. The ``[xml to validate]`` parameter is the XML file to validate
-against the RNG.
-
 Converting Schemas
 ==================
 
@@ -611,23 +564,9 @@ Dependencies
 In Node
 -------
 
-Running ``salve-convert`` additionally **may** require that ``xmllint``,
-``xsltproc`` and ``jing`` be installed on your system.
-
 Whenever you call on salve's functionalities to read a Relax NG schema, the
 ``fetch`` function must be available in the global space for salve to use. On
-Node, this means you must load a polyfill to provide this
-function. ``salve-convert`` uses ``node-fetch`` as a polyfill. You are free to
-use whatever fits the bill.
-
-Whether you need those tools depends on how you use ``salve-convert``. By
-default it uses JavaScript based logic to perform the validation and
-simplification of the schemas passed to it. However, there may be cases where
-using external processes for these tasks is desirable (e.g. if you suspect a bug
-in salve).
-
-.. note:: We do not recommend using ``xsltproc`` except for exceptional
-          debugging cases because it is buggy.
+Node, this means you must load a polyfill to provide this function.
 
 Running salve's tests **additionally** requires that the development
 dependencies be installed. Please see the ``package.json`` file for details
@@ -751,9 +690,9 @@ will work.
 Schema File Format
 ==================
 
-``salve-convert`` converts a Relax NG file formatted in XML into a more compact
-format used by salve at validation time. Salve supports version 3 of this file
-format. Versions 0 to 2 are now obsolete. The structure is::
+``writeTreeToJSON`` converts a Relax NG file formatted in XML into a more
+compact format used by salve at validation time. Salve supports version 3 of
+this file format. Versions 0 to 2 are now obsolete. The structure is::
 
     {"v":<version>,"o":<options>,"d":[...]}
 
