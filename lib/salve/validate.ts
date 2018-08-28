@@ -16,7 +16,7 @@ export { ConversionResult, convertRNGToPattern, makeResourceLoader,
          ManifestEntry, Resource, ResourceLoader } from "./conversion";
 
 export { writeTreeToJSON } from "./json-format/write";
-export { constructTree, readTreeFromJSON } from "./json-format/read";
+export { readTreeFromJSON } from "./json-format/read";
 
 export { EName }  from "./ename";
 

@@ -232,8 +232,6 @@ export function readTreeFromJSON(code: string | {}): Grammar {
   throw new Error(`unknown version: ${version}`);
 }
 
-export const constructTree = readTreeFromJSON;
-
 //  LocalWords:  deserialized PatternTwoPatterns PatternOnePattern OneOrMore js
 //  LocalWords:  codeToConstructor nameToConstructor RNG subpattern JSON xsl
 //  LocalWords:  rng MPL

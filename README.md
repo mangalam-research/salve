@@ -127,7 +127,7 @@ Turning to actual code, a typical usage scenario would be as follows::
     // output of having simplified the original RNG and converted it to JS.
     // This would be read from [js] in the example of xsltproc invocation
     // above.
-    var tree = salve.constructTree(source);
+    var tree = salve.readTreeFromJSON(source);
 
     // Get a walker on which to fire events.
     var walker = tree.newWalker();
