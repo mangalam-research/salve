@@ -1,3 +1,58 @@
+<a name="9.0.0"></a>
+# [9.0.0](https://github.com/mangalam-research/salve/compare/v8.0.0...v9.0.0) (2018-08-28)
+
+
+### Code Refactoring
+
+* remove constructTree ([eb1f43a](https://github.com/mangalam-research/salve/commit/eb1f43a))
+
+
+### Documentation
+
+* drop salve-convert from the public API ([17a26c3](https://github.com/mangalam-research/salve/commit/17a26c3))
+
+
+### Features
+
+* add enterContextWithMapping to Grammar and NameResolver ([54d5eb9](https://github.com/mangalam-research/salve/commit/54d5eb9))
+* GrammarWalker now takes an external name resolver ([190ee13](https://github.com/mangalam-research/salve/commit/190ee13))
+* support custom hash functions for making a manifest ([677dfc2](https://github.com/mangalam-research/salve/commit/677dfc2))
+* support custom resource loaders for conversion ([ed7f4ed](https://github.com/mangalam-research/salve/commit/ed7f4ed))
+
+
+### Performance Improvements
+
+* build the parameter list without extra objects ([42cb1db](https://github.com/mangalam-research/salve/commit/42cb1db))
+* don't go through this.el to get relevant fields ([7262da4](https://github.com/mangalam-research/salve/commit/7262da4))
+* immediately fill the array ([48156a6](https://github.com/mangalam-research/salve/commit/48156a6))
+* optimize how builtin types normalize spaces ([2daee97](https://github.com/mangalam-research/salve/commit/2daee97))
+* optimize whitespace cleanup among xmlschema types ([7c091a5](https://github.com/mangalam-research/salve/commit/7c091a5))
+* replace Jison with a custom regexp parser ([1638978](https://github.com/mangalam-research/salve/commit/1638978))
+* use the namespace mapping produced by saxes ([ec251a7](https://github.com/mangalam-research/salve/commit/ec251a7))
+
+
+### BREAKING CHANGES
+
+* ``salve-convert`` had been deprecated for a while. It is now formally no longer
+part of the public API of salve. It is still distributed with salve but only for
+debugging purposes. **DO NOT RELY ON IT FOR PRODUCTION.**
+* ``constructTree`` had been deprecated for a while. It has now formally been
+removed.
+* ``GrammarWalker`` now takes an external name resolver. Prior to this change,
+``GrammarWalker`` would instantiate an instance of ``NameResolver``. This was
+disadvantageous in cases where the code using salve already maintained its own
+name resolving machinery. It would essentially have to duplicate information
+with salve and suffer the performance consequences.
+
+ ``NameResolver`` has been renamed to ``DefaultNameResolver`` and
+ ``NameResolver`` is now an interface. When calling ``newWalker`` on ``Grammar``
+ you now need to pass a ``NameResolver`` instance. For cases where the old
+ behavior was as good as it gets, the way to get your code working with a minimum
+ of changes is to: a) replace ``const walker = grammar.newWalker()`` with ``const
+ walker = grammar.newWalker(new DefaultNameResolver())``, b) instead of calling
+ the ``DefaultNameResolver`` methods ``enterContext``, ``definePrefix``,
+ etc. directly on the ``walker``, call them on ``walker.nameResolver``.
+
 <a name="8.0.0"></a>
 # [8.0.0](https://github.com/mangalam-research/salve/compare/v7.0.3...v8.0.0) (2018-08-01)
 
