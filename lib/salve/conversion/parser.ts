@@ -501,16 +501,15 @@ export class Validator implements ValidatorI {
       this.walker.enterContextWithMapping(ns);
     }
 
-    const attributeEvents: string[] = [];
+    const params: string[] = [node.uri, node.local];
     for (const name of Object.keys(attributes)) {
       const { uri, prefix, local, value } = attributes[name] as SaxesAttribute;
       // xmlns="..." or xmlns:q="..."
       if (!(name === "xmlns" || prefix === "xmlns")) {
-        attributeEvents.push(uri, local, value);
+        params.push(uri, local, value);
       }
     }
-    this.fireEvent("startTagAndAttributes", [node.uri, node.local,
-                                             ...attributeEvents]);
+    this.fireEvent("startTagAndAttributes", params);
     this.contextStack.push(hasContext);
   }
 
