@@ -5,7 +5,16 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-export interface ResourceLoader {
+
+export interface Resource {
+  /** The URL for this resource. */
+  url: URL;
+
+  /** Get the resource as a string. */
+  getText(): Promise<string>;
+}
+
+export interface ResourceLoader<R extends Resource = Resource> {
   /**
    * @param path The path from which to load the resource. ``file://`` paths are
    * understood to be pointing into the filesystem local to the JavaScript
@@ -15,7 +24,7 @@ export interface ResourceLoader {
    *
    * @returns The resource.
    */
-  load(path: URL): Promise<string>;
+  load(path: URL): Promise<R>;
 }
 
 // tslint:disable-next-line:no-typeof-undefined

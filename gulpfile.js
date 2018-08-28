@@ -3,18 +3,14 @@
 "use strict";
 
 const fs_ = require("fs");
-const childProcess = require("child_process");
 const path = require("path");
 
 const gulp = require("gulp");
 const log = require("fancy-log");
 const gulpNewer = require("gulp-newer");
-const rename = require("gulp-rename");
-const jison = require("jison-gho");
 const Promise = require("bluebird");
 const del = require("del");
 const touch = require("touch");
-const es = require("event-stream");
 const { ArgumentParser } = require("argparse");
 const eslint = require("gulp-eslint");
 const versync = require("versync");
@@ -75,11 +71,6 @@ parser.addArgument(["--mocha-grep"], {
   help: "A pattern to pass to mocha to select tests.",
 });
 
-parser.addArgument(["--rst2html"], {
-  help: "The path of the rst2html executable.",
-  defaultValue: localConfig.rst2html || "rst2html",
-});
-
 parser.addArgument(["--browsers"], {
   help: "The list of browsers to use for Karma.",
   nargs: "+",
@@ -107,7 +98,6 @@ function runEslint() {
   return gulp.src([
     "*.js",
     "bin/**/*.js",
-    "lib/**/*.js",
     "gulptasks/**/*.js",
     "test/**/*.js",
     "!test/salve-convert/**/*.js",
@@ -127,21 +117,11 @@ function copySrc() {
   const dest = "build/dist/";
   return gulp.src([
     "package.json",
+    "README.md",
     "bin/*",
     "lib/**/*.d.ts",
     "lib/**/*.xsl",
   ], { base: "." })
-    .pipe(gulpNewer(dest))
-    .pipe(gulp.dest(dest));
-}
-
-function copyReadme() {
-  const dest = "build/dist/";
-  return gulp.src("NPM_README.md")
-    .pipe(rename("README.md"))
-  // Yep, gulpNewer has to be after the rename. The rename is done in memory and
-  // we want to have it done *before* the test so that the test tests against
-  // the correct file in the filesystem.
     .pipe(gulpNewer(dest))
     .pipe(gulp.dest(dest));
 }
@@ -179,50 +159,25 @@ function mocha() {
 
 gulp.task("lint", gulp.parallel(tslint, runEslint));
 
-gulp.task("jison", () => {
-  const dest = "build/dist/lib/salve/datatypes";
-  return gulp.src("lib/salve/datatypes/regexp.jison")
-    .pipe(gulpNewer(`${dest}/regexp.js`))
-  // eslint-disable-next-line array-callback-return
-    .pipe(es.map((data, callback) => {
-      const generated = new jison.Generator(data.contents.toString(), {
-        moduleType: "commonjs",
-        // Override the default main created by Jison. This module cannot ever
-        // be used as a main script. And the default that Jison uses does
-        // `require("fs")` which causes problems.
-        moduleMain: function main() {
-          throw new Error("this module cannot be used as main");
-        },
-      }).generate();
-      data.contents = Buffer.from(generated);
-      data.path = data.path.replace(/.jison$/, ".js");
-      callback(null, data);
-    }))
-    .pipe(gulp.dest(dest));
-});
-
-gulp.task("copy", gulp.series(gulp.parallel(copySrc, copyReadme),
+gulp.task("copy", gulp.series(copySrc,
                               () => fs.writeFileAsync("build/dist/.npmignore",
                                                       "bin/parse.js")));
 gulp.task("convert-schema",
-          () =>
           // We have to create the directory before converting.
-          execFileAndReport("mkdir", ["-p", "build/dist/lib/salve/schemas/"])
+          () => execFileAndReport("mkdir", ["-p",
+                                            "build/dist/lib/salve/schemas/"])
           // We have to write an empty file so that salve-convert will at least
           // not crash due to the file being missing.
-          .then(() =>
-                fs.writeFileAsync("build/dist/lib/salve/schemas/relaxng.json",
-                                  "{}"))
-          .then(() =>
-                // We use the previous version of salve to convert the
-                // validation schema.
-                execFileAndReport(
-                  "./build/dist/bin/salve-convert",
-                  ["--validator=none", "lib/salve/schemas/relaxng.rng",
-                   "build/dist/lib/salve/schemas/relaxng.json"])));
+          .then(() => fs.writeFileAsync(
+            "build/dist/lib/salve/schemas/relaxng.json", "{}"))
+          // We use the previous version of salve to convert the
+          // validation schema.
+          .then(() => execFileAndReport(
+            "./build/dist/bin/salve-convert",
+            ["--validator=none", "lib/salve/schemas/relaxng.rng",
+             "build/dist/lib/salve/schemas/relaxng.json"])));
 
-
-gulp.task("default", gulp.series(gulp.parallel(tsc, "copy", "jison"),
+gulp.task("default", gulp.series(gulp.parallel(tsc, "copy"),
                                  "convert-schema",
                                  () => webpack()));
 
@@ -246,8 +201,7 @@ gulp.task("install_test", gulp.series(
     yield del(testDir);
     yield fs.mkdirAsync(testDir);
     yield fs.mkdirAsync(path.join(testDir, "node_modules"));
-    yield execFile("npm", ["install", `../${packname}`, "sax", "@types/sax"],
-          { cwd: testDir });
+    yield execFile("npm", ["install", `../${packname}`], { cwd: testDir });
     let module = yield fs.readFileAsync("lib/salve/parse.ts");
     module = module.toString();
     module = module.replace("./validate", "salve");
@@ -310,21 +264,7 @@ gulp.task("typedoc",
                                  touch(stamp)]);
             })));
 
-gulp.task("readme", () => {
-  // The following code works fine only with one source and one
-  // destination. We're pretty much using gulp in a non-gulp way but this avoids
-  // having to code the logic of gulpNewer() ourselves. YMMV as to whether this
-  // is better.
-  const dest = "README.html";
-  const src = "README.rst";
-  return gulp.src(src, { read: false })
-    .pipe(gulpNewer(dest))
-    .pipe(es.map((file, callback) =>
-                 childProcess.execFile(options.rst2html, [src, dest],
-                                       () => callback())));
-});
-
-gulp.task("doc", gulp.parallel("typedoc", "readme"));
+gulp.task("doc", gulp.task("typedoc"));
 
 gulp.task("gh-pages-build", gulp.series("typedoc", () => {
   const dest = "gh-pages-build";

@@ -7,8 +7,10 @@
 
 import { EVENTS, SaxesAttribute, SaxesParser, SaxesTag } from "saxes";
 
+import { EName } from "../ename";
 import { ValidationError } from "../errors";
-import { XML1_NAMESPACE, XMLNS_NAMESPACE } from "../name_resolver";
+import { NameResolver, XML1_NAMESPACE,
+         XMLNS_NAMESPACE } from "../name_resolver";
 import { Grammar, GrammarWalker } from "../patterns";
 import { fixPrototype } from "../tools";
 import { RELAXNG_URI } from "./simplifier/util";
@@ -377,10 +379,10 @@ export class Element extends Node {
   setXMLNS(value: string): void {
     this.attributes.xmlns = {
       name: "xmlns",
-      prefix: "xmlns",
+      prefix: "",
       uri: XMLNS_NAMESPACE,
       value,
-      local: "",
+      local: "xmlns",
     };
   }
 
@@ -456,21 +458,60 @@ export interface ValidatorI {
   ontext(text: string): void;
 }
 
+class SaxesNameResolver implements NameResolver {
+  constructor(private readonly saxesParser: SaxesParser) {}
+
+  resolveName(name: string,
+              attribute: boolean = false): EName | undefined {
+    const colon = name.indexOf(":");
+
+    let prefix: string;
+    let local: string;
+    if (colon === -1) {
+      if (attribute) { // Attribute in undefined namespace
+        return new EName("", name);
+      }
+
+      // We are searching for the default namespace currently in effect.
+      prefix = "";
+      local = name;
+    }
+    else {
+      prefix = name.substring(0, colon);
+      local = name.substring(colon + 1);
+      if (local.includes(":")) {
+        throw new Error("invalid name passed to resolveName");
+      }
+    }
+
+    const uri = (this.saxesParser as any).resolve(prefix);
+    if (uri !== undefined) {
+      return new EName(uri, local);
+    }
+
+    return (prefix === "") ? new EName("", local) : undefined;
+  }
+
+  clone(): this {
+    throw new Error("cannot clone a SaxesNameResolver");
+  }
+}
+
 export class Validator implements ValidatorI {
   /** Whether we ran into an error. */
   readonly errors: ValidationError[] = [];
 
   /** The walker used for validating. */
-  private readonly walker: GrammarWalker;
+  private readonly walker: GrammarWalker<SaxesNameResolver>;
 
   /** The context stack. */
-  private readonly contextStack: boolean[] = [];
+  // private readonly contextStack: boolean[] = [];
 
   /** A text buffer... */
   private textBuf: string = "";
 
-  constructor(grammar: Grammar) {
-    this.walker = grammar.newWalker();
+  constructor(grammar: Grammar, parser: SaxesParser) {
+    this.walker = grammar.newWalker(new SaxesNameResolver(parser));
   }
 
   protected flushTextBuf(): void {
@@ -491,39 +532,39 @@ export class Validator implements ValidatorI {
 
   onopentag(node: SaxesTag): void {
     this.flushTextBuf();
-    let hasContext = false;
-    const attributeEvents: string[] = [];
-    for (const name of Object.keys(node.attributes)) {
-      const { uri, prefix, local, value } =
-        node.attributes[name] as SaxesAttribute;
-      if ((local === "" && name === "xmlns") ||
-          prefix === "xmlns") { // xmlns="..." or xmlns:q="..."
-        if (!hasContext) {
-          this.walker.enterContext();
-          hasContext = true;
-        }
-        this.walker.definePrefix(local, value);
-      }
-      else {
-        attributeEvents.push(uri, local, value);
+    // let hasContext = false;
+
+    const { attributes } = node;
+
+    // const prefixes = Object.keys(ns);
+    // if (prefixes.length !== 0) {
+    //   hasContext = true;
+    //   this.walker.enterContextWithMapping(ns);
+    // }
+
+    const params: string[] = [node.uri, node.local];
+    for (const name of Object.keys(attributes)) {
+      const { uri, prefix, local, value } = attributes[name] as SaxesAttribute;
+      // xmlns="..." or xmlns:q="..."
+      if (!(name === "xmlns" || prefix === "xmlns")) {
+        params.push(uri, local, value);
       }
     }
-    this.fireEvent("startTagAndAttributes", [node.uri, node.local,
-                                             ...attributeEvents]);
-    this.contextStack.push(hasContext);
+    this.fireEvent("startTagAndAttributes", params);
+    // this.contextStack.push(hasContext);
   }
 
   onclosetag(node: SaxesTag): void {
     this.flushTextBuf();
-    const hasContext = this.contextStack.pop();
-    if (hasContext === undefined) {
-      throw new Error("stack underflow");
-    }
+    // const hasContext = this.contextStack.pop();
+    // if (hasContext === undefined) {
+    //   throw new Error("stack underflow");
+    // }
 
     this.fireEvent("endTag", [node.uri, node.local]);
-    if (hasContext) {
-      this.walker.leaveContext();
-    }
+    // if (hasContext) {
+    //   this.walker.leaveContext();
+    // }
   }
 
   ontext(text: string): void {

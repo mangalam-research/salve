@@ -11,7 +11,8 @@
 const { assert } = require("chai");
 const mergeOptions = require("merge-options");
 const datatypes = require("../build/dist/lib/salve/datatypes");
-const nameResolver = require("../build/dist/lib/salve/name_resolver");
+const { DefaultNameResolver } =
+      require("../build/dist/lib/salve/default_name_resolver");
 
 const decimalProgram = {
   equal: {
@@ -1100,11 +1101,11 @@ const anyURIProgram = {
 };
 
 
-const docNr = new nameResolver.NameResolver();
+const docNr = new DefaultNameResolver();
 docNr.definePrefix("a", "http://aaaaa.com");
 docNr.definePrefix("", "http://qqqqqq.com");
 
-const schemaNr = new nameResolver.NameResolver();
+const schemaNr = new DefaultNameResolver();
 schemaNr.definePrefix("aaa", "http://aaaaa.com");
 schemaNr.definePrefix("z", "http://qqqqqq.com");
 
@@ -1205,8 +1206,7 @@ function testProgram(name, lib, program, disallows) {
 
     describe("parseParams", () => {
       for (const x of program.parseParams) {
-        it(x[0], () =>
-           assert.deepEqual(type.parseParams("foo:1", x[1]), x[2]));
+        it(x[0], () => assert.deepEqual(type.parseParams("foo:1", x[1]), x[2]));
       }
     });
 
@@ -1222,8 +1222,8 @@ function testProgram(name, lib, program, disallows) {
           }
 
           for (const x of none.false) {
-            it(`allows ${x[0]}`, () =>
-               assert.isFalse(type.disallows(x[1], {}, docContext)));
+            it(`allows ${x[0]}`,
+               () => assert.isFalse(type.disallows(x[1], {}, docContext)));
           }
 
           for (const x of none.true) {
@@ -1284,16 +1284,16 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
     before(() => assert.isFalse(type.needsContext));
 
     describe("equal", () => {
-      it("returns true for two equal values", () =>
-         assert.isTrue(type.equal("foo", { value: "foo" })));
+      it("returns true for two equal values",
+         () => assert.isTrue(type.equal("foo", { value: "foo" })));
 
-      it("returns false for two unequal values", () =>
-         assert.isFalse(type.equal("foo", { value: "bar" })));
+      it("returns false for two unequal values",
+         () => assert.isFalse(type.equal("foo", { value: "bar" })));
     });
 
     describe("parseParams", () => {
-      it("empty array", () =>
-         assert.deepEqual(type.parseParams("foo:1", []), {}));
+      it("empty array",
+         () => assert.deepEqual(type.parseParams("foo:1", []), {}));
 
       it("all, except minLength and maxLength", () => {
         assert.deepEqual(
@@ -1372,8 +1372,8 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
       });
 
       describe("with a length parameter", () => {
-        it("allows the length", () =>
-           assert.isFalse(type.disallows("foo", { length: 3 })));
+        it("allows the length",
+           () => assert.isFalse(type.disallows("foo", { length: 3 })));
 
         it("disallows other lengths", () => {
           const ret = type.disallows("foobar", { length: 3 });
@@ -1383,11 +1383,11 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
       });
 
       describe("with a minLength parameter", () => {
-        it("allows the length", () =>
-           assert.isFalse(type.disallows("foo", { minLength: 3 })));
+        it("allows the length",
+           () => assert.isFalse(type.disallows("foo", { minLength: 3 })));
 
-        it("allows more than the length", () =>
-           assert.isFalse(type.disallows("foobar", { minLength: 3 })));
+        it("allows more than the length",
+           () => assert.isFalse(type.disallows("foobar", { minLength: 3 })));
 
         it("disallows less than the length", () => {
           const ret = type.disallows("f", { minLength: 3 });
@@ -1398,11 +1398,11 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
       });
 
       describe("with a maxLength parameter", () => {
-        it("allows the length", () =>
-          assert.isFalse(type.disallows("foo", { maxLength: 3 })));
+        it("allows the length",
+           () => assert.isFalse(type.disallows("foo", { maxLength: 3 })));
 
-        it("allows less than the length", () =>
-          assert.isFalse(type.disallows("f", { maxLength: 3 })));
+        it("allows less than the length",
+           () => assert.isFalse(type.disallows("f", { maxLength: 3 })));
 
         it("disallows more than the length", () => {
           const ret = type.disallows("foobar", { maxLength: 3 });
@@ -1414,13 +1414,22 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
 
       describe("with a pattern parameter", () => {
         // Extract the pattern processor from the type.
-        const { pattern } = type.paramNameToObj;
-        it("allows the pattern", () =>
-           assert.isFalse(
-             type.disallows("foo", { pattern: pattern.convert("[fb].*") })));
+        it("allows the pattern",
+           () => assert.isFalse(
+             type.disallows("foo",
+                            type.parseParams("",
+                                             [{
+                                               name: "pattern",
+                                               value: "[fb].*",
+                                             }]))));
         it("disallows what does not match the pattern", () => {
-          const ret = type.disallows("afoo",
-                                     { pattern: pattern.convert("[fb].*") });
+          const ret =
+                type.disallows("afoo",
+                               type.parseParams("",
+                                                [{
+                                                  name: "pattern",
+                                                  value: "[fb].*",
+                                                }]));
           assert.equal(ret.length, 1);
           assert.equal(ret[0].toString(),
                        "value does not match the pattern [fb].*");
@@ -1482,8 +1491,9 @@ describe("datatypes", () => {
            () => assert.isTrue(type.equal(
              "foo bar   fwip", type.parseValue("", " foo   bar fwip"))));
 
-        it("returns false for two unequal values", () =>
-           assert.isFalse(type.equal("foobar", type.parseValue("", "foo bar"))));
+        it("returns false for two unequal values",
+           () => assert.isFalse(type.equal("foobar",
+                                           type.parseValue("", "foo bar"))));
       });
 
       describe("disallows", () => {

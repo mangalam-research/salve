@@ -17,68 +17,6 @@ import { xmlNameChar, xmlNameRe, xmlNcname,
 // tslint:disable: no-reserved-keywords
 
 /**
- * Check whether a parameter is an integer.
- *
- * @param value The parameter value.
- *
- * @param name The name of the parameter.
- *
- * @return ``false`` if there is no error. Otherwise it returns a [[ParamError]]
- * that records the error.
- *
- * @private
- */
-function failIfNotInteger(value: string, name: string): ParamError | false {
-  if (value.search(/^\d+$/) !== -1) {
-    return false;
-  }
-
-  return new ParamError(`${name} must have an integer value`);
-}
-
-/**
- * Check whether a parameter is a non-negative integer.
- *
- * @param value The parameter value.
- *
- * @param name The name of the parameter.
- *
- * @return ``false`` if there is no error. Otherwise it returns a [[ParamError]]
- * that records the error.
- *
- * @private
- */
-function failIfNotNonNegativeInteger(value: string, name: string):
-ParamError | false {
-  if (!failIfNotInteger(value, name) && Number(value) >= 0) {
-    return false;
-  }
-
-  return new ParamError(`${name} must have a non-negative integer value`);
-}
-
-/**
- * Check whether a parameter is a positive integer.
- *
- * @param value The parameter value.
- *
- * @param name The name of the parameter.
- *
- * @return ``false`` if there is no error. Otherwise it returns a [[ParamError]]
- * that records the error.
- *
- * @private
- */
-function failIfNotPositiveInteger(value: string, name: string):
-ParamError | false {
-  if (!failIfNotInteger(value, name) && Number(value) > 0) {
-    return false;
-  }
-
-  return new ParamError(`${name} must have a positive value`);
-}
-
-/**
  * Convert a number to an internal representation. This takes care of the
  * differences between JavaScript and XML Schema (e.g. "Infinity" vs "INF").
  *
@@ -124,20 +62,19 @@ function convertInternalNumberToString(value: number): string {
 //
 
 /**
- * A parameter used for XML
- * Schema type processing.
+ * A parameter used for XML Schema type processing.
  */
-abstract class Parameter {
+interface Parameter {
 
   /**
    * The name of this parameter.
    */
-  abstract readonly name: string;
+  readonly name: string;
 
   /**
    * Whether the parameter can appear more than once on the same type.
    */
-  readonly repeatable: boolean = false;
+  readonly repeatable: boolean;
 
   /**
    * Convert the parameter value from a string to a value to be used internally
@@ -147,7 +84,7 @@ abstract class Parameter {
    *
    * @returns The converted value.
    */
-  abstract convert(value: string): any;
+  convert(value: string): any;
 
   /**
    * Checks whether a parameter is invalid.
@@ -162,8 +99,8 @@ abstract class Parameter {
    *
    * @returns ``false`` if there is no problem. Otherwise, an error.
    */
-  abstract isInvalidParam(value: string, name: string,
-                          type: Datatype): ParamError | false;
+  isInvalidParam(value: string, name: string,
+                 type: Datatype): ParamError | false;
 
   /**
    * Checks whether a value that appears in the XML document being validated is
@@ -179,28 +116,18 @@ abstract class Parameter {
    *
    * @returns ``false`` if there is no problem. Otherwise, an error.
    */
+  isInvalidValue(value: any, param: any, type: Base<{}>): ValueError | false;
+}
+
+abstract class NumericParameter implements Parameter {
+  abstract readonly name: string;
+  abstract readonly repeatable: boolean;
+
+  abstract isInvalidParam(value: string, name: string,
+                          type: Datatype): ParamError | false;
   abstract isInvalidValue(value: any, param: any,
                           type: Base<{}>): ValueError | false;
 
-  /**
-   * Combine multiple values from the schema into an internal value. This method
-   * may be called only for parameters that are repeatable.
-   *
-   * @param values The values to combine
-   *
-   * @returns An array of internal values.
-   */
-  combine(values: string[]): any[] {
-    if (!this.repeatable) {
-      throw new Error("this parameter is not repeatable");
-    }
-
-    throw new Error("derived classes must implement this method " +
-                    "if they are repeatable");
-  }
-}
-
-abstract class NumericParameter extends Parameter {
   convert(value: string): any {
     return convertToInternalNumber(value);
   }
@@ -208,12 +135,18 @@ abstract class NumericParameter extends Parameter {
 
 abstract class NonNegativeIntegerParameter extends NumericParameter {
   isInvalidParam(value: string, name: string): ParamError | false {
-    return failIfNotNonNegativeInteger(value, name);
+    const asNum = Number(value);
+    if (Number.isInteger(asNum) && asNum >= 0) {
+      return false;
+    }
+
+    return new ParamError(`${name} must have a non-negative integer value`);
   }
 }
 
 class LengthP extends NonNegativeIntegerParameter {
   readonly name: string = "length";
+  readonly repeatable: boolean = false;
 
   isInvalidValue(value: any, param: any, type: Base<{}>): ValueError | false {
     if (type.valueLength(value) === param) {
@@ -228,6 +161,7 @@ const lengthP = new LengthP();
 
 class MinLengthP extends NonNegativeIntegerParameter {
   readonly name: string = "minLength";
+  readonly repeatable: boolean = false;
 
   isInvalidValue(value: any, param: any, type: Base<{}>): ValueError | false {
     if (type.valueLength(value) >= param) {
@@ -243,6 +177,7 @@ const minLengthP = new MinLengthP();
 
 class MaxLengthP extends NonNegativeIntegerParameter {
   readonly name: string = "maxLength";
+  readonly repeatable: boolean = false;
 
   isInvalidValue(value: any, param: any, type: Base<{}>): ValueError | false {
     if (type.valueLength(value) <= param) {
@@ -278,7 +213,7 @@ export interface ConvertedPattern {
   internal: RegExp;
 }
 
-class PatternP extends Parameter {
+class PatternP implements Parameter {
   readonly name: string = "pattern";
   readonly repeatable: boolean = true;
 
@@ -292,10 +227,6 @@ class PatternP extends Parameter {
       rng: value,
       internal,
     };
-  }
-
-  combine(values: string[]): ConvertedPattern[] {
-    return values.map(this.convert);
   }
 
   isInvalidParam(value: string): ParamError | false {
@@ -346,9 +277,15 @@ const patternP = new PatternP();
 
 class TotalDigitsP extends NumericParameter {
   readonly name: string = "totalDigits";
+  readonly repeatable: boolean = false;
 
   isInvalidParam(value: string, name: string): ParamError | false {
-    return failIfNotPositiveInteger(value, name);
+    const asNum = Number(value);
+    if (Number.isInteger(asNum) && asNum > 0) {
+      return false;
+    }
+
+    return new ParamError(`${name} must have a positive value`);
   }
 
   isInvalidValue(value: any, param: any): ValueError | false {
@@ -365,6 +302,7 @@ const totalDigitsP = new TotalDigitsP();
 
 class FractionDigitsP extends NonNegativeIntegerParameter {
   readonly name: string = "fractionDigits";
+  readonly repeatable: boolean = false;
 
   isInvalidValue(value: any, param: any): ValueError | false {
     const str = String(Number(value)).replace(/^.*\./, "");
@@ -395,6 +333,8 @@ const fractionDigitsP = new FractionDigitsP();
 
 class MaxInclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "maxInclusive";
+  readonly repeatable: boolean = false;
+
   isInvalidValue(value: any, param: any): ValueError | false {
     if ((isNaN(value) !== isNaN(param)) || value > param) {
       const repr = convertInternalNumberToString(param);
@@ -410,6 +350,8 @@ const maxInclusiveP = new MaxInclusiveP();
 
 class MaxExclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "maxExclusive";
+  readonly repeatable: boolean = false;
+
   isInvalidValue(value: any, param: any): ValueError | false {
     // The negation of a less-than test allows handling a parameter value of NaN
     // automatically.
@@ -427,6 +369,8 @@ const maxExclusiveP = new MaxExclusiveP();
 
 class MinInclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "minInclusive";
+  readonly repeatable: boolean = false;
+
   isInvalidValue(value: any, param: any): ValueError | false {
     if ((isNaN(value) !== isNaN(param)) || value < param) {
       const repr = convertInternalNumberToString(param);
@@ -442,6 +386,8 @@ const minInclusiveP = new MinInclusiveP();
 
 class MinExclusiveP extends NumericTypeDependentParameter {
   readonly name: string = "minExclusive";
+  readonly repeatable: boolean = false;
+
   isInvalidValue(value: any, param: any): ValueError | false {
     // The negation of a greater-than test allows handling a parameter value of
     // NaN automatically.
@@ -464,14 +410,24 @@ function whitespacePreserve(value: string): string {
 }
 
 function whitespaceCollapse(value: string): string {
-  return value.replace(/\s+/g, " ").trim();
+  // It is generally faster to trim first.
+  return value.trim().replace(/\s+/g, " ");
 }
 
 function whitespaceReplace(value: string): string {
   return value.replace(/\s+/g, " ");
 }
 
-type NameToParameterMap = TrivialMap<Parameter>;
+/**
+ * A mapping of parameter names to parameter objects.
+ */
+const PARAM_NAME_TO_OBJ: TrivialMap<Parameter> = Object.create(null);
+
+for (const param of [lengthP, minLengthP, maxLengthP, patternP, totalDigitsP,
+                     fractionDigitsP, minExclusiveP, minInclusiveP,
+                     maxExclusiveP, maxInclusiveP]) {
+  PARAM_NAME_TO_OBJ[param.name] = param;
+}
 
 /**
  * The structure that all datatype implementations in this module share.
@@ -504,27 +460,7 @@ abstract class Base<T> implements Datatype<T> {
   /**
    * Parameters that are valid for this type.
    */
-  readonly validParams: Parameter[];
-
-  protected _paramNameToObj: NameToParameterMap | undefined;
-
-  /**
-   * A mapping of parameter names to parameter objects. It is constructed during
-   * initialization of the type.
-   */
-  protected get paramNameToObj(): NameToParameterMap {
-    const paramNameToObj = this._paramNameToObj;
-    const ret = paramNameToObj !== undefined ? paramNameToObj :
-      Object.create(null);
-    if (paramNameToObj === undefined) {
-      this._paramNameToObj = ret;
-      for (const param of this.validParams) {
-        ret[param.name] = param;
-      }
-    }
-
-    return ret;
-  }
+  readonly validParams: ReadonlyArray<Parameter>;
 
   protected _defaultParams?: ParsedParams;
 
@@ -584,21 +520,21 @@ abstract class Base<T> implements Datatype<T> {
 
   // tslint:disable-next-line: max-func-body-length
   parseParams(location: string, params?: RawParameter[]): ParsedParams {
-    const names: TrivialMap<string[]> = Object.create(null);
+    const ret: TrivialMap<string[]> = Object.create(null);
     if (params === undefined) {
       // Yes, if the list of parameters is empty, we return an empty map because
       // by default there are no default parameters.
-      return names;
+      return ret;
     }
 
     const errors: ParamError[] = [];
     for (const x of params) {
       const { name, value } = x;
 
-      const prop = this.paramNameToObj[name];
+      const prop = PARAM_NAME_TO_OBJ[name];
 
       // Do we know this parameter?
-      if (prop === undefined) {
+      if (prop === undefined || !this.validParams.includes(prop)) {
         errors.push(new ParamError(`unexpected parameter: ${name}`));
 
         continue;
@@ -609,37 +545,29 @@ abstract class Base<T> implements Datatype<T> {
       if (invalid) {
         errors.push(invalid);
       }
-
-      // Is it repeated, and repeatable?
-      if (names[name] !== undefined && !prop.repeatable) {
-        errors.push(new ParamError(`cannot repeat parameter ${name}`));
+      else {
+        const converted = prop.convert(value);
+        const values = ret[name];
+        // We gather all the values in a map of name to value.
+        if (values === undefined) {
+          ret[name] = converted;
+        }
+        else {
+          if (!prop.repeatable) {
+            errors.push(new ParamError(`cannot repeat parameter ${name}`));
+          }
+          if (Array.isArray(values)) {
+            values.push(converted);
+          }
+          else {
+            ret[name] = [values, converted];
+          }
+        }
       }
-
-      // We gather all the values in a map of name to value.
-      let values = names[name];
-      if (values === undefined) {
-        values = names[name] = [];
-      }
-
-      values.push(value);
     }
 
     if (errors.length !== 0) {
       throw new ParameterParsingError(location, errors);
-    }
-
-    // We just modify the ``names`` object to produce a return value.
-    const ret = names;
-    for (const key in ret) { // tslint:disable-line:forin
-      const value = ret[key];
-      const prop = this.paramNameToObj[key];
-      if (value.length > 1) {
-        ret[key] = prop.combine(value);
-      }
-      else {
-        ret[key] = ((prop.convert !== undefined) ?
-                    prop.convert(value[0]) : value[0]);
-      }
     }
 
     // Inter-parameter checks. There's no point in trying to generalize
@@ -764,9 +692,8 @@ abstract class Base<T> implements Datatype<T> {
     }
 
     const errors: ValueError[] = [];
-    // We use Object.keys because we don't know the precise type of params.
     for (const name of paramNames) {
-      const param = this.paramNameToObj[name];
+      const param = PARAM_NAME_TO_OBJ[name];
       const err = param.isInvalidValue(converted, params[name], this);
       if (err) {
         errors.push(err);
@@ -815,7 +742,7 @@ class string_ extends CommonStringBased {
     const errors: ValueError[] = [];
     // We use Object.keys because we don't know the precise type of params.
     for (const name of Object.keys(params)) {
-      const param = this.paramNameToObj[name];
+      const param = PARAM_NAME_TO_OBJ[name];
       const err = param.isInvalidValue(converted, params[name], this);
       if (err) {
         errors.push(err);

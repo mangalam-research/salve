@@ -8,12 +8,14 @@
 import { SaxesParser } from "saxes";
 
 import { registry, ValueError, ValueValidationError } from "../../datatypes";
+import { DefaultNameResolver } from "../../default_name_resolver";
 import { readTreeFromJSON } from "../../json-format/read";
 import { NameResolver } from "../../name_resolver";
 import { AnyName, ConcreteName, Grammar, Name, NameChoice,
          NsName } from "../../patterns";
 import * as relaxng from "../../schemas/relaxng";
 import { BasicParser, Element, Text, Validator } from "../parser";
+import { ResourceLoader } from "../resource-loader";
 import { ManifestEntry, registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { SchemaValidationError } from "../schema-validation";
@@ -447,7 +449,7 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
       el.empty();
       el.appendChild(new Text(value));
 
-      const nr = new NameResolver();
+      const nr = new DefaultNameResolver();
       nr.definePrefix("", ns);
       context = { resolver: nr };
     }
@@ -647,14 +649,15 @@ function getGrammar(): Grammar {
 /**
  * A simplifier implemented in TypeScript (thus internal to Salve).
  */
-export class InternalSimplifier extends BaseSimplifier {
+export class InternalSimplifier<RL extends ResourceLoader>
+  extends BaseSimplifier {
   static validates: true = true;
   static createsManifest: true = true;
 
   private lastStepStart?: number;
   private readonly manifestPromises: PromiseLike<ManifestEntry>[] = [];
 
-  constructor(options: SchemaSimplifierOptions) {
+  constructor(options: SchemaSimplifierOptions<RL>) {
     super(options);
     if (options.timing) {
       options.verbose = true;
@@ -662,18 +665,20 @@ export class InternalSimplifier extends BaseSimplifier {
   }
 
   private async parse(filePath: URL): Promise<Element> {
-    const schema = await this.options.resourceLoader.load(filePath);
+    const schemaResource = await this.options.resourceLoader.load(filePath);
+    const schemaText = await schemaResource.getText();
+    const fileName = filePath.toString();
+    const saxesParser = new SaxesParser({ xmlns: true,
+                                          position: false,
+                                          fileName });
     let validator: Validator | undefined;
     if (this.options.validate) {
-      validator = new Validator(getGrammar());
+      validator = new Validator(getGrammar(), saxesParser);
     }
 
-    const parser =
-      new BasicParser(new SaxesParser({ xmlns: true,
-                                        position: false,
-                                        fileName: filePath.toString() }),
-                      validator);
-    parser.saxesParser.write(schema);
+    const parser = new BasicParser(saxesParser,
+                                   validator);
+    parser.saxesParser.write(schemaText);
     parser.saxesParser.close();
 
     if (validator !== undefined) {
@@ -685,20 +690,30 @@ export class InternalSimplifier extends BaseSimplifier {
 
     if (this.options.createManifest) {
       const algo = this.options.manifestHashAlgorithm;
-      this.manifestPromises.push((async () => {
-        const digest =
-          // tslint:disable-next-line:await-promise
-          await crypto.subtle.digest(algo, new TextEncoder().encode(schema));
+      if (typeof algo === "string") {
+        this.manifestPromises.push((async () => {
+          const digest =
+            // tslint:disable-next-line:await-promise
+            await crypto.subtle.digest(algo,
+                                       new TextEncoder().encode(schemaText));
 
-        const arr = new Uint8Array(digest);
-        let hash = `${algo}-`;
-        for (const x of arr) {
-          const hex = x.toString(16);
-          hash += x > 0xF ? hex : `0${hex}`;
-        }
+          const arr = new Uint8Array(digest);
+          let hash = `${algo}-`;
+          for (const x of arr) {
+            const hex = x.toString(16);
+            hash += x > 0xF ? hex : `0${hex}`;
+          }
 
-        return { filePath: filePath.toString(), hash };
-      })());
+          return { filePath: fileName, hash };
+        })());
+      }
+      else {
+        this.manifestPromises.push((async () => {
+          const hash = await algo(schemaResource);
+
+          return { filePath: fileName, hash };
+        })());
+      }
     }
 
     return parser.root;

@@ -9,7 +9,7 @@
 "use strict";
 
 const { assert } = require("chai");
-const { EName, NameResolver } = require("../build/dist/");
+const { EName, DefaultNameResolver } = require("../build/dist/");
 
 const mapping = {
   btw: "http://lddubeau.com/ns/btw-storage",
@@ -17,11 +17,11 @@ const mapping = {
   "": "http://www.tei-c.org/ns/1.0",
 };
 
-describe("NameResolver", () => {
+describe("DefaultNameResolver", () => {
   describe("resolveName", () => {
     let resolver;
     beforeEach(() => {
-      resolver = new NameResolver();
+      resolver = new DefaultNameResolver();
       for (const k of Object.keys(mapping)) {
         resolver.definePrefix(k, mapping[k]);
       }
@@ -31,24 +31,25 @@ describe("NameResolver", () => {
        "to resolve an unprefixed name even when no default " +
        "namespace has been defined",
        () => {
-         resolver = new NameResolver();
+         resolver = new DefaultNameResolver();
          assert.equal(resolver.resolveName("blah").toString(), "{}blah");
        });
 
     it("resolves xml", () => {
-      resolver = new NameResolver();
+      resolver = new DefaultNameResolver();
       assert.equal(resolver.resolveName("xml:lang", true).toString(),
                    "{http://www.w3.org/XML/1998/namespace}lang");
     });
 
     it("resolves xmlns", () => {
-      resolver = new NameResolver();
+      resolver = new DefaultNameResolver();
       assert.equal(resolver.resolveName("xmlns:foo", true).toString(),
                    "{http://www.w3.org/2000/xmlns/}foo");
     });
 
-    it("returns undefined when resolving an unknown prefix", () =>
-       assert.equal(resolver.resolveName("garbage:blah", true), undefined));
+    it("returns undefined when resolving an unknown prefix",
+       () => assert.equal(resolver.resolveName("garbage:blah", true),
+                          undefined));
 
     it("throws an error when trying to resolve a badly formed name",
        () => {
@@ -71,8 +72,8 @@ describe("NameResolver", () => {
        () => assert.equal(resolver.resolveName("blah", true).toString(),
                           new EName("", "blah").toString()));
 
-    it("resolves attribute names with prefix", () =>
-       assert.equal(
+    it("resolves attribute names with prefix",
+       () => assert.equal(
          resolver.resolveName("btw:blah", true).toString(),
          new EName("http://lddubeau.com/ns/btw-storage", "blah").toString()));
 
@@ -88,7 +89,7 @@ describe("NameResolver", () => {
   describe("definePrefix", () => {
     let resolver;
     before(() => {
-      resolver = new NameResolver();
+      resolver = new DefaultNameResolver();
     });
 
     it("fails if trying to define xmlns", () => {
@@ -105,9 +106,10 @@ describe("NameResolver", () => {
                     Error, "trying to define 'xml' to an incorrect URI");
     });
 
-    it("allows defining xml", () =>
+    it("allows defining xml",
        // The lack of error thrown is what we are looking for.
-       resolver.definePrefix("xml", "http://www.w3.org/XML/1998/namespace"));
+       () => resolver.definePrefix("xml",
+                                   "http://www.w3.org/XML/1998/namespace"));
   });
 
   describe("", () => {
@@ -115,7 +117,7 @@ describe("NameResolver", () => {
     // We use this test twice because it tests both enterContext
     // and leaveContext.
     function enterLeaveTest() {
-      resolver = new NameResolver();
+      resolver = new DefaultNameResolver();
       resolver.definePrefix("", "def1");
       resolver.definePrefix("X", "uri:X1");
       assert.equal(resolver.resolveName("blah").toString(),
@@ -141,7 +143,7 @@ describe("NameResolver", () => {
     describe("leaveContext", () => {
       it("allows leaving contexts that were entered, but no more",
          () => {
-           resolver = new NameResolver();
+           resolver = new DefaultNameResolver();
            resolver.enterContext();
            resolver.enterContext();
            resolver.leaveContext();
@@ -163,15 +165,15 @@ describe("NameResolver", () => {
   describe("unresolveName", () => {
     let resolver;
     beforeEach(() => {
-      resolver = new NameResolver();
+      resolver = new DefaultNameResolver();
       for (const k of Object.keys(mapping)) {
         resolver.definePrefix(k, mapping[k]);
       }
     });
 
-    it("knows the uri for the default namespace", () =>
-       assert.equal(resolver.unresolveName("http://www.tei-c.org/ns/1.0",
-                                           "blah"), "blah"));
+    it("knows the uri for the default namespace",
+       () => assert.equal(resolver.unresolveName("http://www.tei-c.org/ns/1.0",
+                                                 "blah"), "blah"));
 
     it("knows the XML namespace",
        () => assert.equal(resolver.unresolveName(
@@ -209,18 +211,19 @@ describe("NameResolver", () => {
   describe("prefixFromURI", () => {
     let resolver;
     beforeEach(() => {
-      resolver = new NameResolver();
+      resolver = new DefaultNameResolver();
       for (const k of Object.keys(mapping)) {
         resolver.definePrefix(k, mapping[k]);
       }
     });
 
-    it("knows the uri for the default namespace", () =>
-       assert.equal(resolver.prefixFromURI("http://www.tei-c.org/ns/1.0"), ""));
+    it("knows the uri for the default namespace",
+       () => assert.equal(resolver.prefixFromURI("http://www.tei-c.org/ns/1.0"),
+                          ""));
 
-    it("knows the uri of other namespaces that were defined", () =>
-         assert.equal(
-           resolver.prefixFromURI("http://lddubeau.com/ns/btw-storage"), "btw"));
+    it("knows the uri of other namespaces that were defined",
+       () => assert.equal(
+         resolver.prefixFromURI("http://lddubeau.com/ns/btw-storage"), "btw"));
 
     it("returns undefined when passed an unknown uri",
        () => assert.isUndefined(resolver.prefixFromURI("ttt")));
@@ -243,7 +246,7 @@ describe("NameResolver", () => {
   describe("clone", () => {
     let resolver;
     beforeEach(() => {
-      resolver = new NameResolver();
+      resolver = new DefaultNameResolver();
       for (const k of Object.keys(mapping)) {
         resolver.definePrefix(k, mapping[k]);
       }

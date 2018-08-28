@@ -4,7 +4,6 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { EName } from "../ename";
 import { AttributeNameError, ElementNameError,
          ValidationError } from "../errors";
 import { Name } from "../name_patterns";
@@ -172,9 +171,9 @@ export class Grammar extends BasePattern {
    *
    * @returns A walker.
    */
-  newWalker(): GrammarWalker {
+  newWalker<NR extends NameResolver>(nameResolver: NR): GrammarWalker<NR> {
     // tslint:disable-next-line:no-use-before-declare
-    return GrammarWalker.make(this);
+    return GrammarWalker.make(this, nameResolver);
   }
 }
 
@@ -221,9 +220,9 @@ class MisplacedElementWalker implements IWalker {
 /**
  * Walker for [[Grammar]].
  */
-export class GrammarWalker {
+export class GrammarWalker<NR extends NameResolver> {
   private constructor(protected readonly el: Grammar,
-                      private readonly nameResolver: NameResolver,
+                      readonly nameResolver: NR,
                       private elementWalkerStack: IWalker[][],
                       private misplacedDepth: number,
                       private _swallowAttributeValue: boolean,
@@ -231,9 +230,10 @@ export class GrammarWalker {
                       private ignoreNextWs: boolean) {
   }
 
-  static make(el: Grammar): GrammarWalker {
+  static make<NR extends NameResolver>(el: Grammar,
+                                       nameResolver: NR): GrammarWalker<NR> {
     return new GrammarWalker(el,
-                             new NameResolver(),
+                             nameResolver,
                              [[el.start.newWalker()]],
                              0,
                              false,
@@ -250,45 +250,6 @@ export class GrammarWalker {
                              this._swallowAttributeValue,
                              this.suspendedWs,
                              this.ignoreNextWs) as this;
-  }
-
-  /**
-   * Resolves a name using the walker's own name resolver.
-   *
-   * @param name A qualified name.
-   *
-   * @param attribute Whether this qualified name refers to an attribute.
-   *
-   * @returns An expanded name, or undefined if the name cannot be resolved.
-   */
-  resolveName(name: string, attribute: boolean): EName | undefined {
-    return this.nameResolver.resolveName(name, attribute);
-  }
-
-  /**
-   * See [["name_resolver".NameResolver.unresolveName]].
-   *
-   * @param uri The URI part of the expanded name.
-   *
-   * @param name The name part.
-   *
-   * @returns The qualified name that corresponds to the expanded name, or
-   * ``undefined`` if it cannot be resolved.
-   */
-  unresolveName(uri: string, name: string): string | undefined {
-    return this.nameResolver.unresolveName(uri, name);
-  }
-
-  enterContext(): void {
-    this.nameResolver.enterContext();
-  }
-
-  leaveContext(): void {
-    this.nameResolver.leaveContext();
-  }
-
-  definePrefix(prefix: string, uri: string): void {
-    this.nameResolver.definePrefix(prefix, uri);
   }
 
   /**

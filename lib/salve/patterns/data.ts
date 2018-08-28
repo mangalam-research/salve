@@ -64,6 +64,9 @@ export class Data extends Pattern {
 
     // tslint:disable-next-line:no-use-before-declare
     return new DataWalker(this,
+                          this.datatype,
+                          this.params,
+                          this.except,
                           false,
                           allowsEmptyContent,
                           allowsEmptyContent);
@@ -75,12 +78,18 @@ export class Data extends Pattern {
  */
 class DataWalker implements InternalWalker {
   constructor(protected readonly el: Data,
+              private readonly datatype: Datatype,
+              private readonly params: any,
+              private readonly except: Pattern | undefined,
               private matched: boolean,
               public canEndAttribute: boolean,
               public canEnd: boolean) {}
 
   clone(): this {
     return new DataWalker(this.el,
+                          this.el.datatype,
+                          this.el.params,
+                          this.el.except,
                           this.matched,
                           this.canEndAttribute,
                           this.canEnd) as this;
@@ -90,7 +99,7 @@ class DataWalker implements InternalWalker {
     // We completely ignore the possible exception when producing the
     // possibilities. There is no clean way to specify such an exception.
     return new Set(this.matched ? undefined :
-                   [new Event("text", this.el.datatype.regexp)]);
+                   [new Event("text", this.datatype.regexp)]);
   }
 
   possibleAttributes(): EventSet {
@@ -100,13 +109,13 @@ class DataWalker implements InternalWalker {
   fireEvent(name: string, params: string[],
             nameResolver: NameResolver): InternalFireEventResult {
     if (this.matched || name !== "text" ||
-        this.el.datatype.disallows(params[0], this.el.params,
-                                   { resolver: nameResolver })) {
+        this.datatype.disallows(params[0], this.params,
+                                { resolver: nameResolver })) {
       return new InternalFireEventResult(false);
     }
 
-    if (this.el.except !== undefined) {
-      const walker = this.el.except.newWalker();
+    if (this.except !== undefined) {
+      const walker = this.except.newWalker();
       const exceptRet = walker.fireEvent(name, params, nameResolver);
 
       // False, so the except does match the text, and so this pattern does

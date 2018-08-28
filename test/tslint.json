@@ -1,0 +1,10 @@
+{
+  "extends": "../tslint.json",
+  "rules": {
+    "missing-jsdoc": [false, "Not needed here"],
+    "completed-docs": false,
+    "no-implicit-dependencies": [true, "dev"],
+    "no-unused-expression": [false, "Too many false positives with chai."],
+    "chai-vague-errors": [false, "Meh..."]
+  }
+}
