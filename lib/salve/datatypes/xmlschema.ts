@@ -410,7 +410,8 @@ function whitespacePreserve(value: string): string {
 }
 
 function whitespaceCollapse(value: string): string {
-  return value.replace(/\s+/g, " ").trim();
+  // It is generally faster to trim first.
+  return value.trim().replace(/\s+/g, " ");
 }
 
 function whitespaceReplace(value: string): string {
