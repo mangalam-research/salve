@@ -100,13 +100,12 @@ export class NameResolver {
 
     let prefixes = top.backwards.get(uri);
     if (prefixes === undefined) {
-      prefixes = [];
+      prefixes = [prefix];
       top.backwards.set(uri, prefixes);
     }
-
     // This ensure that the default namespace is given priority when
     // unresolving names.
-    if (prefix === "") {
+    else if (prefix === "") {
       prefixes.unshift("");
     }
     else {
