@@ -492,19 +492,23 @@ export class Validator implements ValidatorI {
   onopentag(node: SaxesTag): void {
     this.flushTextBuf();
     let hasContext = false;
-    const attributeEvents: string[] = [];
-    for (const name of Object.keys(node.attributes)) {
-      const { uri, prefix, local, value } =
-        node.attributes[name] as SaxesAttribute;
-      // xmlns="..." or xmlns:q="..."
-      if (name === "xmlns" || prefix === "xmlns") {
-        if (!hasContext) {
-          this.walker.enterContext();
-          hasContext = true;
-        }
-        this.walker.definePrefix(name === "xmlns" ? "" : local, value);
+
+    const { attributes, ns } = node;
+
+    const prefixes = Object.keys(ns);
+    if (prefixes.length !== 0) {
+      hasContext = true;
+      this.walker.enterContext();
+      for (const prefix of prefixes) {
+        this.walker.definePrefix(prefix, ns[prefix]);
       }
-      else {
+    }
+
+    const attributeEvents: string[] = [];
+    for (const name of Object.keys(attributes)) {
+      const { uri, prefix, local, value } = attributes[name] as SaxesAttribute;
+      // xmlns="..." or xmlns:q="..."
+      if (!(name === "xmlns" || prefix === "xmlns")) {
         attributeEvents.push(uri, local, value);
       }
     }
