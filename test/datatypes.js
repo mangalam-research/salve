@@ -11,7 +11,8 @@
 const { assert } = require("chai");
 const mergeOptions = require("merge-options");
 const datatypes = require("../build/dist/lib/salve/datatypes");
-const nameResolver = require("../build/dist/lib/salve/name_resolver");
+const { DefaultNameResolver } =
+      require("../build/dist/lib/salve/default_name_resolver");
 
 const decimalProgram = {
   equal: {
@@ -1100,11 +1101,11 @@ const anyURIProgram = {
 };
 
 
-const docNr = new nameResolver.NameResolver();
+const docNr = new DefaultNameResolver();
 docNr.definePrefix("a", "http://aaaaa.com");
 docNr.definePrefix("", "http://qqqqqq.com");
 
-const schemaNr = new nameResolver.NameResolver();
+const schemaNr = new DefaultNameResolver();
 schemaNr.definePrefix("aaa", "http://aaaaa.com");
 schemaNr.definePrefix("z", "http://qqqqqq.com");
 

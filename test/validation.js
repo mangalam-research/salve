@@ -45,7 +45,7 @@ function makeParser(er, walker) {
       }
     }
 
-    const ename = walker.resolveName(`${node.prefix}:${node.local}`);
+    const ename = walker.nameResolver.resolveName(`${node.prefix}:${node.local}`);
     node.uri = ename.ns;
 
     er.recordEvent(walker, "enterStartTag", node.uri, node.local);
@@ -59,7 +59,7 @@ function makeParser(er, walker) {
         continue; // eslint-disable-line no-continue
       }
       if (prefix !== "") {
-        uri = walker.resolveName(`${prefix}:${local}`, true).ns;
+        uri = walker.nameResolver.resolveName(`${prefix}:${local}`, true).ns;
       }
       er.recordEvent(walker, "attributeName", uri, local);
       er.recordEvent(walker, "attributeValue", value);
@@ -129,15 +129,15 @@ class EventRecorder {
     let ret;
     switch (evParams[0]) {
     case "enterContext":
-      walker.enterContext();
+      walker.nameResolver.enterContext();
       ret = false;
       break;
     case "leaveContext":
-      walker.leaveContext();
+      walker.nameResolver.leaveContext();
       ret = false;
       break;
     case "definePrefix":
-      walker.definePrefix(...evParams.slice(1));
+      walker.nameResolver.definePrefix(...evParams.slice(1));
       ret = false;
       break;
     default:
@@ -197,7 +197,7 @@ function makeValidTest(dir) {
       }
       throw e;
     }
-    let walker = tree.newWalker();
+    let walker = tree.newWalker(new salve.DefaultNameResolver());
     const xmlSource = fileAsString(`test/${dir}/to_parse.xml`);
 
     // Get the expected results
@@ -303,7 +303,7 @@ describe("GrammarWalker.fireEvent", () => {
           }
           throw e;
         }
-        const walker = tree.newWalker();
+        const walker = tree.newWalker(new salve.DefaultNameResolver());
 
         const xmlSource = fileAsString(`test/${dir}/to_parse.xml`);
 
@@ -329,7 +329,7 @@ describe("GrammarWalker.fireEvent", () => {
           // needed for makeErrorTest.
           rng = rngSource;
           const tree = salve.readTreeFromJSON(fileAsString(rngSource));
-          walker = tree.newWalker();
+          walker = tree.newWalker(new salve.DefaultNameResolver());
         });
 
         it("which is empty", () => {
@@ -340,8 +340,8 @@ describe("GrammarWalker.fireEvent", () => {
         });
 
         it("which has an unclosed element", () => {
-          walker.enterContext();
-          walker.definePrefix("", "http://www.tei-c.org/ns/1.0");
+          walker.nameResolver.enterContext();
+          walker.nameResolver.definePrefix("", "http://www.tei-c.org/ns/1.0");
           let ret = walker.fireEvent("startTagAndAttributes",
                                      ["http://www.tei-c.org/ns/1.0", "TEI"]);
           assert.isFalse(ret);
@@ -354,8 +354,8 @@ describe("GrammarWalker.fireEvent", () => {
         });
 
         it("which has more than one unclosed element", () => {
-          walker.enterContext();
-          walker.definePrefix("", "http://www.tei-c.org/ns/1.0");
+          walker.nameResolver.enterContext();
+          walker.nameResolver.definePrefix("", "http://www.tei-c.org/ns/1.0");
           let ret;
           const names = ["TEI", "teiHeader", "fileDesc", "titleStmt"];
           for (const tagName of names) {
@@ -376,8 +376,8 @@ describe("GrammarWalker.fireEvent", () => {
         });
 
         it("which has more than one unclosed element, with contents", () => {
-          walker.enterContext();
-          walker.definePrefix("", "http://www.tei-c.org/ns/1.0");
+          walker.nameResolver.enterContext();
+          walker.nameResolver.definePrefix("", "http://www.tei-c.org/ns/1.0");
           let ret;
           const names = ["TEI", "teiHeader", "fileDesc", "titleStmt", "title"];
           for (const tagName of names) {

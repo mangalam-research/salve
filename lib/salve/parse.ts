@@ -10,7 +10,8 @@ import * as fs from "fs";
 import * as path from "path";
 import { SaxesAttribute, SaxesParser, SaxesTag } from "saxes";
 
-import { convertRNGToPattern, Grammar, readTreeFromJSON } from "./validate";
+import { convertRNGToPattern, DefaultNameResolver, Grammar,
+         readTreeFromJSON } from "./validate";
 
 // tslint:disable no-console
 
@@ -72,7 +73,8 @@ export async function parse(rngSource: string | Grammar,
 
   const tree = await grammarFromSource(rngSource);
 
-  const walker = tree.newWalker();
+  const nameResolver = new DefaultNameResolver();
+  const walker = tree.newWalker(nameResolver);
 
   let error = false;
 
@@ -119,9 +121,9 @@ export async function parse(rngSource: string | Grammar,
       }
     }
     if (nsDefinitions.length !== 0) {
-      walker.enterContext();
+      nameResolver.enterContext();
       for (const definition of nsDefinitions) {
-        walker.definePrefix(definition[0], definition[1]);
+        nameResolver.definePrefix(definition[0], definition[1]);
       }
     }
     fireEvent("enterStartTag", [node.uri, node.local]);
@@ -148,7 +150,7 @@ export async function parse(rngSource: string | Grammar,
     }
     fireEvent("endTag", [tagInfo.uri, tagInfo.local]);
     if (tagInfo.hasContext) {
-      walker.leaveContext();
+      nameResolver.leaveContext();
     }
   };
 

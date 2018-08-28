@@ -23,6 +23,7 @@ export { EName }  from "./ename";
 export { AttributeNameError, AttributeValueError, ChoiceError,
          ElementNameError, ValidationError } from "./errors";
 
+export { DefaultNameResolver } from "./default_name_resolver";
 export { NameResolver } from "./name_resolver";
 
 export { Base as BaseName, ConcreteName, Name, NameChoice, NsName,

@@ -8,6 +8,7 @@
 import { SaxesParser } from "saxes";
 
 import { registry, ValueError, ValueValidationError } from "../../datatypes";
+import { DefaultNameResolver } from "../../default_name_resolver";
 import { readTreeFromJSON } from "../../json-format/read";
 import { NameResolver } from "../../name_resolver";
 import { AnyName, ConcreteName, Grammar, Name, NameChoice,
@@ -448,7 +449,7 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
       el.empty();
       el.appendChild(new Text(value));
 
-      const nr = new NameResolver();
+      const nr = new DefaultNameResolver();
       nr.definePrefix("", ns);
       context = { resolver: nr };
     }
@@ -666,15 +667,16 @@ export class InternalSimplifier<RL extends ResourceLoader>
   private async parse(filePath: URL): Promise<Element> {
     const schemaResource = await this.options.resourceLoader.load(filePath);
     const schemaText = await schemaResource.getText();
+    const fileName = filePath.toString();
+    const saxesParser = new SaxesParser({ xmlns: true,
+                                          position: false,
+                                          fileName });
     let validator: Validator | undefined;
     if (this.options.validate) {
-      validator = new Validator(getGrammar());
+      validator = new Validator(getGrammar(), saxesParser);
     }
 
-    const fileName = filePath.toString();
-    const parser = new BasicParser(new SaxesParser({ xmlns: true,
-                                                     position: false,
-                                                     fileName }),
+    const parser = new BasicParser(saxesParser,
                                    validator);
     parser.saxesParser.write(schemaText);
     parser.saxesParser.close();

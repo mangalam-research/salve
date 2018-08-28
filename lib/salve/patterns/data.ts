@@ -110,7 +110,7 @@ class DataWalker implements InternalWalker {
             nameResolver: NameResolver): InternalFireEventResult {
     if (this.matched || name !== "text" ||
         this.datatype.disallows(params[0], this.params,
-                                   { resolver: nameResolver })) {
+                                { resolver: nameResolver })) {
       return new InternalFireEventResult(false);
     }
 

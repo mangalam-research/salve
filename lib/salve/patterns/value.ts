@@ -5,6 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { Datatype, registry } from "../datatypes";
+import { EName } from "../ename";
 import { ValidationError } from "../errors";
 import { NameResolver } from "../name_resolver";
 import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
@@ -53,9 +54,17 @@ export class Value extends Pattern {
     // file.
     let context: { resolver: NameResolver } | undefined;
     if (this.datatype.needsContext) {
-      const nr: NameResolver = new NameResolver();
-      nr.definePrefix("", this.ns);
-      context = { resolver: nr };
+      context = {
+        resolver: {
+          resolveName: (name: string): EName => {
+            return new EName(this.ns, name);
+          },
+
+          clone(): NameResolver {
+            throw new Error("cannot clone this resolver");
+          },
+        },
+      };
     }
     ret = this._value = this.datatype.parseValue(this.xmlPath,
                                                  this.rawValue, context);
