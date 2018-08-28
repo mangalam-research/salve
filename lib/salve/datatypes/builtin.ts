@@ -19,7 +19,8 @@ import { Datatype, ParsedParams, ParsedValue, RawParameter,
  * @returns The normalized value.
  */
 function normalizeSpace(value: string): string {
-  return value.replace(/\s+/g, " ").trim();
+  // It is generally faster to trim first.
+  return value.trim().replace(/\s+/g, " ");
 }
 
 //
@@ -43,11 +44,7 @@ abstract class Base implements Datatype<string> {
     return Object.create(null);
   }
 
-  parseValue(location: string, value: string): ParsedValue<string> {
-    // The builtins do not disallow anything so we don't call disallows to check
-    // whether the value is disallowed.
-    return { value };
-  }
+  abstract parseValue(location: string, value: string): ParsedValue<string>;
 
   abstract equal(value: string, schemaValue: ParsedValue<string>): boolean;
 
@@ -58,6 +55,12 @@ class StringT extends Base {
   readonly name: "string";
   readonly regexp: RegExp = /^[^]*$/;
   readonly needsContext: boolean = false;
+
+  parseValue(location: string, value: string): ParsedValue<string> {
+    // The builtins do not disallow anything so we don't call disallows to check
+    // whether the value is disallowed.
+    return { value };
+  }
 
   equal(value: string, schemaValue: ParsedValue<string>): boolean {
     return value === schemaValue.value;
@@ -75,8 +78,14 @@ class Token extends Base {
   readonly needsContext: boolean = false;
   readonly regexp: RegExp = /^[^]*$/;
 
+  parseValue(location: string, value: string): ParsedValue<string> {
+    // The builtins do not disallow anything so we don't call disallows to check
+    // whether the value is disallowed.
+    return { value: normalizeSpace(value) };
+  }
+
   equal(value: string, schemaValue: ParsedValue<string>): boolean {
-    return normalizeSpace(value) === normalizeSpace(schemaValue.value);
+    return normalizeSpace(value) === schemaValue.value;
   }
 
   disallows(value: string): ValueError[] | false {
