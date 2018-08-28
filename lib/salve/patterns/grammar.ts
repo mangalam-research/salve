@@ -279,14 +279,53 @@ export class GrammarWalker {
     return this.nameResolver.unresolveName(uri, name);
   }
 
+  /**
+   * This method is called to indicate the start of a new context.  Contexts
+   * enable this class to support namespace redeclarations. In XML, each start
+   * tag can potentially redefine a prefix that was already defined by an
+   * ancestor. When using this class, such redefinition must appear in a new
+   * context, otherwise it would merely overwrite the old definition.
+   *
+   * See also [[enterContextWithMapping]], which is preferable if you already
+   * know the bindings you need to initialize the context with.
+   *
+   * At creation, a [[NameResolver]] has a default context already
+   * created. There is no need to create it and it is not possible to leave it.
+   */
   enterContext(): void {
     this.nameResolver.enterContext();
   }
 
+  /**
+   * Enter a new context, and immediately populate it with bindings. If you
+   * already have a binding map, then using this method is preferable to using
+   * [[enterContext]] because it is faster than doing [[enterContext]] followed
+   * by a series of calls to [[enterContextWithMapping]].
+   *
+   * @param mapping The mapping with which to initialize the context.
+   */
+  enterContextWithMapping(mapping: Readonly<Record<string, string>>): void {
+    this.nameResolver.enterContextWithMapping(mapping);
+  }
+
+  /**
+   * This method is called to indicate the end of a context. Whatever context
+   * was in effect when the current context ends becomes effective.
+   *
+   * @throws {Error} If this method is called when there is no context created
+   * by [[enterContext]].
+   */
   leaveContext(): void {
     this.nameResolver.leaveContext();
   }
 
+  /**
+   * Defines a (prefix, URI) mapping.
+   *
+   * @param prefix The namespace prefix to associate with the URI.
+   *
+   * @param uri The namespace URI associated with the prefix.
+   */
   definePrefix(prefix: string, uri: string): void {
     this.nameResolver.definePrefix(prefix, uri);
   }

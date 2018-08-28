@@ -498,10 +498,7 @@ export class Validator implements ValidatorI {
     const prefixes = Object.keys(ns);
     if (prefixes.length !== 0) {
       hasContext = true;
-      this.walker.enterContext();
-      for (const prefix of prefixes) {
-        this.walker.definePrefix(prefix, ns[prefix]);
-      }
+      this.walker.enterContextWithMapping(ns);
     }
 
     const attributeEvents: string[] = [];

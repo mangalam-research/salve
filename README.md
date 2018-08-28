@@ -329,10 +329,10 @@ then what the parser has seen by the time it gets to the end of the buffer is an
 will not see a ``leaveStartTag`` event until the user enters the greater-than
 symbol ending the start tag.
 
-You must call ``enterContext()`` each time you encounter a start tag that
-defines namespaces and call ``leaveContext()`` when you encounter its
-corresponding end tag. You must alsocall ``definePrefix(...)`` for each prefix
-defined by the element. Example::
+You must call ``enterContext()`` or ``enterContextWithMapping`` each time you
+encounter a start tag that defines namespaces and call ``leaveContext()`` when
+you encounter its corresponding end tag. You must also call
+``definePrefix(...)`` for each prefix defined by the element. Example::
 
     <p xmlns="q" xmlns:foo="foons">...
 
@@ -357,6 +357,12 @@ then the start tag ``p`` in the example would be interpreted to be in the
 default namespace in effect **before** it started, which could be other than
 ``q``. Similarly, ``leaveContext`` must be issued after the corresponding
 ``endTag`` event.
+
+**Note on performance:** if you already have a simple JavaScript object that
+maps prefixes to URIs it is better to call ``enterContextWithMapping`` and pass
+your object to this method. ``enterContextWithMapping`` enters a new context and
+immediately initializes it with the mapping you pass. This is faster than
+calling ``enterContext`` and calling ``definePrefix`` a bunch of times.
 
 For the lazy: it is possible to call ``enterContext()`` for each start tag and
 ``leaveContext()`` for each end tag irrespective of whether or not the start tag

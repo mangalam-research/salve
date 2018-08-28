@@ -120,6 +120,9 @@ export class NameResolver {
    * ancestor. When using this class, such redefinition must appear in a new
    * context, otherwise it would merely overwrite the old definition.
    *
+   * See also [[enterContextWithMapping]], which is preferable if you already
+   * know the bindings you need to initialize the context with.
+   *
    * At creation, a [[NameResolver]] has a default context already
    * created. There is no need to create it and it is not possible to leave it.
    */
@@ -128,6 +131,51 @@ export class NameResolver {
       forward: new Map(),
       backwards: new Map(),
     });
+  }
+
+  /**
+   * Enter a new context, and immediately populate it with bindings. If you
+   * already have a binding map, then using this method is preferable to using
+   * [[enterContext]] because it is faster than doing [[enterContext]] followed
+   * by a series of calls to [[enterContextWithMapping]].
+   *
+   * @param mapping The mapping with which to initialize the context.
+   */
+  enterContextWithMapping(mapping: Readonly<Record<string, string>>): void {
+    // http://www.w3.org/TR/REC-xml-names/#ns-decl
+    if (mapping.xmlns !== undefined) {
+      throw new Error("trying to define 'xmlns' but the XML Namespaces " +
+                      "standard stipulates that 'xmlns' cannot be " +
+                      "declared (= \"defined\")");
+    }
+
+    const xmlMapping = mapping.xml;
+    if (xmlMapping !== undefined && xmlMapping !== XML1_NAMESPACE) {
+      throw new Error("trying to define 'xml' to an incorrect URI");
+    }
+
+    const forward = new Map();
+    const backwards = new Map();
+    for (const prefix of Object.keys(mapping)) {
+      const uri = mapping[prefix];
+      forward.set(prefix, uri);
+
+      let prefixes = backwards.get(uri);
+      if (prefixes === undefined) {
+        prefixes = [prefix];
+        backwards.set(uri, prefixes);
+      }
+      // This ensure that the default namespace is given priority when
+      // unresolving names.
+      else if (prefix === "") {
+        prefixes.unshift("");
+      }
+      else {
+        prefixes.push(prefix);
+      }
+    }
+
+    this._contextStack.push({ forward, backwards });
   }
 
   /**
