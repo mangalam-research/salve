@@ -504,9 +504,6 @@ export class Validator implements ValidatorI {
   /** The walker used for validating. */
   private readonly walker: GrammarWalker<SaxesNameResolver>;
 
-  /** The context stack. */
-  // private readonly contextStack: boolean[] = [];
-
   /** A text buffer... */
   private textBuf: string = "";
 
@@ -532,16 +529,7 @@ export class Validator implements ValidatorI {
 
   onopentag(node: SaxesTag): void {
     this.flushTextBuf();
-    // let hasContext = false;
-
     const { attributes } = node;
-
-    // const prefixes = Object.keys(ns);
-    // if (prefixes.length !== 0) {
-    //   hasContext = true;
-    //   this.walker.enterContextWithMapping(ns);
-    // }
-
     const params: string[] = [node.uri, node.local];
     for (const name of Object.keys(attributes)) {
       const { uri, prefix, local, value } = attributes[name] as SaxesAttribute;
@@ -551,20 +539,11 @@ export class Validator implements ValidatorI {
       }
     }
     this.fireEvent("startTagAndAttributes", params);
-    // this.contextStack.push(hasContext);
   }
 
   onclosetag(node: SaxesTag): void {
     this.flushTextBuf();
-    // const hasContext = this.contextStack.pop();
-    // if (hasContext === undefined) {
-    //   throw new Error("stack underflow");
-    // }
-
     this.fireEvent("endTag", [node.uri, node.local]);
-    // if (hasContext) {
-    //   this.walker.leaveContext();
-    // }
   }
 
   ontext(text: string): void {
