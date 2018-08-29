@@ -484,7 +484,7 @@ class SaxesNameResolver implements NameResolver {
       }
     }
 
-    const uri = (this.saxesParser as any).resolve(prefix);
+    const uri = this.saxesParser.resolve(prefix);
     if (uri !== undefined) {
       return new EName(uri, local);
     }
