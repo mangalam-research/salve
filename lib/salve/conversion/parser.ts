@@ -5,7 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { EVENTS, SaxesAttribute, SaxesParser, SaxesTag } from "saxes";
+import { SaxesAttribute, SaxesParser, SaxesTag } from "saxes";
 
 import { EName } from "../ename";
 import { ValidationError } from "../errors";
@@ -14,32 +14,6 @@ import { NameResolver, XML1_NAMESPACE,
 import { Grammar, GrammarWalker } from "../patterns";
 import { fixPrototype } from "../tools";
 import { RELAXNG_URI } from "./simplifier/util";
-
-/**
- * A base class for classes that perform parsing based on SAX parsers.
- *
- * Derived classes should add methods named ``on<eventname>`` so as to form a
- * full name which matches the ``on<eventname>`` methods supported by SAX
- * parsers. The constructor will attach these methods to the SAX parser passed
- * and bind them so in them ``this`` is the ``Parser`` object. This allows
- * neatly packaged methods and private parameters.
- *
- */
-export class Parser {
-  /**
-   * @param saxesParser A parser created by the ``saxes`` library or something
-   * compatible.
-   */
-  constructor(readonly saxesParser: SaxesParser) {
-    for (const name of EVENTS) {
-      const methodName = `on${name}`;
-      const method = (this as any)[methodName];
-      if (method !== undefined) {
-        (this.saxesParser as any)[methodName] = method.bind(this);
-      }
-    }
-  }
-}
 
 export type ConcreteNode = Element | Text;
 
@@ -553,7 +527,7 @@ class NullValidator implements ValidatorI {
  * A simple parser used for loading a XML document into memory.  Parsers of this
  * class use [[Node]] objects to represent the tree of nodes.
  */
-export class BasicParser extends Parser {
+export class BasicParser {
   /**
    * The stack of elements. At the end of parsing, there should be only one
    * element on the stack, the root. This root is not an element that was in
@@ -564,9 +538,11 @@ export class BasicParser extends Parser {
 
   protected drop: number = 0;
 
-  constructor(saxParser: SaxesParser,
+  constructor(readonly saxesParser: SaxesParser,
               protected readonly validator: ValidatorI = new NullValidator()) {
-    super(saxParser);
+    saxesParser.onopentag = this.onopentag.bind(this);
+    saxesParser.onclosetag = this.onclosetag.bind(this);
+    saxesParser.ontext = this.ontext.bind(this);
     this.stack = [{
       // We cheat. The node field of the top level stack item won't ever be
       // accessed.
@@ -686,9 +662,9 @@ class Found extends Error {
   }
 }
 
-class IncludeParser extends Parser {
-  constructor(saxesParser: SaxesParser) {
-    super(saxesParser);
+class IncludeParser {
+  constructor(readonly saxesParser: SaxesParser) {
+    saxesParser.onopentag = this.onopentag.bind(this);
   }
 
   onopentag(node: SaxesTag): void {
