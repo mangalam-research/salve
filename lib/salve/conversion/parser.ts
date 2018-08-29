@@ -504,20 +504,8 @@ export class Validator implements ValidatorI {
   /** The walker used for validating. */
   private readonly walker: GrammarWalker<SaxesNameResolver>;
 
-  /** A text buffer... */
-  private textBuf: string = "";
-
   constructor(grammar: Grammar, parser: SaxesParser) {
     this.walker = grammar.newWalker(new SaxesNameResolver(parser));
-  }
-
-  protected flushTextBuf(): void {
-    if (this.textBuf === "") {
-      return;
-    }
-
-    this.fireEvent("text", [this.textBuf]);
-    this.textBuf = "";
   }
 
   protected fireEvent(name: string, args: string[]): void {
@@ -528,7 +516,6 @@ export class Validator implements ValidatorI {
   }
 
   onopentag(node: SaxesTag): void {
-    this.flushTextBuf();
     const { attributes } = node;
     const params: string[] = [node.uri, node.local];
     for (const name of Object.keys(attributes)) {
@@ -542,12 +529,11 @@ export class Validator implements ValidatorI {
   }
 
   onclosetag(node: SaxesTag): void {
-    this.flushTextBuf();
     this.fireEvent("endTag", [node.uri, node.local]);
   }
 
   ontext(text: string): void {
-    this.textBuf += text;
+    this.fireEvent("text", [text]);
   }
 }
 
