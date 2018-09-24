@@ -92,6 +92,7 @@ export class DatatypeProcessor {
    */
   readonly warnings: string[] = [];
 
+  // tslint:disable-next-line:max-func-body-length
   walk(el: Element): void {
     let libname: string | undefined;
     let type: string | undefined; // tslint:disable-line: no-reserved-keywords
