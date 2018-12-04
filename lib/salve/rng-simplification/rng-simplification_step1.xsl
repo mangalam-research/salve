@@ -106,11 +106,10 @@ externalRef patterns are replaced by the content of the resource referenced by t
   <xsl:variable name="source"
                 select="resolve-uri(@href, resolve-uri(base-uri(), $originalDir))"/>
   <xsl:variable name="doc" select="document($source)/*"/>
-    <!-- @datatypeLibrary is set to an empty value to prevent cross-file
-         propagation of datatypeLibrary in later steps. -->
-  <div datatypeLibrary="">
+  <div>
     <xsl:copy-of select="@*[name() != 'href']"/>
     <xsl:variable name="docBase" select="$doc/@xml:base"/>
+    <xsl:variable name="docLibrary" select="$doc/@datatypeLibrary"/>
     <xsl:attribute name="xml:base">
       <xsl:choose>
         <xsl:when test="$docBase">
@@ -121,7 +120,12 @@ externalRef patterns are replaced by the content of the resource referenced by t
         </xsl:otherwise>
       </xsl:choose>
     </xsl:attribute>
+    <!-- @datatypeLibrary is set to an empty value to prevent cross-file
+         propagation of datatypeLibrary in later steps. -->
     <div>
+      <xsl:if test="not($docLibrary)">
+        <xsl:attribute name="datatypeLibrary"/>
+      </xsl:if>
       <xsl:copy-of select="$doc/*[not(self::rng:start or self::rng:define)]|$doc/rng:start[not(current()/rng:start)]|$doc/rng:define[not(@name = current()/rng:define/@name)]|$doc/text()|$doc/@*[not(. is $docBase)]"/>
     </div>
     <xsl:copy-of select="*|text()"/>

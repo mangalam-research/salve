@@ -136,6 +136,9 @@ class Step1 {
     if (ns !== undefined && treeNs === undefined) {
       includedTree.setAttribute("ns", ns);
     }
+
+    // See the comment in ``include`` below for the rational as to why we are
+    // setting the value here.
     if (includedTree.getAttribute("datatypeLibrary") === undefined) {
       includedTree.setAttribute("datatypeLibrary", "");
     }
@@ -200,9 +203,28 @@ grammar`);
       }
     }
     el.local = "div";
-    el.setAttribute("datatypeLibrary", "");
     el.removeAttribute("href");
     includedTree.local = "div";
+
+    //
+    // In the RNG specification, the propagation of datatypeLibrary elements is
+    // an earlier processing step (4.3) than the resolution of external
+    // references (4.5). This means that upon reading an external resource, an
+    // algorithm that follows the spec to the letter would have to apply to the
+    // resource the steps 4.1 to 4.4 before resolving any external references in
+    // the newly loaded resource.
+    //
+    // Here we follow the order set in the XSL pipeline: we first resolve all
+    // external references and then later we will propagate datatypeLibrary.
+    //
+    // This deivation from the spec requires that if datatypeLibrary is not set
+    // on a imported element we MUST set it to the empty string. Otherwise, when
+    // we do propagate datatypeLibrary, it would "cross" resource boundaries, so
+    // to speak. This would be incorrect.
+    //
+    if (includedTree.getAttribute("datatypeLibrary") === undefined) {
+      includedTree.setAttribute("datatypeLibrary", "");
+    }
     // Insert the grammar element (now named "div") into the include element
     // (also now named "div").
     el.prependChild(includedTree);

@@ -1,2 +1,2 @@
 <?xml version="1.0"?>
-<grammar xmlns="http://relaxng.org/ns/structure/1.0"><start><ref name="foo"/></start><div datatypeLibrary=""><div><div datatypeLibrary=""><div><div><define name="bwip"><element name="bwip"><empty/></element></define></div></div></div></div><div><define name="foo"><element name="foo"><ref name="bwip"/></element></define></div></div></grammar>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"><start><ref name="foo"/></start><div><div datatypeLibrary=""><div><div datatypeLibrary=""><div><define name="bwip"><element name="bwip"><empty/></element></define></div></div></div></div><div><define name="foo"><element name="foo"><ref name="bwip"/></element></define></div></div></grammar>
