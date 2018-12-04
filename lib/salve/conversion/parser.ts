@@ -55,7 +55,7 @@ export abstract class Node {
 const emptyNS = Object.create(null);
 
 /**
- * An Element produced by [[Parser]].
+ * An Element produced by [[BasicParser]].
  *
  * This constructor will insert the created object into the parent automatically
  * if the parent is provided.
