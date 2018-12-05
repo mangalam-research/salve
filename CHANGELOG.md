@@ -1,3 +1,13 @@
+<a name="9.0.1"></a>
+## [9.0.1](https://github.com/mangalam-research/salve/compare/v9.0.0...v9.0.1) (2018-12-05)
+
+
+### Bug Fixes
+
+* handling of datatypeLibrary on include ([29db3d2](https://github.com/mangalam-research/salve/commit/29db3d2))
+
+
+
 <a name="9.0.0"></a>
 # [9.0.0](https://github.com/mangalam-research/salve/compare/v8.0.0...v9.0.0) (2018-08-28)
 
