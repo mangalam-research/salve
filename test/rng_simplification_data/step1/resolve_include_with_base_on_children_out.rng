@@ -1,2 +1,2 @@
 <?xml version="1.0"?>
-<grammar xmlns="http://relaxng.org/ns/structure/1.0"><div datatypeLibrary=""><div><div datatypeLibrary=""><div><start><element name="foo"><empty/></element></start></div></div></div></div></grammar>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0"><div><div datatypeLibrary=""><div><div datatypeLibrary=""><start><element name="foo"><empty/></element></start></div></div></div></div></grammar>

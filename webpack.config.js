@@ -2,7 +2,7 @@
 
 /* global __dirname */
 const webpack = require("webpack");
-const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
+const TerserPlugin = require("terser-webpack-plugin");
 
 const source = "build/dist";
 module.exports = {
@@ -42,8 +42,8 @@ module.exports = {
   },
   optimization: {
     minimize: true,
-    minimizer: [new UglifyJsPlugin({
-      uglifyOptions: {
+    minimizer: [new TerserPlugin({
+      terserOptions: {
         safari10: true,
       },
       sourceMap: true,

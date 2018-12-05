@@ -120,7 +120,7 @@ export class DefaultNameResolver implements NameResolver {
    * Enter a new context, and immediately populate it with bindings. If you
    * already have a binding map, then using this method is preferable to using
    * [[enterContext]] because it is faster than doing [[enterContext]] followed
-   * by a series of calls to [[enterContextWithMapping]].
+   * by a series of calls to [[definePrefix]].
    *
    * @param mapping The mapping with which to initialize the context.
    */
@@ -166,7 +166,7 @@ export class DefaultNameResolver implements NameResolver {
    * was in effect when the current context ends becomes effective.
    *
    * @throws {Error} If this method is called when there is no context created
-   * by [[NameResolver.enterContext]].
+   * by [[enterContext]].
    */
   leaveContext(): void {
     if (this._contextStack.length > 1) {

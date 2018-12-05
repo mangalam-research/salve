@@ -1,20 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-
-  Documents which are the output of step 2a conform to this schema.
-
--->
-<grammar ns="http://mangalamresearch.org/ns/mmwp/doc-unannotated" xmlns="http://relaxng.org/ns/structure/1.0">
+<grammar ns="http://mangalamresearch.org/ns/mmwp/doc" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <define name="wordUnnumbered">
+    <element name="word">
+      <optional>
+        <attribute name="lem"/>
+      </optional>
+      <text/>
+    </element>
+  </define>
   <include href="doc-common.rng">
+    <!--
+      We allow cit to contain a single sentence with numbered words. Or
+      a collection of unnumbered words.
+    -->
     <define name="cit.content">
-      <oneOrMore>
-        <choice>
-          <ref name="word"/>
-          <text/>
-        </choice>
-      </oneOrMore>
+      <choice>
+        <ref name="s"/>
+        <oneOrMore>
+          <choice>
+            <ref name="wordUnnumbered"/>
+            <text/>
+          </choice>
+        </oneOrMore>
+      </choice>
+      <optional>
+        <ref name="tr"/>
+      </optional>
     </define>
     <define name="word.attrs">
+      <optional>
+        <attribute name="id">
+          <data type="positiveInteger"/>
+        </attribute>
+      </optional>
       <optional>
         <attribute name="lem"/>
       </optional>

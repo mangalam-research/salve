@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <grammar xmlns="http://relaxng.org/ns/structure/1.0">
-  <div datatypeLibrary="" xml:base="file:@CURDIR@/step1/inc_sub1/x"><div>
-  <div datatypeLibrary="" xml:base="file:@CURDIR@/step1/inc_sub1/sub/x"><div>
+  <div xml:base="file:@CURDIR@/step1/inc_sub1/x"><div datatypeLibrary="">
+  <div xml:base="file:@CURDIR@/step1/inc_sub1/sub/x"><div datatypeLibrary="">
   <start>
     <element name="foo">
       <empty/>

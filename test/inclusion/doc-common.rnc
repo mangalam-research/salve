@@ -8,10 +8,21 @@ doc = element doc {
     attribute tradition { text },
     attribute school { text },
     attribute period { text },
+    attribute lem { text },
+    attribute lemCognates { list { string+ } }?,
     cit+
 }
 
-cit.content = s+
+## A translation.
+tr = element tr {
+    ## The translator.
+    attribute tr { text }?,
+    ## The page number.
+    attribute p { text }?,
+    text
+}
+
+cit.content = (s+, tr?)
 cit = element cit {
     attribute id { xsd:positiveInteger },
     attribute ref { text }?,
@@ -26,7 +37,7 @@ s = element s {
 
 word.attrs = (
     attribute id { xsd:positiveInteger },
-    attribute lem { text },
+    attribute lem { text }?,
     attribute case {
         "nominative" |
         "accusative" |
@@ -36,16 +47,28 @@ word.attrs = (
         "genitive" |
         "locative" |
         "vocative"
-    },
-    attribute sem.type { text },
-    attribute sem.field { text },
+    }?,
+    attribute number {
+        "sing" |
+        "plu" |
+        "dual"
+    }?,
+    attribute sem.cat { text }?,
+    attribute sem.field { text }?,
+    attribute sem.role { text }?,
+    attribute sem.pros {
+        "neg" |
+        "pos" |
+        "neu" |
+        "neu.neg"
+    }?,
     attribute uncertainty {
         "na" |
         "philological" |
         "disputed" |
         "vague" |
         "other"
-    },
+    }?,
     attribute conc.rel {
         "leading.to" |
         "caused.by" |
@@ -53,9 +76,14 @@ word.attrs = (
         "possessing" |
         "belonging.to" |
         "locus.of" |
-        "located.in"
-    },
-    attribute conc.head { xsd:positiveInteger },
+        "located.in" |
+        "by.means.of" |
+        "achieved.through" |
+        "while" |
+        "goal.of" |
+        "takes.goal"
+    }?,
+    attribute conc.head { xsd:positiveInteger }?,
     attribute dep.rel {
         "subject.agent" |
         "object.patient" |
@@ -65,9 +93,18 @@ word.attrs = (
         "contrasted.with" |
         "glossed.by" |
         "glossing" |
-        "dep"
-    },
-    attribute dep.head { xsd:positiveInteger }
+        "dep" |
+        "parallel.to" |
+        "takes.as.subject.agent" |
+        "takes.as.object.patient" |
+        "takes.oblique" |
+        "oblique.of" |
+        "manner.of" |
+        "takes.manner" |
+        "clausal.of" |
+        "takes.clausal"
+    }?,
+    attribute dep.head { xsd:positiveInteger }?
 )
 
 word = element word {

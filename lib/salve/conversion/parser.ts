@@ -5,7 +5,7 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-import { EVENTS, SaxesAttribute, SaxesParser, SaxesTag } from "saxes";
+import { SaxesAttribute, SaxesParser, SaxesTag } from "saxes";
 
 import { EName } from "../ename";
 import { ValidationError } from "../errors";
@@ -14,32 +14,6 @@ import { NameResolver, XML1_NAMESPACE,
 import { Grammar, GrammarWalker } from "../patterns";
 import { fixPrototype } from "../tools";
 import { RELAXNG_URI } from "./simplifier/util";
-
-/**
- * A base class for classes that perform parsing based on SAX parsers.
- *
- * Derived classes should add methods named ``on<eventname>`` so as to form a
- * full name which matches the ``on<eventname>`` methods supported by SAX
- * parsers. The constructor will attach these methods to the SAX parser passed
- * and bind them so in them ``this`` is the ``Parser`` object. This allows
- * neatly packaged methods and private parameters.
- *
- */
-export class Parser {
-  /**
-   * @param saxesParser A parser created by the ``saxes`` library or something
-   * compatible.
-   */
-  constructor(readonly saxesParser: SaxesParser) {
-    for (const name of EVENTS) {
-      const methodName = `on${name}`;
-      const method = (this as any)[methodName];
-      if (method !== undefined) {
-        (this.saxesParser as any)[methodName] = method.bind(this);
-      }
-    }
-  }
-}
 
 export type ConcreteNode = Element | Text;
 
@@ -81,7 +55,7 @@ export abstract class Node {
 const emptyNS = Object.create(null);
 
 /**
- * An Element produced by [[Parser]].
+ * An Element produced by [[BasicParser]].
  *
  * This constructor will insert the created object into the parent automatically
  * if the parent is provided.
@@ -484,7 +458,7 @@ class SaxesNameResolver implements NameResolver {
       }
     }
 
-    const uri = (this.saxesParser as any).resolve(prefix);
+    const uri = this.saxesParser.resolve(prefix);
     if (uri !== undefined) {
       return new EName(uri, local);
     }
@@ -504,23 +478,8 @@ export class Validator implements ValidatorI {
   /** The walker used for validating. */
   private readonly walker: GrammarWalker<SaxesNameResolver>;
 
-  /** The context stack. */
-  // private readonly contextStack: boolean[] = [];
-
-  /** A text buffer... */
-  private textBuf: string = "";
-
   constructor(grammar: Grammar, parser: SaxesParser) {
     this.walker = grammar.newWalker(new SaxesNameResolver(parser));
-  }
-
-  protected flushTextBuf(): void {
-    if (this.textBuf === "") {
-      return;
-    }
-
-    this.fireEvent("text", [this.textBuf]);
-    this.textBuf = "";
   }
 
   protected fireEvent(name: string, args: string[]): void {
@@ -531,17 +490,7 @@ export class Validator implements ValidatorI {
   }
 
   onopentag(node: SaxesTag): void {
-    this.flushTextBuf();
-    // let hasContext = false;
-
     const { attributes } = node;
-
-    // const prefixes = Object.keys(ns);
-    // if (prefixes.length !== 0) {
-    //   hasContext = true;
-    //   this.walker.enterContextWithMapping(ns);
-    // }
-
     const params: string[] = [node.uri, node.local];
     for (const name of Object.keys(attributes)) {
       const { uri, prefix, local, value } = attributes[name] as SaxesAttribute;
@@ -551,24 +500,14 @@ export class Validator implements ValidatorI {
       }
     }
     this.fireEvent("startTagAndAttributes", params);
-    // this.contextStack.push(hasContext);
   }
 
   onclosetag(node: SaxesTag): void {
-    this.flushTextBuf();
-    // const hasContext = this.contextStack.pop();
-    // if (hasContext === undefined) {
-    //   throw new Error("stack underflow");
-    // }
-
     this.fireEvent("endTag", [node.uri, node.local]);
-    // if (hasContext) {
-    //   this.walker.leaveContext();
-    // }
   }
 
   ontext(text: string): void {
-    this.textBuf += text;
+    this.fireEvent("text", [text]);
   }
 }
 
@@ -588,7 +527,7 @@ class NullValidator implements ValidatorI {
  * A simple parser used for loading a XML document into memory.  Parsers of this
  * class use [[Node]] objects to represent the tree of nodes.
  */
-export class BasicParser extends Parser {
+export class BasicParser {
   /**
    * The stack of elements. At the end of parsing, there should be only one
    * element on the stack, the root. This root is not an element that was in
@@ -599,9 +538,11 @@ export class BasicParser extends Parser {
 
   protected drop: number = 0;
 
-  constructor(saxParser: SaxesParser,
+  constructor(readonly saxesParser: SaxesParser,
               protected readonly validator: ValidatorI = new NullValidator()) {
-    super(saxParser);
+    saxesParser.onopentag = this.onopentag.bind(this);
+    saxesParser.onclosetag = this.onclosetag.bind(this);
+    saxesParser.ontext = this.ontext.bind(this);
     this.stack = [{
       // We cheat. The node field of the top level stack item won't ever be
       // accessed.
@@ -721,9 +662,9 @@ class Found extends Error {
   }
 }
 
-class IncludeParser extends Parser {
-  constructor(saxesParser: SaxesParser) {
-    super(saxesParser);
+class IncludeParser {
+  constructor(readonly saxesParser: SaxesParser) {
+    saxesParser.onopentag = this.onopentag.bind(this);
   }
 
   onopentag(node: SaxesTag): void {

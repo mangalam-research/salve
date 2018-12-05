@@ -30,7 +30,7 @@ interface NormalizedSerializationOptions {
 }
 
 /**
- * Serialize a tree previously produced by [["conversion/parser".Parser]].
+ * Serialize a tree previously produced by [["conversion/parser".BasicParser]].
  *
  * @param tree The tree to serialize.
  *
