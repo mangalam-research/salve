@@ -94,9 +94,6 @@
     "preversion": "npm test && npm run install_test && git flow release start $npm_package_version",
     "version": "versync -b sync -a && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md"
   },
-  "config": {
-    "git-tag-version": false
-  },
   "greenkeeper": {
     "commitMessages": {
       "addConfigFile": "build: add Greenkeeper config file",
