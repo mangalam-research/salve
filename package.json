@@ -50,7 +50,7 @@
     "@types/node": "^10.12.24",
     "@types/node-fetch": "^2.1.6",
     "@types/require-dir": "^1.0.0",
-    "@types/temp": "^0.8.29",
+    "@types/temp": "^0.8.32",
     "bluebird": "^3.5.3",
     "chai": "^4.2.0",
     "child-process-promise": "^2.2.1",
