@@ -94,16 +94,6 @@
     "preversion": "npm test && npm run install_test && git flow release start $npm_package_version",
     "version": "versync -b sync -a && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md"
   },
-  "greenkeeper": {
-    "commitMessages": {
-      "addConfigFile": "build: add Greenkeeper config file",
-      "updateConfigFile": "build: update Greenkeeper config file",
-      "initialDependencies": "build(package): update dependencies",
-      "initialBranches": "build(ci): whitelist greenkeeper branches",
-      "devDependencyUpdate": "build(package): update ${dependency} to version ${version}",
-      "devDependencyPin": "build(package): pin ${dependency} to ${oldVersion}"
-    }
-  },
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -e $HUSKY_GIT_PARAMS"
