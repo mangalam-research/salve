@@ -8,7 +8,7 @@ import { ChoiceError, ValidationError } from "../errors";
 import * as namePatterns from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { union } from "../set";
-import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+import { EndResult, EventSet, InternalFireEventResult, InternalWalker,
          isAttributeEvent, Pattern, TwoSubpatterns } from "./base";
 import { Empty } from "./empty";
 
@@ -96,7 +96,7 @@ class ChoiceWalker implements InternalWalker {
       }
     }
     else if (ret === undefined) {
-      ret = new Set<Event>();
+      ret = new Set();
     }
 
     return ret;
@@ -117,7 +117,7 @@ class ChoiceWalker implements InternalWalker {
       }
     }
     else if (ret === undefined) {
-      ret = new Set<Event>();
+      ret = new Set();
     }
 
     return ret;
@@ -224,50 +224,44 @@ class ChoiceWalker implements InternalWalker {
 
   private combineChoices(): ValidationError[] {
     const namesA: namePatterns.Base[] = [];
-    const values: string[] = [];
-    let notAChoiceError = false;
+    const values: (string|RegExp)[] = [];
     for (const ev of this.walkerA.possible()) {
-      const name = ev.params[0];
-      if (name === "enterStartTag" || name === "attributeName") {
-        namesA.push(ev.params[1] as namePatterns.Base);
-      }
-      else if (name === "attributeValue" || name === "text") {
-        values.push(ev.params[1] as string);
-      }
-      else {
-        notAChoiceError = true;
-        break;
-      }
-    }
-
-    if (!notAChoiceError) {
-      const namesB: namePatterns.Base[] = [];
-      for (const ev of this.walkerB.possible()) {
-        const name = ev.params[0];
-        if (name === "enterStartTag" || name === "attributeName") {
-          namesB.push(ev.params[1] as namePatterns.Base);
-        }
-        else if (name === "attributeValue" || name === "text") {
-          values.push(ev.params[1] as string);
-        }
-        else {
-          notAChoiceError = true;
+      switch (ev.name) {
+        case "enterStartTag":
+        case "attributeName":
+          namesA.push(ev.param);
           break;
-        }
-      }
-
-      if (!notAChoiceError) {
-        return [
-          values.length !== 0 ?
-            new ValidationError(
-              `one value required from the following: ${values.join(", ")}`) :
-            new ChoiceError(namesA, namesB),
-        ];
+        case "attributeValue":
+        case "text":
+          values.push(ev.param);
+          break;
+        default:
+          return []; // We cannot make a good combination.
       }
     }
 
-    // We cannot make a good combination.
-    return [];
+    const namesB: namePatterns.Base[] = [];
+    for (const ev of this.walkerB.possible()) {
+      switch (ev.name) {
+        case "enterStartTag":
+        case "attributeName":
+          namesB.push(ev.param);
+          break;
+        case "attributeValue":
+        case "text":
+          values.push(ev.param);
+          break;
+        default:
+          return []; // We cannot make a good combination.
+      }
+    }
+
+    return [
+      values.length !== 0 ?
+        new ValidationError(
+            `one value required from the following: ${values.join(", ")}`) :
+        new ChoiceError(namesA, namesB),
+    ];
   }
 }
 
@@ -292,11 +286,11 @@ class OptionalChoiceWalker implements InternalWalker {
   }
 
   possible(): EventSet {
-    return this.ended ? new Set<Event>() : this.walkerB.possible();
+    return this.ended ? new Set() : this.walkerB.possible();
   }
 
   possibleAttributes(): EventSet {
-    return this.ended ? new Set<Event>() : this.walkerB.possibleAttributes();
+    return this.ended ? new Set() : this.walkerB.possibleAttributes();
   }
 
   fireEvent(name: string, params: string[],

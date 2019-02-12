@@ -6,7 +6,7 @@
  */
 
 import { ValidationError } from "../errors";
-import { ConcreteName } from "../name_patterns";
+import { Events } from "../events";
 import { NameResolver } from "../name_resolver";
 import * as util from "../util";
 import { Define } from "./define";
@@ -198,7 +198,7 @@ if (DEBUG) {
   /* tslint:enable */
 }
 
-export type EventSet = Set<Event>;
+export type EventSet = Set<Events>;
 
 export type FireEventResult = false | undefined | ValidationError[];
 
@@ -404,47 +404,6 @@ export abstract class TwoSubpatterns extends Pattern {
   }
 }
 
-/**
- * This class models events occurring during parsing. Upon encountering the
- * start of a start tag, an "enterStartTag" event is generated, etc. Event
- * objects are held to be immutable. No precautions have been made to enforce
- * this. Users of these objects simply must not modify them.
- *
- * An event is made of a list of event parameters, with the first one being the
- * type of the event and the rest of the list varying depending on this type.
- */
-export class Event {
-  readonly params: (string|ConcreteName)[];
-
-  /**
-   * Is this Event an attribute event?
-   */
-  readonly isAttributeEvent: boolean;
-
-  /**
-   * @param args... The event parameters may be passed directly in the call
-   * ``(new Event(a, b, ...))`` or the first call parameter may be a list
-   * containing all the event parameters ``(new Event([a, b, ])``. All of the
-   * event parameters must be strings.
-   */
-  constructor(...args: any[]) {
-    const params: (string|ConcreteName)[] =
-      (args.length === 1 && args[0] instanceof Array) ? args[0] : args;
-
-    this.params = params;
-    this.isAttributeEvent = (this.params[0] === "attributeName" ||
-                             this.params[0] === "attributeValue" ||
-                             this.params[0] === "attributeNameAndValue");
-  }
-
-  /**
-   * @returns A string representation of the event.
-   */
-  toString(): string {
-    return `Event: ${this.params.join(", ")}`;
-  }
-}
-
 export function isAttributeEvent(name: string): boolean {
   // Using a set here is not clearly faster than using this logic.
   return (name === "attributeName" || name === "attributeValue" ||
@@ -479,30 +438,23 @@ interface NodeMap extends Map<string, false | NodeMap> {}
  * @param evs Events to turn into a string.
  * @returns A string which contains the tree described above.
  */
-export function eventsToTreeString(evs: Event[] | EventSet): string {
-  const eventArray = (evs instanceof Set) ? Array.from(evs) : evs;
+export function eventsToTreeString(evs: Events[] | EventSet): string {
+  const eventArray = evs instanceof Set ? Array.from(evs) : evs;
 
   const hash: NodeMap = new Map<string, false | NodeMap>();
-  eventArray.forEach((ev) => {
-    const params = ev.params;
-
-    let node = hash;
-    const last = params.length - 1;
-    for (let i = 0; i < params.length; ++i) {
-      const key = params[i].toString();
-      if (i === last) {
-        node.set(key, false);
+  for (const { name, param } of eventArray) {
+    if (param !== null) {
+      let nextNode = hash.get(name) as NodeMap | undefined;
+      if (nextNode === undefined) {
+        nextNode = new Map<string, false | NodeMap>();
+        hash.set(name, nextNode);
       }
-      else {
-        let nextNode = node.get(key) as NodeMap | undefined;
-        if (nextNode === undefined) {
-          nextNode = new Map<string, false | NodeMap>();
-          node.set(key, nextNode);
-        }
-        node = nextNode;
-      }
+      nextNode.set(param.toString(), false);
     }
-  });
+    else {
+      hash.set(name, false);
+    }
+  }
 
   function dumpTree(toDump: NodeMap, indent: string): string {
     let ret = "";

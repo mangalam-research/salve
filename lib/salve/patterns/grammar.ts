@@ -11,7 +11,7 @@ import { NameResolver } from "../name_resolver";
 import { filter, union } from "../set";
 import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
-import { BasePattern, EndResult, Event, EventSet, FireEventResult,
+import { BasePattern, EndResult, EventSet, FireEventResult,
          InternalFireEventResult, InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
@@ -209,7 +209,7 @@ class MisplacedElementWalker implements IWalker {
   }
 
   possible(): EventSet {
-    return new Set<Event>();
+    return new Set();
   }
 
   clone<T extends this>(this: T): T {
@@ -540,7 +540,7 @@ ${name}`);
   }
 
   possible(): EventSet {
-    let possible = new Set<Event>();
+    let possible: EventSet = new Set();
     for (const walker of
          this.elementWalkerStack[this.elementWalkerStack.length - 1]) {
       union(possible, walker.possible());
@@ -550,7 +550,7 @@ ${name}`);
     // events are attributeValue events.
     if (possible.size !== 0) {
       const valueEvs =
-        filter(possible, (poss: Event) => poss.params[0] === "attributeValue");
+        filter(possible, ({ name }) => name === "attributeValue");
 
       if (valueEvs.size !== 0) {
         possible = valueEvs;

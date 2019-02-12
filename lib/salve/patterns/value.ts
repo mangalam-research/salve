@@ -7,8 +7,9 @@
 import { Datatype, registry } from "../datatypes";
 import { EName } from "../ename";
 import { ValidationError } from "../errors";
+import { TextEvent } from "../events";
 import { NameResolver } from "../name_resolver";
-import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+import { EndResult, EventSet, InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
 
 /**
@@ -105,11 +106,11 @@ class ValueWalker implements InternalWalker {
 
   possible(): EventSet {
     return new Set(this.matched ? undefined :
-                   [new Event("text", this.el.rawValue)]);
+                   [new TextEvent(this.el.rawValue)]);
   }
 
   possibleAttributes(): EventSet {
-    return new Set<Event>();
+    return new Set();
   }
 
   fireEvent(name: string, params: string[],

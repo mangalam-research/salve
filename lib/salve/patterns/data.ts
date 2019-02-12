@@ -6,8 +6,9 @@
  */
 import { Datatype, RawParameter, registry } from "../datatypes";
 import { ValidationError } from "../errors";
+import { TextEvent } from "../events";
 import { NameResolver } from "../name_resolver";
-import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+import { EndResult, EventSet, InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
 /**
  * Data pattern.
@@ -99,7 +100,7 @@ class DataWalker implements InternalWalker {
     // We completely ignore the possible exception when producing the
     // possibilities. There is no clean way to specify such an exception.
     return new Set(this.matched ? undefined :
-                   [new Event("text", this.datatype.regexp)]);
+                   [new TextEvent(this.datatype.regexp)]);
   }
 
   possibleAttributes(): EventSet {
