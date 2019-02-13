@@ -59,9 +59,8 @@ export interface SchemaValidator {
   validate(schemaPath: URL): Promise<SchemaValidationResult>;
 }
 
-export interface SchemaValidatorCtor {
-  new (options: SimplifyingSchemaValidatorOptions): SchemaValidator;
-}
+export type SchemaValidatorCtor =
+  new (options: SimplifyingSchemaValidatorOptions) => SchemaValidator;
 
 const availableValidators: Record<string, SchemaValidatorCtor> =
   Object.create(null);

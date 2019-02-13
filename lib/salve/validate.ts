@@ -6,9 +6,9 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 
-export const version: string = "9.0.1";
+export const version: string = "9.1.0";
 
-export { eventsToTreeString, Event, EventSet, Grammar, GrammarWalker,
+export { eventsToTreeString, EventSet, Grammar, GrammarWalker,
          BasePattern, RefError, FireEventResult,
          EndResult } from "./patterns";
 
@@ -19,6 +19,8 @@ export { writeTreeToJSON } from "./json-format/write";
 export { readTreeFromJSON } from "./json-format/read";
 
 export { EName }  from "./ename";
+
+export * from "./events";
 
 export { AttributeNameError, AttributeValueError, ChoiceError,
          ElementNameError, ValidationError } from "./errors";

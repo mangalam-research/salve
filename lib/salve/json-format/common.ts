@@ -12,7 +12,7 @@ import { AnyName, Attribute, BasePattern, Choice, Data, Define, Element, Empty,
 
 export type NamePattern = Name | NameChoice | NsName | AnyName;
 
-export type PatternCtor = { new (...args: any[]): (BasePattern | NamePattern) };
+export type PatternCtor = new (...args: any[]) => (BasePattern | NamePattern);
 
 export type Ctors = PatternCtor | typeof Array;
 

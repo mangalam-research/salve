@@ -4,7 +4,8 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Event, EventSet, InternalFireEventResult, InternalWalker,
+import { TextEvent } from "../events";
+import { EventSet, InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
 
 /**
@@ -30,7 +31,7 @@ export class Text extends Pattern {
  */
 class TextWalker implements InternalWalker {
   protected readonly el: Text;
-  private static readonly _textEvent: Event = new Event("text", /^[^]*$/);
+  private static readonly _textEvent: TextEvent = new TextEvent(/^[^]*$/);
   canEnd: boolean;
   canEndAttribute: boolean;
 
@@ -54,7 +55,7 @@ class TextWalker implements InternalWalker {
   }
 
   possibleAttributes(): EventSet {
-    return new Set<Event>();
+    return new Set();
   }
 
   fireEvent(name: string): InternalFireEventResult {

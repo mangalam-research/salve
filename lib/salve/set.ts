@@ -30,9 +30,10 @@ export function union<T>(me: Set<T>, s: Set<T>): void {
  * @returns An object of the same class as the object on which the method is
  * called. This object contains only the value selected by the function.
  */
-export function filter<S extends Set<T>, T>
-  (me: S, f: (value: T, index: number, me: S) => any): S {
-  const ret = new (me.constructor as typeof Set)() as S;
+export function filter<T>(me: Set<T>,
+                          f: (value: T, index: number,
+                              me: Set<T>) => any): Set<T> {
+  const ret = new (me.constructor as typeof Set)();
   // The fat arrow is used to prevent a caller from accessing ``this.b``
   // through the 3rd parameter that would be passed to ``f``.
   let index = 0;
@@ -57,9 +58,10 @@ export function filter<S extends Set<T>, T>
  *
  * @returns The new set. This set is of the same class as the original set.
  */
-export function map<S extends Set<T>, T>
-  (me: S, f: (value: T, index: number, me: S) => any): S {
-  const ret = new (me.constructor as typeof Set)() as S;
+export function map<T>(me: Set<T>,
+                       f: (value: T, index: number,
+                           me: Set<T>) => any): Set<T> {
+  const ret = new (me.constructor as typeof Set)();
   let index = 0;
   for (const x of me) {
     const result = f(x, index++, me);

@@ -1,3 +1,14 @@
+<a name="9.1.0"></a>
+# [9.1.0](https://github.com/mangalam-research/salve/compare/v9.0.1...v9.1.0) (2019-02-13)
+
+
+### Features
+
+* deprecate params field on Event ([c12f04f](https://github.com/mangalam-research/salve/commit/c12f04f))
+* setup a collection of classes for events ([bcca21b](https://github.com/mangalam-research/salve/commit/bcca21b))
+
+
+
 <a name="9.0.1"></a>
 ## [9.0.1](https://github.com/mangalam-research/salve/compare/v9.0.0...v9.0.1) (2018-12-05)
 

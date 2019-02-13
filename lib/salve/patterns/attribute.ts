@@ -5,10 +5,11 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { AttributeNameError, AttributeValueError } from "../errors";
+import { AttributeNameEvent, AttributeValueEvent } from "../events";
 import { ConcreteName } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { map } from "../set";
-import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+import { EndResult, EventSet, InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
@@ -83,25 +84,25 @@ class AttributeWalker implements InternalWalker {
   }
 
   possible(): EventSet {
-    return new Set<Event>();
+    return new Set();
   }
 
   possibleAttributes(): EventSet {
     if (this.canEnd) {
-      return new Set<Event>();
+      return new Set();
     }
 
     if (!this.seenName) {
-      return new Set([new Event("attributeName", this.name)]);
+      return new Set([new AttributeNameEvent(this.name)]);
     }
 
     // Convert text events to attributeValue events.
-    return map(this.subwalker.possible(), (ev: Event) => {
-      if (ev.params[0] !== "text") {
-        throw new Error(`unexpected event type: ${ev.params[0]}`);
+    return map(this.subwalker.possible(), (ev) => {
+      if (ev.name !== "text") {
+        throw new Error(`unexpected event type: ${ev.name}`);
       }
 
-      return new Event("attributeValue", ev.params[1]);
+      return new AttributeValueEvent(ev.value);
     });
   }
 

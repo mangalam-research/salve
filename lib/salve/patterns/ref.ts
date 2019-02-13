@@ -1,6 +1,7 @@
 import { ElementNameError } from "../errors";
+import { EnterStartTagEvent } from "../events";
 import { ConcreteName } from "../name_patterns";
-import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+import { EndResult, EventSet, InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
@@ -49,7 +50,7 @@ resolved");
     return new RefWalker(this,
                          element,
                          element.name,
-                         new Event("enterStartTag", element.name),
+                         new EnterStartTagEvent(element.name),
                          true,
                          false);
   }
@@ -62,7 +63,7 @@ export class RefWalker implements InternalWalker {
   constructor(protected readonly el: Ref,
               readonly element: Element,
               private readonly startName: ConcreteName,
-              private readonly startTagEvent: Event,
+              private readonly startTagEvent: EnterStartTagEvent,
               public canEndAttribute: boolean,
               public canEnd: boolean) {}
 
@@ -80,7 +81,7 @@ export class RefWalker implements InternalWalker {
   }
 
   possibleAttributes(): EventSet {
-    return new Set<Event>();
+    return new Set();
   }
 
   fireEvent(name: string, params: string[]): InternalFireEventResult {

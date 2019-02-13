@@ -5,9 +5,10 @@
  * @copyright Mangalam Research Center for Buddhist Languages
  */
 import { ElementNameError } from "../errors";
+import { EndTagEvent, LeaveStartTagEvent } from "../events";
 import { ConcreteName, Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
-import { BasePattern, EndResult, Event, EventSet, InternalFireEventResult,
+import { BasePattern, EndResult, EventSet, InternalFireEventResult,
          InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { Ref } from "./ref";
@@ -39,7 +40,7 @@ export class Element extends BasePattern {
     return new ElementWalker(this,
                              this.pat.newWalker(),
                              false,
-                             new Event("endTag", boundName),
+                             new EndTagEvent(boundName),
                              boundName,
                              true,
                              false);
@@ -69,12 +70,13 @@ export class Element extends BasePattern {
  * Walker for [[Element]].
  */
 class ElementWalker implements InternalWalker, Initializable {
-  private static _leaveStartTagEvent: Event = new Event("leaveStartTag");
+  private static _leaveStartTagEvent: LeaveStartTagEvent =
+    new LeaveStartTagEvent();
 
   constructor(protected readonly el: Element,
               private readonly walker: InternalWalker,
               private endedStartTag: boolean,
-              private readonly endTagEvent: Event,
+              private readonly endTagEvent: EndTagEvent,
               private boundName: Name,
               public canEndAttribute: boolean,
               public canEnd: boolean) {}
@@ -119,7 +121,7 @@ class ElementWalker implements InternalWalker, Initializable {
       return posses;
     }
 
-    return new Set<Event>();
+    return new Set();
   }
 
   possibleAttributes(): EventSet {

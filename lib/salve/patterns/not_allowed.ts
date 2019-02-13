@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { EndResult, Event, EventSet, InternalFireEventResult, InternalWalker,
+import { EndResult, EventSet, InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
 
 /**
@@ -41,11 +41,11 @@ export class NotAllowedWalker implements InternalWalker {
   }
 
   possible(): EventSet {
-    return new Set<Event>();
+    return new Set();
   }
 
   possibleAttributes(): EventSet {
-    return new Set<Event>();
+    return new Set();
   }
 
   fireEvent(): InternalFireEventResult {
