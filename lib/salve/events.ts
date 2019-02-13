@@ -29,6 +29,8 @@ export abstract class Event {
   /**
    * The event parameters. This consists of the event name, followed by
    * the rest of the parameters making up the event.
+   *
+   * @deprecated This field will be removed in a future major release.
    */
   abstract readonly params: [string] | [string, string | ConcreteName | RegExp];
 
