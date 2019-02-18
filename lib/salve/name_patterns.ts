@@ -198,7 +198,7 @@ export class Name extends Base {
     return other.intersection(this);
   }
 
-  wildcardMatch(ns: string, name: string): boolean {
+  wildcardMatch(ns: string, name: string): false {
     return false; // This is not a wildcard.
   }
 
@@ -215,7 +215,7 @@ export class Name extends Base {
     return `{"ns":"${escapeString(this.ns)}","name":"${this.name}"}`;
   }
 
-  simple(): boolean {
+  simple(): true {
     return true;
   }
 
@@ -560,7 +560,7 @@ export class NsName extends Base {
     return `{"ns":"${escapeString(this.ns)}"${except}}`;
   }
 
-  simple(): boolean {
+  simple(): false {
     return false;
   }
 
@@ -689,7 +689,7 @@ export class AnyName extends Base {
     return `{"pattern":"AnyName"${except}}`;
   }
 
-  simple(): boolean {
+  simple(): false {
     return false;
   }
 
