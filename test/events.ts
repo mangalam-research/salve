@@ -14,6 +14,7 @@ interface MakeTestOptions<T, P> {
     param(): P | null;
     params(): [string] | [string, P];
     isAttributeEvent: boolean;
+    stringValue: string;
   };
   moreTests(): void;
   moreEqualTests(): void;
@@ -38,6 +39,10 @@ function makeTest<T extends Event, P>(options: MakeTestOptions<T, P>): void {
     it("#isAttributeEvent has the right value", () => {
       expect(builder()).to.have.property("isAttributeEvent")
         .equal(expected.isAttributeEvent);
+    });
+
+    it("#toString() produces the right value", () => {
+      expect(builder().toString()).to.equal(expected.stringValue);
     });
 
     options.moreTests();
@@ -91,6 +96,7 @@ describe("events", () => {
       param: () => name,
       params: () => ["enterStartTag", name],
       isAttributeEvent: false,
+      stringValue: "Event: enterStartTag, {}foo",
     },
     moreTests(): void {
       it("#namePattern has the value given in constructor", () => {
@@ -118,6 +124,7 @@ describe("events", () => {
       param: () => null,
       params: () => ["leaveStartTag"],
       isAttributeEvent: false,
+      stringValue: "Event: leaveStartTag",
     },
     // tslint:disable-next-line:no-empty
     moreTests(): void {},
@@ -137,6 +144,7 @@ describe("events", () => {
       param: () => name,
       params: () => ["endTag", name],
       isAttributeEvent: false,
+      stringValue: "Event: endTag, {}foo",
     },
     moreTests(): void {
       it("#namePattern has the value given in constructor", () => {
@@ -165,6 +173,7 @@ describe("events", () => {
       param: () => name,
       params: () => ["attributeName", name],
       isAttributeEvent: true,
+      stringValue: "Event: attributeName, {}foo",
     },
     moreTests(): void {
       it("#namePattern has the value given in constructor", () => {
@@ -192,6 +201,7 @@ describe("events", () => {
       param: () => "foo",
       params: () => ["attributeValue", "foo"],
       isAttributeEvent: true,
+      stringValue: "Event: attributeValue, foo",
     },
     moreTests(): void {
       it("#value has the value given in constructor", () => {
@@ -202,6 +212,34 @@ describe("events", () => {
     moreEqualTests(): void {
       it("returns false if compared to different event", () => {
         const diff = new AttributeValueEvent("other");
+        // tslint:disable-next-line:no-invalid-this
+        expect(this.builder().equals(diff)).to.be.false;
+      });
+    },
+  });
+
+  // tslint:disable-next-line:mocha-no-side-effect-code
+  makeTest({
+    name: "TextEvent",
+    builder: () => new TextEvent("foo"),
+    makeSame: () => [new TextEvent("foo")],
+    makeDiffClass: () => new AttributeValueEvent("foo"),
+    expected: {
+      name: "text",
+      param: () => "foo",
+      params: () => ["text", "foo"],
+      isAttributeEvent: true,
+      stringValue: "Event: text, foo",
+    },
+    moreTests(): void {
+      it("#value has the value given in constructor", () => {
+        expect(new TextEvent("foo")).to.have.property("value")
+          .equal("foo");
+      });
+    },
+    moreEqualTests(): void {
+      it("returns false if compared to different event", () => {
+        const diff = new TextEvent("other");
         // tslint:disable-next-line:no-invalid-this
         expect(this.builder().equals(diff)).to.be.false;
       });
