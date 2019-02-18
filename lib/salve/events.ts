@@ -46,6 +46,11 @@ export abstract class Event {
    * @returns Whether the events are equal.
    */
   abstract equals(other: Event): boolean;
+
+  /**
+   * Provide a specialized string representation of the event.
+   */
+  abstract toString(): string;
 }
 
 /**
@@ -69,6 +74,10 @@ export abstract class NamePatternEvent<Name extends string> extends Event {
     return this.name === other.name && this.namePattern.toString() ===
       (other as NamePatternEvent<string>).namePattern.toString();
   }
+
+  toString(): string {
+    return `Event: ${this.name}, ${this.namePattern}`;
+  }
 }
 
 export class EnterStartTagEvent extends NamePatternEvent<"enterStartTag"> {
@@ -90,6 +99,10 @@ export class LeaveStartTagEvent extends Event {
 
   equals(other: Event): boolean {
     return this.name === other.name;
+  }
+
+  toString(): string {
+    return `Event: ${this.name}`;
   }
 }
 
@@ -129,6 +142,10 @@ export abstract class ValueEvent<Name extends string> extends Event {
   equals(other: Event): boolean {
     return this.name === other.name && this.value.toString() ===
       (other as ValueEvent<string>).value.toString();
+  }
+
+  toString(): string {
+    return `Event: ${this.name}, ${this.value}`;
   }
 }
 

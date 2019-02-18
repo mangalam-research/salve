@@ -1,3 +1,13 @@
+<a name="9.1.1"></a>
+## [9.1.1](https://github.com/mangalam-research/salve/compare/v9.1.0...v9.1.1) (2019-02-18)
+
+
+### Bug Fixes
+
+* add back event stringification ([8c651f4](https://github.com/mangalam-research/salve/commit/8c651f4))
+
+
+
 <a name="9.1.0"></a>
 # [9.1.0](https://github.com/mangalam-research/salve/compare/v9.0.1...v9.1.0) (2019-02-13)
 
