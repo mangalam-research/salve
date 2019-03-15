@@ -84,7 +84,7 @@
     "typescript": "^3.3.3333",
     "versync": "^4.1.0",
     "webpack": "^4.29.6",
-    "webpack-cli": "^3.2.3"
+    "webpack-cli": "^3.3.0"
   },
   "bin": {
     "salve-convert": "./bin/salve-convert"
