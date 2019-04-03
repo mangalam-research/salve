@@ -51,7 +51,7 @@
     "@types/node-fetch": "^2.1.7",
     "@types/require-dir": "^1.0.0",
     "@types/temp": "^0.8.33",
-    "bluebird": "^3.5.3",
+    "bluebird": "^3.5.4",
     "chai": "^4.2.0",
     "child-process-promise": "^2.2.1",
     "conventional-changelog-cli": "^2.0.12",
