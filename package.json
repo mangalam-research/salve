@@ -48,7 +48,7 @@
     "@types/file-url": "^2.0.0",
     "@types/mocha": "^5.2.6",
     "@types/node": "^10.14.4",
-    "@types/node-fetch": "^2.3.0",
+    "@types/node-fetch": "^2.3.1",
     "@types/require-dir": "^1.0.0",
     "@types/temp": "^0.8.33",
     "bluebird": "^3.5.4",
