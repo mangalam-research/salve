@@ -93,7 +93,7 @@ Promise<ConversionResult> {
     timing: false,
     keepTemp: false,
     simplifyTo: Infinity,
-    resourceLoader: resourceLoader,
+    resourceLoader,
     validate: true,
     createManifest: options.createManifest,
     manifestHashAlgorithm: options.manifestHashAlgorithm,

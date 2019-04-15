@@ -167,7 +167,7 @@ export class Element extends Node {
   }
 
   get text(): string {
-    return this.children.map((x) => x.text).join("");
+    return this.children.map(x => x.text).join("");
   }
 
   /**
@@ -342,11 +342,11 @@ export class Element extends Node {
     }
 
     this.attributes[name] = {
-      name: name,
+      name,
       prefix: "",
       local: name,
       uri: "",
-      value: value,
+      value,
     };
   }
 
@@ -399,7 +399,7 @@ export class Element extends Node {
       this.uri,
       this.ns,
       attributes,
-      this.children.map((child) => child.clone()));
+      this.children.map(child => child.clone()));
   }
 }
 

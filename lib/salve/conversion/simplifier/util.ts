@@ -13,7 +13,7 @@ export function findChildrenByLocalName(el: Element,
                                         name: string): Element[] {
   return el
     .children
-    .filter((child) => isElement(child) && child.local === name) as Element[];
+    .filter(child => isElement(child) && child.local === name) as Element[];
 }
 
 export function findDescendantsByLocalName(el: Element,

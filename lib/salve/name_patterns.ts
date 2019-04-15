@@ -198,6 +198,7 @@ export class Name extends Base {
     return other.intersection(this);
   }
 
+  // @ts-ignore
   wildcardMatch(ns: string, name: string): false {
     return false; // This is not a wildcard.
   }
@@ -531,9 +532,8 @@ export class NsName extends Base {
     }
 
     const result = otherNames
-      .filter((name) =>
-              !theseNames.some((thisName) => name.ns === thisName.ns &&
-                               name.name === thisName.name));
+      .filter(name => !theseNames.some(thisName => name.ns === thisName.ns &&
+                                       name.name === thisName.name));
 
     return result.length === 0 ? 0 : NameChoice.makeTree(result);
   }

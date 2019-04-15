@@ -102,7 +102,7 @@ function transformGrammars(multiple: boolean,
 
   const toRename =
     grammar.defines.concat(grammar.refs,
-                           ...grammar.childGrammars.map((x) => x.parentRefs));
+                           ...grammar.childGrammars.map(x => x.parentRefs));
 
   const suffix = `-gr-${grammar.id}`;
   // Make all names unique globally.

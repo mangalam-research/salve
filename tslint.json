@@ -9,6 +9,7 @@
      "documentation"],
     "radix": false,
     "no-backbone-get-set-outside-model": false,
-    "no-unused-variable": false
+    "no-unused-variable": false,
+    "non-literal-fs-path": false
   }
 }

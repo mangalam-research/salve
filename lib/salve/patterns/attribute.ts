@@ -97,7 +97,7 @@ class AttributeWalker implements InternalWalker {
     }
 
     // Convert text events to attributeValue events.
-    return map(this.subwalker.possible(), (ev) => {
+    return map(this.subwalker.possible(), ev => {
       if (ev.name !== "text") {
         throw new Error(`unexpected event type: ${ev.name}`);
       }

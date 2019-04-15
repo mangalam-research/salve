@@ -22,7 +22,7 @@ export class JingValidator implements SchemaValidator {
       throw new Error("URLs must use the file: protocol");
     }
 
-    let err = await new Promise<string>((resolve) => {
+    let err = await new Promise<string>(resolve => {
       // This is a bit of a hack. We want to make sure that the schema is a
       // valid RNG schema as per RNG specs. Running validation on our schema
       // with a schema that defines a valid schema structure does not trap
@@ -35,7 +35,7 @@ export class JingValidator implements SchemaValidator {
                           { stdio: ["ignore", "pipe", "ignore"] });
 
       let buffer = "";
-      child.stdout.on("data", (data) => {
+      child.stdout.on("data", data => {
         buffer += data;
       });
 

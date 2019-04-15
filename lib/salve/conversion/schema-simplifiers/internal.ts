@@ -440,7 +440,7 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
     }
 
     let value = el.text;
-    let context: { resolver : NameResolver } | undefined;
+    let context: { resolver: NameResolver } | undefined;
     if (datatype.needsContext) {
       // Change ns to the namespace we need.
       ns = fromQNameToURI(value, el);
@@ -599,10 +599,10 @@ interleave intersect (section 7.3): ${name1} and ${name2}`);
       }
 
       const names1 = firstRefs
-        .map((x) => this.getElementNamesForDefine(x.mustGetAttribute("name")));
+        .map(x => this.getElementNamesForDefine(x.mustGetAttribute("name")));
 
       const names2 = secondRefs
-        .map((x) => this.getElementNamesForDefine(x.mustGetAttribute("name")));
+        .map(x => this.getElementNamesForDefine(x.mustGetAttribute("name")));
 
       for (const name1 of names1) {
         for (const name2 of names2) {
@@ -683,7 +683,7 @@ export class InternalSimplifier<RL extends ResourceLoader>
 
     if (validator !== undefined) {
       if (validator.errors.length !== 0) {
-        const message = validator.errors.map((x) => x.toString()).join("\n");
+        const message = validator.errors.map(x => x.toString()).join("\n");
         throw new SchemaValidationError(message);
       }
     }
