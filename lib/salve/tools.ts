@@ -14,7 +14,8 @@
  *
  * See https://github.com/Microsoft/TypeScript/issues/12123.
  */
-export function fixPrototype(obj: any, parent: (...args: any[]) => any): void {
+export function fixPrototype(obj: any,
+                             parent: new (...args: any[]) => any): void {
   const oldProto = Object.getPrototypeOf !== undefined ?
     Object.getPrototypeOf(obj) : obj.__proto__;
 
