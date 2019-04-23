@@ -81,7 +81,7 @@
     "tslint": "^5.16.0",
     "tslint-config-lddubeau": "^4.1.0",
     "typedoc": "^0.14.2",
-    "typescript": "^3.4.4",
+    "typescript": "^3.4.5",
     "versync": "^4.1.0",
     "webpack": "^4.30.0",
     "webpack-cli": "^3.3.1"
