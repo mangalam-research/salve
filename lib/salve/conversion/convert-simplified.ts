@@ -22,7 +22,7 @@ function walk(el: Element): (Pattern | ElementPattern | Grammar) {
     case "grammar":
       return new Grammar(el.path, walk(el.children[0] as Element) as Pattern,
                          el.children.slice(1)
-                         .map((x) => walk(x as Element)) as Define[]);
+                         .map(x => walk(x as Element)) as Define[]);
     case "except":
     case "start":
       return walk(el.children[0] as Element);
@@ -43,8 +43,8 @@ function walk(el: Element): (Pattern | ElementPattern | Grammar) {
         (length !== 0 && last.local === "except") ? last : undefined;
       const params =
         ((except === undefined ? children : children.slice(0, -1)) as Element[])
-        .map((param) => ({ name: param.mustGetAttribute("name"),
-                           value: param.children[0].text }));
+        .map(param => ({ name: param.mustGetAttribute("name"),
+                         value: param.children[0].text }));
 
       return new Data(el.path, el.mustGetAttribute("type"),
                       el.mustGetAttribute("datatypeLibrary"),

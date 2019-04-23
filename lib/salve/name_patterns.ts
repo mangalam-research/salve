@@ -198,7 +198,8 @@ export class Name extends Base {
     return other.intersection(this);
   }
 
-  wildcardMatch(ns: string, name: string): boolean {
+  // @ts-ignore
+  wildcardMatch(ns: string, name: string): false {
     return false; // This is not a wildcard.
   }
 
@@ -215,7 +216,7 @@ export class Name extends Base {
     return `{"ns":"${escapeString(this.ns)}","name":"${this.name}"}`;
   }
 
-  simple(): boolean {
+  simple(): true {
     return true;
   }
 
@@ -531,9 +532,8 @@ export class NsName extends Base {
     }
 
     const result = otherNames
-      .filter((name) =>
-              !theseNames.some((thisName) => name.ns === thisName.ns &&
-                               name.name === thisName.name));
+      .filter(name => !theseNames.some(thisName => name.ns === thisName.ns &&
+                                       name.name === thisName.name));
 
     return result.length === 0 ? 0 : NameChoice.makeTree(result);
   }
@@ -560,7 +560,7 @@ export class NsName extends Base {
     return `{"ns":"${escapeString(this.ns)}"${except}}`;
   }
 
-  simple(): boolean {
+  simple(): false {
     return false;
   }
 
@@ -689,7 +689,7 @@ export class AnyName extends Base {
     return `{"pattern":"AnyName"${except}}`;
   }
 
-  simple(): boolean {
+  simple(): false {
     return false;
   }
 

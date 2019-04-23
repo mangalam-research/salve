@@ -18,7 +18,7 @@ import { BaseSimplifier } from "./base";
 interface Step {
   name: string;
   path: string;
-  repeatWhen?: Function;
+  repeatWhen?: (rng: string) => boolean;
   repeatNo: number;
   saxon: boolean;
 }
@@ -54,7 +54,7 @@ export class XSLSimplifier extends BaseSimplifier {
                                                       "rng-simplification"));
     const stepRe = /^rng-simplification_step(\d*?).xsl$/;
     const stepFiles =
-      fs.readdirSync(libPath).filter((file) => file.match(stepRe));
+      fs.readdirSync(libPath).filter(file => file.match(stepRe));
 
     // The filter step above ensures the regexp match.
     // tslint:disable-next-line:no-non-null-assertion
@@ -62,7 +62,7 @@ export class XSLSimplifier extends BaseSimplifier {
                    // tslint:disable-next-line:no-non-null-assertion
                    parseInt(b.match(stepRe)![1]));
 
-    return this._steps = stepFiles.map((file) => {
+    return this._steps = stepFiles.map(file => {
       const ret: Step = {
         name: file,
         path: path.join(libPath, file),
@@ -179,11 +179,11 @@ export class XSLSimplifier extends BaseSimplifier {
       child.stdin.end(input);
 
       let outputBuf = "";
-      child.stdout.on("data", (data) => {
+      child.stdout.on("data", data => {
         outputBuf += data.toString();
       });
 
-      child.on("exit", (status) => {
+      child.on("exit", status => {
         if (status !== 0) {
           reject(new Error(`child terminated with status: ${status}`));
         }

@@ -8,8 +8,6 @@
    memory usage, help editors be more user friendly and possibly be
    faster generally.
 
-* Document why mixins are used in validate.js instead of a class hierarchy.
-
 Context Independence
 ==================
 
@@ -80,14 +78,6 @@ I call the pattern above fake variance because it is equivalent to:
 
 The choice is not really between two differently structured "person"
 elements but between two contents for "person".
-
-
-
-* Support for events that are more appropriate in a DOM
-   environment. For instance, have a whole start tag be treated as a
-   single event, with attributes and all, rather than a series of
-   "enterStartTag", "attributeName", "attributeValue", "leaveStartTag"
-   events.
 
 * Dump xml_path as variable.
   * Add a Start class to validate deriving from Pattern which will

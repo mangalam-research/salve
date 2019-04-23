@@ -194,7 +194,16 @@ class GeneralChecker {
 
   elementHandler(el: Element, state: State): CheckResult {
     // The first child is the name class, which we do not need to walk.
-    return this._check(el.children[1] as Element, state);
+    const pattern = el.children[1] as Element;
+    const result = this._check(pattern, state);
+    const { contentType } = result;
+    if (contentType === null && pattern.local !== "notAllowed") {
+      throw new SchemaValidationError(
+        `definition ${el.mustGetAttribute("name")} violates the constraint \
+on string values (section 7.2)`);
+    }
+
+    return result;
   }
 
   attributeHandler(el: Element, state: State): CheckResult {
@@ -440,7 +449,7 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
     }
 
     let value = el.text;
-    let context: { resolver : NameResolver } | undefined;
+    let context: { resolver: NameResolver } | undefined;
     if (datatype.needsContext) {
       // Change ns to the namespace we need.
       ns = fromQNameToURI(value, el);
@@ -521,13 +530,7 @@ ${libname}`);
   }
 
   defineHandler(el: Element, state: State): CheckResult {
-    const { contentType } = this._check(el.children[0] as Element, state);
-    if (contentType === null) {
-      throw new SchemaValidationError(
-        `definition ${el.mustGetAttribute("name")} violates the constraint \
-on string values (section 7.2)`);
-    }
-
+    this._check(el.children[0] as Element, state);
     return DEFINE_RESULT;
   }
 
@@ -599,10 +602,10 @@ interleave intersect (section 7.3): ${name1} and ${name2}`);
       }
 
       const names1 = firstRefs
-        .map((x) => this.getElementNamesForDefine(x.mustGetAttribute("name")));
+        .map(x => this.getElementNamesForDefine(x.mustGetAttribute("name")));
 
       const names2 = secondRefs
-        .map((x) => this.getElementNamesForDefine(x.mustGetAttribute("name")));
+        .map(x => this.getElementNamesForDefine(x.mustGetAttribute("name")));
 
       for (const name1 of names1) {
         for (const name2 of names2) {
@@ -683,7 +686,7 @@ export class InternalSimplifier<RL extends ResourceLoader>
 
     if (validator !== undefined) {
       if (validator.errors.length !== 0) {
-        const message = validator.errors.map((x) => x.toString()).join("\n");
+        const message = validator.errors.map(x => x.toString()).join("\n");
         throw new SchemaValidationError(message);
       }
     }

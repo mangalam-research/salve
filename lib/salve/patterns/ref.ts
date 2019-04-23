@@ -46,13 +46,15 @@ resolved");
   newWalker(): InternalWalker {
     const element = this.element;
 
-    // tslint:disable-next-line:no-use-before-declare
-    return new RefWalker(this,
-                         element,
-                         element.name,
-                         new EnterStartTagEvent(element.name),
-                         true,
-                         false);
+    return element.notAllowed ?
+      element.pat.newWalker() :
+      // tslint:disable-next-line:no-use-before-declare
+      new RefWalker(this,
+                    element,
+                    element.name,
+                    new EnterStartTagEvent(element.name),
+                    true,
+                    false);
   }
 }
 

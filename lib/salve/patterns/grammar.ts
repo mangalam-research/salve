@@ -245,7 +245,7 @@ export class GrammarWalker<NR extends NameResolver> {
     return new GrammarWalker(this.el,
                              this.nameResolver.clone(),
                              this.elementWalkerStack
-                             .map((walkers) => walkers.map((x) => x.clone())),
+                             .map(walkers => walkers.map(x => x.clone())),
                              this.misplacedDepth,
                              this._swallowAttributeValue,
                              this.suspendedWs,

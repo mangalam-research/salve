@@ -1,3 +1,15 @@
+<a name="9.1.2"></a>
+## [9.1.2](https://github.com/mangalam-research/salve/compare/v9.1.1...v9.1.2) (2019-04-23)
+
+
+### Bug Fixes
+
+* bad typing on fixPrototype ([a94c3d8](https://github.com/mangalam-research/salve/commit/a94c3d8))
+* handling of notAllowed as element content ([8242b1e](https://github.com/mangalam-research/salve/commit/8242b1e))
+* the content type check (section 7.2) ([4f10c76](https://github.com/mangalam-research/salve/commit/4f10c76))
+
+
+
 <a name="9.1.1"></a>
 ## [9.1.1](https://github.com/mangalam-research/salve/compare/v9.1.0...v9.1.1) (2019-02-18)
 

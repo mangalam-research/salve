@@ -75,7 +75,7 @@ function terminate(ex: unknown): void {
   }
 }
 process.on("uncaughtException", terminate);
-process.on("unhandledRejection", (ex) => {
+process.on("unhandledRejection", ex => {
   // We convert the rejection into an uncaught exception.
   throw ex;
 });
@@ -223,7 +223,7 @@ function ensureTempDir(): string {
 }
 
 async function prettyPrint(input: string, outputPath: string): Promise<void> {
-  return new Promise<void>((resolve) => {
+  return new Promise<void>(resolve => {
     const child = spawn("xmllint", ["--format", "--output", outputPath, "-"],
                         { stdio: ["pipe", "inherit", "inherit"] });
     child.stdin.end(input);
@@ -249,7 +249,7 @@ async function convert(result: SimplificationResult): Promise<void> {
       args.allow_incomplete_types !== "quiet") {
     stderr.write(`${prog}: WARNING: incomplete types are used in the schema\n`);
 
-    result.warnings.forEach((x) => {
+    result.warnings.forEach(x => {
       stderr.write(`${prog}: ${x}\n`);
     });
     if (!args.allow_incomplete_types) {
@@ -351,7 +351,7 @@ async function start(): Promise<void> {
 // tslint:disable-next-line:no-floating-promises
 start().then(() => {
   process.exit(0);
-}).catch((e) => {
+}).catch(e => {
   if (e instanceof ValueValidationError ||
       e instanceof ParameterParsingError ||
       e instanceof SchemaValidationError) {

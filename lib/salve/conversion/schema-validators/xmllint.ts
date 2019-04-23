@@ -22,12 +22,12 @@ export class XMLLintValidator implements SchemaValidator {
       throw new Error("URLs must use the file: protocol");
     }
 
-    const err = await new Promise<string>((resolve) => {
+    const err = await new Promise<string>(resolve => {
       const child = spawn("xmllint", ["--relaxng", schemaPath, "/dev/null"],
                           { stdio: ["ignore", "ignore", "pipe"] });
 
       let buffer = "";
-      child.stderr.on("data", (data) => {
+      child.stderr.on("data", data => {
         buffer += data;
       });
 
