@@ -11,6 +11,7 @@ import { NameResolver } from "../name_resolver";
 import { BasePattern, EndResult, EventSet, InternalFireEventResult,
          InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
+import { NotAllowed } from "./not_allowed";
 import { Ref } from "./ref";
 
 export interface Initializable {
@@ -22,6 +23,8 @@ export interface Initializable {
  * A pattern for elements.
  */
 export class Element extends BasePattern {
+  readonly notAllowed: boolean;
+
   /**
    * @param xmlPath This is a string which uniquely identifies the
    * element from the simplified RNG tree. Used in debugging.
@@ -33,6 +36,7 @@ export class Element extends BasePattern {
   constructor(xmlPath: string, readonly name: ConcreteName,
               readonly pat: Pattern) {
     super(xmlPath);
+    this.notAllowed = this.pat instanceof NotAllowed;
   }
 
   newWalker(boundName: Name): InternalWalker & Initializable {
