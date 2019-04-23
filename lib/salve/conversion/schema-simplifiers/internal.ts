@@ -194,7 +194,16 @@ class GeneralChecker {
 
   elementHandler(el: Element, state: State): CheckResult {
     // The first child is the name class, which we do not need to walk.
-    return this._check(el.children[1] as Element, state);
+    const pattern = el.children[1] as Element;
+    const result = this._check(pattern, state);
+    const { contentType } = result;
+    if (contentType === null && pattern.local !== "notAllowed") {
+      throw new SchemaValidationError(
+        `definition ${el.mustGetAttribute("name")} violates the constraint \
+on string values (section 7.2)`);
+    }
+
+    return result;
   }
 
   attributeHandler(el: Element, state: State): CheckResult {
@@ -521,13 +530,7 @@ ${libname}`);
   }
 
   defineHandler(el: Element, state: State): CheckResult {
-    const { contentType } = this._check(el.children[0] as Element, state);
-    if (contentType === null) {
-      throw new SchemaValidationError(
-        `definition ${el.mustGetAttribute("name")} violates the constraint \
-on string values (section 7.2)`);
-    }
-
+    this._check(el.children[0] as Element, state);
     return DEFINE_RESULT;
   }
 
