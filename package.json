@@ -33,7 +33,7 @@
     "@trust/webcrypto": "git+https://github.com/lddubeau/webcrypto.git#fix/pass-string-to-digest",
     "argparse": ">=1 <2",
     "file-url": "^3.0.0",
-    "node-fetch": "^2.3.0",
+    "node-fetch": "^2.4.0",
     "require-dir": "^1.2.0",
     "saxes": "^3.1.9",
     "temp": "^0.9.0",
