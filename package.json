@@ -62,7 +62,7 @@
     "gulp": "^4.0.1",
     "gulp-eslint": "^5.0.0",
     "gulp-newer": "^1.4.0",
-    "husky": "^2.1.0",
+    "husky": "^2.2.0",
     "karma": "^4.1.0",
     "karma-browserstack-launcher": "^1.5.1",
     "karma-chai": "^0.1.0",
