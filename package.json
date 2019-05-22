@@ -83,7 +83,7 @@
     "typedoc": "^0.14.2",
     "typescript": "^3.4.5",
     "versync": "^4.1.0",
-    "webpack": "^4.32.0",
+    "webpack": "^4.32.1",
     "webpack-cli": "^3.3.2"
   },
   "bin": {
