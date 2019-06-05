@@ -7,7 +7,7 @@ before_install:
 # We want a dump of the travis variables for debugging purposes.
 - env | grep TRAVIS_
 - sudo apt-get update -qq
-- sudo apt-get install -y xsltproc jing libsaxonhe-java
+- sudo apt-get install -y xsltproc jing
 script: gulp test
 branches:
   except:
