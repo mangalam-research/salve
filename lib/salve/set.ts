@@ -33,7 +33,7 @@ export function union<T>(me: Set<T>, s: Set<T>): void {
 export function filter<T>(me: Set<T>,
                           f: (value: T, index: number,
                               me: Set<T>) => any): Set<T> {
-  const ret = new (me.constructor as typeof Set)();
+  const ret: Set<T> = new (me.constructor as typeof Set)();
   // The fat arrow is used to prevent a caller from accessing ``this.b``
   // through the 3rd parameter that would be passed to ``f``.
   let index = 0;
@@ -61,7 +61,7 @@ export function filter<T>(me: Set<T>,
 export function map<T>(me: Set<T>,
                        f: (value: T, index: number,
                            me: Set<T>) => any): Set<T> {
-  const ret = new (me.constructor as typeof Set)();
+  const ret: Set<T> = new (me.constructor as typeof Set)();
   let index = 0;
   for (const x of me) {
     const result = f(x, index++, me);

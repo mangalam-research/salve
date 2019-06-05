@@ -117,7 +117,7 @@ function walk(el: Element, refs: Set<string>): void {
  * @returns The new root of the tree.
  */
 export function step17(tree: Element): Element {
-  const refs = new Set();
+  const refs: Set<string> = new Set();
   walk(tree, refs);
 
   removeUnreferencedDefs(tree, refs);
