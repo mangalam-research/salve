@@ -298,15 +298,7 @@ export class NameChoice extends Base {
     const a = this.a.intersection(other);
     const b = this.b.intersection(other);
 
-    if (a !== 0 && b !== 0) {
-      return new NameChoice("", a, b);
-    }
-
-    if (a !== 0) {
-      return a;
-    }
-
-    return (b !== 0) ? b : 0;
+    return a === 0 ? b : (b === 0 ? a : new NameChoice("", a, b));
   }
 
   /**
@@ -324,19 +316,8 @@ export class NameChoice extends Base {
     const newA = a instanceof NameChoice ? a.applyRecursively(fn) : fn(a);
     const newB = b instanceof NameChoice ? b.applyRecursively(fn) : fn(b);
 
-    if (newA !== 0 && newB !== 0) {
-      return new NameChoice(this.path, newA, newB);
-    }
-
-    if (newA !== 0) {
-      return newA;
-    }
-
-    if (newB !== 0) {
-      return newB;
-    }
-
-    return 0;
+    return newA === 0 ? newB :
+      (newB === 0 ? newA : new NameChoice(this.path, newA, newB));
   }
 
   wildcardMatch(ns: string, name: string): boolean {
@@ -359,18 +340,13 @@ export class NameChoice extends Base {
   }
 
   toArray(): Name[] | null {
-    const aArr: Name[] | null = this.a.toArray();
-
+    const aArr = this.a.toArray();
     if (aArr === null) {
       return null;
     }
 
-    const bArr: Name[] | null = this.b.toArray();
-    if (bArr === null) {
-      return null;
-    }
-
-    return aArr.concat(bArr);
+    const bArr = this.b.toArray();
+    return bArr === null ? null : aArr.concat(bArr);
   }
 
   _recordNamespaces(namespaces: Set<string>, recordEmpty: boolean): void {
