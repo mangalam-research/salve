@@ -275,7 +275,7 @@ export class NameChoice extends Base {
       ret = top;
     }
     else {
-      // Only one name: we can use it as-is for the except.
+      // Only one name: we can use it as-is.
       ret = names[0];
     }
 
