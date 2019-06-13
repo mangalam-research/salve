@@ -56,7 +56,7 @@ function walk(el: Element, refs: Set<string>): void {
           // child of the choice.
           parent.replaceChildWith(el, el.children[firstNA ? 1 : 0] as Element);
         }
-        break;
+        return;
       case "group":
       case "oneOrMore":
       case "interleave":
@@ -65,29 +65,21 @@ function walk(el: Element, refs: Set<string>): void {
         // An attribute (or list, group, interleave, oneOrMore) with at least
         // one notAllowed is replaced with notAllowed.
         parent.replaceChildWith(el, Element.makeElement("notAllowed"));
-        break;
+        return;
       case "except":
         // An except with notAllowed is removed.
         el.remove();
-        break;
+        return;
       default:
     }
   }
 
-  if (el.parent === undefined) {
-    // We've been removed.
-    return;
-  }
-
   for (const child of el.children) {
-    if (!isElement(child)) {
+    if (!isElement(child) || child.local !== "ref") {
       continue;
     }
 
-    const childLocal = child.local;
-    if (childLocal === "ref") {
-      refs.add(child.mustGetAttribute("name"));
-    }
+    refs.add(child.mustGetAttribute("name"));
   }
 }
 
