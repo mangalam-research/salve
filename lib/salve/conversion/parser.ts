@@ -167,7 +167,16 @@ export class Element extends Node {
   }
 
   get text(): string {
-    return this.children.map(x => x.text).join("");
+    // Testing for this special case does payoff.
+    if (this.children.length === 1) {
+      return this.children[0].text;
+    }
+
+    let ret = "";
+    for (const child of this.children) {
+      ret += child.text;
+    }
+    return ret;
   }
 
   /**
