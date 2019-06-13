@@ -20,7 +20,7 @@ import { ManifestEntry, registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { SchemaValidationError } from "../schema-validation";
 import * as simplifier from "../simplifier";
-import { findMultiNames, getName, indexBy } from "../simplifier/util";
+import { getName, indexBy } from "../simplifier/util";
 import { BaseSimplifier } from "./base";
 import { fromQNameToURI, localName } from "./common";
 
@@ -231,9 +231,7 @@ on string values (section 7.2)`);
       throw new ProhibitedDataExceptPath(el.local);
     }
 
-    const nameClass = findMultiNames(el, ["anyName", "nsName"]);
-    if (nameClass.anyName.length + nameClass.nsName.length !== 0  &&
-        !state.inOneOrMore) {
+    if (!state.inOneOrMore && !this.getAttrName(el).simple()) {
       throw new SchemaValidationError("an attribute with an infinite name \
 class must be a descendant of oneOrMore (section 7.3)");
     }
