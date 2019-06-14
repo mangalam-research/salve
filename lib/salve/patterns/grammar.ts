@@ -333,21 +333,27 @@ export class GrammarWalker<NR extends NameResolver> {
 
     const errors: ValidationError[] = [];
     if (ret.matched) {
-      if (ret.refs !== undefined && ret.refs.length !== 0) {
+      const { refs } = ret;
+      if (refs !== undefined && refs.length !== 0) {
         const newWalkers: InternalWalker[] = [];
         const boundName = new Name("", params[0], params[1]);
-        for (const item of ret.refs) {
-          const walker = item.element.newWalker(boundName);
-          // If we get anything else than false here, the internal logic is
-          // wrong.
-          if (name === "startTagAndAttributes") {
-            if (!walker.initWithAttributes(params.slice(2),
-                                           this.nameResolver).matched) {
+        const attrs = params.slice(2);
+        if (name === "startTagAndAttributes") {
+          for (const item of refs) {
+            const walker = item.element.newWalker(boundName);
+            // If we get anything else than false here, the internal logic is
+            // wrong.
+            if (!walker.initWithAttributes(attrs, this.nameResolver).matched) {
               throw new Error("error or failed to match on a new element \
 walker: the internal logic is incorrect");
             }
+            newWalkers.push(walker);
           }
-          newWalkers.push(walker);
+        }
+        else {
+          for (const item of refs) {
+            newWalkers.push(item.element.newWalker(boundName));
+          }
         }
 
         this.elementWalkerStack.push(newWalkers);
@@ -463,10 +469,16 @@ ${name}`);
 
   private _fireOnCurrentWalkers(name: string,
                                 params: string[]): InternalFireEventResult {
-    const walkers = this.elementWalkerStack[this.elementWalkerStack.length - 1];
+    const { elementWalkerStack } = this;
+    const walkers = elementWalkerStack[elementWalkerStack.length - 1];
 
     // Checking whether walkers.length === 0 would not be a particularly useful
     // optimization, as we don't let that happen.
+
+    // This optimization for the single walker case is significant.
+    if (walkers.length === 1) {
+      return walkers[0].fireEvent(name, params, this.nameResolver);
+    }
 
     const errors: ValidationError[] = [];
     const refs: RefWalker[] = [];
@@ -479,19 +491,12 @@ ${name}`);
         if (result.refs !== undefined) {
           refs.push(...result.refs);
         }
-        if (result.errors !== undefined) {
-          errors.push(...result.errors);
-        }
       }
       // There's no point in recording errors if we're going to toss them
       // anyway.
-      else if (remainingWalkers.length === 0) {
-        if (result.refs !== undefined) {
-          refs.push(...result.refs);
-        }
-        if (result.errors !== undefined) {
-          errors.push(...result.errors);
-        }
+      else if ((remainingWalkers.length === 0) &&
+               (result.errors !== undefined)) {
+        errors.push(...result.errors);
       }
     }
 
@@ -499,8 +504,7 @@ ${name}`);
     // were not, then we just keep the successful ones. But removing all walkers
     // at once prevents us from giving useful error messages.
     if (remainingWalkers.length !== 0) {
-      this.elementWalkerStack[this.elementWalkerStack.length - 1] =
-        remainingWalkers;
+      elementWalkerStack[elementWalkerStack.length - 1] = remainingWalkers;
 
       // If some of the walkers matched, we ignore the errors from the other
       // walkers.
