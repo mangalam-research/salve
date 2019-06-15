@@ -353,6 +353,7 @@ walker: the internal logic is incorrect");
         }
 
         this.elementWalkerStack.push(newWalkers);
+        return false;
       }
     }
     else if (ret.errors !== undefined) {
@@ -447,16 +448,16 @@ ${name}`);
       if (this.misplacedDepth > 0) {
         this.misplacedDepth--;
       }
-    }
 
-    if (wsErr !== undefined && !wsErr.matched) {
-      // If we have another error, we don't want to make an issue that text
-      // was not matched. Otherwise, we want to alert the user.
-      if (wsErr.errors !== undefined) {
-        errors.push(...wsErr.errors);
-      }
-      else if (errors.length === 0) {
-        errors.push(new ValidationError("text not allowed here"));
+      if (wsErr !== undefined && !wsErr.matched) {
+        // If we have another error, we don't want to make an issue that text
+        // was not matched. Otherwise, we want to alert the user.
+        if (wsErr.errors !== undefined) {
+          errors.push(...wsErr.errors);
+        }
+        else if (errors.length === 0) {
+          errors.push(new ValidationError("text not allowed here"));
+        }
       }
     }
 
