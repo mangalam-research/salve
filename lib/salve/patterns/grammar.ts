@@ -280,7 +280,8 @@ export class GrammarWalker<NR extends NameResolver> {
     // The only case where we'd want to pass a node consisting entirely of
     // whitespace is to satisfy a data or value pattern because they can require
     // a sequence of whitespaces.
-    let wsErr: InternalFireEventResult | undefined;
+    let wsErr: readonly ValidationError[] | undefined;
+    let wsMatch = true;
     switch (name) {
       case "text": {
         // Earlier versions of salve processed text events ahead of this switch
@@ -305,7 +306,8 @@ export class GrammarWalker<NR extends NameResolver> {
       }
       case "endTag":
         if (!this.ignoreNextWs && this.suspendedWs !== undefined) {
-          wsErr = this._fireOnCurrentWalkers("text", [this.suspendedWs]);
+          ({ matched: wsMatch, errors: wsErr } =
+           this._fireOnCurrentWalkers("text", [this.suspendedWs]));
         }
         this.ignoreNextWs = true;
         break;
@@ -447,12 +449,12 @@ ${name}`);
         this.misplacedDepth--;
       }
 
-      if (wsErr !== undefined && !wsErr.matched) {
+      if (!wsMatch) {
+        if (wsErr !== undefined) {
+          errors = errors.concat(wsErr);
+        }
         // If we have another error, we don't want to make an issue that text
         // was not matched. Otherwise, we want to alert the user.
-        if (wsErr.errors !== undefined) {
-          errors = errors.concat(wsErr.errors);
-        }
         else if (errors.length === 0) {
           errors = [new ValidationError("text not allowed here")];
         }
