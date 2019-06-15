@@ -280,38 +280,37 @@ export class GrammarWalker<NR extends NameResolver> {
     // The only case where we'd want to pass a node consisting entirely of
     // whitespace is to satisfy a data or value pattern because they can require
     // a sequence of whitespaces.
-    let wsErr: InternalFireEventResult;
-    if (name === "text") {
-      // Earlier versions of salve processed text events ahead of this switch
-      // block, but we moved it here to improve performance. There's no issue
-      // with having a case for text here because salve disallows firing more
-      // than one text event in sequence.
-      // Process whitespace nodes
-      const text = params[0];
-      if (!/\S/.test(text)) {
-        if (text === "") {
-          throw new Error("firing empty text events makes no sense");
+    let wsErr: InternalFireEventResult | undefined;
+    switch (name) {
+      case "text": {
+        // Earlier versions of salve processed text events ahead of this switch
+        // block, but we moved it here to improve performance. There's no issue
+        // with having a case for text here because salve disallows firing more
+        // than one text event in sequence.
+        // Process whitespace nodes
+        const text = params[0];
+        if (!/\S/.test(text)) {
+          if (text === "") {
+            throw new Error("firing empty text events makes no sense");
+          }
+
+          // We don't check the old value of suspendedWs because salve does not
+          // allow two text events in a row. So we should never have to
+          // concatenate values.
+          this.suspendedWs = text;
+
+          return false;
         }
-
-        // We don't check the old value of suspendedWs because salve does not
-        // allow two text events in a row. So we should never have to
-        // concatenate values.
-        this.suspendedWs = text;
-
-        return false;
+        break;
       }
-
-      wsErr = new InternalFireEventResult(true);
-    }
-    else if (name === "endTag") {
-      wsErr = (!this.ignoreNextWs && this.suspendedWs !== undefined) ?
-        this._fireOnCurrentWalkers("text", [this.suspendedWs]) :
-        new InternalFireEventResult(true);
-      this.ignoreNextWs = true;
-    }
-    else {
-      this.ignoreNextWs = false;
-      wsErr = new InternalFireEventResult(true);
+      case "endTag":
+        if (!this.ignoreNextWs && this.suspendedWs !== undefined) {
+          wsErr = this._fireOnCurrentWalkers("text", [this.suspendedWs]);
+        }
+        this.ignoreNextWs = true;
+        break;
+      default:
+        this.ignoreNextWs = false;
     }
     // Absorb the whitespace: poof, gone!
     this.suspendedWs = undefined;
@@ -453,7 +452,7 @@ ${name}`);
       }
     }
 
-    if (!wsErr.matched) {
+    if (wsErr !== undefined && !wsErr.matched) {
       // If we have another error, we don't want to make an issue that text
       // was not matched. Otherwise, we want to alert the user.
       if (wsErr.errors !== undefined) {
