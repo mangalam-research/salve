@@ -17,25 +17,6 @@ import { RELAXNG_URI } from "./simplifier/util";
 
 export type ConcreteNode = Element | Text;
 
-export abstract class Node {
-  abstract readonly text: string;
-  abstract readonly kind: "element" | "text";
-
-  protected _parent: Element | undefined;
-
-  get parent(): Element | undefined {
-    return this._parent;
-  }
-
-  set parent(value: Element | undefined) {
-    this.setParent(value);
-  }
-
-  protected setParent(value: Element | undefined): void {
-    this._parent = value;
-  }
-}
-
 const emptyNS = Object.create(null);
 
 /**
@@ -44,12 +25,14 @@ const emptyNS = Object.create(null);
  * This constructor will insert the created object into the parent automatically
  * if the parent is provided.
  */
-export class Element extends Node {
+export class Element {
   readonly kind: "element" = "element";
   /**
    * The path of the element in its tree.
    */
   private _path: string | undefined;
+
+  private _parent: Element | undefined;
 
   prefix: string;
 
@@ -73,8 +56,7 @@ export class Element extends Node {
               uri: string,
               ns: Record<string, string>,
               attributes: Record<string, SaxesAttribute>,
-              readonly children: ConcreteNode[] = []) {
-    super();
+              readonly children: ConcreteNode[]) {
     this.prefix = prefix;
     this.local = local;
     this.uri = uri;
@@ -105,7 +87,16 @@ export class Element extends Node {
       // We always pass the same object as ns. So we save an unnecessary object
       // creation.
       emptyNS,
-      Object.create(null));
+      Object.create(null),
+      []);
+  }
+
+  get parent(): Element | undefined {
+    return this._parent;
+  }
+
+  set parent(value: Element | undefined) {
+    this.setParent(value);
   }
 
   setParent(value: Element | undefined): void {
@@ -124,7 +115,6 @@ export class Element extends Node {
     // }
 
     this._path = undefined; // This becomes void.
-    // We inline super.setParent here:
     this._parent = value;
   }
 
@@ -396,14 +386,14 @@ export class Element extends Node {
   }
 }
 
-export class Text extends Node {
+export class Text {
   readonly kind: "text" = "text";
+  parent: Element | undefined;
 
   /**
    * @param text The textual value.
    */
   constructor(readonly text: string) {
-    super();
   }
 
   clone(): Text {
@@ -411,11 +401,11 @@ export class Text extends Node {
   }
 }
 
-export function isElement(node: Node): node is Element {
+export function isElement(node: ConcreteNode): node is Element {
   return node.kind === "element";
 }
 
-export function isText(node: Node): node is Text {
+export function isText(node: ConcreteNode): node is Text {
   return node.kind === "text";
 }
 
