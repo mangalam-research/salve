@@ -327,7 +327,7 @@ export class GrammarWalker<NR extends NameResolver> {
 
     const ret = this._fireOnCurrentWalkers(name, params);
 
-    const errors: ValidationError[] = [];
+    let errors: readonly ValidationError[] = [];
     if (ret.matched) {
       const { refs } = ret;
       if (refs !== undefined && refs.length !== 0) {
@@ -357,7 +357,7 @@ walker: the internal logic is incorrect");
       }
     }
     else if (ret.errors !== undefined) {
-      errors.push(...ret.errors);
+      errors = ret.errors;
     }
     else {
       switch (name) {
@@ -370,10 +370,10 @@ walker: the internal logic is incorrect");
           }
           else {
             const elName = new Name("", params[0], params[1]);
-            errors.push(new ElementNameError(
+            errors = [new ElementNameError(
               name === "enterStartTag" ?
                 "tag not allowed here" :
-                "tag not allowed here with these attributes", elName));
+                "tag not allowed here with these attributes", elName)];
 
             // Try to infer what element is meant by this errant tag. If we
             // can't find a candidate, then fall back to a dumb mode.
@@ -398,26 +398,24 @@ walker: the internal logic is incorrect");
           }
           break;
         case "endTag":
-          errors.push(new ElementNameError("unexpected end tag",
-                                           new Name("", params[0], params[1])));
+          errors = [new ElementNameError("unexpected end tag",
+                                         new Name("", params[0], params[1]))];
           break;
         case "attributeName":
-          errors.push(new AttributeNameError(
-            "attribute not allowed here",
-            new Name("", params[0], params[1])));
+          errors = [new AttributeNameError("attribute not allowed here",
+                                           new Name("", params[0], params[1]))];
           this._swallowAttributeValue = true;
           break;
         case "attributeNameAndValue":
-          errors.push(new AttributeNameError(
-            "attribute not allowed here",
-            new Name("", params[0], params[1])));
+          errors = [new AttributeNameError("attribute not allowed here",
+                                           new Name("", params[0], params[1]))];
           break;
         case "attributeValue":
-          errors.push(new ValidationError("unexpected attributeValue event; it \
-is likely that fireEvent is incorrectly called"));
+          errors = [new ValidationError("unexpected attributeValue event; it \
+is likely that fireEvent is incorrectly called")];
           break;
         case "text":
-          errors.push(new ValidationError("text not allowed here"));
+          errors = [new ValidationError("text not allowed here")];
           break;
         case "leaveStartTag":
           // If MisplacedElementWalker did not exist then we would get here if a
@@ -453,10 +451,10 @@ ${name}`);
         // If we have another error, we don't want to make an issue that text
         // was not matched. Otherwise, we want to alert the user.
         if (wsErr.errors !== undefined) {
-          errors.push(...wsErr.errors);
+          errors = errors.concat(wsErr.errors);
         }
         else if (errors.length === 0) {
-          errors.push(new ValidationError("text not allowed here"));
+          errors = [new ValidationError("text not allowed here")];
         }
       }
     }

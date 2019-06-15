@@ -63,7 +63,7 @@ import { Ref, RefWalker } from "./ref";
 
 export type EventSet = Set<Events>;
 
-export type FireEventResult = false | undefined | ValidationError[];
+export type FireEventResult = false | undefined | readonly ValidationError[];
 
 export class InternalFireEventResult {
   constructor(readonly matched: boolean,
