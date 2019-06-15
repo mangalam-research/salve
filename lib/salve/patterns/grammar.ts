@@ -321,11 +321,8 @@ export class GrammarWalker<NR extends NameResolver> {
     if (this._swallowAttributeValue) {
       // Swallow only one event.
       this._swallowAttributeValue = false;
-      if (name === "attributeValue") {
-        return false;
-      }
-
-      return [new ValidationError("attribute value required")];
+      return name === "attributeValue" ? false :
+        [new ValidationError("attribute value required")];
     }
 
     const ret = this._fireOnCurrentWalkers(name, params);
