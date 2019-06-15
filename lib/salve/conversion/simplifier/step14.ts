@@ -60,22 +60,21 @@ function combine(els: Element[]): void {
   }
 
   let wrapper = Element.makeElement(combineAs);
-  wrapper.grabChildren(els[0]);
-  wrapper.grabChildren(els[1]);
-  els[1].remove();
+  const [first, second, ...rest] = els;
+  wrapper.grabChildren(first);
+  wrapper.grabChildren(second);
+  second.parent!.removeChild(second);
 
-  if (els.length > 2) {
-    for (const el of els.slice(2)) {
-      const newWrapper = Element.makeElement(combineAs);
-      newWrapper.appendChild(wrapper);
-      newWrapper.grabChildren(el);
-      el.remove();
-      wrapper = newWrapper;
-    }
+  for (const el of rest) {
+    const newWrapper = Element.makeElement(combineAs);
+    newWrapper.appendChild(wrapper);
+    newWrapper.grabChildren(el);
+    el.parent!.removeChild(el);
+    wrapper = newWrapper;
   }
 
-  els[0].appendChild(wrapper);
-  els[0].removeAttribute("combine");
+  first.appendChild(wrapper);
+  first.removeAttribute("combine");
 }
 
 /**

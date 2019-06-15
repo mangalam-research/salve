@@ -104,10 +104,10 @@ function walk(check: boolean, state: State, el: Element): Element | null {
       if (el.children.length === 1) {
         const replaceWith = el.children[0] as Element;
         if (el.parent !== undefined) {
-          el.replaceWith(replaceWith);
+          el.parent.replaceChildWith(el, replaceWith);
         }
         else {
-          replaceWith.remove();
+          replaceWith.parent!.removeChild(replaceWith);
           // By this stage in the process, this is the only attribute that need
           // be carried over.
           const xmlns = el.getAttribute("xmlns");

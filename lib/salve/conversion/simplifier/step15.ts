@@ -130,7 +130,8 @@ function transformGrammars(multiple: boolean,
 
   if (grammar !== root) {
     // Remove the remaining ``grammar`` and ``start`` elements.
-    grammar.grammar.replaceWith(start.children[0] as Element);
+    grammar.grammar.parent!.replaceChildWith(grammar.grammar,
+                                             start.children[0] as Element);
   }
 
 }

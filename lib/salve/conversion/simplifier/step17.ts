@@ -68,7 +68,7 @@ function walk(el: Element, refs: Set<string>): void {
         return;
       case "except":
         // An except with notAllowed is removed.
-        el.remove();
+        el.parent!.removeChild(el);
         return;
       default:
     }

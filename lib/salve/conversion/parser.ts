@@ -34,22 +34,6 @@ export abstract class Node {
   protected setParent(value: Element | undefined): void {
     this._parent = value;
   }
-
-  remove(this: ConcreteNode): void {
-    const parent = this.parent;
-    if (parent !== undefined) {
-      parent.removeChild(this);
-    }
-  }
-
-  replaceWith(this: ConcreteNode, replacement: ConcreteNode): void {
-    const parent = this.parent;
-    if (parent === undefined) {
-      throw new Error("no parent");
-    }
-
-    parent.replaceChildWith(this, replacement);
-  }
 }
 
 const emptyNS = Object.create(null);

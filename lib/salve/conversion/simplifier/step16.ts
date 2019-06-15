@@ -47,7 +47,7 @@ function wrapElements(state: State, root: Element): Element[] {
 
       const ref = Element.makeElement("ref");
       ref.setAttribute("name", name);
-      el.replaceWith(ref);
+      el.parent!.replaceChildWith(el, ref);
       seenRefs.add(name);
       const defEl = Element.makeElement("define");
       toAppend.push(defEl);

@@ -151,7 +151,7 @@ class Step1 {
       // if we're forming the root of the new tree.
       includedTree.removeAttribute("xmlns");
 
-      el.replaceWith(includedTree);
+      el.parent!.replaceChildWith(el, includedTree);
     }
 
     return includedTree;
@@ -182,7 +182,7 @@ class Step1 {
           "include contains start element but grammar does not");
       }
       for (const start of grammarStarts) {
-        start.remove();
+        start.parent!.removeChild(start);
       }
     }
 
@@ -199,7 +199,7 @@ grammar`);
       }
 
       for (const def of defs) {
-        def.remove();
+        def.parent!.removeChild(def);
       }
     }
     el.local = "div";
