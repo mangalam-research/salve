@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Datatype, RawParameter, registry } from "../datatypes";
+import { Datatype, ParsedParams, RawParameter, registry } from "../datatypes";
 import { ValidationError } from "../errors";
 import { TextEvent } from "../events";
 import { NameResolver } from "../name_resolver";
@@ -16,7 +16,7 @@ import { EndResult, EventSet, InternalFireEventResult, InternalWalker,
 export class Data extends Pattern {
   readonly datatype: Datatype;
   readonly rngParams?: RawParameter[];
-  private _params: any;
+  private _params: ParsedParams;
 
   /**
    *
@@ -80,7 +80,7 @@ export class Data extends Pattern {
 class DataWalker implements InternalWalker {
   constructor(protected readonly el: Data,
               private readonly datatype: Datatype,
-              private readonly params: any,
+              private readonly params: ParsedParams,
               private readonly except: Pattern | undefined,
               private matched: boolean,
               public canEndAttribute: boolean,
