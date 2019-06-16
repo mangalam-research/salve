@@ -125,9 +125,13 @@ class ChoiceWalker implements InternalWalker {
 
   fireEvent(name: string, params: string[],
             nameResolver: NameResolver): InternalFireEventResult {
-    if (this.deactivateA && this.deactivateB) {
-      return new InternalFireEventResult(false);
-    }
+    //
+    // It cannot happen that fireEvent be called when deactivateA and
+    // deactivateB are true at the same time.
+    //
+    // if (this.deactivateA && this.deactivateB) {
+    //   return new InternalFireEventResult(false);
+    // }
 
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
@@ -295,9 +299,13 @@ class OptionalChoiceWalker implements InternalWalker {
 
   fireEvent(name: string, params: string[],
             nameResolver: NameResolver): InternalFireEventResult {
-    if (this.ended) {
-      return new InternalFireEventResult(false);
-    }
+    //
+    // It cannot happen that fireEvent is called with ended true.
+    //
+    // if (this.ended) {
+    //   return new InternalFireEventResult(false);
+    // }
+    //
 
     const evIsAttributeEvent = isAttributeEvent(name);
     if (evIsAttributeEvent && !this.hasAttrs) {
