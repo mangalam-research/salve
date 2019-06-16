@@ -115,11 +115,12 @@ class InterleaveWalker implements InternalWalker {
       return new InternalFireEventResult(false);
     }
 
-    // This is useful because it is possible for fireEvent to be called
-    // after end() has been called.
-    if (this.ended) {
-      return new InternalFireEventResult(false);
-    }
+    //
+    // fireEvent is not called after ended is true
+    // if (this.ended) {
+    //   return new InternalFireEventResult(false);
+    // }
+    //
 
     const walkerA = this.walkerA;
     const walkerB = this.walkerB;

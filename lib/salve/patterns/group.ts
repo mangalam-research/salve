@@ -93,11 +93,12 @@ class GroupWalker implements InternalWalker {
       return new InternalFireEventResult(false);
     }
 
-    // This is useful because it is possible for fireEvent to be called
-    // after end() has been called.
-    if (this.ended) {
-      return new InternalFireEventResult(false);
-    }
+    //
+    // fireEvent is not called after ended becomes true
+    //
+    // if (this.ended) {
+    //   return new InternalFireEventResult(false);
+    // }
 
     const walkerA = this.walkerA;
     const walkerB = this.walkerB;
@@ -137,8 +138,6 @@ class GroupWalker implements InternalWalker {
       if (walkerA.end() !== false) {
         throw new Error("walkerA can end but does not end cleanly!");
       }
-
-      return retB;
     }
 
     return retB;
