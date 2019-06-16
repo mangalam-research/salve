@@ -316,7 +316,7 @@ class FractionDigitsP extends NonNegativeIntegerParameter {
 
 abstract class NumericTypeDependentParameter extends NumericParameter {
   isInvalidParam(value: any, name: string, type: Base<{}>): ParamError | false {
-    const errors = type.disallows(value);
+    const errors = type.disallows(value, type.defaultParams);
     if (!errors) {
       return false;
     }
@@ -429,6 +429,8 @@ for (const param of [lengthP, minLengthP, maxLengthP, patternP, totalDigitsP,
   PARAM_NAME_TO_OBJ[param.name] = param;
 }
 
+const EMPTY_PARAMS: ParsedParams = Object.create(null);
+
 /**
  * The structure that all datatype implementations in this module share.
  *
@@ -462,19 +464,11 @@ abstract class Base<T> implements Datatype<T> {
    */
   readonly validParams: ReadonlyArray<Parameter>;
 
-  protected _defaultParams?: ParsedParams;
-
   /**
    * The default parameters if none are specified.
    */
-  protected get defaultParams(): ParsedParams {
-    const defaultParams = this._defaultParams;
-
-    if (defaultParams !== undefined) {
-      return defaultParams;
-    }
-
-    return this._defaultParams = this.parseParams("**INTERNAL**");
+  get defaultParams(): ParsedParams {
+    return EMPTY_PARAMS;
   }
 
   /**
@@ -510,7 +504,7 @@ abstract class Base<T> implements Datatype<T> {
 
   parseValue(location: string, value: string,
              context?: Context): ParsedValue<T> {
-    const errors = this.disallows(value, undefined, context);
+    const errors = this.disallows(value, this.defaultParams, context);
     if (errors) {
       throw new ValueValidationError(location, errors);
     }
@@ -522,8 +516,6 @@ abstract class Base<T> implements Datatype<T> {
   parseParams(location: string, params?: RawParameter[]): ParsedParams {
     const ret: TrivialMap<string[]> = Object.create(null);
     if (params === undefined) {
-      // Yes, if the list of parameters is empty, we return an empty map because
-      // by default there are no default parameters.
       return ret;
     }
 
@@ -658,7 +650,7 @@ abstract class Base<T> implements Datatype<T> {
     return converted === schemaValue.value;
   }
 
-  disallows(value: string, params?: ParsedParams,
+  disallows(value: string, params: ParsedParams,
             context?: Context): ValueError[] | false {
     if (!this.regexp.test(value)) {
       return [new ValueError(this.typeErrorMsg)];
@@ -678,12 +670,6 @@ abstract class Base<T> implements Datatype<T> {
         return ex.errors;
       }
       throw ex;
-    }
-
-    if (params === undefined || Object.keys(params).length === 0) {
-      // If no params were passed, get the default params.
-      // tslint:disable-next-line:no-parameter-reassignment
-      params = this.defaultParams;
     }
 
     const paramNames = Object.keys(params);
@@ -731,9 +717,9 @@ class string_ extends CommonStringBased {
   // that don't affect the results. string and some of its immediate derivates
   // are not affected by their regexp, nor do they have default parameters that
   // affect what values are allowed.
-  disallows(value: string, params?: ParsedParams,
+  disallows(value: string, params: ParsedParams,
             context?: Context): ValueError[] | false {
-    if (params === undefined || Object.keys(params).length === 0) {
+    if (Object.keys(params).length === 0) {
       // The default params don't disallow anything.
       return false;
     }
@@ -767,7 +753,7 @@ class token extends normalizedString {
 }
 
 class tokenInternal extends token {
-  disallows(value: string, params?: ParsedParams,
+  disallows(value: string, params: ParsedParams,
             context?: Context): ValueError[] | false {
     if (!this.regexp.test(value)) {
       return [new ValueError(this.typeErrorMsg)];
@@ -873,6 +859,26 @@ class integer extends decimal {
     totalDigitsP, patternP, minExclusiveP, minInclusiveP, maxExclusiveP,
     maxInclusiveP,
   ];
+
+  protected _defaultParams?: ParsedParams;
+
+  get defaultParams(): ParsedParams {
+    if (this._defaultParams === undefined) {
+      const params = this._defaultParams = Object.create(null);
+      const { highestVal, lowestVal } = this;
+      if (highestVal !== undefined) {
+        params.maxInclusive = highestVal;
+      }
+
+      if (lowestVal !== undefined) {
+        params.minInclusive = lowestVal;
+      }
+
+      return params;
+    }
+
+    return this._defaultParams;
+  }
 
   parseParams(location: string, params?: RawParameter[]): ParsedParams {
     let me: any;
@@ -1290,7 +1296,7 @@ class dateTime extends CommonStringBased {
     `T${timePattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+  disallows(value: string, params: ParsedParams): ValueError[] | false {
     const ret = super.disallows(value, params);
     if (ret instanceof Array) {
       return ret;
@@ -1310,7 +1316,7 @@ class time extends CommonStringBased {
   readonly regexp: RegExp = new RegExp(`^\\s*${timePattern}${tzPattern}?\\s*$`);
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
-  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+  disallows(value: string, params: ParsedParams): ValueError[] | false {
     const ret = super.disallows(value, params);
     if (ret) {
       return ret;
@@ -1332,7 +1338,7 @@ class date extends CommonStringBased {
     `^\\s*${yearPattern}-${monthPattern}-${domPattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+  disallows(value: string, params: ParsedParams): ValueError[] | false {
     const ret = super.disallows(value, params);
     if (ret) {
       return ret;
@@ -1358,7 +1364,7 @@ class gYearMonth extends CommonStringBased {
     `^\\s*${yearPattern}-${monthPattern}${tzPattern}?\\s*$`);
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
-  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+  disallows(value: string, params: ParsedParams): ValueError[] | false {
     const ret = super.disallows(value, params);
     if (ret) {
       return ret;
@@ -1383,7 +1389,7 @@ class gYear extends CommonStringBased {
   readonly regexp: RegExp = new RegExp(`^\\s*${yearPattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+  disallows(value: string, params: ParsedParams): ValueError[] | false {
     const ret = super.disallows(value, params);
     if (ret) {
       return ret;
@@ -1409,7 +1415,7 @@ class gMonthDay extends CommonStringBased {
     `^\\s*${monthPattern}-${domPattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+  disallows(value: string, params: ParsedParams): ValueError[] | false {
     const ret = super.disallows(value, params);
     if (ret) {
       return ret;
@@ -1436,7 +1442,7 @@ class gDay extends CommonStringBased {
   readonly regexp: RegExp = new RegExp(`^\\s*${domPattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+  disallows(value: string, params: ParsedParams): ValueError[] | false {
     const ret = super.disallows(value, params);
     if (ret) {
       return ret;
@@ -1464,7 +1470,7 @@ class gMonth extends CommonStringBased {
     new RegExp(`^\\s*${monthPattern}${tzPattern}?\\s*$`);
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] = [patternP];
-  disallows(value: string, params?: ParsedParams): ValueError[] | false {
+  disallows(value: string, params: ParsedParams): ValueError[] | false {
     const ret = super.disallows(value, params);
     if (ret) {
       return ret;

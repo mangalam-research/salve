@@ -1215,7 +1215,7 @@ function testProgram(name, lib, program, disallows) {
       if (disallows || none) {
         describe("without parameters", () => {
           if (disallows) {
-            disallows(type);
+            disallows(type, type.parseParams());
           }
           if (!none) {
             return;
@@ -1223,12 +1223,13 @@ function testProgram(name, lib, program, disallows) {
 
           for (const x of none.false) {
             it(`allows ${x[0]}`,
-               () => assert.isFalse(type.disallows(x[1], {}, docContext)));
+               () => assert.isFalse(type.disallows(x[1], type.parseParams(),
+                                                   docContext)));
           }
 
           for (const x of none.true) {
             it(`disallows ${x[0]}`, () => {
-              const ret = type.disallows(x[1], {}, docContext);
+              const ret = type.disallows(x[1], type.parseParams(), docContext);
               assert.equal(ret.length, x[2].length);
               assert.equal(ret[0].toString(), x[2][0]);
             });
@@ -1366,7 +1367,8 @@ function testString(name, lib, disallowsNoparams, disallowsParams) {
 
     describe("disallows", () => {
       describe("without parameters", () => {
-        it("allows 'foo'", () => assert.isFalse(type.disallows("foo")));
+        it("allows 'foo'",
+           () => assert.isFalse(type.disallows("foo", type.parseParams())));
 
         disallowsNoparams(type);
       });
@@ -1472,7 +1474,8 @@ describe("datatypes", () => {
       });
 
       describe("disallows", () => {
-        it("nothing", () => assert.isFalse(type.disallows("foo")));
+        it("nothing",
+           () => assert.isFalse(type.disallows("foo", type.parseParams())));
       });
     });
 
@@ -1497,7 +1500,8 @@ describe("datatypes", () => {
       });
 
       describe("disallows", () => {
-        it("anything", () => assert.isFalse(type.disallows("foo")));
+        it("anything",
+           () => assert.isFalse(type.disallows("foo", type.parseParams())));
       });
     });
   });
@@ -1614,7 +1618,8 @@ describe("datatypes", () => {
 
     testString("string", lib, (type) => {
       it("allows anything",
-         () => assert.isFalse(type.disallows("  foo\tq\r\n    blah ")));
+         () => assert.isFalse(type.disallows("  foo\tq\r\n    blah ",
+                                             type.parseParams())));
     });
 
     // The language of the XML Schema specification is deceptive. It talks about
@@ -1623,156 +1628,186 @@ describe("datatypes", () => {
     // is COLLAPSE, those restrictions go out the window.
     testString("normalizedString", lib, (type) => {
       it("allows anything",
-         () => assert.isFalse(type.disallows("  foo\tq\r\n    blah ")));
+         () => assert.isFalse(type.disallows("  foo\tq\r\n    blah ",
+                                             type.parseParams())));
     });
 
     testString("token", lib, (type) => {
       it("allows anything",
-         () => assert.isFalse(type.disallows("  foo\tq\r\n    blah ")));
+         () => assert.isFalse(type.disallows("  foo\tq\r\n    blah ",
+                                             type.parseParams())));
     });
 
     testString("language", lib, (type) => {
-      it("allows simple text", () => assert.isFalse(type.disallows("en")));
+      it("allows simple text",
+         () => assert.isFalse(type.disallows("en", type.parseParams())));
 
-      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
+      it("allows tabs",
+         () => assert.isFalse(type.disallows("en\t", type.parseParams())));
 
-      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
+      it("allows newlines",
+         () => assert.isFalse(type.disallows("en\n", type.parseParams())));
 
       it("allows carriage returns",
-         () => assert.isFalse(type.disallows("en\r")));
+         () => assert.isFalse(type.disallows("en\r", type.parseParams())));
 
-      it("allows spaces", () => assert.isFalse(type.disallows("en ")));
+      it("allows spaces",
+         () => assert.isFalse(type.disallows("en ", type.parseParams())));
     });
 
     testString("Name", lib, (type) => {
-      it("allows simple text", () => assert.isFalse(type.disallows("en")));
+      it("allows simple text",
+         () => assert.isFalse(type.disallows("en", type.parseParams())));
 
-      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
+      it("allows tabs",
+         () => assert.isFalse(type.disallows("en\t", type.parseParams())));
 
-      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
+      it("allows newlines",
+         () => assert.isFalse(type.disallows("en\n", type.parseParams())));
 
       it("allows carriage returns",
-         () => assert.isFalse(type.disallows("en\r")));
+         () => assert.isFalse(type.disallows("en\r", type.parseParams())));
 
-      it("allows spaces", () => assert.isFalse(type.disallows("en ")));
+      it("allows spaces",
+         () => assert.isFalse(type.disallows("en ", type.parseParams())));
 
       it("disallows spaces between letters", () => {
-        const ret = type.disallows("en zh");
+        const ret = type.disallows("en zh", type.parseParams());
         assert.equal(ret.length, 1);
         assert.equal(ret[0].toString(), "not a valid Name");
       });
     });
 
     testString("NCName", lib, (type) => {
-      it("allows simple text", () => assert.isFalse(type.disallows("en")));
+      it("allows simple text",
+         () => assert.isFalse(type.disallows("en", type.parseParams())));
 
-      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
+      it("allows tabs",
+         () => assert.isFalse(type.disallows("en\t", type.parseParams())));
 
-      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
+      it("allows newlines",
+         () => assert.isFalse(type.disallows("en\n", type.parseParams())));
 
       it("allows carriage returns",
-         () => assert.isFalse(type.disallows("en\r")));
+         () => assert.isFalse(type.disallows("en\r", type.parseParams())));
 
-      it("allows spaces", () => assert.isFalse(type.disallows("en ")));
+      it("allows spaces",
+         () => assert.isFalse(type.disallows("en ", type.parseParams())));
 
       it("disallows colons", () => {
-        const ret = type.disallows("en:zh");
+        const ret = type.disallows("en:zh", type.parseParams());
         assert.equal(ret.length, 1);
         assert.equal(ret[0].toString(), "not a valid NCName");
       });
     });
 
     testString("NMTOKEN", lib, (type) => {
-      it("allows simple text", () => assert.isFalse(type.disallows(":en")));
+      it("allows simple text",
+         () => assert.isFalse(type.disallows(":en", type.parseParams())));
 
-      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
+      it("allows tabs",
+         () => assert.isFalse(type.disallows("en\t", type.parseParams())));
 
-      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
+      it("allows newlines",
+         () => assert.isFalse(type.disallows("en\n", type.parseParams())));
 
       it("allows carriage returns",
-         () => assert.isFalse(type.disallows("en\r")));
+         () => assert.isFalse(type.disallows("en\r", type.parseParams())));
 
       it("disallows spaces", () => {
-        const ret = type.disallows("en zh");
+        const ret = type.disallows("en zh", type.parseParams());
         assert.equal(ret.length, 1);
         assert.equal(ret[0].toString(), "not a valid NMTOKEN");
       });
     });
 
     testString("NMTOKENS", lib, (type) => {
-      it("allows simple text", () => assert.isFalse(type.disallows(":en")));
+      it("allows simple text",
+         () => assert.isFalse(type.disallows(":en", type.parseParams())));
 
-      it("allows spaces", () => assert.isFalse(type.disallows("en zh")));
+      it("allows spaces",
+         () => assert.isFalse(type.disallows("en zh", type.parseParams())));
 
-      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
+      it("allows tabs",
+         () => assert.isFalse(type.disallows("en\t", type.parseParams())));
 
-      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
+      it("allows newlines",
+         () => assert.isFalse(type.disallows("en\n", type.parseParams())));
 
       it("allows carriage returns",
-         () => assert.isFalse(type.disallows("en\r")));
+         () => assert.isFalse(type.disallows("en\r", type.parseParams())));
     });
 
     testString("ID", lib, (type) => {
-      it("allows simple text", () => assert.isFalse(type.disallows("en")));
+      it("allows simple text",
+         () => assert.isFalse(type.disallows("en", type.parseParams())));
 
-      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
+      it("allows tabs",
+         () => assert.isFalse(type.disallows("en\t", type.parseParams())));
 
-      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
+      it("allows newlines",
+         () => assert.isFalse(type.disallows("en\n", type.parseParams())));
 
       it("allows carriage returns",
-         () => assert.isFalse(type.disallows("en\r")));
+         () => assert.isFalse(type.disallows("en\r", type.parseParams())));
 
       it("disallows spaces", () => {
-        const ret = type.disallows("en zh");
+        const ret = type.disallows("en zh", type.parseParams());
         assert.equal(ret.length, 1);
-        assert.equal(ret[0].toString(),
-                     "not a valid ID");
+        assert.equal(ret[0].toString(), "not a valid ID");
       });
 
       it("disallows colons", () => {
-        const ret = type.disallows("en:zh");
+        const ret = type.disallows("en:zh", type.parseParams());
         assert.equal(ret.length, 1);
         assert.equal(ret[0].toString(), "not a valid ID");
       });
     });
 
     testString("IDREF", lib, (type) => {
-      it("allows simple text", () => assert.isFalse(type.disallows("en")));
+      it("allows simple text",
+         () => assert.isFalse(type.disallows("en", type.parseParams())));
 
-      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
+      it("allows tabs",
+         () => assert.isFalse(type.disallows("en\t", type.parseParams())));
 
-      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
+      it("allows newlines",
+         () => assert.isFalse(type.disallows("en\n", type.parseParams())));
 
       it("allows carriage returns",
-         () => assert.isFalse(type.disallows("en\r")));
+         () => assert.isFalse(type.disallows("en\r", type.parseParams())));
 
       it("disallows spaces", () => {
-        const ret = type.disallows("en zh");
+        const ret = type.disallows("en zh", type.parseParams());
         assert.equal(ret.length, 1);
         assert.equal(ret[0].toString(), "not a valid IDREF");
       });
 
       it("disallows colons", () => {
-        const ret = type.disallows("en:zh");
+        const ret = type.disallows("en:zh", type.parseParams());
         assert.equal(ret.length, 1);
         assert.equal(ret[0].toString(), "not a valid IDREF");
       });
     });
 
     testString("IDREFS", lib, (type) => {
-      it("allows simple text", () => assert.isFalse(type.disallows("en")));
+      it("allows simple text",
+         () => assert.isFalse(type.disallows("en", type.parseParams())));
 
-      it("allows spaces", () => assert.isFalse(type.disallows("en zh")));
+      it("allows spaces",
+         () => assert.isFalse(type.disallows("en zh", type.parseParams())));
 
-      it("allows tabs", () => assert.isFalse(type.disallows("en\t")));
+      it("allows tabs",
+         () => assert.isFalse(type.disallows("en\t", type.parseParams())));
 
-      it("allows newlines", () => assert.isFalse(type.disallows("en\n")));
+      it("allows newlines",
+         () => assert.isFalse(type.disallows("en\n", type.parseParams())));
 
       it("allows carriage returns",
-         () => assert.isFalse(type.disallows("en\r")));
+         () => assert.isFalse(type.disallows("en\r", type.parseParams())));
 
       it("disallows colons", () => {
-        const ret = type.disallows("en:zh");
+        const ret = type.disallows("en:zh", type.parseParams());
         assert.equal(ret.length, 1);
         assert.equal(ret[0].toString(), "not a valid IDREFS");
       });
@@ -1842,16 +1877,20 @@ describe("datatypes", () => {
 
       describe("disallows", () => {
         describe("without parameters", () => {
-          it("allows 'true'", () => assert.isFalse(type.disallows("true")));
+          it("allows 'true'",
+             () => assert.isFalse(type.disallows("true", type.parseParams())));
 
-          it("allows 'false'", () => assert.isFalse(type.disallows("false")));
+          it("allows 'false'",
+             () => assert.isFalse(type.disallows("false", type.parseParams())));
 
-          it("allows 1", () => assert.isFalse(type.disallows("1")));
+          it("allows 1",
+             () => assert.isFalse(type.disallows("1", type.parseParams())));
 
-          it("allows 0", () => assert.isFalse(type.disallows("0")));
+          it("allows 0",
+             () => assert.isFalse(type.disallows("0", type.parseParams())));
 
           it("disallows 'yes'", () => {
-            const ret = type.disallows("yes");
+            const ret = type.disallows("yes", type.parseParams());
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(), "not a valid boolean");
           });
@@ -1898,37 +1937,41 @@ describe("datatypes", () => {
 
       describe("disallows", () => {
         describe("without parameters", () => {
-          it("allows 'AAAA'", () => assert.isFalse(type.disallows("AAAA")));
+          it("allows 'AAAA'",
+             () => assert.isFalse(type.disallows("AAAA", type.parseParams())));
 
           it("allows 'A A A A'",
-             () => assert.isFalse(type.disallows("A A A A")));
+             () => assert.isFalse(type.disallows("A A A A",
+                                                 type.parseParams())));
 
           it("allows an empty string",
-             () => assert.isFalse(type.disallows("")));
+             () => assert.isFalse(type.disallows("",
+                                                 type.parseParams())));
 
           it("allows 'test' coded in base64",
-             () => assert.isFalse(type.disallows("dGVzdA==")));
+             () => assert.isFalse(type.disallows("dGVzdA==",
+                                                 type.parseParams())));
 
           it("disallows badly padded (1)", () => {
-            const ret = type.disallows("AAA");
+            const ret = type.disallows("AAA", type.parseParams());
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(), "not a valid base64Binary");
           });
 
           it("disallows badly padded (2)", () => {
-            const ret = type.disallows("AA");
+            const ret = type.disallows("AA", type.parseParams());
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(), "not a valid base64Binary");
           });
 
           it("disallows badly padded (3)", () => {
-            const ret = type.disallows("A");
+            const ret = type.disallows("A", type.parseParams());
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(), "not a valid base64Binary");
           });
 
           it("disallows badly padded (4)", () => {
-            const ret = type.disallows("A=");
+            const ret = type.disallows("A=", type.parseParams());
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(), "not a valid base64Binary");
           });
@@ -2020,19 +2063,20 @@ describe("datatypes", () => {
 
       describe("disallows", () => {
         describe("without parameters", () => {
-          it("allows 'AAAA'", () => assert.isFalse(type.disallows("AAAA")));
+          it("allows 'AAAA'",
+             () => assert.isFalse(type.disallows("AAAA", type.parseParams())));
 
           it("allows an empty string",
-             () => assert.isFalse(type.disallows("")));
+             () => assert.isFalse(type.disallows("", type.parseParams())));
 
           it("disallows 'A'", () => {
-            const ret = type.disallows("A");
+            const ret = type.disallows("A", type.parseParams());
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(), "not a valid hexBinary");
           });
 
           it("disallows 'A A A A'", () => {
-            const ret = type.disallows("A A A A");
+            const ret = type.disallows("A A A A", type.parseParams());
             assert.equal(ret.length, 1);
             assert.equal(ret[0].toString(), "not a valid hexBinary");
           });
@@ -2109,7 +2153,8 @@ describe("datatypes", () => {
       describe("disallows", () => {
         describe("without parameters", () => {
           it("allows 'P2Y3M1DT12H3M23.123S'", () => {
-            assert.isFalse(type.disallows("P2Y3M1DT12H3M23.123S"));
+            assert.isFalse(type.disallows("P2Y3M1DT12H3M23.123S",
+                                          type.parseParams()));
           });
         });
       });

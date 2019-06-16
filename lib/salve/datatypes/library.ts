@@ -135,7 +135,7 @@ export interface Datatype<T = {}> {
    * @returns ``false`` if not disallowed. Otherwise, the errors caused by the
    * value.
    */
-  disallows(value: string, params?: ParsedParams,
+  disallows(value: string, params: ParsedParams,
             context?: Context): ValueError[] | false;
 }
 

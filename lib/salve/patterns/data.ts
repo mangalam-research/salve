@@ -43,7 +43,7 @@ export class Data extends Pattern {
     this.rngParams = params;
   }
 
-  get params(): any {
+  get params(): ParsedParams {
     let ret: any = this._params;
     if (ret != null) {
       return ret;
