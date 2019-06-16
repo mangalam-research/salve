@@ -77,24 +77,24 @@ export class InternalFireEventResult {
   }
 
   combine(other: InternalFireEventResult): InternalFireEventResult {
-    let errors: ReadonlyArray<ValidationError> | undefined;
-    let refs: ReadonlyArray<RefWalker> | undefined;
     if (this.matched) {
-      refs = this.refs;
+      const { refs } = this;
       const oRefs = other.refs;
-      if (oRefs !== undefined) {
-        refs = refs === undefined ? oRefs : refs.concat(oRefs);
-      }
-    }
-    else {
-      errors = this.errors;
-      const oErrors = other.errors;
-      if (oErrors !== undefined) {
-        errors = errors === undefined ? oErrors : errors.concat(oErrors);
-      }
+      return oRefs === undefined ?
+        this :
+        new InternalFireEventResult(true, undefined,
+                                    refs === undefined ? oRefs :
+                                    refs.concat(oRefs));
     }
 
-    return new InternalFireEventResult(this.matched, errors, refs);
+    const { errors } = this;
+    const oErrors = other.errors;
+    return oErrors === undefined ?
+      this :
+      new InternalFireEventResult(false,
+                                  errors === undefined ? oErrors :
+                                  errors.concat(oErrors),
+                                  undefined);
   }
 }
 
