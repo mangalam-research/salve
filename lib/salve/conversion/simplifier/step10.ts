@@ -60,44 +60,6 @@ function walk(check: boolean, state: State, el: Element): Element | null {
   const { local, children } = el;
 
   switch (local) {
-    case "define":
-    case "oneOrMore":
-    case "zeroOrMore":
-    case "optional":
-    case "list":
-    case "mixed":
-      let toAppend = [];
-      if (children.length > 1) {
-        const group = Element.makeElement("group", []);
-        group.grabChildren(el);
-        toAppend.push(group);
-      }
-
-      switch (local) {
-        case "mixed":
-          el.local = "interleave";
-          toAppend.push(Element.makeElement("text", []));
-          break;
-        case "optional":
-          el.local = "choice";
-          toAppend.push(Element.makeElement("empty", []));
-          break;
-        case "zeroOrMore":
-          el.local = "choice";
-          const oneOrMore = Element.makeElement("oneOrMore", []);
-          if (toAppend.length === 0) {
-            oneOrMore.grabChildren(el);
-          }
-          else {
-            oneOrMore.appendChildren(toAppend);
-          }
-          toAppend = [oneOrMore, Element.makeElement("empty", [])];
-          break;
-        default:
-      }
-
-      el.appendChildren(toAppend);
-      break;
     case "choice":
     case "group":
     case "interleave":
@@ -158,6 +120,47 @@ function walk(check: boolean, state: State, el: Element): Element | null {
           }
         }
       }
+      break;
+    case "define":
+    case "oneOrMore":
+    case "list":
+      if (children.length > 1) {
+        const group = Element.makeElement("group", []);
+        group.grabChildren(el);
+        el.appendChild(group);
+      }
+      break;
+    case "zeroOrMore": {
+      el.local = "choice";
+      const oneOrMore = Element.makeElement("oneOrMore", []);
+      if (children.length > 1) {
+        const group = Element.makeElement("group", []);
+        group.grabChildren(el);
+        oneOrMore.appendChild(group);
+      }
+      else {
+        oneOrMore.grabChildren(el);
+      }
+      el.appendChildren([oneOrMore, Element.makeElement("empty", [])]);
+      break;
+    }
+    case "optional":
+      el.local = "choice";
+      if (children.length > 1) {
+        const group = Element.makeElement("group", []);
+        group.grabChildren(el);
+        el.appendChild(group);
+      }
+      el.appendChild(Element.makeElement("empty", []));
+      break;
+    case "mixed":
+      el.local = "interleave";
+      if (children.length > 1) {
+        const group = Element.makeElement("group", []);
+        group.grabChildren(el);
+        el.appendChild(group);
+      }
+      el.appendChild(Element.makeElement("text", []));
       break;
     case "except":
       if (children.length > 1) {
