@@ -16,7 +16,7 @@ import { EndResult, EventSet, InternalFireEventResult, InternalWalker,
 export class Data extends Pattern {
   readonly datatype: Datatype;
   readonly rngParams?: RawParameter[];
-  private _params: ParsedParams;
+  private _params?: ParsedParams;
 
   /**
    *
@@ -44,8 +44,8 @@ export class Data extends Pattern {
   }
 
   get params(): ParsedParams {
-    let ret: any = this._params;
-    if (ret != null) {
+    let ret = this._params;
+    if (ret !== undefined) {
       return ret;
     }
 
