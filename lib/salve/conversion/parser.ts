@@ -486,9 +486,9 @@ export class Validator implements ValidatorI {
     params[1] = node.local;
     let ix = 2;
     for (const name of keys) {
-      const { uri, prefix, local, value } = attributes[name] as SaxesAttribute;
-      // xmlns="..." or xmlns:q="..."
-      if (!(name === "xmlns" || prefix === "xmlns")) {
+      const { uri, local, value } = attributes[name] as SaxesAttribute;
+      // Skip XML namespace declarations
+      if (uri !== XMLNS_NAMESPACE) {
         params[ix++] = uri;
         params[ix++] = local;
         params[ix++] = value;
