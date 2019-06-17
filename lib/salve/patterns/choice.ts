@@ -133,8 +133,7 @@ class ChoiceWalker implements InternalWalker {
     //   return new InternalFireEventResult(false);
     // }
 
-    const evIsAttributeEvent = isAttributeEvent(name);
-    if (evIsAttributeEvent && !this.hasAttrs) {
+    if (isAttributeEvent(name) && !this.hasAttrs) {
       return new InternalFireEventResult(false);
     }
 
@@ -147,18 +146,12 @@ class ChoiceWalker implements InternalWalker {
     if (retA.matched) {
       if (!retB.matched) {
         this.deactivateB = true;
-        if (evIsAttributeEvent) {
-          this.canEndAttribute = walkerA.canEndAttribute;
-        }
-
+        this.canEndAttribute = walkerA.canEndAttribute;
         this.canEnd = walkerA.canEnd;
       }
       else {
-        if (evIsAttributeEvent) {
-          this.canEndAttribute = walkerA.canEndAttribute ||
-            walkerB.canEndAttribute;
-        }
-
+        this.canEndAttribute = walkerA.canEndAttribute ||
+          walkerB.canEndAttribute;
         this.canEnd = walkerA.canEnd || walkerB.canEnd;
       }
 
@@ -167,10 +160,7 @@ class ChoiceWalker implements InternalWalker {
 
     if (retB.matched) {
       this.deactivateA = true;
-      if (evIsAttributeEvent) {
-        this.canEndAttribute = walkerB.canEndAttribute;
-      }
-
+      this.canEndAttribute = walkerB.canEndAttribute;
       this.canEnd = walkerB.canEnd;
     }
 
@@ -308,8 +298,7 @@ class OptionalChoiceWalker implements InternalWalker {
     // }
     //
 
-    const evIsAttributeEvent = isAttributeEvent(name);
-    if (evIsAttributeEvent && !this.hasAttrs) {
+    if (isAttributeEvent(name) && !this.hasAttrs) {
       return new InternalFireEventResult(false);
     }
 
@@ -320,10 +309,7 @@ class OptionalChoiceWalker implements InternalWalker {
     const { walkerB } = this;
     const retB = walkerB.fireEvent(name, params, nameResolver);
     if (retB.matched) {
-      if (evIsAttributeEvent) {
-        this.canEndAttribute = walkerB.canEndAttribute;
-      }
-
+      this.canEndAttribute = walkerB.canEndAttribute;
       this.canEnd = walkerB.canEnd;
     }
 

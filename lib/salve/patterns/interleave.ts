@@ -110,8 +110,7 @@ class InterleaveWalker implements InternalWalker {
   //
   fireEvent(name: string, params: string[],
             nameResolver: NameResolver): InternalFireEventResult {
-    const evIsAttributeEvent = isAttributeEvent(name);
-    if (evIsAttributeEvent && !this.hasAttrs) {
+    if (isAttributeEvent(name) && !this.hasAttrs) {
       return new InternalFireEventResult(false);
     }
 
@@ -126,11 +125,7 @@ class InterleaveWalker implements InternalWalker {
 
     const retA = walkerA.fireEvent(name, params, nameResolver);
     if (retA.matched) {
-      if (evIsAttributeEvent) {
-        this.canEndAttribute =
-          walkerA.canEndAttribute && walkerB.canEndAttribute;
-      }
-
+      this.canEndAttribute = walkerA.canEndAttribute && walkerB.canEndAttribute;
       this.canEnd = walkerA.canEnd && walkerB.canEnd;
 
       // The constraints on interleave do not allow for two child patterns of
@@ -142,11 +137,8 @@ class InterleaveWalker implements InternalWalker {
 
     const retB = walkerB.fireEvent(name, params, nameResolver);
     if (retB.matched) {
-      if (evIsAttributeEvent) {
-        this.canEndAttribute =
-          walkerA.canEndAttribute && walkerB.canEndAttribute;
-      }
-
+      this.canEndAttribute =
+        walkerA.canEndAttribute && walkerB.canEndAttribute;
       this.canEnd = walkerA.canEnd && walkerB.canEnd;
 
       return retB;

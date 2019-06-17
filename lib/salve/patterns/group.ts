@@ -104,11 +104,8 @@ class GroupWalker implements InternalWalker {
     if (!this.endedA) {
       const retA = walkerA.fireEvent(name, params, nameResolver);
       if (retA.matched || retA.errors !== undefined) {
-        if (evIsAttributeEvent) {
-          this.canEndAttribute = walkerA.canEndAttribute &&
-            walkerB.canEndAttribute;
-        }
-
+        this.canEndAttribute = walkerA.canEndAttribute &&
+          walkerB.canEndAttribute;
         this.canEnd = walkerA.canEnd && walkerB.canEnd;
 
         return retA;
@@ -122,10 +119,7 @@ class GroupWalker implements InternalWalker {
     }
 
     const retB = walkerB.fireEvent(name, params, nameResolver);
-    if (evIsAttributeEvent) {
-      this.canEndAttribute = walkerA.canEndAttribute && walkerB.canEndAttribute;
-    }
-
+    this.canEndAttribute = walkerA.canEndAttribute && walkerB.canEndAttribute;
     this.canEnd = walkerA.canEnd && walkerB.canEnd;
 
     // Non-attribute event: if walker b matched the event then we must end

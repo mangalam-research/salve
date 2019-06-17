@@ -83,8 +83,7 @@ class OneOrMoreWalker implements InternalWalker {
 
   fireEvent(name: string, params: string[],
             nameResolver: NameResolver): InternalFireEventResult {
-    const evIsAttributeEvent = isAttributeEvent(name);
-    if (evIsAttributeEvent && !this.hasAttrs) {
+    if (isAttributeEvent(name) && !this.hasAttrs) {
       return new InternalFireEventResult(false);
     }
 
@@ -92,9 +91,7 @@ class OneOrMoreWalker implements InternalWalker {
 
     const ret = currentIteration.fireEvent(name, params, nameResolver);
     if (ret.matched) {
-      if (evIsAttributeEvent) {
-        this.canEndAttribute = currentIteration.canEndAttribute;
-      }
+      this.canEndAttribute = currentIteration.canEndAttribute;
       this.canEnd = currentIteration.canEnd;
 
       return ret;
@@ -113,10 +110,7 @@ class OneOrMoreWalker implements InternalWalker {
 
         this.currentIteration = this.nextIteration;
         this.nextIteration = undefined;
-        if (evIsAttributeEvent) {
-          this.canEndAttribute = this.currentIteration.canEndAttribute;
-        }
-
+        this.canEndAttribute = this.currentIteration.canEndAttribute;
         this.canEnd = this.currentIteration.canEnd;
       }
 
