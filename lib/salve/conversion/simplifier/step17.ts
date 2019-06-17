@@ -13,12 +13,12 @@ const skip = new Set(["name", "anyName", "nsName", "param", "empty",
                       "text", "value", "notAllowed", "ref"]);
 
 function walk(el: Element, refs: Set<string>): void {
-  const local = el.local;
+  const { local, children } = el;
 
   // Since we walk the children first, all the transformations that pertain to
   // the children are applied before we deal with the parent, and there should
   // not be any need to process the tree multiple times.
-  for (const child of el.children) {
+  for (const child of children) {
     if (!isElement(child)) {
       continue;
     }
@@ -32,12 +32,12 @@ function walk(el: Element, refs: Set<string>): void {
   }
 
   // Elements may be removed in the above loop.
-  if (el.children.length === 0) {
+  if (children.length === 0) {
     return;
   }
 
-  const firstNA = (el.children[0] as Element).local === "notAllowed";
-  const second = el.children[1] as Element;
+  const firstNA = (children[0] as Element).local === "notAllowed";
+  const second = children[1] as Element;
   const secondNA = second !== undefined && second.local === "notAllowed";
 
   if (firstNA || secondNA) {
@@ -54,7 +54,7 @@ function walk(el: Element, refs: Set<string>): void {
         else {
           // A choice with exactly one notAllowed is replaced with the other
           // child of the choice.
-          parent.replaceChildWith(el, el.children[firstNA ? 1 : 0] as Element);
+          parent.replaceChildWith(el, children[firstNA ? 1 : 0] as Element);
         }
         return;
       case "group":
@@ -74,7 +74,7 @@ function walk(el: Element, refs: Set<string>): void {
     }
   }
 
-  for (const child of el.children) {
+  for (const child of children) {
     if (!isElement(child) || child.local !== "ref") {
       continue;
     }
