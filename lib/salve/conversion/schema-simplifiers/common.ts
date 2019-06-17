@@ -28,7 +28,7 @@ function inAttribute(el: Element): boolean {
 }
 
 export function localName(value: string): string {
-  const sep: number = value.indexOf(":");
+  const sep = value.indexOf(":");
 
   return (sep === -1) ? value : value.slice(sep + 1);
 }

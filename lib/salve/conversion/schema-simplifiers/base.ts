@@ -5,10 +5,8 @@
  * @license MPL 2.0
  * @copyright Mangalam Research Center for Buddhist Languages
  */
-import { Element } from "../parser";
 import { SchemaSimplifier, SchemaSimplifierCtor, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
-import { DatatypeProcessor } from "./common";
 
 export abstract class BaseSimplifier implements SchemaSimplifier {
   constructor(protected readonly options: SchemaSimplifierOptions) {
@@ -29,11 +27,4 @@ export abstract class BaseSimplifier implements SchemaSimplifier {
   }
 
   abstract simplify(schemaPath: string | URL): Promise<SimplificationResult>;
-
-  processDatatypes(tree: Element): string[] {
-    const processor = new DatatypeProcessor();
-    processor.walk(tree);
-
-    return processor.warnings;
-  }
 }

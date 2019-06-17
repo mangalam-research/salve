@@ -10,10 +10,12 @@ import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
-import { dependsOnExternalFile, parseSimplifiedSchema } from "../parser";
+import { dependsOnExternalFile, Element,
+         parseSimplifiedSchema } from "../parser";
 import { registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { BaseSimplifier } from "./base";
+import { DatatypeProcessor } from "./common";
 
 interface Step {
   name: string;
@@ -41,6 +43,13 @@ export class XSLSimplifier extends BaseSimplifier {
     if (options.timing) {
       options.verbose = true;
     }
+  }
+
+  private processDatatypes(tree: Element): string[] {
+    const processor = new DatatypeProcessor();
+    processor.walk(tree);
+
+    return processor.warnings;
   }
 
   private get steps(): Step[] {
