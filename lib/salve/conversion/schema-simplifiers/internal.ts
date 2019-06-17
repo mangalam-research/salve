@@ -20,7 +20,6 @@ import { ManifestEntry, registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { SchemaValidationError } from "../schema-validation";
 import * as simplifier from "../simplifier";
-import { getName, indexBy } from "../simplifier/util";
 import { BaseSimplifier } from "./base";
 import { fromQNameToURI, localName } from "./common";
 
@@ -149,11 +148,6 @@ const NOT_ALLOWED_RESULT: CheckResult = {
   occurringTexts: 0,
 };
 
-const DEFINE_RESULT = NOT_ALLOWED_RESULT;
-const START_RESULT = NOT_ALLOWED_RESULT;
-const GRAMMAR_RESULT = NOT_ALLOWED_RESULT;
-const EXCEPT_RESULT = NOT_ALLOWED_RESULT;
-
 type Handler = (this: GeneralChecker, el: Element,
                 state: State) => CheckResult;
 
@@ -169,8 +163,16 @@ class GeneralChecker {
   readonly typeWarnings: string[] = [];
 
   check(el: Element): void {
-    this.definesByName = indexBy(el.children.slice(1) as Element[], getName);
-    this._check(el, {
+    const { children } = el;
+
+    const definesByName = new Map<string, Element>();
+    for (let ix = 1; ix < children.length; ++ix) {
+      const child = children[ix] as Element;
+      definesByName.set(child.mustGetAttribute("name"), child);
+    }
+    this.definesByName = definesByName;
+
+    const state = {
       inStart: false,
       inAttribute: false,
       inList: false,
@@ -180,30 +182,30 @@ class GeneralChecker {
       inOneOrMoreInterleave: false,
       inInterlave: false,
       inGroup: false,
-    });
+    };
+
+    // The first child of <grammar> is necessarily <start>.
+    this.startHandler(children[0] as Element, state);
+    // The other children are necessarily <define>.
+    for (let ix = 1; ix < children.length; ++ix) {
+      this.defineHandler(children[ix] as Element, state);
+    }
   }
 
-  // tslint:disable-next-line:max-func-body-length
   private _check(el: Element, state: State): CheckResult {
-    const name = el.local;
-
-    const method = (this as any)[`${name}Handler`] as Handler;
-
-    return method.call(this, el, state);
+    return ((this as any)[`${el.local}Handler`] as Handler)
+      .call(this, el, state);
   }
 
-  elementHandler(el: Element, state: State): CheckResult {
+  elementHandler(el: Element, state: State): void {
     // The first child is the name class, which we do not need to walk.
     const pattern = el.children[1] as Element;
-    const result = this._check(pattern, state);
-    const { contentType } = result;
+    const { contentType } = this._check(pattern, state);
     if (contentType === null && pattern.local !== "notAllowed") {
       throw new SchemaValidationError(
         `definition ${el.mustGetAttribute("name")} violates the constraint \
 on string values (section 7.2)`);
     }
-
-    return result;
   }
 
   attributeHandler(el: Element, state: State): CheckResult {
@@ -247,7 +249,7 @@ class must be a descendant of oneOrMore (section 7.3)");
     };
   }
 
-  exceptHandler(el: Element, state: State): CheckResult {
+  exceptHandler(el: Element, state: State): void {
     // parent cannot be undefined here.
     let newState = state;
     // tslint:disable-next-line:no-non-null-assertion
@@ -255,8 +257,6 @@ class must be a descendant of oneOrMore (section 7.3)");
       newState = { ...state, inDataExcept: true };
     }
     this._check(el.children[0] as Element, newState);
-
-    return EXCEPT_RESULT;
   }
 
   oneOrMoreHandler(el: Element, state: State): CheckResult {
@@ -416,7 +416,7 @@ ${libname}`);
     }
 
     if (hasExcept) {
-      this._check(last, state);
+      this.exceptHandler(last, state);
     }
 
     return DATA_RESULT;
@@ -526,23 +526,13 @@ ${libname}`);
     return NOT_ALLOWED_RESULT;
   }
 
-  defineHandler(el: Element, state: State): CheckResult {
-    this._check(el.children[0] as Element, state);
-    return DEFINE_RESULT;
+  defineHandler(el: Element, state: State): void {
+    // <define> elements necessarily have a single child which is an <element>.
+    this.elementHandler(el.children[0] as Element, state);
   }
 
-  startHandler(el: Element, state: State): CheckResult {
+  startHandler(el: Element, state: State): void {
     this._check(el.children[0] as Element, { ...state, inStart: true });
-
-    return START_RESULT;
-  }
-
-  grammarHandler(el: Element, state: State): CheckResult {
-    for (const child of el.children) {
-      this._check(child as Element, state);
-    }
-
-    return GRAMMAR_RESULT;
   }
 
   private getAttrName(attr: Element): ConcreteName {
