@@ -41,18 +41,18 @@ ${currentLibrary}`);
       // Inherit from parent.
       el.setAttribute("datatypeLibrary", parentLibrary);
     }
-  } else {
+  }
+  else if (currentLibrary !== undefined) {
     // All other elements lose their ``@datatypeLibrary``.
     el.removeAttribute("datatypeLibrary");
   }
 
+  const childLib =
+    currentLibrary !== undefined ? currentLibrary : parentLibrary;
   for (const child of el.children) {
-    if (!isElement(child)) {
-      continue;
+    if (isElement(child)) {
+      walk(child, childLib);
     }
-
-    walk(child,
-         currentLibrary !== undefined ? currentLibrary : parentLibrary);
   }
 }
 
