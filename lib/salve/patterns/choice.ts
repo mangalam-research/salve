@@ -327,11 +327,7 @@ class OptionalChoiceWalker implements InternalWalker {
   }
 
   endAttributes(): EndResult {
-    if (this.canEndAttribute) {
-      return false;
-    }
-
-    return this.walkerB.endAttributes();
+    return this.canEndAttribute ? false : this.walkerB.endAttributes();
   }
 }
 
