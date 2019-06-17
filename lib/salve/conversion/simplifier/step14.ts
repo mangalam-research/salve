@@ -59,15 +59,14 @@ function combine(els: Element[]): void {
     throw new Error("no combination value found");
   }
 
-  let wrapper = Element.makeElement(combineAs);
+  let wrapper = Element.makeElement(combineAs, []);
   const [first, second, ...rest] = els;
   wrapper.grabChildren(first);
   wrapper.grabChildren(second);
   second.parent!.removeChild(second);
 
   for (const el of rest) {
-    const newWrapper = Element.makeElement(combineAs);
-    newWrapper.appendChild(wrapper);
+    const newWrapper = Element.makeElement(combineAs, [wrapper]);
     newWrapper.grabChildren(el);
     el.parent!.removeChild(el);
     wrapper = newWrapper;

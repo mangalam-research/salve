@@ -68,7 +68,7 @@ function walk(check: boolean, state: State, el: Element): Element | null {
     case "mixed":
       let toAppend = [];
       if (el.children.length > 1) {
-        const group = Element.makeElement("group");
+        const group = Element.makeElement("group", []);
         group.grabChildren(el);
         toAppend.push(group);
       }
@@ -76,22 +76,22 @@ function walk(check: boolean, state: State, el: Element): Element | null {
       switch (local) {
         case "mixed":
           el.local = "interleave";
-          toAppend.push(Element.makeElement("text"));
+          toAppend.push(Element.makeElement("text", []));
           break;
         case "optional":
           el.local = "choice";
-          toAppend.push(Element.makeElement("empty"));
+          toAppend.push(Element.makeElement("empty", []));
           break;
         case "zeroOrMore":
           el.local = "choice";
-          const oneOrMore = Element.makeElement("oneOrMore");
+          const oneOrMore = Element.makeElement("oneOrMore", []);
           if (toAppend.length === 0) {
             oneOrMore.grabChildren(el);
           }
           else {
             oneOrMore.appendChildren(toAppend);
           }
-          toAppend = [oneOrMore, Element.makeElement("empty")];
+          toAppend = [oneOrMore, Element.makeElement("empty", [])];
           break;
         default:
       }
@@ -121,17 +121,15 @@ function walk(check: boolean, state: State, el: Element): Element | null {
       }
       else {
         while (el.children.length > 2) {
-          const wrap = Element.makeElement(local);
-          wrap.appendChildren([el.children[0], el.children[1]]);
-          el.prependChild(wrap);
+          el.prependChild(Element.makeElement(local,
+                                              [el.children[0],
+                                               el.children[1]]));
         }
       }
       break;
     case "element":
       if (el.children.length > 2) {
-        const group = Element.makeElement("group");
-        group.appendChildren(el.children.slice(1));
-        el.appendChild(group);
+        el.appendChild(Element.makeElement("group", el.children.slice(1)));
       }
 
       if (check) {
@@ -140,7 +138,7 @@ function walk(check: boolean, state: State, el: Element): Element | null {
       break;
     case "attribute":
       if (el.children.length === 1) {
-        el.appendChild(Element.makeElement("text"));
+        el.appendChild(Element.makeElement("text", []));
       }
 
       if (check) {
@@ -164,7 +162,7 @@ function walk(check: boolean, state: State, el: Element): Element | null {
       break;
     case "except":
       if (el.children.length > 1) {
-        const choice = Element.makeElement("choice");
+        const choice = Element.makeElement("choice", []);
         choice.grabChildren(el);
         el.appendChild(choice);
       }

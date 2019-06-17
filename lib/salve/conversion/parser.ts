@@ -65,6 +65,9 @@ export class Element {
     this.attributes = attributes;
 
     for (const child of children) {
+      if (child.parent !== undefined) {
+        child.parent.removeChild(child);
+      }
       child.parent = this;
     }
   }
@@ -79,7 +82,7 @@ export class Element {
       children);
   }
 
-  static makeElement(name: string): Element {
+  static makeElement(name: string, children: ConcreteNode[]): Element {
     return new Element(
       "",
       name,
@@ -88,7 +91,7 @@ export class Element {
       // creation.
       emptyNS,
       Object.create(null),
-      []);
+      children);
   }
 
   get parent(): Element | undefined {
@@ -474,12 +477,21 @@ export class Validator implements ValidatorI {
 
   onopentag(node: SaxesTag): void {
     const { attributes } = node;
-    const params: string[] = [node.uri, node.local];
-    for (const name of Object.keys(attributes)) {
+    const keys = Object.keys(attributes);
+    // Pre-allocate an array of the right size, instead of reallocating
+    // a bunch of times.
+    // tslint:disable-next-line:prefer-array-literal
+    const params: string[] = new Array(2 + keys.length);
+    params[0] = node.uri;
+    params[1] = node.local;
+    let ix = 2;
+    for (const name of keys) {
       const { uri, prefix, local, value } = attributes[name] as SaxesAttribute;
       // xmlns="..." or xmlns:q="..."
       if (!(name === "xmlns" || prefix === "xmlns")) {
-        params.push(uri, local, value);
+        params[ix++] = uri;
+        params[ix++] = local;
+        params[ix++] = value;
       }
     }
     this.fireEvent("startTagAndAttributes", params);

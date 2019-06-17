@@ -22,7 +22,7 @@ function walk(el: Element, parentNs: string | null): void {
       if (name !== undefined) {
         el.removeAttribute("name");
 
-        const nameEl = Element.makeElement("name");
+        const nameEl = Element.makeElement("name", [new Text(name)]);
 
         if (currentNs === undefined) {
           if (local === "attribute") {
@@ -37,7 +37,6 @@ function walk(el: Element, parentNs: string | null): void {
           }
         }
 
-        nameEl.appendChild(new Text(name));
         el.prependChild(nameEl);
       }
       break;

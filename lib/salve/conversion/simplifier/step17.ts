@@ -49,7 +49,7 @@ function walk(el: Element, refs: Set<string>): void {
       case "choice":
         if (firstNA && secondNA) {
           // A choice with two notAllowed is replaced with notAllowed.
-          parent.replaceChildWith(el, Element.makeElement("notAllowed"));
+          parent.replaceChildWith(el, Element.makeElement("notAllowed", []));
         }
         else {
           // A choice with exactly one notAllowed is replaced with the other
@@ -64,7 +64,7 @@ function walk(el: Element, refs: Set<string>): void {
       case "list":
         // An attribute (or list, group, interleave, oneOrMore) with at least
         // one notAllowed is replaced with notAllowed.
-        parent.replaceChildWith(el, Element.makeElement("notAllowed"));
+        parent.replaceChildWith(el, Element.makeElement("notAllowed", []));
         return;
       case "except":
         // An except with notAllowed is removed.

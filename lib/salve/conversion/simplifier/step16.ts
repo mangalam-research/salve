@@ -45,14 +45,13 @@ function wrapElements(state: State, root: Element): Element[] {
       // not harm the uniqueness of the name.
       const name = `__${elName}-elt-${elementCount}`;
 
-      const ref = Element.makeElement("ref");
+      const ref = Element.makeElement("ref", []);
       ref.setAttribute("name", name);
       el.parent!.replaceChildWith(el, ref);
       seenRefs.add(name);
-      const defEl = Element.makeElement("define");
+      const defEl = Element.makeElement("define", [el]);
       toAppend.push(defEl);
       defEl.setAttribute("name", name);
-      defEl.appendChild(el);
     }
   }
 

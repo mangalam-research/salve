@@ -167,10 +167,7 @@ export function step15(el: Element): Element {
   let root = el;
 
   if (el.local !== "grammar") {
-    root = Element.makeElement("grammar");
-    const start = Element.makeElement("start");
-    root.appendChild(start);
-    start.appendChild(el);
+    root = Element.makeElement("grammar", [Element.makeElement("start", [el])]);
 
     root.setXMLNS(RELAXNG_URI);
     el.removeAttribute("xmlns");
