@@ -403,21 +403,6 @@ class MinExclusiveP extends NumericTypeDependentParameter {
 
 const minExclusiveP = new MinExclusiveP();
 
-type WhitespaceHandler = (value: string) => string;
-
-function whitespacePreserve(value: string): string {
-  return value;
-}
-
-function whitespaceCollapse(value: string): string {
-  // It is generally faster to trim first.
-  return value.trim().replace(/\s+/g, " ");
-}
-
-function whitespaceReplace(value: string): string {
-  return value.replace(/\s+/g, " ");
-}
-
 /**
  * A mapping of parameter names to parameter objects.
  */
@@ -448,11 +433,6 @@ abstract class Base<T> implements Datatype<T> {
   abstract readonly name: string;
   abstract readonly needsContext: boolean;
   abstract readonly regexp: RegExp;
-
-  /**
-   * The default whitespace processing for this type.
-   */
-  readonly processWhitespace: WhitespaceHandler = whitespaceCollapse;
 
   /**
    * The error message to give if a value is disallowed.
@@ -697,7 +677,7 @@ abstract class Base<T> implements Datatype<T> {
 abstract class CommonStringBased extends Base<string> {
   protected convertValue(location: string, value: string,
                          context?: Context): string {
-    return this.processWhitespace(value);
+    return value.trim().replace(/\s+/g, " ");
   }
 }
 
@@ -705,13 +685,17 @@ abstract class CommonStringBased extends Base<string> {
 class string_ extends CommonStringBased {
   readonly name: string = "string";
   readonly typeErrorMsg: string = "value is not a string";
-  readonly processWhitespace: WhitespaceHandler = whitespacePreserve;
   readonly validParams: Parameter[] = [lengthP, minLengthP, maxLengthP,
                                        patternP];
   readonly needsContext: boolean = false;
   // [^] means "any character". The dot would exclude line terminators (\r\n,
   // etc.).
   readonly regexp: RegExp = /^[^]*$/;
+
+  protected convertValue(location: string, value: string,
+                         context?: Context): string {
+    return value;
+  }
 
   // This is a specialized version of disallows that avoids bothering with tests
   // that don't affect the results. string and some of its immediate derivates
@@ -743,13 +727,21 @@ class normalizedString extends string_ {
   readonly name: string = "normalizedString";
   readonly typeErrorMsg: string =
     "string contains a tab, carriage return or newline";
-  readonly processWhitespace: WhitespaceHandler = whitespaceReplace;
+
+  protected convertValue(location: string, value: string,
+                         context?: Context): string {
+    return value.replace(/\s+/g, " ");
+  }
 }
 
 class token extends normalizedString {
   readonly name: string = "token";
   readonly typeErrorMsg: string = "not a valid token";
-  readonly processWhitespace: WhitespaceHandler = whitespaceCollapse;
+
+  protected convertValue(location: string, value: string,
+                         context?: Context): string {
+    return value.trim().replace(/\s+/g, " ");
+  }
 }
 
 class tokenInternal extends token {
@@ -832,7 +824,6 @@ class decimal extends Base<number> {
   readonly name: string = "decimal";
   readonly typeErrorMsg: string = "value not a decimal number";
   readonly regexp: RegExp = new RegExp(`^\\s*${decimalPattern}\\s*$`);
-  readonly processWhitespace: WhitespaceHandler = whitespaceCollapse;
   readonly needsContext: boolean = false;
 
   readonly validParams: Parameter[] = [
@@ -1167,7 +1158,7 @@ class QName extends Base<string> {
   readonly validParams: Parameter[] =
     [patternP, lengthP, minLengthP, maxLengthP];
   convertValue(location: string, value: string, context: Context): string {
-    const ret = context.resolver.resolveName(this.processWhitespace(value));
+    const ret = context.resolver.resolveName(value.trim().replace(/\s+/g, " "));
     if (ret === undefined) {
       throw new ValueValidationError(location,
         [new ValueError(`cannot resolve the name ${value}`)]);
@@ -1186,7 +1177,7 @@ class NOTATION extends Base<string> {
   readonly validParams: Parameter[] =
     [patternP, lengthP, minLengthP, maxLengthP];
   convertValue(location: string, value: string, context: Context): string {
-    const ret = context.resolver.resolveName(this.processWhitespace(value));
+    const ret = context.resolver.resolveName(value.trim().replace(/\s+/g, " "));
     if (ret === undefined) {
       throw new ValueValidationError(location,
         [new ValueError(`cannot resolve the name ${value}`)]);
