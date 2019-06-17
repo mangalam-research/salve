@@ -10,7 +10,7 @@ import { Element } from "../parser";
 const skip = new Set(["name", "anyName", "nsName", "param", "empty",
                       "text", "value", "notAllowed", "ref"]);
 
-function walk(el: Element): void {
+function walk(el: Element, ix: number): void {
   const { local, children } = el;
 
   if (children.length === 0 || skip.has(local)) {
@@ -18,9 +18,9 @@ function walk(el: Element): void {
   }
 
   let [first, second] = children as [Element, Element];
-  walk(first);
+  walk(first, 0);
   if (second !== undefined) {
-    walk(second);
+    walk(second, 1);
   }
 
   // The children may have changed.
@@ -44,26 +44,24 @@ function walk(el: Element): void {
         }
         else {
           // A choice with two empty elements is replaced with empty.
-          el.parent!.replaceChildWith(el, Element.makeElement("empty", []));
+          el.parent!.replaceChildAt(ix, Element.makeElement("empty", []));
         }
       }
       break;
     case "group":
     case "interleave":
-      if (firstEmpty && secondEmpty) {
-        // A group (or interleave) with two empty elements is replaced with
-        // empty.
-        el.parent!.replaceChildWith(el, Element.makeElement("empty", []));
-      }
-      else {
-        // A group (or interleave) with only one empty element is replaced with
-        // the non-empty one.
-        el.parent!.replaceChildWith(el, firstEmpty ? second : first);
-      }
+      el.parent!.replaceChildAt(ix,
+                                firstEmpty && secondEmpty ?
+                                // A group (or interleave) with two empty
+                                // elements is replaced with empty.
+                                Element.makeElement("empty", []) :
+                                // A group (or interleave) with only one empty
+                                // element is replaced with the non-empty one.
+                                (firstEmpty ? second : first));
       break;
     case "oneOrMore":
       // A oneOrMore with an empty element is replaced with empty.
-      el.parent!.replaceChildWith(el, Element.makeElement("empty", []));
+      el.parent!.replaceChildAt(ix, Element.makeElement("empty", []));
       break;
     default:
   }
@@ -101,8 +99,9 @@ function walk(el: Element): void {
  */
 export function step18(tree: Element): Element {
   // The top element is necessarily <grammar>, and it has only element children.
+  let ix = 0;
   for (const child of tree.children) {
-    walk(child as Element);
+    walk(child as Element, ix++);
   }
 
   return tree;
