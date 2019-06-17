@@ -1158,7 +1158,7 @@ class QName extends Base<string> {
   readonly validParams: Parameter[] =
     [patternP, lengthP, minLengthP, maxLengthP];
   convertValue(location: string, value: string, context: Context): string {
-    const ret = context.resolver.resolveName(value.trim().replace(/\s+/g, " "));
+    const ret = context.resolver.resolveName(value.trim());
     if (ret === undefined) {
       throw new ValueValidationError(location,
         [new ValueError(`cannot resolve the name ${value}`)]);
@@ -1177,7 +1177,7 @@ class NOTATION extends Base<string> {
   readonly validParams: Parameter[] =
     [patternP, lengthP, minLengthP, maxLengthP];
   convertValue(location: string, value: string, context: Context): string {
-    const ret = context.resolver.resolveName(value.trim().replace(/\s+/g, " "));
+    const ret = context.resolver.resolveName(value.trim());
     if (ret === undefined) {
       throw new ValueValidationError(location,
         [new ValueError(`cannot resolve the name ${value}`)]);
