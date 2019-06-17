@@ -37,7 +37,6 @@ class Step1 {
 
   async walk(parentBase: URL, seenURLs: string[], root: Element,
              el: Element): Promise<Element> {
-    let currentRoot = root;
     const baseAttr = el.getAttribute("xml:base");
 
     // The XML parser we use immediately drops all *elements* which are not in
@@ -63,64 +62,65 @@ class Step1 {
       }
     }
 
-    const local = el.local;
-    // We don't normalize text nodes in param or value.
-    if (!(local === "param" || local === "value")) {
-      const newChildren = [];
-      const children = el.children;
-      let modified = false;
+    const currentBase = baseAttr === undefined ? parentBase :
+      resolveURL(parentBase, baseAttr);
+    const { children, local } = el;
+    if (children.length !== 0) {
+      // We don't normalize text nodes in param or value.
+      if (!(local === "param" || local === "value")) {
+        const newChildren = [];
+        let modified = false;
+        for (const child of children) {
+          if (isElement(child)) {
+            newChildren.push(child);
+            continue;
+          }
+
+          const orig = child.text;
+          const clean = orig.trim();
+          if (clean !== "") {
+            // name gets the trimmed value
+            if (local === "name" && orig !== clean) {
+              // We're triming text.
+              modified = true;
+              newChildren.push(new Text(clean));
+            }
+            else {
+              newChildren.push(child);
+            }
+          }
+          else {
+            // We're dropping a whitespace node.
+            modified = true;
+          }
+        }
+
+        // Perform the replacement only if needed.
+        if (modified) {
+          el.replaceContent(newChildren);
+        }
+      }
+
       for (const child of children) {
-        if (child.kind === "element") {
-          newChildren.push(child);
+        if (!(isElement(child))) {
           continue;
         }
 
-        const orig = child.text;
-        const clean = orig.trim();
-        if (clean !== "") {
-          // name gets the trimmed value
-          if (local === "name" && orig !== clean) {
-            // We're triming text.
-            modified = true;
-            newChildren.push(new Text(clean));
-          }
-          else {
-            newChildren.push(child);
-          }
-        }
-        else {
-          // We're dropping a whitespace node.
-          modified = true;
-        }
-      }
-
-      // Perform the replacement only if needed.
-      if (modified) {
-        el.replaceContent(newChildren);
+        await this.walk(currentBase, seenURLs, root, child);
       }
     }
 
-    const currentBase = baseAttr === undefined ? parentBase :
-      resolveURL(parentBase, baseAttr);
-    for (const child of el.children) {
-      if (!(isElement(child))) {
-        continue;
-      }
-
-      await this.walk(currentBase, seenURLs, currentRoot, child);
+    const handler = (this as unknown as Record<string, Handler>)[local];
+    if (handler === undefined) {
+      return root;
     }
 
-    const handler = (this as unknown as Record<string, Handler>)[el.local];
-
-    if (handler !== undefined) {
-      const replacement = await handler.call(this, currentBase, seenURLs, el);
-      if (replacement !== null && el === currentRoot) {
-        // We have a new root.
-        currentRoot = replacement;
-      }
-    }
-
-    return currentRoot;
+    const replacement = await handler.call(this, currentBase, seenURLs, el);
+    return replacement !== null && el === root ?
+      // We have a new root.
+      replacement :
+      // We don't have a new root.
+      root;
   }
 
   async externalRef(currentBase: URL, seenURLs: string[],
