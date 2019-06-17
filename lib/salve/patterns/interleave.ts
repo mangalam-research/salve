@@ -122,8 +122,7 @@ class InterleaveWalker implements InternalWalker {
     // }
     //
 
-    const walkerA = this.walkerA;
-    const walkerB = this.walkerB;
+    const { walkerA, walkerB } = this;
 
     const retA = walkerA.fireEvent(name, params, nameResolver);
     if (retA.matched) {

@@ -100,8 +100,7 @@ class GroupWalker implements InternalWalker {
     //   return new InternalFireEventResult(false);
     // }
 
-    const walkerA = this.walkerA;
-    const walkerB = this.walkerB;
+    const { walkerA, walkerB } = this;
     if (!this.endedA) {
       const retA = walkerA.fireEvent(name, params, nameResolver);
       if (retA.matched || retA.errors !== undefined) {
