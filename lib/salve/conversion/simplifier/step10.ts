@@ -107,7 +107,7 @@ function walk(check: boolean, state: State, el: Element): Element | null {
           el.parent.replaceChildWith(el, replaceWith);
         }
         else {
-          el.removeChild(replaceWith);
+          el.removeChildAt(0); // This removes replaceWith from el.
           // By this stage in the process, this is the only attribute that need
           // be carried over.
           const xmlns = el.getAttribute("xmlns");
