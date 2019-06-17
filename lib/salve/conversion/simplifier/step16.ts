@@ -137,17 +137,25 @@ function substituteRefs(state: State, el: Element,
     }
   }
   else if (!skip.has(local)) {
-    // We do this only for elements that are not "ref". If we have "ref" then
-    // either it has no children, or it has been substituted and walked above.
-    for (let ix = 0; ix < el.children.length; ++ix) {
-      const child = el.children[ix];
-      if (!isElement(child)) {
-        continue;
+    //
+    // By this point, the majority of elements have at most two children.
+    // (<grammar> is the exception.)
+    //
+    // Due to the !skip.has(local) test above, first, and second are Element
+    // object, if they exists. So we assert instead of testing.
+    //
+    const [first, second] = el.children as [Element, Element];
+    if (first !== undefined) {
+      const sub1 = substituteRefs(state, first, seenNames);
+      if (first !== sub1) {
+        el.replaceChildAt(0, sub1);
       }
 
-      const substitute = substituteRefs(state, child, seenNames);
-      if (child !== substitute) {
-        el.replaceChildAt(ix, substitute);
+      if (second !== undefined) {
+        const sub2 = substituteRefs(state, second, seenNames);
+        if (second !== sub2) {
+          el.replaceChildAt(1, sub2);
+        }
       }
     }
   }
@@ -173,7 +181,7 @@ function substituteRefs(state: State, el: Element,
  * @returns The new root of the tree.
  */
 export function step16(tree: Element): Element {
-  let currentTree = tree;
+  const currentTree = tree;
   if (currentTree.local !== "grammar") {
     throw new Error("must be called with a grammar element");
   }
@@ -198,7 +206,20 @@ export function step16(tree: Element): Element {
   // ``element`` as their top pattern so they cannot be removed.
   removeDefsWithoutElement(state, currentTree);
   currentTree.appendChildren(toAppend);
-  currentTree = substituteRefs(state, currentTree, new Set());
+  const seenNames = new Set<string>();
+  const { children } = currentTree;
+  for (let ix = 0; ix < children.length; ++ix) {
+    const child = children[ix];
+    if (!isElement(child)) {
+      continue;
+    }
+
+    const substitute = substituteRefs(state, child, seenNames);
+    if (child !== substitute) {
+      currentTree.replaceChildAt(ix, substitute);
+    }
+  }
+
   removeUnreferencedDefs(currentTree, state.seenRefs);
 
   return currentTree;
