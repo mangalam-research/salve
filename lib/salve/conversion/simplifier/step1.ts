@@ -35,7 +35,7 @@ ${seenURLs.reverse().concat(resolved.toString()).join("\n")}`);
 class Step1 {
   constructor(private readonly parser: Parser) {}
 
-  async walk(parentBase: URL, seenURLs: string[], root: Element,
+  async walk(parentBase: URL, seenURLs: string[],
              el: Element): Promise<Element> {
     const baseAttr = el.getAttribute("xml:base");
 
@@ -106,21 +106,17 @@ class Step1 {
           continue;
         }
 
-        await this.walk(currentBase, seenURLs, root, child);
+        await this.walk(currentBase, seenURLs, child);
       }
     }
 
     const handler = (this as unknown as Record<string, Handler>)[local];
     if (handler === undefined) {
-      return root;
+      return el;
     }
 
     const replacement = await handler.call(this, currentBase, seenURLs, el);
-    return replacement !== null && el === root ?
-      // We have a new root.
-      replacement :
-      // We don't have a new root.
-      root;
+    return replacement !== null ? replacement : el;
   }
 
   async externalRef(currentBase: URL, seenURLs: string[],
@@ -130,7 +126,7 @@ class Step1 {
       await loadFromElement(currentBase, seenURLs, el, this.parser);
     includedTree = await this.walk(resolved,
                                    [resolved.toString(), ...seenURLs],
-                                   includedTree, includedTree);
+                                   includedTree);
     const ns = el.getAttribute("ns");
     const treeNs = includedTree.getAttribute("ns");
     if (ns !== undefined && treeNs === undefined) {
@@ -162,7 +158,7 @@ class Step1 {
     const { tree: includedTree, resolved } =
       await loadFromElement(currentBase, seenURLs, el, this.parser);
     await this.walk(resolved, [resolved.toString(), ...seenURLs],
-                    includedTree, includedTree);
+                    includedTree);
 
     // By this point, the tree's default namespace is the Relax NG one. So we
     // can remove it to avoid redeclaring it.
@@ -262,6 +258,5 @@ grammar`);
 export async function step1(documentBase: URL,
                             tree: Element,
                             parser: Parser): Promise<Element> {
-  return new Step1(parser).walk(documentBase, [documentBase.toString()], tree,
-                                tree);
+  return new Step1(parser).walk(documentBase, [documentBase.toString()], tree);
 }
