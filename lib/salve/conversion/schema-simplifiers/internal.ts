@@ -172,6 +172,20 @@ class GeneralChecker {
     }
     this.definesByName = definesByName;
 
+    // The first child of <grammar> is necessarily <start>. So we handle
+    // start here.
+    this._check((children[0] as Element).children[0] as Element, {
+      inStart: true,
+      inAttribute: false,
+      inList: false,
+      inDataExcept: false,
+      inOneOrMore: false,
+      inOneOrMoreGroup: false,
+      inOneOrMoreInterleave: false,
+      inInterlave: false,
+      inGroup: false,
+    });
+
     const state = {
       inStart: false,
       inAttribute: false,
@@ -184,28 +198,25 @@ class GeneralChecker {
       inGroup: false,
     };
 
-    // The first child of <grammar> is necessarily <start>.
-    this.startHandler(children[0] as Element, state);
     // The other children are necessarily <define>.
     for (let ix = 1; ix < children.length; ++ix) {
-      this.defineHandler(children[ix] as Element, state);
+      // <define> elements necessarily have a single child which is an
+      // <element>.
+      const element = (children[ix] as Element).children[0] as Element;
+      // The first child is the name class, which we do not need to walk.
+      const pattern = element.children[1] as Element;
+      const { contentType } = this._check(pattern, state);
+      if (contentType === null && pattern.local !== "notAllowed") {
+        throw new SchemaValidationError(
+          `definition ${el.mustGetAttribute("name")} violates the constraint \
+on string values (section 7.2)`);
+      }
     }
   }
 
   private _check(el: Element, state: State): CheckResult {
     return ((this as any)[`${el.local}Handler`] as Handler)
       .call(this, el, state);
-  }
-
-  elementHandler(el: Element, state: State): void {
-    // The first child is the name class, which we do not need to walk.
-    const pattern = el.children[1] as Element;
-    const { contentType } = this._check(pattern, state);
-    if (contentType === null && pattern.local !== "notAllowed") {
-      throw new SchemaValidationError(
-        `definition ${el.mustGetAttribute("name")} violates the constraint \
-on string values (section 7.2)`);
-    }
   }
 
   attributeHandler(el: Element, state: State): CheckResult {
@@ -249,16 +260,6 @@ class must be a descendant of oneOrMore (section 7.3)");
       occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: false,
     };
-  }
-
-  exceptHandler(el: Element, state: State): void {
-    // parent cannot be undefined here.
-    let newState = state;
-    // tslint:disable-next-line:no-non-null-assertion
-    if (!state.inDataExcept && el.parent!.local === "data") {
-      newState = { ...state, inDataExcept: true };
-    }
-    this._check(el.children[0] as Element, newState);
   }
 
   oneOrMoreHandler(el: Element, state: State): CheckResult {
@@ -386,27 +387,35 @@ class must be a descendant of oneOrMore (section 7.3)");
 ${(libname === "") ? "default library" : `library ${libname}`}`)]);
     }
 
-    const children = el.children;
-    const last = children[children.length - 1] as Element;
-    // We only need to scan the possible except child, which is necessarily
-    // last.
-    const hasExcept = (children.length !== 0 && last.local === "except");
+    const { children } = el;
+    if (children.length !== 0) {
+      const last = children[children.length - 1] as Element;
+      // We only need to scan the possible except child, which is necessarily
+      // last.
+      const hasExcept = last.local === "except";
 
-    const limit = hasExcept ? children.length - 1 : children.length;
-    // Running parseParams if we have no params is expensive. And if there are
-    // no params, there's nothing to check so don't run parseParams without
-    // params.
-    if (limit > 0) {
-      const params: { name: string; value: string }[] = [];
-      for (let ix = 0; ix < limit; ++ix) {
-        const child = children[ix] as Element;
-        params.push({
-          name: child.mustGetAttribute("name"),
-          value: child.text,
-        });
+      const limit = hasExcept ? children.length - 1 : children.length;
+      // Running parseParams if we have no params is expensive. And if there are
+      // no params, there's nothing to check so don't run parseParams without
+      // params.
+      if (limit > 0) {
+        const params: { name: string; value: string }[] = [];
+        for (let ix = 0; ix < limit; ++ix) {
+          const child = children[ix] as Element;
+          params.push({
+            name: child.mustGetAttribute("name"),
+            value: child.text,
+          });
+        }
+
+        datatype.parseParams(el.path, params);
       }
 
-      datatype.parseParams(el.path, params);
+      if (hasExcept) {
+        this._check(last.children[0] as Element,
+                    state.inDataExcept ? state :
+                    { ...state, inDataExcept: true });
+      }
     }
 
     // tslint:disable-next-line: no-http-string
@@ -415,10 +424,6 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
       this.typeWarnings.push(
         `WARNING: ${el.path} uses the ${typeAttr} type in library \
 ${libname}`);
-    }
-
-    if (hasExcept) {
-      this.exceptHandler(last, state);
     }
 
     return DATA_RESULT;
@@ -526,15 +531,6 @@ ${libname}`);
 
   notAllowedHandler(): CheckResult {
     return NOT_ALLOWED_RESULT;
-  }
-
-  defineHandler(el: Element, state: State): void {
-    // <define> elements necessarily have a single child which is an <element>.
-    this.elementHandler(el.children[0] as Element, state);
-  }
-
-  startHandler(el: Element, state: State): void {
-    this._check(el.children[0] as Element, { ...state, inStart: true });
   }
 
   private getElementNamesForDefine(name: string): ConcreteName {
