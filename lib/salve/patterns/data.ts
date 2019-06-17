@@ -55,19 +55,17 @@ export class Data extends Pattern {
     return ret;
   }
 
-  allowsEmptyContent(): boolean {
-    return !(this.except !== undefined && this.except.hasEmptyPattern()) &&
-      !this.datatype.disallows("", this.params);
-  }
-
   newWalker(): InternalWalker {
-    const allowsEmptyContent = this.allowsEmptyContent();
+    const { datatype, except, params } = this;
+    const allowsEmptyContent =
+      !(except !== undefined && except.hasEmptyPattern()) &&
+      !datatype.disallows("", params);
 
     // tslint:disable-next-line:no-use-before-declare
     return new DataWalker(this,
-                          this.datatype,
-                          this.params,
-                          this.except,
+                          datatype,
+                          params,
+                          except,
                           false,
                           allowsEmptyContent,
                           allowsEmptyContent);
