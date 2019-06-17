@@ -112,7 +112,7 @@ interface CheckResult {
   // interleave elements.
   readonly occurringRefs: ReadonlyArray<Element>;
 
-  readonly occurringTexts: number;
+  readonly occurringTexts: boolean;
 }
 
 const EMPTY_ELEMENT_ARRAY: ReadonlyArray<Element> = [];
@@ -121,21 +121,21 @@ const TEXT_RESULT: CheckResult = {
   contentType: ContentType.COMPLEX,
   occurringAttributes: EMPTY_ELEMENT_ARRAY,
   occurringRefs: EMPTY_ELEMENT_ARRAY,
-  occurringTexts: 1,
+  occurringTexts: true,
 };
 
 const EMPTY_RESULT: CheckResult = {
   contentType: ContentType.EMPTY,
   occurringAttributes: EMPTY_ELEMENT_ARRAY,
   occurringRefs: EMPTY_ELEMENT_ARRAY,
-  occurringTexts: 0,
+  occurringTexts: false,
 };
 
 const DATA_RESULT: CheckResult = {
   contentType: ContentType.SIMPLE,
   occurringAttributes: EMPTY_ELEMENT_ARRAY,
   occurringRefs: EMPTY_ELEMENT_ARRAY,
-  occurringTexts: 0,
+  occurringTexts: false,
 };
 
 const LIST_RESULT = DATA_RESULT;
@@ -145,7 +145,7 @@ const NOT_ALLOWED_RESULT: CheckResult = {
   contentType: null,
   occurringAttributes: EMPTY_ELEMENT_ARRAY,
   occurringRefs: EMPTY_ELEMENT_ARRAY,
-  occurringTexts: 0,
+  occurringTexts: false,
 };
 
 type Handler = (this: GeneralChecker, el: Element,
@@ -245,7 +245,7 @@ class must be a descendant of oneOrMore (section 7.3)");
       contentType: ContentType.EMPTY,
       occurringAttributes: [el],
       occurringRefs: EMPTY_ELEMENT_ARRAY,
-      occurringTexts: 0,
+      occurringTexts: false,
     };
   }
 
@@ -341,7 +341,7 @@ class must be a descendant of oneOrMore (section 7.3)");
         (firstCt > secondCt ? firstCt : secondCt) : null,
       occurringAttributes: firstAttributes.concat(secondAttributes),
       occurringRefs: firstRefs.concat(secondRefs),
-      occurringTexts: firstTexts + secondTexts,
+      occurringTexts: firstTexts || secondTexts,
     };
   }
 
@@ -506,7 +506,7 @@ ${libname}`);
       contentType: ContentType.COMPLEX,
       occurringAttributes: EMPTY_ELEMENT_ARRAY,
       occurringRefs: [el],
-      occurringTexts: 0,
+      occurringTexts: false,
     };
   }
 
@@ -583,7 +583,7 @@ interleave intersect (section 7.3): ${name1} and ${name2}`);
     }
 
     if (isInterleave) {
-      if (firstTexts !== 0 && secondTexts !== 0) {
+      if (firstTexts && secondTexts) {
         throw new SchemaValidationError(
           "text present in both patterns of an interleave (section 7.4)");
       }
@@ -619,7 +619,7 @@ patterns of an interleave intersect (section 7.4): ${name1} and ${name2}`);
       contentType,
       occurringAttributes: firstAttributes.concat(secondAttributes),
       occurringRefs: firstRefs.concat(secondRefs),
-      occurringTexts: firstTexts + secondTexts,
+      occurringTexts: firstTexts || secondTexts,
     };
   }
 }
