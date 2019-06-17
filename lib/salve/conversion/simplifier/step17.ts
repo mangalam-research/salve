@@ -4,7 +4,7 @@
  * @license MPL 2.0
  * @copyright 2013, 2014 Mangalam Research Center for Buddhist Languages
  */
-import { Element, isElement } from "../parser";
+import { Element } from "../parser";
 import { removeUnreferencedDefs } from "./util";
 
 // These are elements that cannot contain notAllowed and cannot contain
@@ -15,29 +15,33 @@ const skip = new Set(["name", "anyName", "nsName", "param", "empty",
 function walk(el: Element, refs: Set<string>): void {
   const { local, children } = el;
 
+  // Skip those elements that are empty or that cannot contain notAllowed.
+  if (children.length === 0 || skip.has(local)) {
+    return;
+  }
+
   // Since we walk the children first, all the transformations that pertain to
   // the children are applied before we deal with the parent, and there should
   // not be any need to process the tree multiple times.
-  for (const child of children) {
-    if (!isElement(child)) {
-      continue;
-    }
 
-    // Skip those elements that cannot contain notAllowed.
-    if (skip.has(child.local)) {
-      continue;
-    }
-
-    walk(child, refs);
+  // At this stage of processing, most elements contain at most two
+  // children. And due to the skip.has(local) test above, these children must be
+  // Element objects. (<grammar> is the exception.)
+  let [first, second] = children as [Element, Element];
+  walk(first, refs);
+  if (second !== undefined) {
+    walk(second, refs);
   }
 
-  // Elements may be removed in the above loop.
+  // Elements may be removed by the above walks.
   if (children.length === 0) {
     return;
   }
 
-  const firstNA = (children[0] as Element).local === "notAllowed";
-  const second = children[1] as Element;
+  // Reacquire.
+  ([first, second] = children as [Element, Element]);
+
+  const firstNA = first.local === "notAllowed";
   const secondNA = second !== undefined && second.local === "notAllowed";
 
   if (firstNA || secondNA) {
@@ -54,7 +58,7 @@ function walk(el: Element, refs: Set<string>): void {
         else {
           // A choice with exactly one notAllowed is replaced with the other
           // child of the choice.
-          parent.replaceChildWith(el, children[firstNA ? 1 : 0] as Element);
+          parent.replaceChildWith(el, firstNA ? second : first);
         }
         return;
       case "group":
@@ -74,12 +78,12 @@ function walk(el: Element, refs: Set<string>): void {
     }
   }
 
-  for (const child of children) {
-    if (!isElement(child) || child.local !== "ref") {
-      continue;
-    }
+  if (first.local === "ref") {
+    refs.add(first.mustGetAttribute("name"));
+  }
 
-    refs.add(child.mustGetAttribute("name"));
+  if (second !== undefined && second.local === "ref") {
+    refs.add(second.mustGetAttribute("name"));
   }
 }
 
@@ -110,7 +114,11 @@ function walk(el: Element, refs: Set<string>): void {
  */
 export function step17(tree: Element): Element {
   const refs: Set<string> = new Set();
-  walk(tree, refs);
+
+  // The top element is necessarily <grammar>, and it has only element children.
+  for (const child of tree.children) {
+    walk(child as Element, refs);
+  }
 
   removeUnreferencedDefs(tree, refs);
 
