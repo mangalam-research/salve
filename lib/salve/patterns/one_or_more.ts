@@ -83,7 +83,7 @@ class OneOrMoreWalker implements InternalWalker {
 
   fireEvent(name: string, params: string[],
             nameResolver: NameResolver): InternalFireEventResult {
-    if (isAttributeEvent(name) && !this.hasAttrs) {
+    if (!this.hasAttrs && isAttributeEvent(name)) {
       return new InternalFireEventResult(false);
     }
 

@@ -133,7 +133,7 @@ class ChoiceWalker implements InternalWalker {
     //   return new InternalFireEventResult(false);
     // }
 
-    if (isAttributeEvent(name) && !this.hasAttrs) {
+    if (!this.hasAttrs && isAttributeEvent(name)) {
       return new InternalFireEventResult(false);
     }
 
@@ -298,7 +298,7 @@ class OptionalChoiceWalker implements InternalWalker {
     // }
     //
 
-    if (isAttributeEvent(name) && !this.hasAttrs) {
+    if (!this.hasAttrs && isAttributeEvent(name)) {
       return new InternalFireEventResult(false);
     }
 
