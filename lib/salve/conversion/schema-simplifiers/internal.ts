@@ -582,8 +582,8 @@ ${libname}`);
       this._check(children[1], newState);
 
     for (const attr1 of firstAttributes) {
+      const name1 = this.getAttrName(attr1);
       for (const attr2 of secondAttributes) {
-        const name1 = this.getAttrName(attr1);
         const name2 = this.getAttrName(attr2);
         if (name1.intersects(name2)) {
           throw new SchemaValidationError(
