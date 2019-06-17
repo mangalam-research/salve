@@ -104,7 +104,7 @@ class ProhibitedDataExceptPath extends SchemaValidationError {
 interface CheckResult {
   readonly contentType: ContentType | null;
 
-  readonly occurringAttributes: ReadonlyArray<Element>;
+  readonly occurringAttributeNames: ReadonlyArray<ConcreteName>;
 
   // We considered making this variable a Set. Multiple ref of the same name are
   // bound to happen in any schemas beyond trivial ones. However, the cost of
@@ -116,24 +116,25 @@ interface CheckResult {
 }
 
 const EMPTY_ELEMENT_ARRAY: ReadonlyArray<Element> = [];
+const EMPTY_NAME_ARRAY: ReadonlyArray<ConcreteName> = [];
 
 const TEXT_RESULT: CheckResult = {
   contentType: ContentType.COMPLEX,
-  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringAttributeNames: EMPTY_NAME_ARRAY,
   occurringRefs: EMPTY_ELEMENT_ARRAY,
   occurringTexts: true,
 };
 
 const EMPTY_RESULT: CheckResult = {
   contentType: ContentType.EMPTY,
-  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringAttributeNames: EMPTY_NAME_ARRAY,
   occurringRefs: EMPTY_ELEMENT_ARRAY,
   occurringTexts: false,
 };
 
 const DATA_RESULT: CheckResult = {
   contentType: ContentType.SIMPLE,
-  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringAttributeNames: EMPTY_NAME_ARRAY,
   occurringRefs: EMPTY_ELEMENT_ARRAY,
   occurringTexts: false,
 };
@@ -143,7 +144,7 @@ const VALUE_RESULT = DATA_RESULT;
 
 const NOT_ALLOWED_RESULT: CheckResult = {
   contentType: null,
-  occurringAttributes: EMPTY_ELEMENT_ARRAY,
+  occurringAttributeNames: EMPTY_NAME_ARRAY,
   occurringRefs: EMPTY_ELEMENT_ARRAY,
   occurringTexts: false,
 };
@@ -156,7 +157,6 @@ type Handler = (this: GeneralChecker, el: Element,
  * for checkInterleaveRestriction.
  */
 class GeneralChecker {
-  private readonly attrNameCache: Map<Element, ConcreteName> = new Map();
   private definesByName!: Map<string, Element>;
   private readonly defineNameToElementNames: Map<string, ConcreteName> =
     new Map();
@@ -233,17 +233,19 @@ on string values (section 7.2)`);
       throw new ProhibitedDataExceptPath(el.local);
     }
 
-    if (!state.inOneOrMore && !this.getAttrName(el).simple()) {
+    const [first, second] = el.children as [Element, Element];
+    const name = makeNamePattern(first);
+    if (!state.inOneOrMore && !name.simple()) {
       throw new SchemaValidationError("an attribute with an infinite name \
 class must be a descendant of oneOrMore (section 7.3)");
     }
 
     // The first child is the name class, which we do not need to walk.
-    this._check(el.children[1] as Element, { ...state, inAttribute: true });
+    this._check(second, { ...state, inAttribute: true });
 
     return {
       contentType: ContentType.EMPTY,
-      occurringAttributes: [el],
+      occurringAttributeNames: [name],
       occurringRefs: EMPTY_ELEMENT_ARRAY,
       occurringTexts: false,
     };
@@ -268,7 +270,7 @@ class must be a descendant of oneOrMore (section 7.3)");
       throw new ProhibitedDataExceptPath(el.local);
     }
 
-    const { contentType, occurringAttributes, occurringRefs,
+    const { contentType, occurringAttributeNames, occurringRefs,
             occurringTexts } =
       this._check(el.children[0] as Element, { ...state, inOneOrMore: true });
 
@@ -281,7 +283,7 @@ class must be a descendant of oneOrMore (section 7.3)");
     // is true so we can simplify to the following.
     return {
       contentType: contentType !== ContentType.SIMPLE ? contentType : null,
-      occurringAttributes,
+      occurringAttributeNames,
       occurringRefs,
       occurringTexts,
     };
@@ -329,17 +331,17 @@ class must be a descendant of oneOrMore (section 7.3)");
   }
 
   choiceHandler(el: Element, state: State): CheckResult {
-    const { contentType: firstCt, occurringAttributes: firstAttributes,
+    const { contentType: firstCt, occurringAttributeNames: firstAttributes,
             occurringRefs: firstRefs, occurringTexts: firstTexts } =
       this._check(el.children[0] as Element, state);
-    const { contentType: secondCt, occurringAttributes: secondAttributes,
+    const { contentType: secondCt, occurringAttributeNames: secondAttributes,
             occurringRefs: secondRefs, occurringTexts: secondTexts } =
       this._check(el.children[1] as Element, state);
 
     return {
       contentType: firstCt !== null && secondCt !== null ?
         (firstCt > secondCt ? firstCt : secondCt) : null,
-      occurringAttributes: firstAttributes.concat(secondAttributes),
+      occurringAttributeNames: firstAttributes.concat(secondAttributes),
       occurringRefs: firstRefs.concat(secondRefs),
       occurringTexts: firstTexts || secondTexts,
     };
@@ -504,7 +506,7 @@ ${libname}`);
 
     return {
       contentType: ContentType.COMPLEX,
-      occurringAttributes: EMPTY_ELEMENT_ARRAY,
+      occurringAttributeNames: EMPTY_NAME_ARRAY,
       occurringRefs: [el],
       occurringTexts: false,
     };
@@ -535,17 +537,6 @@ ${libname}`);
     this._check(el.children[0] as Element, { ...state, inStart: true });
   }
 
-  private getAttrName(attr: Element): ConcreteName {
-    let pattern = this.attrNameCache.get(attr);
-    if (pattern === undefined) {
-      const namePattern = attr.children[0] as Element;
-      pattern = makeNamePattern(namePattern);
-      this.attrNameCache.set(attr, pattern);
-    }
-
-    return pattern;
-  }
-
   private getElementNamesForDefine(name: string): ConcreteName {
     let pattern = this.defineNameToElementNames.get(name);
     if (pattern === undefined) {
@@ -563,21 +554,19 @@ ${libname}`);
   private groupInterleaveHandler(children: Element[],
                                  newState: State,
                                  isInterleave: boolean): CheckResult {
-    const { contentType: firstCt, occurringAttributes: firstAttributes,
+    const { contentType: firstCt, occurringAttributeNames: firstAttributes,
             occurringRefs: firstRefs, occurringTexts: firstTexts} =
       this._check(children[0], newState);
-    const { contentType: secondCt, occurringAttributes: secondAttributes,
+    const { contentType: secondCt, occurringAttributeNames: secondAttributes,
             occurringRefs: secondRefs, occurringTexts: secondTexts} =
       this._check(children[1], newState);
 
     for (const attr1 of firstAttributes) {
-      const name1 = this.getAttrName(attr1);
       for (const attr2 of secondAttributes) {
-        const name2 = this.getAttrName(attr2);
-        if (name1.intersects(name2)) {
+        if (attr1.intersects(attr2)) {
           throw new SchemaValidationError(
             `the name classes of two attributes in the same group or
-interleave intersect (section 7.3): ${name1} and ${name2}`);
+interleave intersect (section 7.3): ${attr1} and ${attr2}`);
         }
       }
     }
@@ -617,7 +606,7 @@ patterns of an interleave intersect (section 7.4): ${name1} and ${name2}`);
 
     return {
       contentType,
-      occurringAttributes: firstAttributes.concat(secondAttributes),
+      occurringAttributeNames: firstAttributes.concat(secondAttributes),
       occurringRefs: firstRefs.concat(secondRefs),
       occurringTexts: firstTexts || secondTexts,
     };
