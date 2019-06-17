@@ -599,14 +599,12 @@ interleave intersect (section 7.3): ${name1} and ${name2}`);
           "text present in both patterns of an interleave (section 7.4)");
       }
 
-      const names1 = firstRefs
-        .map(x => this.getElementNamesForDefine(x.mustGetAttribute("name")));
-
-      const names2 = secondRefs
-        .map(x => this.getElementNamesForDefine(x.mustGetAttribute("name")));
-
-      for (const name1 of names1) {
-        for (const name2 of names2) {
+      for (const ref1 of firstRefs) {
+        const name1 =
+          this.getElementNamesForDefine(ref1.mustGetAttribute("name"));
+        for (const ref2 of secondRefs) {
+          const name2 =
+            this.getElementNamesForDefine(ref2.mustGetAttribute("name"));
           if (name1.intersects(name2)) {
             throw new SchemaValidationError(`name classes of elements in both \
 patterns of an interleave intersect (section 7.4): ${name1} and ${name2}`);
