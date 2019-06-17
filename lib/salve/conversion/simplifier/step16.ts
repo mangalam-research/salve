@@ -20,7 +20,6 @@ interface RemovedDefineState {
 
 interface State {
   removedDefines: Map<string, RemovedDefineState>;
-  grammarEl: Element;
   seenRefs: Set<string>;
 }
 
@@ -188,7 +187,6 @@ export function step16(tree: Element): Element {
 
   const state: State = {
      // By this point the top element must be the only grammar in the tree.
-    grammarEl: currentTree,
     removedDefines: new Map(),
     seenRefs: new Set(),
   };
