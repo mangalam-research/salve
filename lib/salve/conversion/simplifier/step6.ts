@@ -11,10 +11,6 @@ function walk(el: Element, parentNs: string | null): void {
   const local = el.local;
 
   let currentNs = el.getAttribute("ns");
-  let keepNs: boolean = false;
-  // True if the namespace on the current element being processed was created
-  // from resolving a namespace prefix.
-  let resolvedNs: boolean = false;
   switch (local) {
     case "element":
     case "attribute":
@@ -34,65 +30,54 @@ function walk(el: Element, parentNs: string | null): void {
           }
           else if (parentNs !== null) {
             nameEl.setAttribute("ns", parentNs);
+            currentNs = parentNs;
           }
         }
 
         el.prependChild(nameEl);
       }
+
+      if (currentNs !== undefined) {
+        el.removeAttribute("ns");
+      }
       break;
     case "name":
-      if (el.children.length !== 1) {
-        throw new Error("name element does not contain a single child");
-      }
-
-      const child = el.children[0];
-      if (child.kind !== "text") {
-        throw new Error("a name element must contain only text");
-      }
-
-      const { text } = child;
+      const { text } = el.children[0];
       const colon = text.indexOf(":");
       if (colon !== -1) {
-        if (text.lastIndexOf(":") !== colon) {
+        const prefix = text.substr(0, colon);
+        const localName = text.substr(colon + 1);
+        if (localName.includes(":")) {
           throw new Error(`${text} is not a valid QName`);
         }
 
-        const ns = el.resolve(text.substr(0, colon));
+        const ns = el.resolve(prefix);
         if (ns === undefined) {
           throw new SchemaValidationError(`cannot resolve name ${text}`);
         }
         el.setAttribute("ns", ns);
-        resolvedNs = true;
-        el.replaceChildAt(0, new Text(text.substr(colon + 1)));
+        currentNs = ns;
+        el.replaceChildAt(0, new Text(localName));
       }
       // Yes, we fall through.
     case "nsName":
     case "value":
-      keepNs = true;
-      if (!resolvedNs && currentNs === undefined) {
-        el.setAttribute("ns", parentNs === null ? "" : parentNs);
+      if (currentNs === undefined) {
+        currentNs = parentNs === null ? "" : parentNs;
+        el.setAttribute("ns", currentNs);
       }
       break;
     default:
+      if (currentNs !== undefined) {
+        el.removeAttribute("ns");
+      }
   }
 
-  // If the ns value was created from resolving a prefix, then it does not
-  // participate in the propagation of @ns. (Whatever previous @ns value may
-  // have been there *does* participate in the propagation.) This is why we test
-  // !resolvedNs.
-  if (!resolvedNs && el.getAttribute("ns") !== undefined) {
-    currentNs = el.mustGetAttribute("ns");
-    if (!keepNs) {
-      el.removeAttribute("ns");
-    }
-  }
-
+  const nextNs = currentNs !== undefined ? currentNs : parentNs;
   for (const child of el.children) {
-    if (!isElement(child)) {
-      continue;
+    if (isElement(child)) {
+      walk(child, nextNs);
     }
-
-    walk(child, currentNs !== undefined ? currentNs : parentNs);
   }
 }
 
