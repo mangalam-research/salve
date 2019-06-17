@@ -169,7 +169,7 @@ class GroupWalker implements InternalWalker {
   }
 
   endAttributes(): EndResult {
-    if (this.ended || this.canEndAttribute) {
+    if (this.canEndAttribute) {
       return false;
     }
 
