@@ -636,27 +636,12 @@ abstract class Base<T> implements Datatype<T> {
       return [new ValueError(this.typeErrorMsg)];
     }
 
-    let converted: any;
-    try {
-      // We pass an empty string as location because we do not generally keep
-      // track of locations in the XML file being validated. The
-      // ValueValidationError is caught below and its errors are extracted and
-      // returned.
-      converted = this.convertValue("", value, context);
-    }
-    catch (ex) {
-      // An invalid value is not allowed.
-      if (ex instanceof ValueValidationError) {
-        return ex.errors;
-      }
-      throw ex;
-    }
-
     const paramNames = Object.keys(params);
     if (paramNames.length === 0) {
       return false;
     }
 
+    const converted = this.convertValue("", value, context);
     const errors: ValueError[] = [];
     for (const name of paramNames) {
       const param = PARAM_NAME_TO_OBJ[name];
@@ -1157,6 +1142,46 @@ class QName extends Base<string> {
   readonly needsContext: boolean = true;
   readonly validParams: Parameter[] =
     [patternP, lengthP, minLengthP, maxLengthP];
+
+  disallows(value: string, params: ParsedParams,
+            context: Context): ValueError[] | false {
+    if (!this.regexp.test(value)) {
+      return [new ValueError(this.typeErrorMsg)];
+    }
+
+    let converted: string;
+    try {
+      // We pass an empty string as location because we do not generally keep
+      // track of locations in the XML file being validated. The
+      // ValueValidationError is caught below and its errors are extracted and
+      // returned.
+      converted = this.convertValue("", value, context);
+    }
+    catch (ex) {
+      // An invalid value is not allowed.
+      if (ex instanceof ValueValidationError) {
+        return ex.errors;
+      }
+      throw ex;
+    }
+
+    const paramNames = Object.keys(params);
+    if (paramNames.length === 0) {
+      return false;
+    }
+
+    const errors: ValueError[] = [];
+    for (const name of paramNames) {
+      const param = PARAM_NAME_TO_OBJ[name];
+      const err = param.isInvalidValue(converted, params[name], this);
+      if (err) {
+        errors.push(err);
+      }
+    }
+
+    return (errors.length !== 0) ? errors : false;
+  }
+
   convertValue(location: string, value: string, context: Context): string {
     const ret = context.resolver.resolveName(value.trim());
     if (ret === undefined) {
@@ -1176,6 +1201,46 @@ class NOTATION extends Base<string> {
   readonly needsContext: boolean = true;
   readonly validParams: Parameter[] =
     [patternP, lengthP, minLengthP, maxLengthP];
+
+  disallows(value: string, params: ParsedParams,
+            context: Context): ValueError[] | false {
+    if (!this.regexp.test(value)) {
+      return [new ValueError(this.typeErrorMsg)];
+    }
+
+    let converted: string;
+    try {
+      // We pass an empty string as location because we do not generally keep
+      // track of locations in the XML file being validated. The
+      // ValueValidationError is caught below and its errors are extracted and
+      // returned.
+      converted = this.convertValue("", value, context);
+    }
+    catch (ex) {
+      // An invalid value is not allowed.
+      if (ex instanceof ValueValidationError) {
+        return ex.errors;
+      }
+      throw ex;
+    }
+
+    const paramNames = Object.keys(params);
+    if (paramNames.length === 0) {
+      return false;
+    }
+
+    const errors: ValueError[] = [];
+    for (const name of paramNames) {
+      const param = PARAM_NAME_TO_OBJ[name];
+      const err = param.isInvalidValue(converted, params[name], this);
+      if (err) {
+        errors.push(err);
+      }
+    }
+
+    return (errors.length !== 0) ? errors : false;
+  }
+
   convertValue(location: string, value: string, context: Context): string {
     const ret = context.resolver.resolveName(value.trim());
     if (ret === undefined) {
