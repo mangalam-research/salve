@@ -67,12 +67,19 @@ class Step1 {
     const { children, local } = el;
     if (children.length !== 0) {
       // We don't normalize text nodes in param or value.
-      if (!(local === "param" || local === "value")) {
-        const newChildren = [];
-        let modified = false;
+      if (local === "param" || local === "value") {
         for (const child of children) {
           if (isElement(child)) {
-            newChildren.push(child);
+            await this.walk(currentBase, seenURLs, child);
+          }
+        }
+      }
+      else {
+        const newChildren = [];
+        for (const child of children) {
+          if (isElement(child)) {
+            const replace = await this.walk(currentBase, seenURLs, child);
+            newChildren.push(replace === null ? child : replace);
             continue;
           }
 
@@ -80,33 +87,15 @@ class Step1 {
           const clean = orig.trim();
           if (clean !== "") {
             // name gets the trimmed value
-            if (local === "name" && orig !== clean) {
-              // We're triming text.
-              modified = true;
-              newChildren.push(new Text(clean));
-            }
-            else {
-              newChildren.push(child);
-            }
+            newChildren.push(local === "name" && orig !== clean ?
+                             // We're triming text.
+                             new Text(clean) :
+                             child);
           }
-          else {
-            // We're dropping a whitespace node.
-            modified = true;
-          }
+          // else we drop a node consisting entirely of whitespace
         }
 
-        // Perform the replacement only if needed.
-        if (modified) {
-          el.replaceContent(newChildren);
-        }
-      }
-
-      for (const child of children) {
-        if (!(isElement(child))) {
-          continue;
-        }
-
-        await this.walk(currentBase, seenURLs, child);
+        el.replaceContent(newChildren);
       }
     }
 
@@ -116,7 +105,7 @@ class Step1 {
     }
 
     const replacement = await handler.call(this, currentBase, seenURLs, el);
-    return replacement !== null ? replacement : el;
+    return replacement === null ? el : replacement;
   }
 
   async externalRef(currentBase: URL, seenURLs: string[],
