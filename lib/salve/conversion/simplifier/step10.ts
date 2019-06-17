@@ -57,7 +57,7 @@ function checkNames(el: Element): void {
 
 // tslint:disable-next-line:max-func-body-length
 function walk(check: boolean, state: State, el: Element): Element | null {
-  const local = el.local;
+  const { local, children } = el;
 
   switch (local) {
     case "define":
@@ -67,7 +67,7 @@ function walk(check: boolean, state: State, el: Element): Element | null {
     case "list":
     case "mixed":
       let toAppend = [];
-      if (el.children.length > 1) {
+      if (children.length > 1) {
         const group = Element.makeElement("group", []);
         group.grabChildren(el);
         toAppend.push(group);
@@ -101,13 +101,13 @@ function walk(check: boolean, state: State, el: Element): Element | null {
     case "choice":
     case "group":
     case "interleave":
-      if (el.children.length === 1) {
-        const replaceWith = el.children[0] as Element;
+      if (children.length === 1) {
+        const replaceWith = children[0] as Element;
         if (el.parent !== undefined) {
           el.parent.replaceChildWith(el, replaceWith);
         }
         else {
-          replaceWith.parent!.removeChild(replaceWith);
+          el.removeChild(replaceWith);
           // By this stage in the process, this is the only attribute that need
           // be carried over.
           const xmlns = el.getAttribute("xmlns");
@@ -120,29 +120,28 @@ function walk(check: boolean, state: State, el: Element): Element | null {
         return replaceWith;
       }
       else {
-        while (el.children.length > 2) {
+        while (children.length > 2) {
           el.prependChild(Element.makeElement(local,
-                                              [el.children[0],
-                                               el.children[1]]));
+                                              [children[0], children[1]]));
         }
       }
       break;
     case "element":
-      if (el.children.length > 2) {
-        el.appendChild(Element.makeElement("group", el.children.slice(1)));
+      if (children.length > 2) {
+        el.appendChild(Element.makeElement("group", children.slice(1)));
       }
 
       if (check) {
-        checkNames(el.children[0] as Element);
+        checkNames(children[0] as Element);
       }
       break;
     case "attribute":
-      if (el.children.length === 1) {
+      if (children.length === 1) {
         el.appendChild(Element.makeElement("text", []));
       }
 
       if (check) {
-        checkNames(el.children[0] as Element);
+        checkNames(children[0] as Element);
         for (const attrName of findMultiNames(el, ["name"]).name) {
           switch (attrName.getAttribute("ns")) {
             case "":
@@ -161,7 +160,7 @@ function walk(check: boolean, state: State, el: Element): Element | null {
       }
       break;
     case "except":
-      if (el.children.length > 1) {
+      if (children.length > 1) {
         const choice = Element.makeElement("choice", []);
         choice.grabChildren(el);
         el.appendChild(choice);
@@ -171,8 +170,8 @@ function walk(check: boolean, state: State, el: Element): Element | null {
   }
 
   // tslint:disable-next-line:prefer-for-of
-  for (let ix = 0; ix < el.children.length; ++ix) {
-    const child = el.children[ix];
+  for (let ix = 0; ix < children.length; ++ix) {
+    const child = children[ix];
     if (!isElement(child)) {
       continue;
     }
