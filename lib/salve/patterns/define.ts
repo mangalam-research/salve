@@ -13,12 +13,7 @@ export class Define extends OneSubpattern<Element> {
    *
    * @param pat The pattern contained by this one.
    */
-
   constructor(xmlPath: string, readonly name: string, pat: Element) {
     super(xmlPath, pat);
-  }
-
-  protected _computeHasEmptyPattern(): boolean {
-    return this.pat.hasEmptyPattern();
   }
 }

@@ -200,12 +200,10 @@ export abstract class OneSubpattern<T extends (Pattern | Element) = Pattern>
     super(xmlPath);
   }
 
-  protected abstract _computeHasEmptyPattern(): boolean;
-
   _prepare(definitions: Map<string, Define>, namespaces: Set<string>): void {
     this.pat._prepare(definitions, namespaces);
     this._cachedHasAttrs = this.pat.hasAttrs();
-    this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
+    this._cachedHasEmptyPattern = this.pat.hasEmptyPattern();
   }
 
   hasAttrs(): boolean {

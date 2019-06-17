@@ -13,10 +13,6 @@ import { EndResult, EventSet, InternalFireEventResult, InternalWalker,
  * A pattern for ``<oneOrMore>``.
  */
 export class  OneOrMore extends OneSubpattern {
-  _computeHasEmptyPattern(): boolean {
-    return this.pat.hasEmptyPattern();
-  }
-
   newWalker(): InternalWalker {
     const hasAttrs = this.hasAttrs();
     const currentIteration = this.pat.newWalker();

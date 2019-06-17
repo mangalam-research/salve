@@ -14,15 +14,11 @@ import { Define } from "./define";
  * List pattern.
  */
 export class List extends OneSubpattern {
-  _computeHasEmptyPattern(): boolean {
-    return this.pat.hasEmptyPattern();
-  }
-
   // We override these because lists cannot contain attributes so there's
   // no point in caching _hasAttrs's result.
   _prepare(definitions: Map<string, Define>, namespaces: Set<string>): void {
     this.pat._prepare(definitions, namespaces);
-    this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
+    this._cachedHasEmptyPattern = this.pat.hasEmptyPattern();
   }
 
   hasAttrs(): boolean {
