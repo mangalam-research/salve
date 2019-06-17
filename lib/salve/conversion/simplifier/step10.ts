@@ -13,10 +13,6 @@ import { findDescendantsByLocalName, findMultiDescendantsByLocalName,
 // later. The upshot is that fragments of the schema that may be removed in
 // later steps are not checked here.
 
-interface State {
-  root: Element;
-}
-
 function checkNames(el: Element): void {
   if (el.local === "except") {
     // parent cannot be undefined at this point.
@@ -56,7 +52,7 @@ function checkNames(el: Element): void {
 }
 
 // tslint:disable-next-line:max-func-body-length
-function walk(check: boolean, state: State, el: Element): Element | null {
+function walk(check: boolean, el: Element): Element | null {
   const { local, children } = el;
 
   switch (local) {
@@ -76,7 +72,6 @@ function walk(check: boolean, state: State, el: Element): Element | null {
           if (xmlns !== undefined) {
             replaceWith.setXMLNS(xmlns);
           }
-          state.root = replaceWith;
         }
 
         return replaceWith;
@@ -179,9 +174,9 @@ function walk(check: boolean, state: State, el: Element): Element | null {
       continue;
     }
 
-    let replaced = walk(check, state, child);
+    let replaced = walk(check, child);
     while (replaced !== null) {
-      replaced = walk(check, state, replaced);
+      replaced = walk(check, replaced);
     }
   }
 
@@ -231,14 +226,11 @@ function walk(check: boolean, state: State, el: Element): Element | null {
  * @returns The new root of the tree.
  */
 export function step10(el: Element, check: boolean): Element {
-  const state: State = {
-    root: el,
-  };
-
-  let replaced = walk(check, state, el);
+  let replaced = walk(check, el);
   while (replaced !== null) {
-    replaced = walk(check, state, replaced);
+    el = replaced;
+    replaced = walk(check, el);
   }
 
-  return state.root;
+  return el;
 }
