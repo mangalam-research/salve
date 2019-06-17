@@ -98,20 +98,21 @@ class OneOrMoreWalker implements InternalWalker {
     }
 
     if (currentIteration.canEnd) {
-      if (this.nextIteration === undefined) {
-        this.nextIteration = this.subPat.newWalker();
+      let next = this.nextIteration;
+      if (next === undefined) {
+        next = this.nextIteration = this.subPat.newWalker();
       }
-      const nextRet = this.nextIteration.fireEvent(name, params, nameResolver);
+      const nextRet = next.fireEvent(name, params, nameResolver);
       if (nextRet.matched) {
         if (currentIteration.end()) {
           throw new Error(
             "internal error; canEnd returns true but end() fails");
         }
 
-        this.currentIteration = this.nextIteration;
+        this.currentIteration = next;
         this.nextIteration = undefined;
-        this.canEndAttribute = this.currentIteration.canEndAttribute;
-        this.canEnd = this.currentIteration.canEnd;
+        this.canEndAttribute = next.canEndAttribute;
+        this.canEnd = next.canEnd;
       }
 
       return nextRet;
