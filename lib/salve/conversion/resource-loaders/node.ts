@@ -33,13 +33,11 @@ export class NodeResourceLoader implements ResourceLoader {
 
   async load(url: URL): Promise<Resource> {
     if (url.protocol === "file:") {
-      // We convert it back to a path because we need to support Node prior to
-      // version 8. Only version 8 and above allows passing a file:// URL
-      // directly to fs functions.
-      const asString = url.toString().replace(/^file:\/\//, "");
-
+      if (url.hash !== "" || url.href.endsWith("#")) {
+        throw new Error("url cannot have a hash");
+      }
       return new Promise<Resource>((resolve, reject) => {
-        fs.readFile(asString, (err, data) => {
+        fs.readFile(url as unknown as string, (err, data) => {
           if (err != null) {
             reject(err);
 
