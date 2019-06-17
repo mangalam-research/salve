@@ -9,8 +9,7 @@
 export const version: string = "9.1.2";
 
 export { eventsToTreeString, EventSet, Grammar, GrammarWalker,
-         BasePattern, RefError, FireEventResult,
-         EndResult } from "./patterns";
+         BasePattern, FireEventResult, EndResult } from "./patterns";
 
 export { ConversionResult, convertRNGToPattern, makeResourceLoader,
          ManifestEntry, Resource, ResourceLoader } from "./conversion";

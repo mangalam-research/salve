@@ -10,7 +10,7 @@ import { Events } from "../events";
 import { NameResolver } from "../name_resolver";
 import { Define } from "./define";
 import { Element } from "./element";
-import { Ref, RefWalker } from "./ref";
+import { RefWalker } from "./ref";
 
 // XML validation against a schema could work without any lookahead if it were
 // not for namespaces. However, namespace support means that the interpretation
@@ -136,15 +136,9 @@ export class BasePattern {
    *
    * @param namespaces An object whose keys are the namespaces seen in
    * the schema. This method populates the object.
-   *
-   * @returns The references that cannot be resolved, or ``undefined`` if no
-   * references cannot be resolved. The caller is free to modify the value
-   * returned as needed.
-   *
    */
-  _prepare(definitions: Map<string, Define>,
-           namespaces: Set<string>): Ref[] | undefined {
-    return undefined;
+  // tslint:disable-next-line:no-empty
+  _prepare(definitions: Map<string, Define>, namespaces: Set<string>): void {
   }
 
   /**
@@ -208,13 +202,10 @@ export abstract class OneSubpattern<T extends (Pattern | Element) = Pattern>
 
   protected abstract _computeHasEmptyPattern(): boolean;
 
-  _prepare(definitions: Map<string, Define>,
-           namespaces: Set<string>): Ref[] | undefined {
-    const ret = this.pat._prepare(definitions, namespaces);
+  _prepare(definitions: Map<string, Define>, namespaces: Set<string>): void {
+    this.pat._prepare(definitions, namespaces);
     this._cachedHasAttrs = this.pat.hasAttrs();
     this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
-
-    return ret;
   }
 
   hasAttrs(): boolean {
@@ -242,18 +233,11 @@ export abstract class TwoSubpatterns extends Pattern {
 
   protected abstract _computeHasEmptyPattern(): boolean;
 
-  _prepare(definitions: Map<string, Define>,
-           namespaces: Set<string>): Ref[] | undefined {
-    const aRefs = this.patA._prepare(definitions, namespaces);
-    const bRefs = this.patB._prepare(definitions, namespaces);
+  _prepare(definitions: Map<string, Define>, namespaces: Set<string>): void {
+    this.patA._prepare(definitions, namespaces);
+    this.patB._prepare(definitions, namespaces);
     this._cachedHasAttrs = this.patA.hasAttrs() || this.patB.hasAttrs();
     this._cachedHasEmptyPattern = this._computeHasEmptyPattern();
-
-    if (aRefs !== undefined) {
-      return bRefs === undefined ? aRefs : aRefs.concat(bRefs);
-    }
-
-    return bRefs;
   }
 
   hasAttrs(): boolean {

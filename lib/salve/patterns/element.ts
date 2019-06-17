@@ -12,7 +12,6 @@ import { BasePattern, EndResult, EventSet, InternalFireEventResult,
          InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { NotAllowed } from "./not_allowed";
-import { Ref } from "./ref";
 
 export interface Initializable {
   initWithAttributes(attrs: string[],
@@ -61,11 +60,9 @@ export class Element extends BasePattern {
     return false;
   }
 
-  _prepare(definitions: Map<string, Define>,
-           namespaces: Set<string>): Ref[] | undefined {
+  _prepare(definitions: Map<string, Define>, namespaces: Set<string>): void {
     this.name._recordNamespaces(namespaces, true);
-
-    return this.pat._prepare(definitions, namespaces);
+    this.pat._prepare(definitions, namespaces);
   }
 }
 

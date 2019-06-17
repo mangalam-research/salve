@@ -22,10 +22,12 @@ export class Ref extends Pattern {
     super(xmlPath);
   }
 
-  _prepare(definitions: Map<string, Define>): Ref[] | undefined {
+  _prepare(definitions: Map<string, Define>): void {
     this.resolvesTo = definitions.get(this.name);
 
-    return (this.resolvesTo === undefined) ? [this] : undefined;
+    if (this.resolvesTo === undefined) {
+      throw new Error("${this.name} cannot be resolved");
+    }
   }
 
   hasEmptyPattern(): boolean {

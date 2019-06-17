@@ -12,7 +12,6 @@ import { map } from "../set";
 import { EndResult, EventSet, InternalFireEventResult, InternalWalker,
          Pattern } from "./base";
 import { Define } from "./define";
-import { Ref } from "./ref";
 
 /**
  * A pattern for attributes.
@@ -32,12 +31,9 @@ export class Attribute extends Pattern {
     super(xmlPath);
   }
 
-  _prepare(definitions: Map<string, Define>,
-           namespaces: Set<string>): Ref[] | undefined {
-    const ret = this.pat._prepare(definitions, namespaces);
+  _prepare(definitions: Map<string, Define>, namespaces: Set<string>): void {
+    this.pat._prepare(definitions, namespaces);
     this.name._recordNamespaces(namespaces, false);
-
-    return ret;
   }
 
   hasAttrs(): boolean {

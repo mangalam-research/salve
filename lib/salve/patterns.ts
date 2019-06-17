@@ -26,7 +26,7 @@ export { ConcreteName, Name, NameChoice, NsName,
 
 export { eventsToTreeString, EventSet, BasePattern, Pattern,
          FireEventResult, EndResult } from "./patterns/base";
-export { Grammar, GrammarWalker, RefError } from "./patterns/grammar";
+export { Grammar, GrammarWalker } from "./patterns/grammar";
 
 //  LocalWords:  EName NotAllowed oneOrMore RNG MPL Dubeau GrammarWalker rng
 //  LocalWords:  notAllowed Mangalam EventSet

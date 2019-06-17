@@ -9,45 +9,12 @@ import { AttributeNameError, ElementNameError,
 import { Name } from "../name_patterns";
 import { NameResolver } from "../name_resolver";
 import { filter, union } from "../set";
-import { fixPrototype } from "../tools";
 import { TrivialMap } from "../types";
 import { BasePattern, EndResult, EventSet, FireEventResult,
          InternalFireEventResult, InternalWalker, Pattern } from "./base";
 import { Define } from "./define";
 import { Element } from "./element";
-import { Ref, RefWalker } from "./ref";
-
-/**
- * This is an exception raised to indicate references to undefined entities in a
- * schema. If for instance element A has element B as its children but B is not
- * defined, then this exception would be raised.
- *
- * This exception is indicative of an internal error because by the time this
- * module loads a schema, the schema should have been simplified already and
- * simplification should have failed due to the unresolvable reference.
- *
- * This class used to be named ``ReferenceError`` in previous versions of salve
- * but this name clashes with the built-in ``ReferenceError`` that JavaScript
- * engines have built into their runtime. The clash did not make the code fail
- * but it had unfortunate side-effects.
- */
-export class RefError extends Error {
-  /**
-   * @param references The set of references that could not be resolved.
-   */
-  constructor(readonly references: Ref[]) {
-    super();
-    fixPrototype(this, RefError);
-  }
-
-  /**
-   * @returns string representation of the error.
-   */
-  toString(): string {
-    return (
-      `Cannot resolve the following references: ${this.references.join(", ")}`);
-  }
-}
+import { RefWalker } from "./ref";
 
 /**
  * Grammar object. Users of this library normally do not create objects of this
@@ -67,7 +34,7 @@ export class Grammar extends BasePattern {
    * @param definitions An array which contain all definitions specified in this
    * grammar.
    *
-   * @throws {RefError} When any definition in the original
+   * @throws {Error} When any definition in the original
    * schema refers to a schema entity which is not defined in the schema.
    */
   constructor(public xmlPath: string, public start: Pattern,
@@ -82,10 +49,7 @@ export class Grammar extends BasePattern {
     }
     this.definitions = new Map(mapInit);
 
-    const missing = this._prepare(this.definitions, this._namespaces);
-    if (missing !== undefined) {
-      throw new RefError(missing);
-    }
+    this._prepare(this.definitions, this._namespaces);
   }
 
   /**
@@ -148,22 +112,11 @@ export class Grammar extends BasePattern {
     return Array.from(this._namespaces);
   }
 
-  _prepare(definitions: Map<string, Define>,
-           namespaces: Set<string>): Ref[] | undefined {
-    let allRefs: Ref[] = [];
-    const startRefs = this.start._prepare(definitions, namespaces);
-    if (startRefs !== undefined) {
-      allRefs = startRefs;
-    }
-
+  _prepare(definitions: Map<string, Define>, namespaces: Set<string>): void {
+    this.start._prepare(definitions, namespaces);
     for (const d of this.definitions.values()) {
-      const defRefs = d._prepare(definitions, namespaces);
-      if (defRefs !== undefined) {
-        allRefs = allRefs.concat(defRefs);
-      }
+      d._prepare(definitions, namespaces);
     }
-
-    return (allRefs.length !== 0) ? allRefs : undefined;
   }
 
   /**
