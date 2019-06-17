@@ -370,13 +370,31 @@ export class Element {
   }
 
   clone(): Element {
-    // The strategy of pre-filling the new object and then updating the keys
-    // appears to be faster than inserting new keys one by one.
-    const attributes = Object.assign(Object.create(null), this.attributes);
-    for (const key of Object.keys(attributes)) {
-      // We do not use Object.create(null) here because there's no advantage
-      // to it.
-      attributes[key] = {...attributes[key]};
+    const newAttributes: Record<string, SaxesAttribute> = Object.create(null);
+    const { attributes } = this;
+    const keys = Object.keys(attributes);
+    if (keys.length !== 0) {
+      for (const key of keys) {
+        // We do not use Object.create(null) here because there's no advantage
+        // to it.
+        newAttributes[key] = {...attributes[key]};
+      }
+    }
+
+    // This switch provides a significant improvement.
+    let { children } = this;
+    switch (children.length) {
+      case 0:
+        break;
+      case 1:
+        children = [children[0].clone()];
+        break;
+      case 2:
+        children = [children[0].clone(), children[1].clone()];
+        break;
+      default:
+        // This actually does not happen in the current code.
+        children = children.map(child => child.clone());
     }
 
     return new Element(
@@ -384,8 +402,8 @@ export class Element {
       this.local,
       this.uri,
       this.ns,
-      attributes,
-      this.children.map(child => child.clone()));
+      newAttributes,
+      children);
   }
 }
 
