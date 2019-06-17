@@ -79,9 +79,9 @@ function removeDefsWithoutElement(state: State, el: Element): void {
       continue;
     }
 
-    child.empty(); // Effectively removes top from its parent.
-    const name = child.mustGetAttribute("name");
-    removedDefines.set(name, { topElement, used: false });
+    child.removeChildAt(0); // Remove topElement from child.
+    removedDefines.set(child.mustGetAttribute("name"),
+                       { topElement, used: false });
   }
 
   el.replaceContent(keep);

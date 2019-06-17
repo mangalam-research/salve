@@ -270,13 +270,6 @@ export class Element {
     this.children.splice(index, 0, ...toInsert);
   }
 
-  empty(): void {
-    const children = this.children.splice(0, this.children.length);
-    for (const child of children) {
-      child.parent = undefined;
-    }
-  }
-
   /**
    * Gets all the children from another element and append them to this
    * element. This is a faster operation than done through other means.

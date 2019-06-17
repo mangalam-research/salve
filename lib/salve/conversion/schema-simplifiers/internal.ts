@@ -451,10 +451,9 @@ ${(libname === "") ? "default library" : `library ${libname}`}`)]);
     if (datatype.needsContext) {
       // Change ns to the namespace we need.
       ns = fromQNameToURI(value, el);
-      el.setAttribute("ns", ns);
       value = localName(value);
-      el.empty();
-      el.appendChild(new Text(value));
+      el.setAttribute("ns", ns);
+      el.replaceContent([new Text(value)]);
 
       const nr = new DefaultNameResolver();
       nr.definePrefix("", ns);
