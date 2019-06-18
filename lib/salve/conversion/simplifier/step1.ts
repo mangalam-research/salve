@@ -37,8 +37,6 @@ class Step1 {
 
   async walk(parentBase: URL, seenURLs: string[],
              el: Element): Promise<Element> {
-    const baseAttr = el.getAttribute("xml:base");
-
     // The XML parser we use immediately drops all *elements* which are not in
     // the RELAXNG_URI namespace so we don't have to remove them here.
 
@@ -49,10 +47,14 @@ class Step1 {
     // namespace. "xml:base" in particular is no longer of any use. We do keep
     // namespace declarations, as they are used later for resolving QNames.
     const attrs = el.getRawAttributes();
+    let baseAttr: string | undefined;
     for (const name of Object.keys(attrs)) {
       const attr = attrs[name];
       const { uri, prefix } = attr;
       if (name !== "xmlns" && uri !== "" && prefix !== "xmlns") {
+        if (name === "xml:base") {
+          baseAttr = attr.value;
+        }
         delete attrs[name];
       }
       else if (name === "name" ||
