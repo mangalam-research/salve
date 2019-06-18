@@ -35,7 +35,7 @@ export class Element extends BasePattern {
   constructor(xmlPath: string, readonly name: ConcreteName,
               readonly pat: Pattern) {
     super(xmlPath);
-    this.notAllowed = this.pat instanceof NotAllowed;
+    this.notAllowed = pat instanceof NotAllowed;
   }
 
   newWalker(boundName: Name): InternalWalker & Initializable {
