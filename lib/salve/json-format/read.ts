@@ -58,16 +58,17 @@ class V2JSONWalker {
       throw new Error("trying to build array with walkObject");
     }
 
-    const args = array.slice(1);
-    if (args.length !== 0) {
-      this._transformArray(args);
-    }
-    if (this.addPath) {
-      args.unshift("");
+    // This can happen for Empty, Text, notAllowed when the JSON was generated
+    // without path information.
+    if (array.length === 1) {
+      return this._processObject(kind, ctor as PatternCtor, [""]);
     }
 
-    // We do not pass Array to this function.
-    return this._processObject(kind, ctor as PatternCtor, args as PathAndArgs);
+    const args = array.slice(1);
+    this._transformArray(args);
+    return this._processObject(kind, ctor as PatternCtor,
+                               this.addPath ? ["", ...args] :
+                               args as PathAndArgs);
   }
 
   /**
