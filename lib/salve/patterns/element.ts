@@ -132,14 +132,25 @@ class ElementWalker implements InternalWalker, Initializable {
     throw new Error("calling possibleAttributes on ElementWalker is invalid");
   }
 
-  initWithAttributes(attrs: string[],
+  /**
+   * Initialize this walker with initial attributes. This is provided to support
+   * ``startTagAndAttributes``.
+   *
+   * @param params The **entire** list of parameters passed with the
+   * ``startTagAndAttributes`` event.
+   *
+   * @param nameResolver The name resolver to use to resolve names.
+   *
+   * @returns The result of firing all the events for the attributes.
+   */
+  initWithAttributes(params: string[],
                      nameResolver: NameResolver): InternalFireEventResult {
     const { walker } = this;
     // We need to handle all attributes and leave the start tag.
-    for (let ix = 0; ix < attrs.length; ix += 3) {
+    for (let ix = 2; ix < params.length; ix += 3) {
       const attrRet = walker.fireEvent("attributeNameAndValue",
-                                       [attrs[ix], attrs[ix + 1],
-                                        attrs[ix + 2]], nameResolver);
+                                       [params[ix], params[ix + 1],
+                                        params[ix + 2]], nameResolver);
       if (!attrRet.matched) {
         return attrRet;
       }
