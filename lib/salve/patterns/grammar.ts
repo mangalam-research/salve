@@ -376,7 +376,8 @@ ${name}`);
   // nor do we track references.
   private _fireSuspendedWsOnCurrentWalkers(): boolean {
     const { elementWalkerStack } = this;
-    const walkers = elementWalkerStack[elementWalkerStack.length - 1];
+    const last = elementWalkerStack.length - 1;
+    const walkers = elementWalkerStack[last];
 
     // Checking whether walkers.length === 0 would not be a particularly useful
     // optimization, as we don't let that happen.
@@ -401,7 +402,7 @@ ${name}`);
     // were not, then we just keep the successful ones. But removing all walkers
     // at once prevents us from giving useful error messages.
     if (remainingWalkers.length !== 0) {
-      elementWalkerStack[elementWalkerStack.length - 1] = remainingWalkers;
+      elementWalkerStack[last] = remainingWalkers;
       return true;
     }
 
@@ -411,7 +412,8 @@ ${name}`);
   private _fireOnCurrentWalkers(name: string,
                                 params: string[]): InternalFireEventResult {
     const { elementWalkerStack } = this;
-    const walkers = elementWalkerStack[elementWalkerStack.length - 1];
+    const last = elementWalkerStack.length - 1;
+    const walkers = elementWalkerStack[last];
 
     // Checking whether walkers.length === 0 would not be a particularly useful
     // optimization, as we don't let that happen.
@@ -445,7 +447,7 @@ ${name}`);
     // were not, then we just keep the successful ones. But removing all walkers
     // at once prevents us from giving useful error messages.
     if (remainingWalkers.length !== 0) {
-      elementWalkerStack[elementWalkerStack.length - 1] = remainingWalkers;
+      elementWalkerStack[last] = remainingWalkers;
 
       // If some of the walkers matched, we ignore the errors from the other
       // walkers.
