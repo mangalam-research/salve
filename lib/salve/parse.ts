@@ -187,6 +187,19 @@ export async function parse(rngSource: string | Grammar,
     console.log(doctype);
   };
 
+  parser.onend = () => {
+    const result = walker.end();
+    if (result !== false) {
+      error = true;
+      if (!mute) {
+        for (const err of result) {
+          console.log(`on end`);
+          console.log(err.toString());
+        }
+      }
+    }
+  };
+
   parser.write(xmlSource).close();
 
   return error;

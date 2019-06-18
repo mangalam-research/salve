@@ -427,6 +427,7 @@ export interface ValidatorI {
   onopentag(node: SaxesTag): void;
   onclosetag(node: SaxesTag): void;
   ontext(text: string): void;
+  onend(): void;
 }
 
 class SaxesNameResolver implements NameResolver {
@@ -515,6 +516,13 @@ export class Validator implements ValidatorI {
   ontext(text: string): void {
     this.fireEvent("text", [text]);
   }
+
+  onend(): void {
+    const result = this.walker.end();
+    if (result !== false) {
+      this.errors.push(...result);
+    }
+  }
 }
 
 // A validator that does not validate.
@@ -527,6 +535,9 @@ class NullValidator implements ValidatorI {
 
   // tslint:disable-next-line:no-empty
   ontext(): void {}
+
+  // tslint:disable-next-line:no-empty
+  onend(): void {}
 }
 
 /**
@@ -549,6 +560,7 @@ export class BasicParser {
     saxesParser.onopentag = this.onopentag.bind(this);
     saxesParser.onclosetag = this.onclosetag.bind(this);
     saxesParser.ontext = this.ontext.bind(this);
+    saxesParser.onend = this.onend.bind(this);
     this.stack = [{
       // We cheat. The node field of the top level stack item won't ever be
       // accessed.
@@ -607,6 +619,10 @@ export class BasicParser {
     }
 
     this.stack[this.stack.length - 1].children.push(new Text(text));
+  }
+
+  onend(): void {
+    this.validator.onend();
   }
 }
 

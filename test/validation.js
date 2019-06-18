@@ -78,6 +78,13 @@ function makeParser(er, walker) {
     er.recordEvent(walker, "leaveContext");
   };
 
+  //
+  // parser.onend
+  //
+  // We deliberately do not listen to the end event or call walker.end(). Our
+  // tests are just not designed for this.
+  //
+
   return parser;
 }
 
