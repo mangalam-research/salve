@@ -700,15 +700,17 @@ export class InternalSimplifier<RL extends ResourceLoader>
   }
 
   stepTiming(): void {
+    if (!this.options.timing) {
+      return;
+    }
+
     if (this.lastStepStart !== undefined) {
       // tslint:disable-next-line:no-console
       console.log(`${Date.now() - this.lastStepStart}ms`);
       this.lastStepStart = undefined;
     }
 
-    if (this.options.timing) {
-      this.lastStepStart = Date.now();
-    }
+    this.lastStepStart = Date.now();
   }
 
   async simplify(schemaPath: URL): Promise<SimplificationResult> {
