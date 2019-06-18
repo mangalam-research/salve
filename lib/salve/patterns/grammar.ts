@@ -217,18 +217,17 @@ export class GrammarWalker<NR extends NameResolver> {
    *
    * @throws {Error} When trying to process an event type unknown to salve.
    */
-  // tslint:disable-next-line: max-func-body-length
   fireEvent(name: string, params: string[]): FireEventResult {
-    // Whitespaces are problematic from a validation perspective. On the one
-    // hand, if an element may contain only other elements and no text, then XML
-    // allows putting whitespace between the elements. That whitespace must not
-    // cause a validation error. When mixed content is possible, everywhere
-    // where text is allowed, a text of length 0 is possible. (``<text/>`` does
-    // not allow specifying a pattern or minimum length. And Relax NG
-    // constraints do not allow having an element whose content is a mixture of
-    // ``element`` and ``data`` and ``value`` that would constrain specific text
-    // patterns between the elements.) We can satisfy all situations by dropping
-    // text events that contain only whitespace.
+    // Whitespaces are problematic. On the one hand, if an element may contain
+    // only other elements and no text, then XML allows putting whitespace
+    // between the elements. This whitespace must not cause a validation
+    // error. When mixed content is possible, everywhere where text is allowed,
+    // a text of length 0 is possible. (``<text/>`` does not allow specifying a
+    // pattern or minimum length. And Relax NG constraints do not allow having
+    // an element whose content is a mixture of ``element`` and ``data`` and
+    // ``value`` that would constrain specific text patterns between the
+    // elements.) We can satisfy all situations by dropping text events that
+    // contain only whitespace.
     //
     // The only case where we'd want to pass a node consisting entirely of
     // whitespace is to satisfy a data or value pattern because they can require
@@ -240,8 +239,8 @@ export class GrammarWalker<NR extends NameResolver> {
         // block, but we moved it here to improve performance. There's no issue
         // with having a case for text here because salve disallows firing more
         // than one text event in sequence.
-        // Process whitespace nodes
         const text = params[0];
+        // Process whitespace nodes
         if (!/\S/.test(text)) {
           if (text === "") {
             throw new Error("firing empty text events makes no sense");
@@ -280,112 +279,6 @@ export class GrammarWalker<NR extends NameResolver> {
 
     const ret = this._fireOnCurrentWalkers(name, params);
 
-    let errors: readonly ValidationError[] = [];
-    if (ret.matched) {
-      const { refs } = ret;
-      if (refs !== undefined && refs.length !== 0) {
-        const newWalkers: InternalWalker[] = [];
-        const boundName = new Name("", params[0], params[1]);
-        if (name === "startTagAndAttributes") {
-          for (const item of refs) {
-            const walker = item.element.newWalker(boundName);
-            // If we get anything else than false here, the internal logic is
-            // wrong.
-            if (!walker.initWithAttributes(params, this.nameResolver).matched) {
-              throw new Error("error or failed to match on a new element \
-walker: the internal logic is incorrect");
-            }
-            newWalkers.push(walker);
-          }
-        }
-        else {
-          for (const item of refs) {
-            newWalkers.push(item.element.newWalker(boundName));
-          }
-        }
-
-        this.elementWalkerStack.push(newWalkers);
-        return false;
-      }
-    }
-    else if (ret.errors !== undefined) {
-      errors = ret.errors;
-    }
-    else {
-      switch (name) {
-        case "enterStartTag":
-        case "startTagAndAttributes":
-          // Once in dumb mode, we remain in dumb mode.
-          if (this.misplacedDepth > 0) {
-            this.misplacedDepth++;
-            this.elementWalkerStack.push([new MisplacedElementWalker()]);
-          }
-          else {
-            const elName = new Name("", params[0], params[1]);
-            errors = [new ElementNameError(
-              name === "enterStartTag" ?
-                "tag not allowed here" :
-                "tag not allowed here with these attributes", elName)];
-
-            // Try to infer what element is meant by this errant tag. If we
-            // can't find a candidate, then fall back to a dumb mode.
-            const candidates = this.el.elementDefinitions[elName.toString()];
-            if (candidates !== undefined && candidates.length === 1) {
-              const newWalker = candidates[0].newWalker(elName);
-              this.elementWalkerStack.push([newWalker]);
-              if (name === "startTagAndAttributes") {
-                if (!newWalker.initWithAttributes(params,
-                                                  this.nameResolver).matched) {
-                  throw new Error("internal error: the inferred element " +
-                                  "does not accept its initial event");
-                }
-              }
-            }
-            else {
-              // Dumb mode...
-              this.misplacedDepth++;
-              this.elementWalkerStack.push([new MisplacedElementWalker()]);
-            }
-          }
-          break;
-        case "endTag":
-          errors = [new ElementNameError("unexpected end tag",
-                                         new Name("", params[0], params[1]))];
-          break;
-        case "attributeName":
-          errors = [new AttributeNameError("attribute not allowed here",
-                                           new Name("", params[0], params[1]))];
-          this._swallowAttributeValue = true;
-          break;
-        case "attributeNameAndValue":
-          errors = [new AttributeNameError("attribute not allowed here",
-                                           new Name("", params[0], params[1]))];
-          break;
-        case "attributeValue":
-          errors = [new ValidationError("unexpected attributeValue event; it \
-is likely that fireEvent is incorrectly called")];
-          break;
-        case "text":
-          errors = [new ValidationError("text not allowed here")];
-          break;
-        case "leaveStartTag":
-          // If MisplacedElementWalker did not exist then we would get here if a
-          // file being validated contains a tag which is not allowed. An
-          // ElementNameError will already have been issued. So rather than
-          // violate our contract (which says no undefined value may be
-          // returned) or require that callers do something special with
-          // 'undefined' as a return value, just treat this event as a
-          // non-error.
-          //
-          // But the stack exists, so we cannot get here. If we do end up here,
-          // then there is an internal error somewhere.
-          /* falls through */
-        default:
-          throw new Error(`unexpected event type in GrammarWalker's fireEvent: \
-${name}`);
-      }
-    }
-
     if (name === "endTag") {
       // We do not need to end the walkers because the fireEvent handler
       // for elements calls end when it sees an "endTag" event.
@@ -397,13 +290,85 @@ ${name}`);
       if (this.misplacedDepth > 0) {
         this.misplacedDepth--;
       }
-
-      if (!wsMatch && errors.length === 0) {
-        errors = [new ValidationError("text not allowed here")];
-      }
     }
 
-    return errors.length !== 0 ? errors : false;
+    if (ret.matched) {
+      const { refs } = ret;
+      if (refs !== undefined && refs.length !== 0) {
+        this._processRefs(name, refs, params);
+        return false;
+      }
+
+      // There may still have been a problem a problem with the whitespace.
+      return wsMatch ? false : [new ValidationError("text not allowed here")];
+    }
+
+    return ret.errors !== undefined ? ret.errors :
+      this.diagnose(name, params, wsMatch);
+  }
+
+  private diagnose(name: string, params: string[],
+                   wsMatch: boolean): FireEventResult {
+    switch (name) {
+      case "enterStartTag":
+      case "startTagAndAttributes":
+        // Once in dumb mode, we remain in dumb mode.
+        if (this.misplacedDepth > 0) {
+          this.misplacedDepth++;
+          this.elementWalkerStack.push([new MisplacedElementWalker()]);
+          return wsMatch ? false :
+            [new ValidationError("text not allowed here")];
+        }
+
+        const elName = new Name("", params[0], params[1]);
+        // Try to infer what element is meant by this errant tag. If we can't
+        // find a candidate, then fall back to a dumb mode.
+        const candidates = this.el.elementDefinitions[elName.toString()];
+        if (candidates !== undefined && candidates.length === 1) {
+          const newWalker = candidates[0].newWalker(elName);
+          this.elementWalkerStack.push([newWalker]);
+          if (name === "startTagAndAttributes") {
+            if (!newWalker.initWithAttributes(params,
+                                              this.nameResolver).matched) {
+              throw new Error("internal error: the inferred element " +
+                              "does not accept its initial event");
+            }
+          }
+        }
+        else {
+          // Dumb mode...
+          this.misplacedDepth++;
+          this.elementWalkerStack.push([new MisplacedElementWalker()]);
+        }
+        return [new ElementNameError(
+          name === "enterStartTag" ?
+            "tag not allowed here" :
+            "tag not allowed here with these attributes", elName)];
+      case "endTag":
+        return [new ElementNameError("unexpected end tag",
+                                     new Name("", params[0], params[1]))];
+      case "attributeName":
+        this._swallowAttributeValue = true;
+        return [new AttributeNameError("attribute not allowed here",
+                                       new Name("", params[0], params[1]))];
+      case "attributeNameAndValue":
+        return [new AttributeNameError("attribute not allowed here",
+                                       new Name("", params[0], params[1]))];
+      case "attributeValue":
+        return [new ValidationError("unexpected attributeValue event; it \
+is likely that fireEvent is incorrectly called")];
+      case "text":
+        return [new ValidationError("text not allowed here")];
+      case "leaveStartTag":
+        // If MisplacedElementWalker did not exist then we would get here if a
+        // file being validated contains a tag which is not allowed. But it
+        // exists, so we cannot get here. If we do end up here, then there is
+        // an internal error somewhere.
+        /* falls through */
+      default:
+        throw new Error(`unexpected event type in GrammarWalker's fireEvent: \
+${name}`);
+    }
   }
 
   // A text event either matches or does not match. It does not generate by
@@ -491,6 +456,31 @@ ${name}`);
     return new InternalFireEventResult(false,
                                        errors.length !== 0 ? errors :
                                        undefined);
+  }
+
+  private _processRefs(name: string, refs: readonly RefWalker[],
+                       params: string[]): void {
+    const newWalkers: InternalWalker[] = [];
+    const boundName = new Name("", params[0], params[1]);
+    if (name === "startTagAndAttributes") {
+      for (const item of refs) {
+        const walker = item.element.newWalker(boundName);
+        // If we get anything else than false here, the internal logic is
+        // wrong.
+        if (!walker.initWithAttributes(params, this.nameResolver).matched) {
+          throw new Error("error or failed to match on a new element \
+walker: the internal logic is incorrect");
+        }
+        newWalkers.push(walker);
+      }
+    }
+    else {
+      for (const item of refs) {
+        newWalkers.push(item.element.newWalker(boundName));
+      }
+    }
+
+    this.elementWalkerStack.push(newWalkers);
   }
 
   canEnd(): boolean {
