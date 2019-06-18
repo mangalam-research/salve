@@ -41,6 +41,7 @@ export class Element extends BasePattern {
   newWalker(boundName: Name): InternalWalker & Initializable {
     // tslint:disable-next-line:no-use-before-declare
     return new ElementWalker(this,
+                             this.pat.hasAttrs(),
                              this.pat.newWalker(),
                              false,
                              new EndTagEvent(boundName),
@@ -75,6 +76,7 @@ class ElementWalker implements InternalWalker, Initializable {
     new LeaveStartTagEvent();
 
   constructor(protected readonly el: Element,
+              private readonly hasAttrs: boolean,
               private readonly walker: InternalWalker,
               private endedStartTag: boolean,
               private readonly endTagEvent: EndTagEvent,
@@ -84,6 +86,7 @@ class ElementWalker implements InternalWalker, Initializable {
 
   clone(): this {
     return new ElementWalker(this.el,
+                             this.hasAttrs,
                              this.walker.clone(),
                              this.endedStartTag,
                              this.endTagEvent,
@@ -145,7 +148,7 @@ class ElementWalker implements InternalWalker, Initializable {
     // Make leaveStartTag effective.
     this.endedStartTag = true;
 
-    return this.el.pat.hasAttrs() ?
+    return this.hasAttrs ?
       InternalFireEventResult.fromEndResult(walker.endAttributes()) :
       new InternalFireEventResult(true);
   }
@@ -177,7 +180,7 @@ class ElementWalker implements InternalWalker, Initializable {
     if (name === "leaveStartTag") {
       this.endedStartTag = true;
 
-      return this.el.pat.hasAttrs() ?
+      return this.hasAttrs ?
         InternalFireEventResult.fromEndResult(walker.endAttributes()) :
         new InternalFireEventResult(true);
     }
