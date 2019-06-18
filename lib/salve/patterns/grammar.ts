@@ -233,7 +233,6 @@ export class GrammarWalker<NR extends NameResolver> {
     // The only case where we'd want to pass a node consisting entirely of
     // whitespace is to satisfy a data or value pattern because they can require
     // a sequence of whitespaces.
-    let wsErr: readonly ValidationError[] | undefined;
     let wsMatch = true;
     switch (name) {
       case "text": {
@@ -259,8 +258,7 @@ export class GrammarWalker<NR extends NameResolver> {
       }
       case "endTag":
         if (!this.ignoreNextWs && this.suspendedWs !== undefined) {
-          ({ matched: wsMatch, errors: wsErr } =
-           this._fireOnCurrentWalkers("text", [this.suspendedWs]));
+          wsMatch = this._fireSuspendedWsOnCurrentWalkers();
         }
         this.ignoreNextWs = true;
         break;
@@ -400,19 +398,49 @@ ${name}`);
         this.misplacedDepth--;
       }
 
-      if (!wsMatch) {
-        if (wsErr !== undefined) {
-          errors = errors.concat(wsErr);
-        }
-        // If we have another error, we don't want to make an issue that text
-        // was not matched. Otherwise, we want to alert the user.
-        else if (errors.length === 0) {
-          errors = [new ValidationError("text not allowed here")];
-        }
+      if (!wsMatch && errors.length === 0) {
+        errors = [new ValidationError("text not allowed here")];
       }
     }
 
     return errors.length !== 0 ? errors : false;
+  }
+
+  // A text event either matches or does not match. It does not generate by
+  // itself an error. So we do not track errors in this specialized function,
+  // nor do we track references.
+  private _fireSuspendedWsOnCurrentWalkers(): boolean {
+    const { elementWalkerStack } = this;
+    const walkers = elementWalkerStack[elementWalkerStack.length - 1];
+
+    // Checking whether walkers.length === 0 would not be a particularly useful
+    // optimization, as we don't let that happen.
+
+    // This optimization for the single walker case is significant.
+    if (walkers.length === 1) {
+      return walkers[0].fireEvent("text", [this.suspendedWs!],
+                                  this.nameResolver).matched;
+    }
+
+    const params = [this.suspendedWs!];
+    const remainingWalkers: IWalker[] = [];
+    for (const walker of walkers) {
+      const result = walker.fireEvent("text", params, this.nameResolver);
+      // We immediately filter out results that report a match (i.e. false).
+      if (result.matched) {
+        remainingWalkers.push(walker);
+      }
+    }
+
+    // We don't remove all walkers. If some walkers were successful and some
+    // were not, then we just keep the successful ones. But removing all walkers
+    // at once prevents us from giving useful error messages.
+    if (remainingWalkers.length !== 0) {
+      elementWalkerStack[elementWalkerStack.length - 1] = remainingWalkers;
+      return true;
+    }
+
+    return false;
   }
 
   private _fireOnCurrentWalkers(name: string,
