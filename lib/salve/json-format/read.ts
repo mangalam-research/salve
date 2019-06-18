@@ -92,15 +92,14 @@ class V2JSONWalker {
   _transformArray(arr: unknown[]): void {
     const limit = arr.length;
     for (let elIx = 0; elIx < limit; elIx++) {
-      const el = arr[elIx];
-
+      let el = arr[elIx];
       if (el instanceof Array) {
         if (el[0] !== 0) {
           arr[elIx] = this.walkObject(el as KindAndArgs);
         }
         else {
-          el.shift(); // Drop the leading 0.
-          this._transformArray(el);
+          arr[elIx] = el = el.slice(1);
+          this._transformArray(el as any[]);
         }
       }
     }
@@ -207,12 +206,7 @@ class V2Constructor extends V2JSONWalker {
  * Constructs a tree of patterns from the data structure produced by running
  * ``salve-convert`` on an RNG file.
  *
- * @param code The JSON representation (a string) or the deserialized JSON. **If
- * you pass an object, it will be mutated while producing the result.** So you
- * cannot pass the same object twice to this function. Note that if you are
- * calling this function on the same input repeatedly, you are probably "doing
- * it wrong". You should be caching the results rather than building multiple
- * identical trees.
+ * @param code The JSON representation (a string) or the deserialized JSON.
  *
  * @throws {Error} When the version of the data is not supported.
  *

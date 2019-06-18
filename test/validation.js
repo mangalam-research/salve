@@ -260,6 +260,15 @@ describe("readTreeFromJSON", () => {
     // unique.
     assert.deepEqual(dropId(fromString, []), dropId(fromObject, []));
   });
+
+  it("accepts the same object twice", () => {
+    const source = fileAsString("test/simple/simplified-rng.js");
+    const obj = JSON.parse(source);
+    // We have to remove the ids because they are generated to make each object
+    // unique.
+    assert.deepEqual(dropId(salve.readTreeFromJSON(obj), []),
+                     dropId(salve.readTreeFromJSON(obj), []));
+  });
 });
 
 describe("GrammarWalker.fireEvent reports no errors on", () => {

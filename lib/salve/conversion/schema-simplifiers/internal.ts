@@ -613,7 +613,7 @@ let cachedGrammar: Grammar | undefined;
 
 function getGrammar(): Grammar {
   if (cachedGrammar === undefined) {
-    cachedGrammar = readTreeFromJSON(JSON.stringify(relaxng));
+    cachedGrammar = readTreeFromJSON(relaxng);
   }
 
   return cachedGrammar;
@@ -649,8 +649,7 @@ export class InternalSimplifier<RL extends ResourceLoader>
       validator = new Validator(getGrammar(), saxesParser);
     }
 
-    const parser = new BasicParser(saxesParser,
-                                   validator);
+    const parser = new BasicParser(saxesParser, validator);
     parser.saxesParser.write(schemaText);
     parser.saxesParser.close();
 
