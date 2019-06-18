@@ -423,13 +423,6 @@ const EMPTY_PARAMS: ParsedParams = Object.create(null);
  *
  */
 abstract class Base<T> implements Datatype<T> {
-  protected static throwMissingLocation(errors: ParamError[]): never {
-    // The only time location is undefined is if ``parseParams`` was called
-    // without arguments. That's an internal error because we should always be
-    // able to call ``parseParams`` to "parse" the default parameter values.
-    throw new Error("internal error: undefined location");
-  }
-
   abstract readonly name: string;
   abstract readonly needsContext: boolean;
   abstract readonly regexp: RegExp;
