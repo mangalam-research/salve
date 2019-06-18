@@ -456,19 +456,15 @@ abstract class Base<T> implements Datatype<T> {
    * string to an internal representation. It is never interchangeable with
    * [[parseValue]].
    *
-   * @param location The location of the value. It must be a string meaningful
-   * to the user. (In some scenarios, it is not possible to produce such a
-   * string. The code calling then can use a placeholder and strip that
-   * placeholder from reports to the user.)
-   *
    * @param value The value from the XML document.
    *
    * @param context The context of the value in the XML document.
    *
-   * @returns An internal representation.
+   * @returns An internal representation. Or an array of ValueError if the value
+   * cannot be converted.
    */
-  protected abstract convertValue(location: string, value: string,
-                                  context?: Context): T;
+  protected abstract convertValue(value: string,
+                                  context?: Context): T | ValueError[];
 
   /**
    * Computes the value's length. This may differ from the value's length, as it
@@ -489,7 +485,12 @@ abstract class Base<T> implements Datatype<T> {
       throw new ValueValidationError(location, errors);
     }
 
-    return { value: this.convertValue(location, value, context) };
+    const result = this.convertValue(value, context);
+    if (result instanceof Array) {
+      throw new ValueValidationError(location, result);
+    }
+
+    return { value: result };
   }
 
   // tslint:disable-next-line: max-func-body-length
@@ -610,24 +611,9 @@ abstract class Base<T> implements Datatype<T> {
 
   equal(value: string, schemaValue: ParsedValue<T>,
         context?: Context): boolean {
-    let converted: T;
-
-    try {
-      // We pass an empty string as location because we do not generally keep
-      // track of locations in the XML file being validated. The
-      // ValueValidationError is caught and turned into a boolean below so the
-      // specific location is not important here.
-      converted = this.convertValue("", value, context);
-    }
-    catch (ex) {
-      // An invalid value cannot be equal.
-      if (ex instanceof ValueValidationError) {
-        return false;
-      }
-      throw ex;
-    }
-
-    return converted === schemaValue.value;
+    const converted = this.convertValue(value, context);
+    return converted instanceof Array ? false :
+      converted === schemaValue.value;
   }
 
   disallows(value: string, params: ParsedParams,
@@ -641,7 +627,11 @@ abstract class Base<T> implements Datatype<T> {
       return false;
     }
 
-    const converted = this.convertValue("", value, context);
+    const converted = this.convertValue(value, context);
+    if (converted instanceof Array) {
+      return converted;
+    }
+
     const errors: ValueError[] = [];
     for (const name of paramNames) {
       const param = PARAM_NAME_TO_OBJ[name];
@@ -660,8 +650,7 @@ abstract class Base<T> implements Datatype<T> {
 //
 
 abstract class CommonStringBased extends Base<string> {
-  protected convertValue(location: string, value: string,
-                         context?: Context): string {
+  protected convertValue(value: string): string {
     return value.trim().replace(/\s+/g, " ");
   }
 }
@@ -677,8 +666,7 @@ class string_ extends CommonStringBased {
   // etc.).
   readonly regexp: RegExp = /^[^]*$/;
 
-  protected convertValue(location: string, value: string,
-                         context?: Context): string {
+  protected convertValue(value: string): string {
     return value;
   }
 
@@ -686,14 +674,13 @@ class string_ extends CommonStringBased {
   // that don't affect the results. string and some of its immediate derivates
   // are not affected by their regexp, nor do they have default parameters that
   // affect what values are allowed.
-  disallows(value: string, params: ParsedParams,
-            context?: Context): ValueError[] | false {
+  disallows(value: string, params: ParsedParams): ValueError[] | false {
     if (Object.keys(params).length === 0) {
       // The default params don't disallow anything.
       return false;
     }
 
-    const converted = this.convertValue("", value, context);
+    const converted = this.convertValue(value);
     const errors: ValueError[] = [];
     // We use Object.keys because we don't know the precise type of params.
     for (const name of Object.keys(params)) {
@@ -713,8 +700,7 @@ class normalizedString extends string_ {
   readonly typeErrorMsg: string =
     "string contains a tab, carriage return or newline";
 
-  protected convertValue(location: string, value: string,
-                         context?: Context): string {
+  protected convertValue(value: string): string {
     return value.replace(/\s+/g, " ");
   }
 }
@@ -723,20 +709,18 @@ class token extends normalizedString {
   readonly name: string = "token";
   readonly typeErrorMsg: string = "not a valid token";
 
-  protected convertValue(location: string, value: string,
-                         context?: Context): string {
+  protected convertValue(value: string): string {
     return value.trim().replace(/\s+/g, " ");
   }
 }
 
 class tokenInternal extends token {
-  disallows(value: string, params: ParsedParams,
-            context?: Context): ValueError[] | false {
+  disallows(value: string, params: ParsedParams): ValueError[] | false {
     if (!this.regexp.test(value)) {
       return [new ValueError(this.typeErrorMsg)];
     }
 
-    return super.disallows(value, params, context);
+    return super.disallows(value, params);
   }
 }
 
@@ -816,7 +800,7 @@ class decimal extends Base<number> {
     maxExclusiveP, maxInclusiveP,
   ];
 
-  convertValue(location: string, value: string): number {
+  convertValue(value: string): number {
     // We don't need to do white-space processing on the value.
     return Number(value);
   }
@@ -1031,7 +1015,7 @@ class boolean_ extends Base<boolean> {
   readonly regexp: RegExp = /^\s*(1|0|true|false)\s*$/;
   readonly validParams: Parameter[] = [patternP];
   readonly needsContext: boolean = false;
-  convertValue(_location: string, value: string): boolean {
+  convertValue(value: string): boolean {
     return (value === "1" || value === "true");
   }
 }
@@ -1055,7 +1039,7 @@ class base64Binary extends Base<string> {
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] =
     [lengthP, minLengthP, maxLengthP, patternP];
-  convertValue(_location: string, value: string): string {
+  convertValue(value: string): string {
     // We don't need to actually decode it.
     return value.replace(/\s/g, "");
   }
@@ -1072,7 +1056,7 @@ class hexBinary extends Base<string> {
   readonly needsContext: boolean = false;
   readonly validParams: Parameter[] =
     [lengthP, minLengthP, maxLengthP, patternP];
-  convertValue(_location: string, value: string): string {
+  convertValue(value: string): string {
     return value;
   }
 
@@ -1095,29 +1079,12 @@ class float_ extends Base<number> {
     patternP, minInclusiveP, minExclusiveP, maxInclusiveP, maxExclusiveP,
   ];
 
-  convertValue(_location: string, value: string, context?: Context): number {
+  convertValue(value: string): number {
     return convertToInternalNumber(value);
   }
 
-  equal(value: string, schemaValue: ParsedValue<number>,
-        context?: Context): boolean {
-    let converted: number;
-
-    try {
-      // We pass an empty string as location because we do not generally keep
-      // track of locations in the XML file being validated. The
-      // ValueValidationError is caught and turned into a boolean below so the
-      // specific location is not important here.
-      converted = this.convertValue("", value, context);
-    }
-    catch (ex) {
-      // An invalid value cannot be equal.
-      if (ex instanceof ValueValidationError) {
-        return false;
-      }
-      throw ex;
-    }
-
+  equal(value: string, schemaValue: ParsedValue<number>): boolean {
+    const converted = this.convertValue(value);
     // In the IEEE 754-1985 standard, which is what XMLSChema 1.0 follows, NaN
     // is equal to NaN. In JavaScript NaN is equal to nothing, not even itself.
     // So we need to handle this difference.
@@ -1149,20 +1116,9 @@ class QName extends Base<string> {
       return [new ValueError(this.typeErrorMsg)];
     }
 
-    let converted: string;
-    try {
-      // We pass an empty string as location because we do not generally keep
-      // track of locations in the XML file being validated. The
-      // ValueValidationError is caught below and its errors are extracted and
-      // returned.
-      converted = this.convertValue("", value, context);
-    }
-    catch (ex) {
-      // An invalid value is not allowed.
-      if (ex instanceof ValueValidationError) {
-        return ex.errors;
-      }
-      throw ex;
+    const converted = this.convertValue(value, context);
+    if (converted instanceof Array) {
+      return converted;
     }
 
     const paramNames = Object.keys(params);
@@ -1182,11 +1138,10 @@ class QName extends Base<string> {
     return (errors.length !== 0) ? errors : false;
   }
 
-  convertValue(location: string, value: string, context: Context): string {
+  convertValue(value: string, context: Context): string | ValueError[] {
     const ret = context.resolver.resolveName(value.trim());
     if (ret === undefined) {
-      throw new ValueValidationError(location,
-        [new ValueError(`cannot resolve the name ${value}`)]);
+      return [new ValueError(`cannot resolve the name ${value}`)];
     }
 
     return `{${ret.ns}}${ret.name}`;
@@ -1208,20 +1163,9 @@ class NOTATION extends Base<string> {
       return [new ValueError(this.typeErrorMsg)];
     }
 
-    let converted: string;
-    try {
-      // We pass an empty string as location because we do not generally keep
-      // track of locations in the XML file being validated. The
-      // ValueValidationError is caught below and its errors are extracted and
-      // returned.
-      converted = this.convertValue("", value, context);
-    }
-    catch (ex) {
-      // An invalid value is not allowed.
-      if (ex instanceof ValueValidationError) {
-        return ex.errors;
-      }
-      throw ex;
+    const converted = this.convertValue(value, context);
+    if (converted instanceof Array) {
+      return converted;
     }
 
     const paramNames = Object.keys(params);
@@ -1241,11 +1185,10 @@ class NOTATION extends Base<string> {
     return (errors.length !== 0) ? errors : false;
   }
 
-  convertValue(location: string, value: string, context: Context): string {
+  convertValue(value: string, context: Context): string | ValueError[] {
     const ret = context.resolver.resolveName(value.trim());
     if (ret === undefined) {
-      throw new ValueValidationError(location,
-        [new ValueError(`cannot resolve the name ${value}`)]);
+      return [new ValueError(`cannot resolve the name ${value}`)];
     }
 
     return `{${ret.ns}}${ret.name}`;
