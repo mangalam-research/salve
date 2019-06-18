@@ -149,7 +149,7 @@ class AttributeWalker implements InternalWalker {
 
       value = params[0];
     }
-    else if ((name === "attributeName" || name === "attributeNameAndValue") &&
+    else if ((name === "attributeNameAndValue" || name === "attributeName") &&
              this.name.match(params[0], params[1])) {
       this.seenName = true;
 
@@ -248,7 +248,7 @@ class AttributeTextWalker implements InternalWalker {
         return new InternalFireEventResult(false);
       }
     }
-    else if ((name === "attributeName" || name === "attributeNameAndValue") &&
+    else if ((name === "attributeNameAndValue" || name === "attributeName") &&
              this.name.match(params[0], params[1])) {
       this.seenName = true;
 
@@ -346,7 +346,7 @@ class AttributeDataWalker implements InternalWalker {
 
       value = params[0];
     }
-    else if ((name === "attributeName" || name === "attributeNameAndValue") &&
+    else if ((name === "attributeNameAndValue" || name === "attributeName") &&
              this.name.match(params[0], params[1])) {
       this.seenName = true;
 
