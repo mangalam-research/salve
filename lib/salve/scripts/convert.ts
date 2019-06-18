@@ -6,7 +6,6 @@
  */
 import * as crypto from "@trust/webcrypto";
 import { ArgumentParser } from "argparse";
-import { spawn } from "child_process";
 import * as fs from "fs";
 import * as nodeFetch from "node-fetch";
 import * as path from "path";
@@ -222,17 +221,6 @@ function ensureTempDir(): string {
   return _tempDir;
 }
 
-async function prettyPrint(input: string, outputPath: string): Promise<void> {
-  return new Promise<void>(resolve => {
-    const child = spawn("xmllint", ["--format", "--output", outputPath, "-"],
-                        { stdio: ["pipe", "inherit", "inherit"] });
-    child.stdin.end(input);
-    child.on("exit", () => {
-      resolve(undefined);
-    });
-  });
-}
-
 /**
  * Meant to be used as the ``after`` call back for ``executeStep``. Performs the
  * conversion from RNG to JS.
@@ -242,7 +230,8 @@ async function prettyPrint(input: string, outputPath: string): Promise<void> {
 async function convert(result: SimplificationResult): Promise<void> {
   const simplified = result.simplified;
   if (args.simplify_only && !args.no_output) {
-    return prettyPrint(serialize(simplified), args.output_path);
+    return fs.promises.writeFile(args.output_path,
+                                 serialize(simplified, { prettyPrint: true }));
   }
 
   if (result.warnings.length !== 0 &&
