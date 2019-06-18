@@ -16,7 +16,7 @@ import { Empty } from "./empty";
  * A pattern for ``<choice>``.
  */
 export class Choice extends TwoSubpatterns {
-  optional: boolean;
+  private readonly optional: boolean;
 
   constructor(xmlPath: string, patA: Pattern, patB: Pattern) {
     super(xmlPath, patA, patB);
