@@ -539,62 +539,62 @@ abstract class Base<T> implements Datatype<T> {
     // Inter-parameter checks. There's no point in trying to generalize
     // this.
 
-    /* tslint:disable: no-string-literal */
-    if (ret["minLength"] > ret["maxLength"]) {
+    const { minLength, maxLength, maxInclusive, maxExclusive, minInclusive,
+            minExclusive } = ret;
+    if (minLength > maxLength) {
       errors.push(new ParamError(
         "minLength must be less than or equal to maxLength"));
     }
 
-    if (ret["length"] !== undefined) {
-      if (ret["minLength"] !== undefined) {
+    if (ret.length !== undefined) {
+      if (minLength !== undefined) {
         errors.push(new ParamError(
           "length and minLength cannot appear together"));
       }
-      if (ret["maxLength"] !== undefined) {
+      if (maxLength !== undefined) {
         errors.push(new ParamError(
           "length and maxLength cannot appear together"));
       }
     }
 
-    if (ret["maxInclusive"] !== undefined) {
-      if (ret["maxExclusive"] !== undefined) {
+    if (maxInclusive !== undefined) {
+      if (maxExclusive !== undefined) {
         errors.push(new ParamError(
           "maxInclusive and maxExclusive cannot appear together"));
       }
 
       // maxInclusive, minExclusive
-      if (ret["minExclusive"] >= ret["maxInclusive"]) {
+      if (minExclusive >= maxInclusive) {
         errors.push(new ParamError(
           "minExclusive must be less than maxInclusive"));
       }
     }
 
-    if (ret["minInclusive"] !== undefined) {
-      if (ret["minExclusive"] !== undefined) {
+    if (minInclusive !== undefined) {
+      if (minExclusive !== undefined) {
         errors.push(new ParamError(
           "minInclusive and minExclusive cannot appear together"));
       }
 
       // maxInclusive, minInclusive
-      if (ret["minInclusive"] > ret["maxInclusive"]) {
+      if (minInclusive > maxInclusive) {
         errors.push(new ParamError(
           "minInclusive must be less than or equal to maxInclusive"));
       }
 
       // maxExclusive, minInclusive
-      if (ret["minInclusive"] >= ret["maxExclusive"]) {
+      if (minInclusive >= maxExclusive) {
         errors.push(new ParamError(
           "minInclusive must be less than maxExclusive"));
       }
     }
 
     // maxExclusive, minExclusive
-    if (ret["minExclusive"] > ret["maxExclusive"]) {
+    if (minExclusive > maxExclusive) {
       errors.push(new ParamError(
         "minExclusive must be less than or equal to maxExclusive"));
     }
 
-    /* tslint:enable: no-string-literal */
     if (errors.length !== 0) {
       throw new ParameterParsingError(location, errors);
     }
@@ -834,53 +834,52 @@ class integer extends decimal {
   }
 
   parseParams(location: string, params?: RawParameter[]): ParsedParams {
-    let me: any;
-    let mi: any;
     const ret = super.parseParams(location, params);
 
     function fail(message: string): never {
       throw new ParameterParsingError(location, [new ParamError(message)]);
     }
 
-    const highestVal = this.highestVal;
+    const { highestVal, lowestVal } = this;
     if (highestVal !== undefined) {
-      /* tslint:disable:no-string-literal */
-      if (ret["maxExclusive"] !== undefined) {
-        me = ret["maxExclusive"];
+      const me = ret.maxExclusive;
+      if (me !== undefined) {
         if (me > highestVal) {
           fail(`maxExclusive cannot be greater than ${highestVal}`);
         }
       }
-      else if (ret["maxInclusive"] !== undefined) {
-        mi = ret["maxInclusive"];
-        if (mi > highestVal) {
-          fail(`maxInclusive cannot be greater than ${highestVal}`);
-        }
-      }
       else {
-        ret["maxInclusive"] = highestVal;
+        const mi = ret.maxInclusive;
+        if (mi !== undefined) {
+          if (mi > highestVal) {
+            fail(`maxInclusive cannot be greater than ${highestVal}`);
+          }
+        }
+        else {
+          ret.maxInclusive = highestVal;
+        }
       }
     }
 
-    const lowestVal = this.lowestVal;
     if (lowestVal !== undefined) {
-      if (ret["minExclusive"] !== undefined) {
-        me = ret["minExclusive"];
+      const me = ret.minExclusive;
+      if (me !== undefined) {
         if (me < lowestVal) {
           fail(`minExclusive cannot be lower than ${this.lowestVal}`);
         }
       }
-      else if (ret["minInclusive"] !== undefined) {
-        mi = ret["minInclusive"];
-        if (mi < lowestVal) {
-          fail(`minInclusive cannot be lower than ${this.lowestVal}`);
+      else {
+        const mi = ret.minInclusive;
+        if (mi !== undefined) {
+          if (mi < lowestVal) {
+            fail(`minInclusive cannot be lower than ${this.lowestVal}`);
+          }
+        }
+        else {
+          ret.minInclusive = lowestVal;
         }
       }
-      else {
-        ret["minInclusive"] = lowestVal;
-      }
     }
-    /* tslint:enable:no-string-literal */
 
     return ret;
   }
