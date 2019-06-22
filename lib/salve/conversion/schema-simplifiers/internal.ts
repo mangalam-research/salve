@@ -20,6 +20,7 @@ import { ManifestEntry, registerSimplifier, SchemaSimplifierOptions,
          SimplificationResult } from "../schema-simplification";
 import { SchemaValidationError } from "../schema-validation";
 import * as simplifier from "../simplifier";
+import { findMultiDescendantsByLocalName } from "../simplifier/util";
 import { BaseSimplifier } from "./base";
 import { fromQNameToURI, localName } from "./common";
 
@@ -60,7 +61,6 @@ const enum ContentType {
 }
 
 interface State {
-  inStart: boolean;
   inAttribute: boolean;
   inList: boolean;
   inDataExcept: boolean;
@@ -149,6 +149,9 @@ const NOT_ALLOWED_RESULT: CheckResult = {
   occurringTexts: false,
 };
 
+const FORBIDDEN_IN_START = ["attribute", "data", "value", "text", "list",
+                            "group", "interleave", "oneOrMore", "empty"];
+
 type Handler = (this: GeneralChecker, el: Element,
                 state: State) => CheckResult;
 
@@ -172,22 +175,16 @@ class GeneralChecker {
     }
     this.definesByName = definesByName;
 
-    // The first child of <grammar> is necessarily <start>. So we handle
-    // start here.
-    this._check((children[0] as Element).children[0] as Element, {
-      inStart: true,
-      inAttribute: false,
-      inList: false,
-      inDataExcept: false,
-      inOneOrMore: false,
-      inOneOrMoreGroup: false,
-      inOneOrMoreInterleave: false,
-      inInterlave: false,
-      inGroup: false,
-    });
+    const start = children[0] as Element;
+
+    const found = findMultiDescendantsByLocalName(start, FORBIDDEN_IN_START);
+    for (const forbidden of FORBIDDEN_IN_START) {
+      if (found[forbidden].length !== 0) {
+        throw new ProhibitedStartPath(forbidden);
+      }
+    }
 
     const state = {
-      inStart: false,
       inAttribute: false,
       inList: false,
       inDataExcept: false,
@@ -197,6 +194,10 @@ class GeneralChecker {
       inInterlave: false,
       inGroup: false,
     };
+
+    // The first child of <grammar> is necessarily <start>. So we handle
+    // start here.
+    this._check(start.children[0] as Element, state);
 
     // The other children are necessarily <define>.
     for (let ix = 1; ix < children.length; ++ix) {
@@ -236,10 +237,6 @@ on string values (section 7.2)`);
       throw new ProhibitedListPath(el.local);
     }
 
-    if (state.inStart) {
-      throw new ProhibitedStartPath(el.local);
-    }
-
     if (state.inDataExcept) {
       throw new ProhibitedDataExceptPath(el.local);
     }
@@ -263,10 +260,6 @@ class must be a descendant of oneOrMore (section 7.3)");
   }
 
   oneOrMoreHandler(el: Element, state: State): CheckResult {
-    if (state.inStart) {
-      throw new ProhibitedStartPath(el.local);
-    }
-
     if (state.inDataExcept) {
       throw new ProhibitedDataExceptPath(el.local);
     }
@@ -291,10 +284,6 @@ class must be a descendant of oneOrMore (section 7.3)");
   }
 
   groupHandler(el: Element, state: State): CheckResult {
-    if (state.inStart) {
-      throw new ProhibitedStartPath(el.local);
-    }
-
     if (state.inDataExcept) {
       throw new ProhibitedDataExceptPath(el.local);
     }
@@ -310,10 +299,6 @@ class must be a descendant of oneOrMore (section 7.3)");
   }
 
   interleaveHandler(el: Element, state: State): CheckResult {
-    if (state.inStart) {
-      throw new ProhibitedStartPath(el.local);
-    }
-
     if (state.inList) {
       throw new ProhibitedListPath(el.local);
     }
@@ -353,10 +338,6 @@ class must be a descendant of oneOrMore (section 7.3)");
       throw new ProhibitedListPath(el.local);
     }
 
-    if (state.inStart) {
-      throw new ProhibitedStartPath(el.local);
-    }
-
     if (state.inDataExcept) {
       throw new ProhibitedDataExceptPath(el.local);
     }
@@ -367,10 +348,6 @@ class must be a descendant of oneOrMore (section 7.3)");
   }
 
   dataHandler(el: Element, state: State): CheckResult {
-    if (state.inStart) {
-      throw new ProhibitedStartPath(el.local);
-    }
-
     const typeAttr = el.mustGetAttribute("type");
     const libname = el.mustGetAttribute("datatypeLibrary");
     const lib = registry.find(libname);
@@ -430,10 +407,6 @@ ${libname}`);
   }
 
   valueHandler(el: Element, state: State): CheckResult {
-    if (state.inStart) {
-      throw new ProhibitedStartPath(el.local);
-    }
-
     const typeAttr = el.mustGetAttribute("type");
     const libname = el.mustGetAttribute("datatypeLibrary");
     let ns = el.mustGetAttribute("ns");
@@ -485,10 +458,6 @@ ${libname}`);
       throw new ProhibitedListPath(el.local);
     }
 
-    if (state.inStart) {
-      throw new ProhibitedStartPath(el.local);
-    }
-
     if (state.inDataExcept) {
       throw new ProhibitedDataExceptPath(el.local);
     }
@@ -518,10 +487,6 @@ ${libname}`);
   }
 
   emptyHandler(el: Element, state: State): CheckResult {
-    if (state.inStart) {
-      throw new ProhibitedStartPath(el.local);
-    }
-
     if (state.inDataExcept) {
       throw new ProhibitedDataExceptPath(el.local);
     }
