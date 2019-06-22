@@ -250,9 +250,8 @@ export abstract class TwoSubpatterns extends Pattern {
 }
 
 export function isAttributeEvent(name: string): boolean {
-  // Using a set here is not clearly faster than using this logic.
-  return (name === "attributeName" || name === "attributeValue" ||
-          name === "attributeNameAndValue");
+  return name === "attributeName" || name === "attributeValue" ||
+    name === "attributeNameAndValue";
 }
 
 interface NodeMap extends Map<string, false | NodeMap> {}

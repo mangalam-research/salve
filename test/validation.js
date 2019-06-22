@@ -843,7 +843,7 @@ describe("Name pattern", () => {
     let np;
 
     before(() => {
-      np = new salve.Name("", "a", "b");
+      np = new salve.Name("a", "b");
     });
 
     it("is simple", () => {
@@ -874,7 +874,7 @@ describe("Name pattern", () => {
     it("converts to a string", () => {
       // eslint-disable-next-line quotes
       assert.equal(np.toString(), `{"ns":"a","name":"b"}`);
-      assert.equal(new salve.Name("", "1\"\\2", "q").toString(),
+      assert.equal(new salve.Name("1\"\\2", "q").toString(),
                    // eslint-disable-next-line quotes
                    `{"ns":"1\\"\\\\2","name":"q"}`);
     });
@@ -889,11 +889,11 @@ describe("Name pattern", () => {
       });
 
       it("not with a name in a different namespace", () => {
-        assert.isFalse(np.intersects(new salve.Name("", `${np.ns}x`, np.name)));
+        assert.isFalse(np.intersects(new salve.Name(`${np.ns}x`, np.name)));
       });
 
       it("not with a name with a different local part", () => {
-        assert.isFalse(np.intersects(new salve.Name("", np.ns, `${np.name}x`)));
+        assert.isFalse(np.intersects(new salve.Name(np.ns, `${np.name}x`)));
       });
     });
   });
@@ -906,11 +906,11 @@ describe("Name pattern", () => {
     let b;
 
     before(() => {
-      Asimple = new salve.Name("", "a", "b");
-      Acomplex = new salve.AnyName("");
-      b = new salve.Name("", "c", "d");
-      simple = new salve.NameChoice("", Asimple, b);
-      complex = new salve.NameChoice("", Acomplex, b);
+      Asimple = new salve.Name("a", "b");
+      Acomplex = new salve.AnyName();
+      b = new salve.Name("c", "d");
+      simple = new salve.NameChoice(Asimple, b);
+      complex = new salve.NameChoice(Acomplex, b);
     });
 
     it("is simple or complex depending on contents", () => {
@@ -942,7 +942,7 @@ describe("Name pattern", () => {
       assert.isTrue(complex.wildcardMatch("c", "d"));
 
       const x = new salve.NameChoice(
-        "", new salve.AnyName("", new salve.Name("", "c", "d")), b);
+        new salve.AnyName(new salve.Name("c", "d")), b);
       // This is false because our AnyName explicitly excludes {c}d.
       assert.isFalse(x.wildcardMatch("c", "d"));
       assert.isTrue(x.wildcardMatch("a", "b"));
@@ -980,7 +980,7 @@ describe("Name pattern", () => {
       });
 
       it("not if the two patterns don't interect", () => {
-        assert.isFalse(simple.intersects(new salve.Name("", "zzz", "zzz")));
+        assert.isFalse(simple.intersects(new salve.Name("zzz", "zzz")));
       });
     });
   });
@@ -990,8 +990,8 @@ describe("Name pattern", () => {
     let withExcept;
 
     before(() => {
-      np = new salve.NsName("", "a");
-      withExcept = new salve.NsName("", "a", new salve.Name("", "a", "b"));
+      np = new salve.NsName("a");
+      withExcept = new salve.NsName("a", new salve.Name("a", "b"));
     });
 
     it("is not simple", () => {
@@ -1037,7 +1037,7 @@ describe("Name pattern", () => {
                    `{"ns":"a","except":{"ns":"a","name":"b"}}`);
       // eslint-disable-next-line quotes
       assert.equal(np.toString(), `{"ns":"a"}`);
-      assert.equal(new salve.NsName("", "1\"\\2").toString(),
+      assert.equal(new salve.NsName("1\"\\2").toString(),
                    // eslint-disable-next-line quotes
                    `{"ns":"1\\"\\\\2"}`);
     });
@@ -1054,30 +1054,30 @@ describe("Name pattern", () => {
 
       it("with a NsName with the same @ns", () => {
         // The except has no effect so with test without and with.
-        assert.isTrue(np.intersects(new salve.NsName("", "a")));
-        assert.isTrue(withExcept.intersects(new salve.NsName("", "a")));
+        assert.isTrue(np.intersects(new salve.NsName("a")));
+        assert.isTrue(withExcept.intersects(new salve.NsName("a")));
       });
 
       it("not with a NsName with a different @ns", () => {
         // The except has no effect so with test without and with.
-        assert.isFalse(np.intersects(new salve.NsName("", "zzz")));
-        assert.isFalse(withExcept.intersects(new salve.NsName("", "zzz")));
+        assert.isFalse(np.intersects(new salve.NsName("zzz")));
+        assert.isFalse(withExcept.intersects(new salve.NsName("zzz")));
       });
 
       it("with a Name with the same @ns", () => {
-        assert.isTrue(np.intersects(new salve.Name("", "a", "zzz")));
+        assert.isTrue(np.intersects(new salve.Name("a", "zzz")));
       });
 
       it("not with a Name with a different @ns", () => {
-        assert.isFalse(np.intersects(new salve.Name("", "b", "zzz")));
+        assert.isFalse(np.intersects(new salve.Name("b", "zzz")));
       });
 
       it("not with a Name if the exception is hit", () => {
-        assert.isFalse(withExcept.intersects(new salve.Name("", "a", "b")));
+        assert.isFalse(withExcept.intersects(new salve.Name("a", "b")));
       });
 
       it("with a Name if the exception not hit", () => {
-        assert.isTrue(withExcept.intersects(new salve.Name("", "a", "zzz")));
+        assert.isTrue(withExcept.intersects(new salve.Name("a", "zzz")));
       });
     });
   });
@@ -1090,24 +1090,19 @@ describe("Name pattern", () => {
     let doubleExceptWithChoice;
 
     before(() => {
-      np = new salve.AnyName("");
-      withExcept = new salve.AnyName("", new salve.Name("", "a", "b"));
-      withNsNameExcept = new salve.AnyName("", new salve.NsName("", "a"));
+      np = new salve.AnyName();
+      withExcept = new salve.AnyName(new salve.Name("a", "b"));
+      withNsNameExcept = new salve.AnyName(new salve.NsName("a"));
       // This matches all names in all namespaces, except for namespace "a"
       // where it matches only "{a}foo".
       doubleExcept =
-        new salve.AnyName("",
-                          new salve.NsName("", "a",
-                                           new salve.Name("", "a", "foo")));
+        new salve.AnyName(new salve.NsName("a", new salve.Name("a", "foo")));
       // This is the same as the previous one, except that it also excludes
       // {q}moo from the names matched.
       doubleExceptWithChoice =
-        new salve.AnyName("",
-                          new salve.NameChoice(
-                            "",
-                            new salve.Name("", "q", "moo"),
-                            new salve.NsName("", "a",
-                                             new salve.Name("", "a", "foo"))));
+        new salve.AnyName(new salve.NameChoice(
+                            new salve.Name("q", "moo"),
+                            new salve.NsName("a", new salve.Name("a", "foo"))));
     });
 
     it("is not simple", () => {
@@ -1161,99 +1156,89 @@ describe("Name pattern", () => {
 
       it("with another anyName", () => {
         // The except has no effect so with test without and with.
-        assert.isTrue(np.intersects(new salve.AnyName("")));
-        assert.isTrue(withExcept.intersects(new salve.AnyName("")));
+        assert.isTrue(np.intersects(new salve.AnyName()));
+        assert.isTrue(withExcept.intersects(new salve.AnyName()));
       });
 
       it("with a Name, when there is no exception", () => {
-        assert.isTrue(np.intersects(new salve.Name("", "a", "zzz")));
+        assert.isTrue(np.intersects(new salve.Name("a", "zzz")));
       });
 
       it("not with a Name if the exception is hit", () => {
-        assert.isFalse(withExcept.intersects(new salve.Name("", "a", "b")));
+        assert.isFalse(withExcept.intersects(new salve.Name("a", "b")));
       });
 
       it("with a Name if the exception not hit", () => {
-        assert.isTrue(withExcept.intersects(new salve.Name("", "a", "zzz")));
+        assert.isTrue(withExcept.intersects(new salve.Name("a", "zzz")));
       });
 
       it("with an NsName, when there is no exception", () => {
-        assert.isTrue(np.intersects(new salve.NsName("", "a")));
+        assert.isTrue(np.intersects(new salve.NsName("a")));
       });
 
       it("not with an NsName if the exception is hit", () => {
-        assert.isFalse(withNsNameExcept.intersects(new salve.NsName("", "a")));
+        assert.isFalse(withNsNameExcept.intersects(new salve.NsName("a")));
       });
 
       it("with an NsName if the exception not hit", () => {
-        assert.isTrue(withNsNameExcept.intersects(new salve.NsName("", "zzz")));
+        assert.isTrue(withNsNameExcept.intersects(new salve.NsName("zzz")));
       });
 
       describe("when having a double except", () => {
         it("with a Name matching the inner except", () => {
           assert.isTrue(
-            doubleExcept.intersects(new salve.Name("", "a", "foo")));
+            doubleExcept.intersects(new salve.Name("a", "foo")));
         });
 
         it("with an NsName matching the except", () => {
-          assert.isTrue(doubleExcept.intersects(new salve.NsName("", "a")));
+          assert.isTrue(doubleExcept.intersects(new salve.NsName("a")));
         });
 
         it("with an NsName avoiding all excepts", () => {
-          assert.isTrue(doubleExcept.intersects(new salve.NsName("", "b")));
+          assert.isTrue(doubleExcept.intersects(new salve.NsName("b")));
         });
 
         it("with a Name avoiding all excepts", () => {
           assert.isTrue(
-            doubleExcept.intersects(new salve.Name("", "zzz", "foo")));
+            doubleExcept.intersects(new salve.Name("zzz", "foo")));
         });
 
         it("not with a Name avoiding the inner except", () => {
           assert.isFalse(
-            doubleExcept.intersects(new salve.Name("", "a", "blah")));
+            doubleExcept.intersects(new salve.Name("a", "blah")));
         });
 
         it("not with an NsName that except the inner except", () => {
           assert.isFalse(
-            doubleExcept.intersects(
-              new salve.NsName("", "a",
-                               new salve.Name("", "a", "foo"))));
+            doubleExcept.intersects(new salve.NsName("a", new salve.Name("a", "foo"))));
         });
       });
 
       describe("when having a double except with choice", () => {
         it("with a Name matching the inner except", () => {
-          assert.isTrue(
-            doubleExceptWithChoice.intersects(new salve.Name("", "a", "foo")));
+          assert.isTrue(doubleExceptWithChoice.intersects(new salve.Name("a", "foo")));
         });
 
         it("with an NsName matching the except", () => {
-          assert.isTrue(doubleExceptWithChoice.intersects(
-            new salve.NsName("", "a")));
+          assert.isTrue(doubleExceptWithChoice.intersects(new salve.NsName("a")));
         });
 
         it("with an NsName avoiding all excepts", () => {
-          assert.isTrue(doubleExceptWithChoice.intersects(
-            new salve.NsName("", "b")));
+          assert.isTrue(doubleExceptWithChoice.intersects(new salve.NsName("b")));
         });
 
         it("with a Name avoiding all excepts", () => {
-          assert.isTrue(
-            doubleExceptWithChoice.intersects(
-              new salve.Name("", "zzz", "foo")));
+          assert.isTrue(doubleExceptWithChoice.intersects(new salve.Name("zzz", "foo")));
         });
 
         it("not with a Name avoiding the inner except", () => {
-          assert.isFalse(
-            doubleExceptWithChoice.intersects(
-              new salve.Name("", "a", "blah")));
+          assert.isFalse(doubleExceptWithChoice.intersects(new salve.Name("a", "blah")));
         });
 
         it("not with an NsName that except the inner except", () => {
           assert.isFalse(
             doubleExceptWithChoice.intersects(
-              new salve.NsName("", "a",
-                               new salve.Name("", "a", "foo"))));
+              new salve.NsName("a", new salve.Name("a", "foo"))));
         });
       });
     });

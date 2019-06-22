@@ -90,18 +90,17 @@ function walk(el: Element): (Pattern | ElementPattern | Grammar) {
 function walkNameClass(el: Element): ConcreteName {
   switch (el.local) {
     case "choice":
-      return new NameChoice(el.path,
-                            walkNameClass(el.children[0] as Element),
+      return new NameChoice(walkNameClass(el.children[0] as Element),
                             walkNameClass(el.children[1] as Element));
     case "name":
-      return new Name(el.path, el.mustGetAttribute("ns"), el.text);
+      return new Name(el.mustGetAttribute("ns"), el.text);
     case "nsName":
-      return new NsName(el.path, el.mustGetAttribute("ns"),
+      return new NsName(el.mustGetAttribute("ns"),
                         el.children.length !== 0 ?
                         walkNameClass(el.children[0] as Element) :
                         undefined);
     case "anyName":
-      return new AnyName(el.path, el.children.length !== 0 ?
+      return new AnyName(el.children.length !== 0 ?
                          walkNameClass(el.children[0] as Element) :
                          undefined);
     case "except":

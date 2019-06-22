@@ -17,13 +17,6 @@ export abstract class Base {
   private _asString?: string;
 
   /**
-   * @param path The XML path of the element that corresponds to this
-   * object in the Relax NG schema from which this object was constructed.
-   */
-  constructor(readonly path: string) {
-  }
-
-  /**
    * Tests whether the pattern matches a name.
    *
    * @param ns The namespace to match.
@@ -182,16 +175,14 @@ export class Name extends Base {
   readonly kind: "Name" = "Name";
 
   /**
-   * @param path See parent class.
-   *
    * @param ns The namespace URI for this name. Corresponds to the
    * ``ns`` attribute in the simplified Relax NG syntax.
    *
    * @param name The name. Corresponds to the content of ``<name>``
    * in the simplified Relax NG syntax.
    */
-  constructor(path: string, readonly ns: string, readonly name: string) {
-    super(path);
+  constructor(readonly ns: string, readonly name: string) {
+    super();
   }
 
   match(ns: string, name: string): boolean {
@@ -260,15 +251,12 @@ export class NameChoice extends Base {
   readonly kind: "NameChoice" = "NameChoice";
 
   /**
-   * @param path See parent class.
-   *
    * @param a The first choice.
    *
    * @param b The second choice.
    */
-  constructor(path: string, readonly a: ConcreteName,
-              readonly b: ConcreteName) {
-    super(path);
+  constructor(readonly a: ConcreteName, readonly b: ConcreteName) {
+    super();
   }
 
   /**
@@ -287,9 +275,9 @@ export class NameChoice extends Base {
     let ret: ConcreteName;
     if (names.length > 1) {
       // More than one name left. Convert them to a tree.
-      let top = new NameChoice("", names[0], names[1]);
+      let top = new NameChoice(names[0], names[1]);
       for (let ix = 2; ix < names.length; ix++) {
-        top = new NameChoice("", top, names[ix]);
+        top = new NameChoice(top, names[ix]);
       }
 
       ret = top;
@@ -318,7 +306,7 @@ export class NameChoice extends Base {
     const a = this.a.intersection(other);
     const b = this.b.intersection(other);
 
-    return a === 0 ? b : (b === 0 ? a : new NameChoice("", a, b));
+    return a === 0 ? b : (b === 0 ? a : new NameChoice(a, b));
   }
 
   /**
@@ -337,7 +325,7 @@ export class NameChoice extends Base {
     const newB = isNameChoice(b) ? b.applyRecursively(fn) : fn(b);
 
     return newA === 0 ? newB :
-      (newB === 0 ? newA : new NameChoice(this.path, newA, newB));
+      (newB === 0 ? newA : new NameChoice(newA, newB));
   }
 
   wildcardMatch(ns: string, name: string): boolean {
@@ -382,18 +370,14 @@ export class NsName extends Base {
   readonly kind: "NsName" = "NsName";
 
   /**
-   *
-   * @param path See parent class.
-   *
    * @param ns The namespace URI for this name. Corresponds to the ``ns``
    * attribute in the simplified Relax NG syntax.
    *
    * @param except Corresponds to an ``<except>`` element appearing as a child
    * of the ``<nsName>`` element in the Relax NG schema.
    */
-  constructor(path: string, readonly ns: string,
-              readonly except?: ConcreteName) {
-    super(path);
+  constructor(readonly ns: string, readonly except?: ConcreteName) {
+    super();
   }
 
   match(ns: string, name: string): boolean {
@@ -461,7 +445,7 @@ export class NsName extends Base {
             theseNames.concat(otherNames)
               .map(name => [`{${name.ns}}${name.name}`, name])).values());
 
-        return new NsName(this.path, this.ns, NameChoice.makeTree(names));
+        return new NsName(this.ns, NameChoice.makeTree(names));
       }
 
       return (other.except !== undefined) ? other : this;
@@ -498,10 +482,10 @@ export class NsName extends Base {
     }
 
     if (isName(other)) {
-      return new NsName(this.path, this.ns,
-                        (this.except === undefined) ?
+      return new NsName(this.ns,
+                        this.except === undefined ?
                         other :
-                        new NameChoice(this.path, this.except, other));
+                        new NameChoice(this.except, other));
     }
 
     if (other.except === undefined) {
@@ -580,13 +564,11 @@ export class AnyName extends Base {
   readonly kind: "AnyName" = "AnyName";
 
   /**
-   * @param path See parent class.
-   *
    * @param except Corresponds to an ``<except>`` element appearing as a child
    * of the ``<anyName>`` element in the Relax NG schema.
    */
-  constructor(path: string, readonly except?: ConcreteName) {
-    super(path);
+  constructor(readonly except?: ConcreteName) {
+    super();
   }
 
   match(ns: string, name: string): boolean {
@@ -661,9 +643,7 @@ export class AnyName extends Base {
 
     if (isAnyName(other)) {
       if (other.except !== undefined && this.except !== undefined) {
-        return new AnyName(this.path,
-                           new NameChoice(this.path,
-                                          this.except, other.except));
+        return new AnyName(new NameChoice(this.except, other.except));
       }
 
       return (other.except !== undefined) ? other : this;

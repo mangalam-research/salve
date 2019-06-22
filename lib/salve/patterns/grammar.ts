@@ -320,7 +320,7 @@ export class GrammarWalker<NR extends NameResolver> {
             [new ValidationError("text not allowed here")];
         }
 
-        const elName = new Name("", params[0], params[1]);
+        const elName = new Name(params[0], params[1]);
         // Try to infer what element is meant by this errant tag. If we can't
         // find a candidate, then fall back to a dumb mode.
         const candidates = this.el.elementDefinitions[elName.toString()];
@@ -346,14 +346,14 @@ export class GrammarWalker<NR extends NameResolver> {
             "tag not allowed here with these attributes", elName)];
       case "endTag":
         return [new ElementNameError("unexpected end tag",
-                                     new Name("", params[0], params[1]))];
+                                     new Name(params[0], params[1]))];
       case "attributeName":
         this._swallowAttributeValue = true;
         return [new AttributeNameError("attribute not allowed here",
-                                       new Name("", params[0], params[1]))];
+                                       new Name(params[0], params[1]))];
       case "attributeNameAndValue":
         return [new AttributeNameError("attribute not allowed here",
-                                       new Name("", params[0], params[1]))];
+                                       new Name(params[0], params[1]))];
       case "attributeValue":
         return [new ValidationError("unexpected attributeValue event; it \
 is likely that fireEvent is incorrectly called")];
@@ -463,7 +463,7 @@ ${name}`);
   private _processRefs(name: string, refs: readonly RefWalker[],
                        params: string[]): void {
     const newWalkers: InternalWalker[] = [];
-    const boundName = new Name("", params[0], params[1]);
+    const boundName = new Name(params[0], params[1]);
     if (name === "startTagAndAttributes") {
       for (const item of refs) {
         const walker = item.element.newWalker(boundName);

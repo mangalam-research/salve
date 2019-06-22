@@ -81,7 +81,7 @@ describe("events", () => {
   let name: Name;
 
   before(() => {
-    name = new Name("", "", "foo");
+    name = new Name("", "foo");
   });
 
   // tslint:disable-next-line:mocha-no-side-effect-code
@@ -89,7 +89,7 @@ describe("events", () => {
     name: "EnterStartTagEvent",
     builder: () => new EnterStartTagEvent(name),
     makeSame: () => [new EnterStartTagEvent(name),
-                     new EnterStartTagEvent(new Name("", "", "foo"))],
+                     new EnterStartTagEvent(new Name("", "foo"))],
     makeDiffClass: () => new AttributeNameEvent(name),
     expected: {
       name: "enterStartTag",
@@ -106,7 +106,7 @@ describe("events", () => {
     },
     moreEqualTests(): void {
       it("returns false if compared to different event", () => {
-        const diff = new EnterStartTagEvent(new Name("", "", "other"));
+        const diff = new EnterStartTagEvent(new Name("", "other"));
         // tslint:disable-next-line:no-invalid-this
         expect(this.builder().equals(diff)).to.be.false;
       });
@@ -137,7 +137,7 @@ describe("events", () => {
     name: "EndTagEvent",
     builder: () => new EndTagEvent(name),
     makeSame: () => [new EndTagEvent(name),
-                     new EndTagEvent(new Name("", "", "foo"))],
+                     new EndTagEvent(new Name("", "foo"))],
     makeDiffClass: () => new AttributeNameEvent(name),
     expected: {
       name: "endTag",
@@ -154,7 +154,7 @@ describe("events", () => {
     },
     moreEqualTests(): void {
       it("returns false if compared to different event", () => {
-        const diff = new EndTagEvent(new Name("", "", "other"));
+        const diff = new EndTagEvent(new Name("", "other"));
         // tslint:disable-next-line:no-invalid-this
         expect(this.builder().equals(diff)).to.be.false;
       });
@@ -166,7 +166,7 @@ describe("events", () => {
     name: "AttributeNameEvent",
     builder: () => new AttributeNameEvent(name),
     makeSame: () => [new AttributeNameEvent(name),
-                     new AttributeNameEvent(new Name("", "", "foo"))],
+                     new AttributeNameEvent(new Name("", "foo"))],
     makeDiffClass: () => new EnterStartTagEvent(name),
     expected: {
       name: "attributeName",
@@ -183,7 +183,7 @@ describe("events", () => {
     },
     moreEqualTests(): void {
       it("returns false if compared to different event", () => {
-        const diff = new AttributeNameEvent(new Name("", "", "other"));
+        const diff = new AttributeNameEvent(new Name("", "other"));
         // tslint:disable-next-line:no-invalid-this
         expect(this.builder().equals(diff)).to.be.false;
       });

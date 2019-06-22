@@ -184,10 +184,26 @@ const kindToArgFilter: (ArgFilter | undefined)[] = [
   undefined, // Grammar,
   undefined, // EName,
   twoPatternFilter, // Interleave,
-  undefined, // Name,
-  twoPatternFilter, // NameChoice,
-  undefined, // NsName,
-  undefined, // AnyName,
+
+  //
+  // The name pattern filters all drop the path information.
+  //
+
+  // Name,
+  (args: PathAndArgs) => args.slice(1),
+  // NameChoice,
+  (args: PathAndArgs) => {
+    if (args[1].length !== 2) {
+      throw new Error("NameChoice with an array of patterns that " +
+                      "contains other than 2 pattern");
+    }
+
+    return args[1];
+  },
+  // NsName,
+  (args: PathAndArgs) => args.slice(1),
+  // AnyName,
+  (args: PathAndArgs) => args.slice(1),
 ];
 
 /**
