@@ -12,7 +12,7 @@ import { removeUnreferencedDefs } from "./util";
 const skip = new Set(["name", "anyName", "nsName", "param", "empty",
                       "text", "value", "notAllowed", "ref"]);
 
-function walk(el: Element, refs: Set<string>): void {
+function walk(el: Element, ix: number, refs: Set<string>): void {
   const { local, children } = el;
 
   // Skip those elements that are empty or that cannot contain notAllowed.
@@ -28,9 +28,9 @@ function walk(el: Element, refs: Set<string>): void {
   // children. And due to the skip.has(local) test above, these children must be
   // Element objects. (<grammar> is the exception.)
   let [first, second] = children as [Element, Element];
-  walk(first, refs);
+  walk(first, 0, refs);
   if (second !== undefined) {
-    walk(second, refs);
+    walk(second, 1, refs);
   }
 
   // Elements may be removed by the above walks.
@@ -53,12 +53,12 @@ function walk(el: Element, refs: Set<string>): void {
       case "choice":
         if (firstNA && secondNA) {
           // A choice with two notAllowed is replaced with notAllowed.
-          parent.replaceChildWith(el, Element.makeElement("notAllowed", []));
+          parent.replaceChildAt(ix, Element.makeElement("notAllowed", []));
         }
         else {
           // A choice with exactly one notAllowed is replaced with the other
           // child of the choice.
-          parent.replaceChildWith(el, firstNA ? second : first);
+          parent.replaceChildAt(ix, firstNA ? second : first);
         }
         return;
       case "group":
@@ -68,11 +68,11 @@ function walk(el: Element, refs: Set<string>): void {
       case "list":
         // An attribute (or list, group, interleave, oneOrMore) with at least
         // one notAllowed is replaced with notAllowed.
-        parent.replaceChildWith(el, Element.makeElement("notAllowed", []));
+        parent.replaceChildAt(ix, Element.makeElement("notAllowed", []));
         return;
       case "except":
         // An except with notAllowed is removed.
-        el.parent!.removeChild(el);
+        parent!.removeChildAt(ix);
         return;
       default:
     }
@@ -116,8 +116,9 @@ export function step17(tree: Element): Element {
   const refs: Set<string> = new Set();
 
   // The top element is necessarily <grammar>, and it has only element children.
+  let ix = 0;
   for (const child of tree.children) {
-    walk(child as Element, refs);
+    walk(child as Element, ix++, refs);
   }
 
   removeUnreferencedDefs(tree, refs);
