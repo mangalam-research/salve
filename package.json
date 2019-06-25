@@ -35,7 +35,7 @@
     "file-url": "^3.0.0",
     "node-fetch": "^2.6.0",
     "require-dir": "^1.2.0",
-    "saxes": "^3.1.10",
+    "saxes": "^3.1.11",
     "temp": "^0.9.0",
     "tslib": "^1.10.0",
     "xregexp": "^4.2.4"
