@@ -54,7 +54,7 @@
     "bluebird": "^3.5.5",
     "chai": "^4.2.0",
     "child-process-promise": "^2.2.1",
-    "conventional-changelog-cli": "^2.0.21",
+    "conventional-changelog-cli": "^2.0.23",
     "del": "^4.1.1",
     "eslint": "^5.16.0",
     "eslint-config-lddubeau-base": "^3.0.5",
