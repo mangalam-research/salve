@@ -56,7 +56,7 @@
     "child-process-promise": "^2.2.1",
     "conventional-changelog-cli": "^2.0.23",
     "del": "^5.1.0",
-    "eslint": "^6.5.0",
+    "eslint": "^6.5.1",
     "eslint-config-lddubeau-base": "^4.0.2",
     "fancy-log": "^1.3.3",
     "gulp": "^4.0.2",
