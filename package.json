@@ -78,7 +78,7 @@
     "terser-webpack-plugin": "^2.2.1",
     "touch": "^3.1.0",
     "ts-node": "^8.4.1",
-    "tslint": "^5.20.0",
+    "tslint": "^5.20.1",
     "tslint-config-lddubeau": "^4.1.0",
     "typedoc": "^0.15.0",
     "typescript": "^3.7.2",
