@@ -79,7 +79,7 @@
     "touch": "^3.1.0",
     "ts-node": "^8.6.2",
     "tslint": "^5.20.1",
-    "tslint-config-lddubeau": "^4.1.0",
+    "tslint-config-lddubeau": "^4.1.1",
     "typedoc": "^0.16.2",
     "typescript": "^3.7.4",
     "versync": "^5.0.0",
