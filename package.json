@@ -41,7 +41,7 @@
     "xregexp": "^4.2.4"
   },
   "devDependencies": {
-    "@commitlint/cli": "^8.3.4",
+    "@commitlint/cli": "^8.3.5",
     "@commitlint/config-angular": "^8.3.4",
     "@types/argparse": "^1.0.38",
     "@types/chai": "^4.2.7",
