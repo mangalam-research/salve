@@ -75,7 +75,7 @@
     "mocha": "^6.2.2",
     "renovate-config-lddubeau": "^1.0.0",
     "source-map-support": "^0.5.16",
-    "terser-webpack-plugin": "^2.3.3",
+    "terser-webpack-plugin": "^2.3.4",
     "touch": "^3.1.0",
     "ts-node": "^8.6.2",
     "tslint": "^5.20.1",
