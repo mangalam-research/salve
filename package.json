@@ -38,7 +38,7 @@
     "saxes": "^4.0.2",
     "temp": "^0.9.1",
     "tslib": "^1.10.0",
-    "xregexp": "^4.2.4"
+    "xregexp": "^4.3.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^8.3.5",
