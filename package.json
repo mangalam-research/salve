@@ -27,7 +27,7 @@
   "license": "MPL-2.0",
   "engines": {
     "node": ">=8",
-    "npm": ">=6.14.0"
+    "npm": ">=6.14.1"
   },
   "dependencies": {
     "@trust/webcrypto": "git+https://github.com/lddubeau/webcrypto.git#fix/pass-string-to-digest",
