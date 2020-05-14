@@ -49,7 +49,7 @@
     "@types/mocha": "^5.2.7",
     "@types/node": "^10.17.21",
     "@types/node-fetch": "^2.5.7",
-    "@types/require-dir": "^1.0.0",
+    "@types/require-dir": "^1.0.1",
     "@types/temp": "^0.8.34",
     "bluebird": "^3.7.2",
     "chai": "^4.2.0",
