@@ -80,7 +80,7 @@
     "ts-node": "^8.10.1",
     "tslint": "^5.20.1",
     "tslint-config-lddubeau": "^4.1.2",
-    "typedoc": "^0.17.6",
+    "typedoc": "^0.17.7",
     "typescript": "^3.9.2",
     "versync": "^5.0.0",
     "webpack": "^4.43.0",
