@@ -46,7 +46,7 @@
     "@types/argparse": "^1.0.38",
     "@types/chai": "^4.2.11",
     "@types/file-url": "^2.0.0",
-    "@types/mocha": "^5.2.7",
+    "@types/mocha": "^7.0.2",
     "@types/node": "^10.17.27",
     "@types/node-fetch": "^2.5.7",
     "@types/require-dir": "^1.0.1",
