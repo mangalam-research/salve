@@ -37,7 +37,7 @@
     "require-dir": "^1.2.0",
     "saxes": "^4.0.2",
     "temp": "^0.9.1",
-    "tslib": "^1.12.0",
+    "tslib": "^1.14.1",
     "xregexp": "^4.3.0"
   },
   "devDependencies": {
